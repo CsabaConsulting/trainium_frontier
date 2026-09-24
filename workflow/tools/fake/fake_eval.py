@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import os
+import time
 
 p = argparse.ArgumentParser()
 p.add_argument("cmd", choices=["eval-public"])
@@ -34,3 +35,5 @@ elif mode == "nonfinite":
 print(json.dumps(row, indent=2, sort_keys=True))
 if mode == "multiple":
     print(json.dumps(row))
+elif mode == "hang_after_json":
+    time.sleep(30)

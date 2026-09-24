@@ -166,6 +166,45 @@ commit_evidence DIRTY-refusal
 runj DIRTY FAKE_BPB=0.9922
 commit_evidence DIRTY-retry
 
+# Every phase artifact is refused before Popen. A post-Popen receipt failure is also
+# fail-closed: the tagged child is stopped, reaped and quiesced before the lease unwinds.
+mkjob_raw STAGE F10d flag_arm
+mkdir research/v2/experiments/STAGE/runtime-train
+touch research/v2/experiments/STAGE/runtime-train/.keep
+commit_job STAGE
+if runj STAGE; then exit 1; else test $? -eq 4; fi
+test ! -e research/v2/experiments/STAGE/launch-train.json
+commit_evidence STAGE-refusal
+
+python3 - "$W" "$T" <<'PY'
+import pathlib, sys
+sys.path.insert(0, sys.argv[1])
+import contained, run_job
+tmp = pathlib.Path(sys.argv[2]); d = tmp / "post-popen"; repo = tmp / "post-popen-repo"
+d.mkdir(); repo.mkdir(); original = run_job.write_new; failed = False
+def fail_once(path, value):
+    global failed
+    if not failed and pathlib.Path(path).name == "launch.json":
+        failed = True
+        raise OSError("injected post-Popen receipt failure")
+    return original(path, value)
+run_job.write_new = fail_once
+label = "POSTPOPEN"
+try:
+    run_job.launch_and_wait(
+        {"use_cgroup": False, "env": {}, "quiescence_window_s": .02, "stop_grace_s": .2},
+        d, repo, label, [sys.executable, "-c", "import time; time.sleep(30)"],
+        "run.log", 60, {}, "train")
+except run_job.JobError as exc:
+    assert exc.code == 5 and exc.stage == "train"
+else:
+    raise SystemExit("post-Popen receipt failure was accepted")
+finally:
+    run_job.write_new = original
+assert not contained.tagged_pids(label), contained.describe(contained.tagged_pids(label))
+assert (d / "quiescence-train.json").is_file()
+PY
+
 # The canonical host lock is exclusive across distinct labels. Exactly one runner launches;
 # the lock-refused (preflight-only) label remains retryable after the active evidence is committed.
 mkjob_raw LOCK1 FLOCK1 flag_arm; commit_job LOCK1
@@ -200,6 +239,42 @@ mkjob_raw CBAD F12 flag_arm; commit_job CBAD
 if runj CBAD FAKE_CAUSALITY=fail; then exit 1; else test $? -eq 6; fi
 test -f out/CBAD/final.pt && ! grep -q '"label": "CBAD"' research/v2/ledger.jsonl
 commit_evidence CBAD
+
+# A canonical-looking JSON object emitted before an outer timeout is never selectable.
+mkjob_raw ETIME F12e flag_arm
+python3 - research/v2/experiments/ETIME/job.json <<'PY'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p)); d["eval_timeout_s"] = 2
+json.dump(d, open(p, "w"), sort_keys=True); open(p, "a").write("\n")
+PY
+commit_job ETIME
+python3 - "$T/host.json" "$T/host-short-eval.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["eval_args"][-1] = "1"
+json.dump(d, open(sys.argv[2], "w"))
+PY
+set +e
+env FAKE_EVAL_MODE=hang_after_json python3 "$W/run_job.py" --host-config "$T/host-short-eval.json" \
+  --job "$R/research/v2/experiments/ETIME/job.json" --repo "$R" \
+  > "$T/ETIME.out" 2> "$T/ETIME.err"
+etime_rc=$?
+set -e
+test "$etime_rc" -eq 6
+test -f out/ETIME/final.pt && ! grep -q '"label": "ETIME"' research/v2/ledger.jsonl
+grep -q 'evaluation outer timeout' "$T/ETIME.out"
+commit_evidence ETIME
+
+mkjob_raw CTIME F12c flag_arm
+python3 - research/v2/experiments/CTIME/job.json <<'PY'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p)); d["causality_timeout_s"] = 1
+json.dump(d, open(p, "w"), sort_keys=True); open(p, "a").write("\n")
+PY
+commit_job CTIME
+if runj CTIME FAKE_CAUSALITY=hang_after_json; then exit 1; else test $? -eq 6; fi
+test -f out/CTIME/final.pt && ! grep -q '"label": "CTIME"' research/v2/ledger.jsonl
+grep -q 'causality outer timeout' "$T/CTIME.out"
+commit_evidence CTIME
 
 # Archive/record/ledger/verdict injected failures all preserve the source checkpoint.
 for stage in archive record ledger verdict; do
@@ -266,6 +341,25 @@ for name, text in variants:
         pass
     else:
         raise SystemExit(f"malformed eval accepted: {name}")
+PY
+
+# Eval identity is closed: duplicate later source/checkpoint options cannot redirect argparse.
+python3 - "$W" "$T" <<'PY'
+import pathlib, sys
+sys.path.insert(0, sys.argv[1])
+import run_job
+tmp = pathlib.Path(sys.argv[2]); out = tmp / "eval-identity-out"
+job = {"train_py": "train.py"}
+for option, value in (("--checkpoint", "/tmp/alternate.pt"),
+                      ("--train-py", "/tmp/alternate.py")):
+    cfg = {"python": "python3", "eval_args": ["--seq-len", "1024", "--eval-tokens",
+           "20971520", "--timeout-seconds", "60", option, value]}
+    try:
+        run_job.build_eval_cmd(cfg, job, out)
+    except run_job.JobError:
+        pass
+    else:
+        raise SystemExit(f"duplicate eval identity option accepted: {option}")
 PY
 
 # Missing/duplicate/non-finite training summaries fail closed.
@@ -354,7 +448,7 @@ left="$(python3 - "$W" <<'PY'
 import sys
 sys.path.insert(0, sys.argv[1]); import contained
 labels = ["C1", "C2", "F6", "E1", "B1", "X1", "ENV1", "CFGENV", "DIRTY",
-          "LOCK1", "LOCK2", "EVBAD", "CBAD"]
+          "STAGE", "POSTPOPEN", "LOCK1", "LOCK2", "EVBAD", "CBAD", "ETIME", "CTIME"]
 live = {x: contained.tagged_pids(x) for x in labels}
 print({k: v for k, v in live.items() if v})
 PY

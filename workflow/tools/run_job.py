@@ -335,8 +335,15 @@ def preflight(cfg, job, d, repo, out_dir, env) -> dict:
     ledger = repo / "research/v2/ledger.jsonl"
     if job["label"] in ledger_labels(ledger):
         problems.append("label already exists in ledger")
-    if any((d / name).exists() or (d / name).is_symlink()
-           for name in ("preflight.json", "claim.json", "launch-train.json", "record.json", "verdict.json")):
+    stage_artifacts = (
+        "preflight.json", "claim.json", "run.log", "eval.log", "causality.log",
+        "launch-train.json", "launch-eval.json", "launch-causality.json",
+        "runtime-train", "runtime-eval", "runtime-causality",
+        "quiescence-train.json", "quiescence-eval.json", "quiescence-causality.json",
+        "train-summary.json", "eval.json", "causality.json", "archive.json",
+        "record.json", "verdict.json", "prune-authorized.json", "prune.json",
+    )
+    if any((d / name).exists() or (d / name).is_symlink() for name in stage_artifacts):
         problems.append("label was already claimed/launched/recorded")
     if cfg.get("eval_args_verified") is not True:
         problems.append("eval argv is not marked verified against canonical prepare.py")
@@ -355,20 +362,40 @@ def launch_and_wait(cfg, d, repo, label, cmd, log_name, timeout, env, phase):
     if cfg.get("use_cgroup") and shutil.which("systemd-run"):
         scope = f"exp-{label}"
         argv = ["systemd-run", "--user", "--scope", f"--unit={scope}", "--collect", "--quiet"] + argv
-    fd = os.open(d / log_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
-    with os.fdopen(fd, "wb") as log:
-        proc = subprocess.Popen(argv, env=run_env, stdout=log, stderr=subprocess.STDOUT,
-                                stdin=subprocess.DEVNULL, start_new_session=True, cwd=repo)
     runtime = d / f"runtime-{phase}"
     runtime.mkdir(mode=0o700)
-    receipt = {"label": label, "started_utc": now(), "leader_pid": proc.pid, "pgid": proc.pid,
-               "cgroup_scope": scope, "argv": cmd, "env_keys": sorted(cfg.get("env", {}))}
-    write_new(runtime / "launch.json", receipt)
-    write_new(d / f"launch-{phase}.json", receipt)
+    fd = os.open(d / log_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    proc = None
     try:
+        with os.fdopen(fd, "wb") as log:
+            proc = subprocess.Popen(argv, env=run_env, stdout=log, stderr=subprocess.STDOUT,
+                                    stdin=subprocess.DEVNULL, start_new_session=True, cwd=repo)
+        receipt = {"label": label, "started_utc": now(), "leader_pid": proc.pid, "pgid": proc.pid,
+                   "cgroup_scope": scope, "argv": cmd, "env_keys": sorted(cfg.get("env", {}))}
+        write_new(runtime / "launch.json", receipt)
+        write_new(d / f"launch-{phase}.json", receipt)
         rc = proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         rc = None
+    except BaseException as exc:
+        if proc is None:
+            raise
+        cleanup_error = None
+        try:
+            quiesce(label, d, runtime, [d / log_name], cfg.get("quiescence_window_s", 10),
+                    cfg.get("stop_grace_s", 60), True)
+        except BaseException as stopped_exc:
+            cleanup_error = stopped_exc
+        finally:
+            try:
+                proc.wait(timeout=max(1, cfg.get("stop_grace_s", 60)))
+            except (subprocess.TimeoutExpired, ProcessLookupError):
+                pass
+        if cleanup_error is not None:
+            raise JobError(3, "quiesce",
+                           f"{label}: post-launch evidence failure and cleanup did not quiesce") from cleanup_error
+        code = 5 if phase == "train" else 6
+        raise JobError(code, phase, f"{phase} launch evidence failed after child start; stopped") from exc
     return rc, runtime
 
 
@@ -486,6 +513,8 @@ def build_eval_cmd(cfg, job, out_dir):
     cmd += list(cfg.get("eval_args", []))
     if cmd.count("eval-public") != 1:
         raise JobError(6, "eval", "eval command needs one literal eval-public")
+    require_option(cmd, "--train-py", job["train_py"], "eval")
+    require_option(cmd, "--checkpoint", str(out_dir / "final.pt"), "eval")
     require_option(cmd, "--seq-len", EVAL_SEQ, "eval")
     require_option(cmd, "--eval-tokens", EVAL_TOKENS, "eval")
     timeouts = option_values(cmd, "--timeout-seconds")
@@ -503,6 +532,8 @@ def build_causal_cmd(cfg, job, out_dir):
         cmd = [cfg.get("python", "python"), str(HERE / "check_causality.py")]
     cmd += ["--train-py", job["train_py"], "--checkpoint", str(out_dir / "final.pt"),
             "--seq-len", str(EVAL_SEQ)]
+    require_option(cmd, "--train-py", job["train_py"], "eval")
+    require_option(cmd, "--checkpoint", str(out_dir / "final.pt"), "eval")
     require_option(cmd, "--seq-len", EVAL_SEQ, "eval")
     return cmd
 
@@ -736,6 +767,8 @@ def run(cfg: dict, job: dict, repo: Path, job_path: Path) -> dict:
                                         job.get("eval_timeout_s", 2400), clean_env, "eval")
         qe = quiesce(f"{label}-eval", d, eruntime, [d / "eval.log"],
                      cfg.get("quiescence_window_s", 10), cfg.get("stop_grace_s", 60), erc is None)
+        if erc is None:
+            raise JobError(6, "eval", "evaluation outer timeout; stopped")
         if erc:
             raise JobError(6, "eval", f"evaluation failed rc={erc}")
         ev = parse_eval(d / "eval.log", evaluator_timeout)
@@ -749,6 +782,8 @@ def run(cfg: dict, job: dict, repo: Path, job_path: Path) -> dict:
                                         job.get("causality_timeout_s", 1200), clean_env, "causality")
         qc = quiesce(f"{label}-causality", d, cruntime, [d / "causality.log"],
                      cfg.get("quiescence_window_s", 10), cfg.get("stop_grace_s", 60), crc is None)
+        if crc is None:
+            raise JobError(6, "causality", "causality outer timeout; stopped")
         if crc:
             raise JobError(6, "causality", f"causality check failed rc={crc}")
         causal = parse_causality(d / "causality.log", job, identity["sha256"])

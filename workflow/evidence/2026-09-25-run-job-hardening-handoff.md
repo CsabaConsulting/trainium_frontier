@@ -19,6 +19,16 @@ Bounded changes:
   inode/path/hash;
 - writes non-overwriting stage receipts and rejects path traversal, symlink roots/checkpoints, dirty
   source, duplicate ledger labels, malformed summaries, and missing numerical evidence.
+- refuses every train/eval/causality stage artifact before launch and, if a receipt write fails after
+  `Popen`, stops, reaps and proves quiescence before releasing the host lease;
+- treats an outer eval or causality timeout as failure even when the child printed valid-looking JSON
+  before hanging;
+- requires exactly one expected `--train-py` and `--checkpoint`, preventing later eval arguments from
+  redirecting argparse to alternate source or checkpoint bytes.
+
+An independent review of the first hardening commit found those last three defects and recorded FAIL
+at `c1a2bc1867589b0ebefb69d96f13f71a62c93382`. They are repaired here with adversarial regressions;
+this repair still requires a fresh independent review.
 
 Local checks:
 
