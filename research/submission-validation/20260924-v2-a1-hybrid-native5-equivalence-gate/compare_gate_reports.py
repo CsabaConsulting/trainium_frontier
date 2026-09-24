@@ -10,6 +10,7 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -42,22 +43,190 @@ OWNERSHIP_OWNED_ELEMENTS = 117_716_236
 OWNERSHIP_SHARD_ELEMENTS = 30_540_160
 OWNERSHIP_PADDED_ELEMENTS = 122_160_640
 OWNERSHIP_PADDED_BYTES = 488_642_560
+MAX_AUTHENTICATED_FILE_BYTES = 64 * 1024 * 1024
+READ_CHUNK_BYTES = 1024 * 1024
 
 
 class InvalidGate(ValueError):
     pass
 
 
-def _file_sha(path: Path) -> str:
-    if path.is_symlink() or not path.is_file() or path.stat().st_nlink != 1:
-        raise InvalidGate(f"pinned source is not one regular unlinked file: {path}")
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _identity(info: os.stat_result) -> tuple[int, ...]:
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_uid,
+            info.st_gid, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
+def _directory_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_uid, info.st_gid)
+
+
+def _validate_directory(info: os.stat_result, label: str) -> None:
+    # The checked-out evidence tree is intentionally group writable (0775).  Pin
+    # the complete accepted permission set rather than silently weakening the
+    # check to "not world writable".
+    accepted_modes = {0o700, 0o750, 0o755, 0o770, 0o775}
+    if (not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid()
+            or info.st_gid != os.getgid()
+            or stat.S_IMODE(info.st_mode) not in accepted_modes):
+        raise InvalidGate(f"unsafe authenticated directory: {label}")
+
+
+def _validate_regular_file(info: os.stat_result, label: str, max_bytes: int) -> None:
+    accepted_modes = {0o600, 0o640, 0o644, 0o660, 0o664}
+    if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+            or info.st_uid != os.getuid()
+            or info.st_gid != os.getgid()
+            or stat.S_IMODE(info.st_mode) not in accepted_modes
+            or info.st_size < 1 or info.st_size > max_bytes):
+        raise InvalidGate(f"unsafe authenticated file: {label}")
+
+
+def _required_open_flags(*, directory: bool = False) -> int:
+    required = ("O_CLOEXEC", "O_NOFOLLOW")
+    if any(not hasattr(os, name) for name in required):
+        raise InvalidGate("platform lacks required no-follow/cloexec file-open support")
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW
+    if directory:
+        if not hasattr(os, "O_DIRECTORY"):
+            raise InvalidGate("platform lacks required directory-open support")
+        flags |= os.O_DIRECTORY
+    elif hasattr(os, "O_NONBLOCK"):
+        # A path swapped to a FIFO immediately before open must fail in fstat,
+        # never block the comparator waiting for an attacker-controlled writer.
+        flags |= os.O_NONBLOCK
+    return flags
+
+
+def _path_parts(trusted_root: Path, path: Path) -> tuple[Path, tuple[str, ...]]:
+    root = Path(os.path.abspath(os.fspath(trusted_root)))
+    target = Path(os.path.abspath(os.fspath(path)))
+    try:
+        relative = target.relative_to(root)
+    except ValueError as exc:
+        raise InvalidGate(f"authenticated path escapes trusted root: {path}") from exc
+    parts = relative.parts
+    if not parts or any(part in ("", ".", "..") or "/" in part for part in parts):
+        raise InvalidGate(f"invalid authenticated path: {path}")
+    return root, parts
+
+
+def _open_directory_chain(trusted_root: Path, path: Path) -> tuple[list[int], str, Path]:
+    root, parts = _path_parts(trusted_root, path)
+    fds: list[int] = []
+    try:
+        root_fd = os.open(root, _required_open_flags(directory=True))
+        fds.append(root_fd)
+        root_info = os.fstat(root_fd)
+        _validate_directory(root_info, os.fspath(root))
+        if _directory_identity(os.lstat(root)) != _directory_identity(root_info):
+            raise InvalidGate("trusted root changed during open")
+        for part in parts[:-1]:
+            child_fd = os.open(part, _required_open_flags(directory=True), dir_fd=fds[-1])
+            fds.append(child_fd)
+            child_info = os.fstat(child_fd)
+            _validate_directory(child_info, part)
+            named = os.stat(part, dir_fd=fds[-2], follow_symlinks=False)
+            if _directory_identity(named) != _directory_identity(child_info):
+                raise InvalidGate(f"authenticated directory name changed: {part}")
+        return fds, parts[-1], root
+    except Exception:
+        for fd in reversed(fds):
+            os.close(fd)
+        raise
+
+
+def _revalidate_directory_chain(fds: list[int], root: Path,
+                                parts: tuple[str, ...]) -> None:
+    if _directory_identity(os.lstat(root)) != _directory_identity(os.fstat(fds[0])):
+        raise InvalidGate("trusted root identity changed")
+    for index, part in enumerate(parts):
+        parent_fd, child_fd = fds[index], fds[index + 1]
+        named = os.stat(part, dir_fd=parent_fd, follow_symlinks=False)
+        if (_directory_identity(named) != _directory_identity(os.fstat(child_fd))):
+            raise InvalidGate(f"authenticated directory path changed: {part}")
+
+
+def _read_exact_fd(fd: int, expected_size: int) -> bytes:
+    chunks: list[bytes] = []
+    remaining = expected_size
+    while remaining:
+        try:
+            chunk = os.read(fd, min(READ_CHUNK_BYTES, remaining))
+        except InterruptedError:
+            continue
+        if not chunk:
+            raise InvalidGate("authenticated file truncated during read")
+        if len(chunk) > remaining:
+            raise InvalidGate("authenticated read exceeded frozen size")
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    while True:
+        try:
+            extra = os.read(fd, 1)
+            break
+        except InterruptedError:
+            continue
+    if extra:
+        raise InvalidGate("authenticated file appended during read")
+    return b"".join(chunks)
+
+
+def _sha256_bytes(data: bytes, path: Path | None = None) -> str:
+    del path  # retained for deterministic path-specific race-injection regressions
+    return hashlib.sha256(data).hexdigest()
+
+
+def _capture_file(trusted_root: Path, path: Path, *,
+                  max_bytes: int = MAX_AUTHENTICATED_FILE_BYTES,
+                  expected_sha256: str | None = None,
+                  parser: Any = None) -> dict[str, Any]:
+    root, parts = _path_parts(trusted_root, path)
+    fds, name, opened_root = _open_directory_chain(root, path)
+    file_fd = -1
+    try:
+        file_fd = os.open(name, _required_open_flags(), dir_fd=fds[-1])
+        before = os.fstat(file_fd)
+        _validate_regular_file(before, os.fspath(path), max_bytes)
+        named_before = os.stat(name, dir_fd=fds[-1], follow_symlinks=False)
+        if _identity(named_before) != _identity(before):
+            raise InvalidGate("authenticated file name changed during open")
+        data = _read_exact_fd(file_fd, before.st_size)
+        digest = _sha256_bytes(data, path)
+        if expected_sha256 is not None and digest != expected_sha256:
+            raise InvalidGate(f"authenticated file digest mismatch: {path}")
+        # Parsing occurs while the authenticated descriptor and every parent
+        # descriptor remain open.  The final fstat/name/parent checks below are
+        # deliberately after both hashing and parsing.
+        parsed = parser(data) if parser is not None else None
+        after = os.fstat(file_fd)
+        if _identity(after) != _identity(before):
+            raise InvalidGate("authenticated file changed during read")
+        named_after = os.stat(name, dir_fd=fds[-1], follow_symlinks=False)
+        if _identity(named_after) != _identity(before):
+            raise InvalidGate("authenticated file path changed during read")
+        _revalidate_directory_chain(fds, opened_root, parts[:-1])
+        return {
+            "bytes": data,
+            "sha256": digest,
+            "identity": _identity(before),
+            "parsed": parsed,
+        }
+    finally:
+        if file_fd >= 0:
+            os.close(file_fd)
+        for fd in reversed(fds):
+            os.close(fd)
+
+
+def _file_sha(path: Path, trusted_root: Path = ROOT) -> str:
+    return _capture_file(trusted_root, path)["sha256"]
 
 
 def _load_ownership_manifest(*, validate_sources: bool = True) -> dict[str, Any]:
-    if _file_sha(OWNERSHIP_MANIFEST_PATH) != OWNERSHIP_MANIFEST_SHA256:
-        raise InvalidGate("A1 ownership manifest digest mismatch")
-    manifest = json.loads(OWNERSHIP_MANIFEST_PATH.read_bytes())
+    captured = _capture_file(
+        ROOT, OWNERSHIP_MANIFEST_PATH, max_bytes=1024 * 1024,
+        expected_sha256=OWNERSHIP_MANIFEST_SHA256, parser=json.loads)
+    manifest = captured["parsed"]
     if not isinstance(manifest, dict) or set(manifest) != {
             "schema", "source_pins", "configuration", "groups", "owned_entries",
             "replicated_rmsprop_parameters", "summary", "owner_exchange"}:
@@ -97,8 +266,7 @@ def _load_ownership_manifest(*, validate_sources: bool = True) -> dict[str, Any]
         for relative, expected in files.items():
             if type(relative) is not str or not _sha(expected):
                 raise InvalidGate("A1 ownership manifest source pin malformed")
-            if _file_sha(ROOT / relative) != expected:
-                raise InvalidGate(f"A1 ownership source pin mismatch: {relative}")
+            _capture_file(ROOT, ROOT / relative, expected_sha256=expected)
     return manifest
 
 
@@ -154,21 +322,17 @@ def _optimizer_snapshot(items: Any) -> bool:
     return len(names) == len(set(names))
 
 
-def _load_rank(directory: Path, arm: str, rank: int) -> list[dict[str, Any]]:
-    path = directory / f"rank-{rank}.jsonl"
-    if path.is_symlink() or not path.is_file() or path.stat().st_nlink != 1:
-        raise InvalidGate(f"{arm} rank {rank}: report is not one regular unlinked file")
+def _parse_rank_bytes(data: bytes, arm: str, rank: int) -> list[dict[str, Any]]:
     records = []
-    with path.open("rb") as handle:
-        for line in handle:
-            if not line.endswith(b"\n"):
-                raise InvalidGate(f"{arm} rank {rank}: unterminated JSONL record")
-            record = json.loads(line)
-            if not isinstance(record, dict) or type(record.get("kind")) is not str:
-                raise InvalidGate(f"{arm} rank {rank}: malformed record")
-            if not _finite_tree(record):
-                raise InvalidGate(f"{arm} rank {rank}: nonfinite report value")
-            records.append(record)
+    for line in data.splitlines(keepends=True):
+        if not line.endswith(b"\n"):
+            raise InvalidGate(f"{arm} rank {rank}: unterminated JSONL record")
+        record = json.loads(line)
+        if not isinstance(record, dict) or type(record.get("kind")) is not str:
+            raise InvalidGate(f"{arm} rank {rank}: malformed record")
+        if not _finite_tree(record):
+            raise InvalidGate(f"{arm} rank {rank}: nonfinite report value")
+        records.append(record)
     expected = {"header": 1, "inventory": 1, "loss": 5, "update": 10,
                 "collectives": 1, "complete": 1}
     if ARMS[arm][0]:
@@ -271,8 +435,8 @@ def _owned_union(ranks: list[list[dict[str, Any]]], update_index: int) -> list[d
     return sorted(by_name.values(), key=lambda item: item["name"])
 
 
-def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int) -> int:
-    manifest = _load_ownership_manifest()
+def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int,
+                              manifest: dict[str, Any]) -> int:
     inventory = _by(records, "inventory")[0]
     if set(inventory) != {"kind", "groups", "ownership", "model_state"}:
         raise InvalidGate(f"{arm} rank {rank}: ownership inventory schema mismatch")
@@ -380,6 +544,18 @@ def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int
     return stride
 
 
+def _load_rank(directory: Path, arm: str, rank: int, *,
+               expected_sha256: str | None = None) -> list[dict[str, Any]]:
+    path = directory / f"rank-{rank}.jsonl"
+    sealed = _capture_file(
+        directory, path, expected_sha256=expected_sha256,
+        parser=lambda data: _parse_rank_bytes(data, arm, rank))
+    records = sealed.get("parsed")
+    if not isinstance(records, list):
+        raise InvalidGate(f"{arm} rank {rank}: missing sealed report records")
+    return records
+
+
 def _validate_exact_groups(records: list[dict[str, Any]], manifest: dict[str, Any],
                            arm: str, rank: int) -> None:
     inventory = _by(records, "inventory")[0]
@@ -388,8 +564,9 @@ def _validate_exact_groups(records: list[dict[str, Any]], manifest: dict[str, An
         raise InvalidGate(f"{arm} rank {rank}: exact A1 inventory/source identity mismatch")
 
 
-def _validate_owner_exchange_records(records: list[dict[str, Any]], arm: str, rank: int) -> None:
-    contract = _load_ownership_manifest()["owner_exchange"]
+def _validate_owner_exchange_records(records: list[dict[str, Any]], arm: str, rank: int,
+                                     manifest: dict[str, Any]) -> None:
+    contract = manifest["owner_exchange"]
     gathers = [item for item in _by(records, "collectives")[0]["sequence"]
                if item.get("op") == "all_gather_into_tensor"]
     expected = {
@@ -416,11 +593,10 @@ def validate_immutable_g0(directory: Path) -> dict[str, Any]:
         raise InvalidGate("immutable G0 report pin set mismatch")
     for rank in range(WORLD_SIZE):
         name = f"rank-{rank}.jsonl"
-        if _file_sha(directory / name) != report_pins[name]:
-            raise InvalidGate(f"immutable G0 rank {rank} report digest mismatch")
-        records = _load_rank(directory, "G0", rank)
-        _ownership_shard_elements(records, "G0", rank)
-        _validate_owner_exchange_records(records, "G0", rank)
+        records = _load_rank(
+            directory, "G0", rank, expected_sha256=report_pins[name])
+        _ownership_shard_elements(records, "G0", rank, manifest)
+        _validate_owner_exchange_records(records, "G0", rank, manifest)
     return {
         "schema": "a1-native-five-g0-ownership-validation-v1",
         "status": "PASS",
@@ -434,8 +610,9 @@ def validate_immutable_g0(directory: Path) -> dict[str, Any]:
 
 
 def _validated_without_owner_exchange(records: list[dict[str, Any]], ordinary: list[dict[str, Any]],
-                                      arm: str, rank: int) -> list[dict[str, Any]]:
-    stride = _ownership_shard_elements(records, arm, rank)
+                                      arm: str, rank: int,
+                                      manifest: dict[str, Any]) -> list[dict[str, Any]]:
+    stride = _ownership_shard_elements(records, arm, rank, manifest)
     sequence = _by(records, "collectives")[0]["sequence"]
     if any(item.get("op") == "all_gather_into_tensor" for item in ordinary):
         raise InvalidGate("ordinary collective sequence contains an owner exchange")
@@ -496,7 +673,8 @@ def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
             raise InvalidGate(f"G2 rank {rank}: unexpected owner exchange")
     for arm in ("G0", "G1"):
         for rank, records in enumerate(loaded[arm]):
-            _validated_without_owner_exchange(records, ordinary_sequences[rank], arm, rank)
+            _validated_without_owner_exchange(
+                records, ordinary_sequences[rank], arm, rank, manifest)
 
     # Observation OFF versus ON must not change any shared record byte semantics.
     for rank in range(4):
@@ -534,7 +712,7 @@ def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
     for rank in range(4):
         g1, g2 = loaded["G1"][rank], loaded["G2"][rank]
         _exact(_validated_without_owner_exchange(
-                   g1, _by(g2, "collectives")[0]["sequence"], "G1", rank),
+                   g1, _by(g2, "collectives")[0]["sequence"], "G1", rank, manifest),
                _by(g2, "collectives")[0]["sequence"],
                f"rank {rank}: non-owner collective sequence differs", rms_failures)
         for kind in ("gradients", "clip"):
@@ -611,21 +789,81 @@ def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
     }
 
 
+def _write_all(fd: int, data: bytes) -> None:
+    view = memoryview(data)
+    written = 0
+    while written < len(view):
+        try:
+            count = os.write(fd, view[written:])
+        except InterruptedError:
+            continue
+        if type(count) is not int or count <= 0 or count > len(view) - written:
+            raise InvalidGate("short/invalid authenticated result write")
+        written += count
+
+
+def _stable_file_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
+            info.st_uid, info.st_gid)
+
+
 def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.parent.is_symlink() or not path.parent.is_dir():
-        raise InvalidGate("output parent is not a real directory")
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    fd = os.open(path, flags, 0o600)
+    if path.name in ("", ".", "..") or path.parent / path.name != path:
+        raise InvalidGate("output path is not a direct child")
+    parent_fd = os.open(path.parent, _required_open_flags(directory=True))
+    fd = -1
+    created: tuple[int, ...] | None = None
     try:
+        parent_info = os.fstat(parent_fd)
+        _validate_directory(parent_info, os.fspath(path.parent))
+        if _directory_identity(os.lstat(path.parent)) != _directory_identity(parent_info):
+            raise InvalidGate("output parent identity changed during open")
+        flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
+        fd = os.open(path.name, flags, 0o600, dir_fd=parent_fd)
+        before = os.fstat(fd)
+        created = _stable_file_identity(before)
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                or before.st_uid != os.getuid()
+                or before.st_gid != os.getgid()
+                or stat.S_IMODE(before.st_mode) != 0o600 or before.st_size != 0):
+            raise InvalidGate("unsafe newly created result file")
         data = json.dumps(payload, sort_keys=True, separators=(",", ":"),
                           allow_nan=False).encode() + b"\n"
-        os.write(fd, data)
+        _write_all(fd, data)
         os.fsync(fd)
+        after = os.fstat(fd)
+        if (_stable_file_identity(after) != created or after.st_size != len(data)):
+            raise InvalidGate("result file identity/size changed during write")
+        named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
+        if (_stable_file_identity(named) != created or named.st_size != len(data)):
+            raise InvalidGate("result path changed during write")
+        os.lseek(fd, 0, os.SEEK_SET)
+        readback = _read_exact_fd(fd, len(data))
+        if readback != data or json.loads(readback) != payload:
+            raise InvalidGate("result readback mismatch")
+        if _directory_identity(os.lstat(path.parent)) != _directory_identity(parent_info):
+            raise InvalidGate("output parent identity changed during write")
+        os.fsync(parent_fd)
+        named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
+        if (_stable_file_identity(named) != created or named.st_size != len(data)):
+            raise InvalidGate("result path changed before durable return")
+    except Exception:
+        if created is not None:
+            try:
+                named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
+                if _stable_file_identity(named) == created:
+                    os.unlink(path.name, dir_fd=parent_fd)
+                    os.fsync(parent_fd)
+            except FileNotFoundError:
+                pass
+            except OSError:
+                pass
+        raise
     finally:
-        os.close(fd)
+        if fd >= 0:
+            os.close(fd)
+        os.close(parent_fd)
 
 
 def main() -> int:

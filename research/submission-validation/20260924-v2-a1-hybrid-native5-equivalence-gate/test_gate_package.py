@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import subprocess
+import stat
 import sys
 import tempfile
 from types import SimpleNamespace
@@ -721,16 +722,280 @@ class ComparatorTests(unittest.TestCase):
                     COMPARE._load_ownership_manifest()
 
     def test_source_pin_mutation_is_invalid(self):
-        original = COMPARE._file_sha
+        original = COMPARE._capture_file
 
-        def attacked(path):
+        def attacked(root, path, **kwargs):
             if path == ROOT / "submissions/dense6x1024_public0992851/train.py":
-                return "0" * 64
-            return original(path)
+                kwargs["expected_sha256"] = "0" * 64
+            return original(root, path, **kwargs)
 
-        with mock.patch.object(COMPARE, "_file_sha", side_effect=attacked):
+        with mock.patch.object(COMPARE, "_capture_file", side_effect=attacked):
             with self.assertRaises(COMPARE.InvalidGate):
                 COMPARE._load_ownership_manifest()
+
+    def test_authenticated_inputs_use_one_no_follow_descriptor_open(self):
+        original_open = COMPARE.os.open
+        original_capture = COMPARE._capture_file
+        seen: dict[str, int] = {}
+        captured_paths: dict[Path, int] = {}
+
+        def observed(path, flags, *args, **kwargs):
+            name = os.fspath(path)
+            if name == "a1_ownership_manifest.json" or name == "train.py" or name.startswith("rank-"):
+                seen[name] = seen.get(name, 0) + 1
+                self.assertTrue(flags & os.O_CLOEXEC)
+                self.assertTrue(flags & os.O_NOFOLLOW)
+                self.assertEqual(flags & os.O_ACCMODE, os.O_RDONLY)
+            return original_open(path, flags, *args, **kwargs)
+
+        def capture_once(root, path, **kwargs):
+            normalized = Path(os.path.abspath(os.fspath(path)))
+            captured_paths[normalized] = captured_paths.get(normalized, 0) + 1
+            return original_capture(root, path, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            copied = Path(tmp) / "native-gate"
+            copied.mkdir()
+            for rank in range(4):
+                source = IMMUTABLE_G0_REPORTS / f"rank-{rank}.jsonl"
+                (copied / source.name).write_bytes(source.read_bytes())
+            with mock.patch.object(COMPARE, "_capture_file", side_effect=capture_once), \
+                    mock.patch.object(COMPARE.os, "open", side_effect=observed):
+                result = COMPARE.validate_immutable_g0(copied)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(seen["a1_ownership_manifest.json"], 1)
+        self.assertEqual([seen[f"rank-{rank}.jsonl"] for rank in range(4)], [1, 1, 1, 1])
+        # Each pinned source basename is opened once per manifest validation.
+        self.assertGreaterEqual(seen["train.py"], 1)
+        expected_paths = ([COMPARE.OWNERSHIP_MANIFEST_PATH]
+                          + [ROOT / relative for relative in
+                             OWNERSHIP_MANIFEST["source_pins"]["files"]]
+                          + [copied / f"rank-{rank}.jsonl" for rank in range(4)])
+        self.assertEqual(
+            {Path(os.path.abspath(os.fspath(path))): 1 for path in expected_paths},
+            captured_paths)
+
+    def test_second_open_symlink_or_rename_attack_has_no_second_open(self):
+        for attack in ("symlink", "rename"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                copied = Path(tmp) / "native-gate"
+                copied.mkdir()
+                for rank in range(4):
+                    source = IMMUTABLE_G0_REPORTS / f"rank-{rank}.jsonl"
+                    (copied / source.name).write_bytes(source.read_bytes())
+                attacker = copied / "attacker.jsonl"
+                attacker.write_bytes(b'{"kind":"attacker"}\n')
+                original_open = COMPARE.os.open
+                opens = 0
+                triggered = False
+
+                def attack_second(path, flags, *args, **kwargs):
+                    nonlocal opens, triggered
+                    if os.fspath(path) == "rank-0.jsonl":
+                        opens += 1
+                        if opens == 2:
+                            triggered = True
+                            victim = copied / "rank-0.jsonl"
+                            saved = copied / "rank-0.saved"
+                            victim.rename(saved)
+                            if attack == "symlink":
+                                victim.symlink_to(attacker)
+                            else:
+                                victim.write_bytes(attacker.read_bytes())
+                    return original_open(path, flags, *args, **kwargs)
+
+                with mock.patch.object(COMPARE.os, "open", side_effect=attack_second):
+                    result = COMPARE.validate_immutable_g0(copied)
+                self.assertEqual(result["status"], "PASS")
+                self.assertEqual(opens, 1)
+                self.assertFalse(triggered)
+
+    def test_path_swap_and_in_place_mutations_during_capture_are_rejected(self):
+        attacks = ("rename", "symlink", "overwrite", "append", "truncate")
+        original_read_exact = COMPARE._read_exact_fd
+        for attack in attacks:
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                target = root / "rank-0.jsonl"
+                original = b'{"kind":"header"}\n'
+                target.write_bytes(original)
+
+                def mutate(fd, expected_size):
+                    data = original_read_exact(fd, expected_size)
+                    if attack in ("rename", "symlink"):
+                        saved = root / "saved.jsonl"
+                        target.rename(saved)
+                        if attack == "symlink":
+                            target.symlink_to(saved)
+                        else:
+                            target.write_bytes(original)
+                    elif attack == "overwrite":
+                        target.write_bytes(b"x" * len(original))
+                    elif attack == "append":
+                        with target.open("ab") as handle:
+                            handle.write(b"x")
+                    else:
+                        target.write_bytes(b"x")
+                    return data
+
+                with mock.patch.object(COMPARE, "_read_exact_fd", side_effect=mutate):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._capture_file(root, target)
+
+    def test_regular_file_link_mode_size_and_type_constraints(self):
+        for attack in ("hardlink", "symlink", "directory", "fifo", "mode", "empty", "oversize"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                target = root / "input"
+                if attack == "directory":
+                    target.mkdir()
+                elif attack == "fifo":
+                    os.mkfifo(target)
+                elif attack == "symlink":
+                    source = root / "source"
+                    source.write_bytes(b"safe")
+                    target.symlink_to(source)
+                else:
+                    target.write_bytes(b"safe")
+                    if attack == "hardlink":
+                        os.link(target, root / "alias")
+                    elif attack == "mode":
+                        target.chmod(0o666)
+                    elif attack == "empty":
+                        target.write_bytes(b"")
+                limit = 3 if attack == "oversize" else 1024
+                with self.assertRaises((COMPARE.InvalidGate, OSError)):
+                    COMPARE._capture_file(root, target, max_bytes=limit)
+
+    def test_short_and_interrupted_reads_are_completed_but_early_eof_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "input"
+            expected = b"authenticated-input" * 4
+            target.write_bytes(expected)
+            original_read = COMPARE.os.read
+            calls = 0
+
+            def interrupted_short(fd, size):
+                nonlocal calls
+                calls += 1
+                if calls == 1:
+                    raise InterruptedError
+                return original_read(fd, min(size, 3))
+
+            with mock.patch.object(COMPARE.os, "read", side_effect=interrupted_short):
+                captured = COMPARE._capture_file(root, target)
+            self.assertEqual(captured["bytes"], expected)
+            self.assertGreater(calls, 2)
+
+            def premature_eof(fd, size):
+                return b""
+
+            with mock.patch.object(COMPARE.os, "read", side_effect=premature_eof):
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE._capture_file(root, target)
+
+    def test_append_and_truncate_during_fd_read_are_rejected(self):
+        for attack in ("append", "truncate"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                target = root / "input"
+                target.write_bytes(b"x" * 64)
+                original_read = COMPARE.os.read
+                first = True
+
+                def mutate_during_read(fd, size):
+                    nonlocal first
+                    chunk = original_read(fd, min(size, 4))
+                    if first:
+                        first = False
+                        if attack == "append":
+                            with target.open("ab") as handle:
+                                handle.write(b"attacker")
+                        else:
+                            os.truncate(target, len(chunk))
+                    return chunk
+
+                with mock.patch.object(COMPARE.os, "read", side_effect=mutate_during_read):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._capture_file(root, target)
+
+    def test_manifest_source_and_report_capture_rejects_post_read_swaps(self):
+        for name in ("a1_ownership_manifest.json", "train.py", "rank-0.jsonl"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                target = root / name
+                target.write_bytes(b"authenticated")
+                original_read_exact = COMPARE._read_exact_fd
+
+                def swap(fd, expected_size):
+                    data = original_read_exact(fd, expected_size)
+                    target.rename(root / f"{name}.saved")
+                    target.write_bytes(b"attacker-bytes")
+                    return data
+
+                with mock.patch.object(COMPARE, "_read_exact_fd", side_effect=swap):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._capture_file(root, target)
+
+    def test_every_authenticated_input_rejects_preopen_symlink_and_hardlink(self):
+        logical_inputs = (["a1_ownership_manifest.json"]
+                          + sorted(OWNERSHIP_MANIFEST["source_pins"]["files"])
+                          + [f"rank-{rank}.jsonl" for rank in range(4)])
+        for index, logical in enumerate(logical_inputs):
+            for attack in ("symlink", "hardlink"):
+                with self.subTest(logical=logical, attack=attack), \
+                        tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    source = root / f"source-{index}"
+                    target = root / f"input-{index}"
+                    source.write_bytes(logical.encode())
+                    if attack == "symlink":
+                        target.symlink_to(source)
+                    else:
+                        os.link(source, target)
+                    with self.assertRaises((COMPARE.InvalidGate, OSError)):
+                        COMPARE._capture_file(root, target)
+
+    def test_manifest_every_source_and_every_rank_reject_post_hash_swap(self):
+        logical_inputs = (["a1_ownership_manifest.json"]
+                          + sorted(OWNERSHIP_MANIFEST["source_pins"]["files"])
+                          + [f"rank-{rank}.jsonl" for rank in range(4)])
+        original_sha = COMPARE._sha256_bytes
+        for index, logical in enumerate(logical_inputs):
+            with self.subTest(logical=logical), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                target = root / f"input-{index}"
+                data = logical.encode() or b"x"
+                target.write_bytes(data)
+
+                def swap_after_hash(content, path=None):
+                    digest_value = original_sha(content, path)
+                    self.assertEqual(path, target)
+                    target.rename(root / f"input-{index}.authenticated")
+                    target.write_bytes(b"attacker")
+                    return digest_value
+
+                with mock.patch.object(COMPARE, "_sha256_bytes", side_effect=swap_after_hash):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._capture_file(
+                            root, target,
+                            expected_sha256=hashlib.sha256(data).hexdigest())
+
+    def test_post_parse_path_swap_is_rejected_before_consuming_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "manifest.json"
+            target.write_bytes(b'{"authenticated":true}\n')
+
+            def parse_then_swap(data):
+                parsed = json.loads(data)
+                target.rename(root / "manifest.authenticated")
+                target.write_bytes(b'{"attacker":true}\n')
+                return parsed
+
+            with self.assertRaises(COMPARE.InvalidGate):
+                COMPARE._capture_file(root, target, parser=parse_then_swap)
 
     def test_exact_fixture_passes(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -930,6 +1195,54 @@ class ComparatorTests(unittest.TestCase):
             COMPARE._write_exclusive(output, {"status": "first"})
             with self.assertRaises(FileExistsError):
                 COMPARE._write_exclusive(output, {"status": "overwrite"})
+
+    def test_result_write_retries_eintr_and_short_writes_and_fsyncs_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "out.json"
+            original_write = COMPARE.os.write
+            original_fsync = COMPARE.os.fsync
+            calls = 0
+            synced_types = []
+
+            def interrupted_short(fd, data):
+                nonlocal calls
+                calls += 1
+                if calls == 1:
+                    raise InterruptedError
+                return original_write(fd, bytes(data[:3]))
+
+            def observed_fsync(fd):
+                synced_types.append(os.fstat(fd).st_mode)
+                return original_fsync(fd)
+
+            with mock.patch.object(COMPARE.os, "write", side_effect=interrupted_short), \
+                    mock.patch.object(COMPARE.os, "fsync", side_effect=observed_fsync):
+                COMPARE._write_exclusive(output, {"status": "PASS", "value": 7})
+            self.assertEqual(json.loads(output.read_bytes()), {"status": "PASS", "value": 7})
+            self.assertGreater(calls, 2)
+            self.assertTrue(any(stat.S_ISREG(mode) for mode in synced_types))
+            self.assertTrue(any(stat.S_ISDIR(mode) for mode in synced_types))
+
+    def test_result_write_failure_removes_partial_artifact(self):
+        original_write = COMPARE.os.write
+        for attack in ("zero", "partial-error"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / "out.json"
+                calls = 0
+
+                def failed_write(fd, data):
+                    nonlocal calls
+                    calls += 1
+                    if attack == "zero":
+                        return 0
+                    if calls == 1:
+                        return original_write(fd, bytes(data[:3]))
+                    raise OSError("deterministic write failure")
+
+                with mock.patch.object(COMPARE.os, "write", side_effect=failed_write):
+                    with self.assertRaises((COMPARE.InvalidGate, OSError)):
+                        COMPARE._write_exclusive(output, {"status": "PASS"})
+                self.assertFalse(output.exists(), "partial success artifact survived")
 
 
 class ObserverAndCheckpointTests(unittest.TestCase):

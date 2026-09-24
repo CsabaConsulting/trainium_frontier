@@ -18,6 +18,16 @@ counts `[27405059,30540035,30408963,29362179]`; stride `30540160`; padded/output
 `8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2`. It also pins the
 production/gate source hashes and the four immutable G0 report hashes.
 
+Independent verifier commit `0f64bb06b7d1e9a8afd572b3c72c92acb8a360ee` then found the
+first correction could hash one pathname instance and parse a later replacement, and could return
+after a short result write. This second Implementer correction opens each authenticated manifest,
+source, and rank report exactly once with `O_RDONLY|O_CLOEXEC|O_NOFOLLOW`, constrains its regular
+single-link owner/mode/size identity, hashes and parses the same captured bytes while that descriptor
+and its parent chain remain open, and revalidates the inode/path after both operations. Result output
+uses an O_EXCL inode, a complete EINTR-safe write loop, file and directory fsync, same-inode exact
+JSON readback, and removes its own partial inode on failure. These changes are still pending fresh
+independent verification and do not unlock either later arm.
+
 This Implementer correction is not self-verified. The non-executable request
 `g0-ownership-revalidation.pending.json` requires a fresh independent Verifier to reconstruct the
 manifest from the pinned source and flags, run the positive archive check and mutation suite, and
