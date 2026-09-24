@@ -1,0 +1,100 @@
+{
+  "proposal_id": "20260924-v2-track-a-a1-lastlayer-ngram64d128-trn21-r2",
+  "status": "human-approved-infrastructure-retry-pending-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "The r1 outcome was an infrastructure-only fail-before-training caused by a detached checkout. Repeating the identical A1 science from an exact symbolic branch can produce the originally authorized full1800 and fresh2M result.",
+  "single_causal_change": "Infrastructure identity only: r2 uses a unique label/remote and requires the bundle checkout to expose the exact expected symbolic branch at the verified final HEAD. Model source, launch flags, control, seed, budget and metric population are unchanged.",
+  "mechanism_class": "capacity",
+  "verified_parent": "c873b603e767bd44177f64b12335aa85103d925b",
+  "immutable_source": {
+    "introduction_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "path": "submissions/dense6x1024_public0992851/train.py",
+    "sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "modified": false
+  },
+  "r1_failure": {
+    "label": "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1",
+    "classification": "infrastructure_fail_before_training_detached_head",
+    "science_result": null,
+    "evidence_identity": "PENDING_AUTHENTICATED_R1_FAILURE_EVIDENCE_COMMIT",
+    "retry_does_not_overwrite_r1": true
+  },
+  "authenticated_control": {
+    "label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "host": "trn21",
+    "archive_commit": "b0b23cbc2e6d16e8bc8d88be9cb042140494206d",
+    "completion_sha256": "41a27cd7c7a0747a302c0c5e034f9fe6a302d0650efbe91624291ef284d3aacb",
+    "manifest_sha256": "d067f57d83301c27f35a4aea63d508eb230dc0ef9d656839d71e08b2c48af625",
+    "result_sha256": "4020d2a9a82ca4e8c05bb158ae0881da2464e3ecad55c9dfef6c8847973645dc",
+    "metrics_sha256": "c174d2807efdd401fe336b5bf835a7288acb15d987b630f907dc7bb609d9472b",
+    "public_val_bpb": 0.9866973734526626,
+    "steps": 3636,
+    "checkpoint_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+    "checkpoint_bytes": 469834849,
+    "checkpoint_preserved": true
+  },
+  "candidate": {
+    "branch": "experiment/20260924-v2-a1-lastlayer-ngram64d128-trn21-r2",
+    "files_allowed": [],
+    "expected_diff": "No train.py, prepare.py, evaluator, tokenizer or scoring change.",
+    "run_label": "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2",
+    "host": "trn21",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "smoke_authorized": false
+  },
+  "staging_contract": {
+    "required_symbolic_branch": "experiment/20260924-v2-a1-lastlayer-ngram64d128-trn21-r2",
+    "expected_head_source": "exact independent-Verifier-approved finalization HEAD",
+    "detached_head_allowed": false,
+    "wrong_branch_allowed": false,
+    "sequence": [
+      "clone the supplied Git bundle into the unique r2 remote directory",
+      "materialize the exact required symbolic branch at the exact approved finalization HEAD",
+      "run stage_contract.py before fresh_start_launch.py",
+      "require clean full tree, exact HEAD, exact finalization path set and every protected source hash"
+    ]
+  },
+  "screening": {
+    "fresh_process": true,
+    "seq_len": 1024,
+    "num_tokens": 2097152,
+    "num_bytes": 8418678,
+    "timeout_seconds": 1200,
+    "nomination_threshold": "same-host control BPB - A1 BPB >= 0.001",
+    "selection_authority": "Nominate or discard only; never KEEP/adopt from 2M."
+  },
+  "safety": {
+    "one_run_per_host": true,
+    "operational_launch_floor_bytes": 6979321856,
+    "hard_abort_floor_bytes": 5368709120,
+    "private_process_groups": true,
+    "term_then_kill_quiescence_before_hash": true,
+    "non_overwrite": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "all_authorizations_pending_independent_verification": true
+  },
+  "gates": {
+    "human_run_approval": true,
+    "r1_failure_evidence_bound": false,
+    "independent_verification": false,
+    "symbolic_branch_staging_verified": false,
+    "a1_r2_launched": false,
+    "submission_authorized": false
+  },
+  "abort_conditions": [
+    "Detached HEAD, wrong symbolic branch or wrong finalization HEAD",
+    "Dirty tree, changed protected blob, source/prepare/request/runtime mismatch",
+    "Missing authenticated trn21 control or r1 failure evidence when Verifier requires it",
+    "Existing r2 label, remote, request, receipt, output or artifact path",
+    "Any science, seed, budget, LNC/world-size or fresh2M population change",
+    "Crash, timeout, NaN, nonfinite/missing checkpoint or non-quiescent process group"
+  ],
+  "human_approved_by": "human A1 infrastructure-only r2 retry instruction dated 2026-09-24",
+  "verdict": null
+}
