@@ -48,18 +48,20 @@
     "human_run_approval": false,
     "native_sparse_backward_supported": false,
     "native_sparse_collective_supported": false,
-    "native_dynamic_row_update_supported": false
+    "native_dynamic_row_update_supported": false,
+    "native_bf16_accumulation_and_avg_order_verified": false
   },
   "success_criteria": {
     "quality": "Full-budget public val_bpb must improve by at least 0.0015 against a nearby same-host exact 35c9 control after all exactness gates pass.",
     "throughput": "Unprofiled warmed whole-step median must improve by at least 3%, including index extraction, duplicate reduction, clipping, collectives, lazy decay, and row writes.",
-    "correctness": "For duplicate and cross-rank cases, touched-row parameters and logically materialized RMSProp state match dense local-clip then AVG RMSProp; untouched parameter and physical lazy state bytes do not change; deterministic replay is exact; BF16-parameter/FP32-state and BF16-state variants pass; checkpoint model keys and native evaluation logits are unchanged; no crash, NaN, causality, or budget failure."
+    "correctness": "Across the exact four-table geometry, one joint rank-local clip coefficient covers all table gradients. The FP32 CPU oracle exactly matches deterministic dense AVG plus RMSProp; its explicitly defined BF16 occurrence/collective emulation passes BF16-parameter/FP32-state and BF16-state variants but does not establish native rounding order. Untouched parameter and physical lazy state bytes do not change; deterministic replay and serialize/reload/next-update pass; actual 35c9 checkpoint model-key and load_for_eval source contracts remain unchanged; no crash, NaN, causality, or budget failure."
   },
   "abort_conditions": [
     "The backward path materializes or scans the full dense table gradient.",
     "Any sparse COO, custom autograd side effect, hook, collective, unique/sort, index_add/scatter, or dynamic-shape primitive is unsupported or silently host-falls back on the pinned native SDK.",
     "Local clipping before AVG is not reproduced exactly.",
     "Duplicate reduction or rank merge is nondeterministic.",
+    "The native BF16 occurrence accumulation, joint clipping, all-reduce SUM/AVG rounding order, or resulting update differs from a captured dense native control.",
     "Deferred beta2 decay or global bias correction differs from dense RMSProp.",
     "Untouched table parameters change, or logical optimizer state differs from dense RMSProp.",
     "Checkpoint model keys, load_for_eval behavior, logits, causality, or scoring path changes.",

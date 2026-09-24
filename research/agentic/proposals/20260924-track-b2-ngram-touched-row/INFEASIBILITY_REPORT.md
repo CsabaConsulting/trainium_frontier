@@ -16,13 +16,14 @@ The intended control remains byte-identical at
 
 The control uses four BF16 n-gram embedding tables. Direct indexed lookup produces a dense
 parameter gradient (`aten::gather.out(... sparse_grad=False ...)` in preserved native logs).
-`clip_and_sync_gradients` clips each rank's n-gram tensors separately before
-`ReduceOp.AVG`, then `MuonAdamW._rmsprop_step` applies bias-corrected RMSProp. Therefore an
+`clip_and_sync_gradients` passes all four n-gram tensors to one `clip_grad_norm_` call on
+each rank, so they share one joint rank-local coefficient before `ReduceOp.AVG`; then
+`MuonAdamW._rmsprop_step` applies bias-corrected RMSProp. Therefore an
 equivalent touched-row path must, in order:
 
 1. accumulate every occurrence gradient across local microbatches;
 2. deterministically coalesce duplicate row indices;
-3. compute the same local table-gradient norm and clip coefficient;
+3. compute one joint local norm and clip coefficient across all four tables;
 4. exchange the clipped row records across all ranks;
 5. deterministically reduce duplicates and divide by world size;
 6. lazily materialize `v = beta2**delta * v`, then apply the current gradient square and
@@ -58,10 +59,16 @@ work on Trainium.
 
 ## Offline result and bounded next step
 
-`touched_row_reference.py` proves the algorithmic contract on CPU: duplicates, simulated ranks,
-local clipping before AVG, global-step bias correction, deferred moment decay, BF16 parameter
-rounding with BF16 or FP32 state, deterministic replay, serialization, and untouched physical
-rows. It does not claim Neuron compilation or performance.
+`touched_row_reference.py` uses the production geometry (four named tables, each
+1,048,576 rows x 128 columns) with sparse fixture storage. It proves duplicate reduction,
+four simulated ranks, one joint per-rank clip coefficient, AVG, global-step bias correction,
+deferred moment decay, untouched physical rows, deterministic replay, and
+serialize/reload/**next-update** equivalence. It covers BF16 parameters with FP32 and BF16 state,
+rejects invalid indices/shapes/dtypes, and statically binds the actual 35c9 model-state/
+strict-load evaluation contract and table keys. Its BF16 mode is an explicitly defined software
+emulation: occurrence additions, clipped records, collective accumulation, and AVG are rounded at
+declared boundaries. Native Trainium may choose a different reduction tree or accumulation order,
+so native BF16 equivalence remains an explicit hardware probe gate rather than an offline claim.
 
 The safer next action is a separately authorized component-only native probe with tiny fixed
 shapes. It must test, independently, sparse/occurrence-gradient capture, multi-rank fixed-shape
