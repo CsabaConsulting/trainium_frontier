@@ -1,0 +1,119 @@
+{
+  "schema": "trn22-a0-r2-cpu-g2-r3-operator-receipt-v1",
+  "operator_completed_utc": "2026-09-24T23:10:44Z",
+  "scope": "one contained, four-rank, three-step CPU G2 preflight only",
+  "host": {
+    "name": "trn22",
+    "hostname": "ip-172-31-32-253",
+    "clean_checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2",
+    "pinned_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "source_clean_before_and_after": true,
+    "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "review_binding": {
+    "proposal_package_commit": "488bb564c8206e2450fce3a0c60fb1dd144ac4ba",
+    "gate_contract_sha256": "164ac39016622ac3918341835b43a53cf3bd94f03bc29596b574d11d1e8ed5bd",
+    "runbook_sha256": "31eeeecdd8f70d3fd15adce3c13d2141236ab643d823598fd9138c305fbfa53a",
+    "independent_static_safety_review_commit": "f54515c3380cc297f5a21fe3fe38b7d6255fe042",
+    "independent_static_safety_review_sha256": "36a65541e46981e159b121134349fc4176c385bb743a98dd92af101eda581617",
+    "controller_state_sha256_at_operator_branch_base": "b2927927e2f34dc90667b9268025e87169f83de061e391e0b09449b2e206a55c",
+    "trn22_disk_breaker_human_ack_sha256": "5dcb2f64860001dacd3d70dfbaf530a745da49e232230fb1a0a387323db034d0",
+    "trn22_disk_breaker_rearm_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+    "previous_r2_stage_hold_sha256": "a476312c1b9b24e785b72aac1ef78d165fc65b36fa193ea65530a1d188dc9aba"
+  },
+  "fresh_preflight": {
+    "checked_utc": "2026-09-24T23:05:25Z",
+    "controller_global_correctness_breaker_tripped": false,
+    "controller_trn22_breaker_tripped": false,
+    "controller_launch_authorized": false,
+    "controller_trn22_launch_allowed": false,
+    "host_stop_absent": true,
+    "source_stop_absent": true,
+    "no_matched_train_eval_guard_g2_process": true,
+    "no_neuron_device_holder": true,
+    "shared_host_lock_free": true,
+    "science_r2_output_log_step_paths_absent": true,
+    "new_g2_root_absent_before_atomic_creation": true,
+    "new_g2_root_mode": "0700",
+    "new_g2_root_owner_uid": 1000,
+    "new_g2_step_log_absent_before_probe": true,
+    "root_free_bytes": 58452963328,
+    "required_root_free_bytes": 10737418240,
+    "shm_free_bytes": 65105264640,
+    "retained_g1_checkpoint_sha256": "1b1d1a3f0ec6b5580312b760f5fee4f702c3fe97c9ddd01ed811472736aadf1b",
+    "six_warm_cache_directory_device": 66305,
+    "six_warm_cache_directory_inodes": {
+      "neff": 2430420,
+      "local": 2430421,
+      "hlo": 2430422,
+      "inductor": 2430423,
+      "compiler": 2430424,
+      "debug": 2430425
+    },
+    "g2_tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "containment_tool_sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d"
+  },
+  "cpu_g2": {
+    "label": "fs-20260925-g2-a0-c5c-exactenv-trn22-r3",
+    "verdict": "PASS_CPU_G2_ONLY",
+    "attempts_for_this_label": 1,
+    "root": "/dev/shm/trainium-v2-g2-20260925-trn22-r3",
+    "receipt": "remote-run/c5c-g2.json",
+    "receipt_sha256": "38dd39a02d86d639f6333228048f8bdb9dcc77735f03c2d45963e1057bf945b9",
+    "clean_env": true,
+    "science_effective_env": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    },
+    "exact_track_a_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "appended_cpu_only_argv": [
+      "--device-type", "cpu", "--no-compile", "--num-steps", "3", "--out-dir",
+      "/dev/shm/trainium-v2-g2-20260925-trn22-r3/g2-j8vxehn5/out"
+    ],
+    "torchrun_returncode": 0,
+    "nproc": 4,
+    "steps": 3,
+    "micro_batch": [2, 256],
+    "ownership_plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+    "all_four_ranks_pass": true,
+    "per_rank_losses_finite": true,
+    "cross_rank_parameter_mismatches": 0,
+    "rank0_model_checkpoint_load_deterministic": true,
+    "isolated_step_log_lines_exact": [0, 1, 2],
+    "cpu_probe_checkpoint_remote_only_sha256": "b65f0d7351f70cf6c6a768a966e90b588545e20376a8714f678d792628397cb6",
+    "cpu_probe_checkpoint_remote_only_bytes": 469834849,
+    "native_training_or_scored_eval_performed": false,
+    "public_bpb_produced": false
+  },
+  "postflight": {
+    "contained_quiescence_pass": true,
+    "tagged_processes": 0,
+    "neuron_device_holders": 0,
+    "shared_host_lock_free": true,
+    "matched_train_eval_guard_g2_processes": 0,
+    "source_clean_and_source_hashes_unchanged": true,
+    "science_r2_output_log_step_paths_absent": true,
+    "retained_g1_checkpoint_sha256_unchanged": true,
+    "six_warm_cache_directory_device_inodes_unchanged": true,
+    "root_free_bytes": 58452930560,
+    "shm_free_bytes": 64635359232,
+    "isolated_step_log_exact": true,
+    "retrieved_evidence_manifest": "remote-run/SHA256SUMS",
+    "all_ten_retrieved_evidence_hashes_match_remote": true,
+    "secret_marker_scan_hits_in_retrieved_evidence": 0
+  },
+  "independent_numerical_comparison": {
+    "status": "PENDING_VERIFIER",
+    "prior_c5c_pass_anchor_sha256": "17ce1ec84ddc0d585ecd103237ecfcd86d3820cdd9aaf1c4fe8b60ed308b90e3",
+    "operator_did_not_run_compare": true
+  },
+  "decision": "CPU G2 r3 passed and evidence is archived. Native A0 r2 remains HOLD; dispatch_authorized=false. A separate Verifier must compare this receipt to the prior c5c PASS anchor, followed by a separately reviewed immutable native request and fresh one-attempt Supervisor authorization."
+}
