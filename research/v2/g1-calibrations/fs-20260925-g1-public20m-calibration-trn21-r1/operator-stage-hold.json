@@ -1,0 +1,71 @@
+{
+  "schema": "trainium-g1-trn21-operator-stage-hold-v1",
+  "created_at_utc": "2026-09-24T22:32:24Z",
+  "label": "fs-20260925-g1-public20m-calibration-trn21-r1",
+  "host": "trn21",
+  "verdict": "HOLD_SOURCE_COMMIT_UNAVAILABLE_ON_HOST",
+  "stage_completed": false,
+  "launch_authorized": false,
+  "evaluation_launched": false,
+  "training_launched": false,
+  "source_request": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/request.pending.json",
+  "independent_static_review": "research/agentic/verification/20260925-g1-trn21-pending-package-review.md",
+  "transport": "Read-only SSH to the pinned trn21 endpoint, existing key by path, BatchMode, IdentitiesOnly, and strict host-key checking. Key contents and secret environment values were not read or recorded.",
+  "read_only_gates": {
+    "hostname": "ip-172-31-34-85",
+    "expected_hostname_match": true,
+    "root_free_bytes": 58907746304,
+    "required_post_stage_prelaunch_free_bytes": 9126805504,
+    "pre_stage_disk_pass": true,
+    "matching_train_eval_g2_runner_process_count": 0,
+    "neuron0_fuser_returncode": 1,
+    "neuron0_fuser_output_empty": true,
+    "device_lock_fuser_returncode": 1,
+    "device_lock_fuser_output_empty": true,
+    "checkpoint_fuser_returncode": 1,
+    "checkpoint_fuser_output_empty": true,
+    "planned_checkout_path_absent": true,
+    "label_artifacts_found_by_host_find_maxdepth5": 0,
+    "label_dispatch_or_run_records_found_in_local_controller": 0,
+    "controller_global_breaker_tripped_at_local_snapshot": false,
+    "controller_trn21_breaker_tripped_at_local_snapshot": false,
+    "controller_launch_authorized_at_local_snapshot": false,
+    "effective_uid": 1000,
+    "effective_user": "ubuntu",
+    "effective_home": "/home/ubuntu",
+    "inherited_rank_or_neuron_competition_r1_override_names": [],
+    "native_python_executable_present": true,
+    "public_val_file": {
+      "path": "/home/ubuntu/.cache/neuron_competition_r1/data/shard_06542.parquet",
+      "regular_file": true,
+      "bytes": 91699537
+    },
+    "tokenizer_cache": {
+      "path": "/home/ubuntu/.cache/neuron_competition_r1/tokenizer",
+      "tokenizer_pkl_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc",
+      "token_bytes_pt_sha256": "3de03cf6f8e16a9397fecd0cebd04f435f11994b215a5c785787fcc15adb0e15",
+      "matches_pinned_prepare_defaults": true
+    },
+    "retained_checkpoint": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+      "regular_file": true,
+      "bytes": 469831009,
+      "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+      "matches_pending_request": true
+    },
+    "warm_eval_cache_subdirectories_verified": ["neff", "local", "hlo", "inductor", "compiler", "debug"]
+  },
+  "stage_blocker": {
+    "pinned_commit": "347f81a8572d6af8876067cd7c777a341e019929",
+    "source_repo_checked_on_host": "/home/ubuntu/trainium_frontier",
+    "pinned_commit_initially_present": false,
+    "non_interactive_quiet_fetch_attempt": "git fetch --quiet --no-tags origin agent/control-plane-20260921",
+    "fetch_returncode": 128,
+    "fetch_stderr_suppressed_to_avoid_credential_exposure": true,
+    "pinned_commit_present_after_attempt": false,
+    "planned_staged_checkout_created": false,
+    "reason_details": "Unknown; no source substitution or alternative transport was attempted after the fetch failure."
+  },
+  "next_required_action": "Resolve pinned-commit transport through a separately reviewed, non-secret path; then a new Operator must recheck all live gates, stage the exact commit, reauthenticate hashes and post-stage disk, finalize the request, obtain independent Verifier and Supervisor one-run authorization. Do not dispatch this pending request.",
+  "forbidden_actions_not_taken": ["AWS resource action", "cleanup or deletion", "breaker reset", "checkpoint mutation", "evaluator launch", "training launch", "submission"]
+}
