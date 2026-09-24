@@ -38,6 +38,14 @@ This section supersedes earlier Track-A readiness and host-control statements be
   and drifted ownership-summary fields could still reach raw loading or a collective. Native work
   remains forbidden. Iteration 3 must authenticate the exact per-kind optimizer-state schema and
   complete ownership summary before mutation/collectives, then receive another fresh verifier pass.
+- Repair iteration 3 (`257b84bc`) passed 15 supplied tests but verifier `fc931eb4` still found
+  unauthenticated counter/state relations, nonfinite state acceptance, over-rejection of legitimate
+  rank-sparse empty state, and non-transactional post-load failures. Source/caller audit then
+  selected a safer simplification: exact A1 production never serializes optimizer state; final.pt,
+  warm-start, eval and scoring are model-only. Iteration 4 will therefore fail closed immediately
+  on hybrid RMS optimizer `state_dict/load_state_dict`, preserve no-RMS ownership serialization,
+  and document interruption as abort/restart-from-zero. This removes unneeded resume complexity
+  without changing any scored forward/backward/update/checkpoint/eval behavior.
 - A separate source audit confirms clean-step replicated RMSProp is semantically equivalent to the
   ordinary optimizer only if tables are absent from ownership/all-gather, post-AVG joint table
   clipping is unchanged, and each rank executes exactly one RMS step. Source cannot prove Neuron
