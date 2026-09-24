@@ -1,0 +1,121 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_PENDING_OPERATOR_PREFLIGHT",
+  "supersedes": {
+    "receipt": "research/agentic/verification/20260924-current-base-dual-control-independent-verifier.json",
+    "receipt_commit": "5f749b2cfdbf5f9a85cbd526e67cb35005d1eddc",
+    "reason": "Final requests were corrected to carry the SHA-256 of the actual authorization files at the pinned runtime core."
+  },
+  "audited_final_commit": "51dc93387e52b22b4b76d917acdb8c3007af1eac",
+  "runtime_binding_core": "b02ea2d8229aa55431cfd0959cf555118e823053",
+  "verified_base": "8a587d5983830444394e921240dabaf909ac0482",
+  "protected_hashes": {
+    "train_py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "package_train_py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "operator_prelaunch_cross_check": {
+    "trn21": {
+      "label": "fs-20260924-current-base-control-trn21-r1",
+      "hostname": "ip-172-31-34-85",
+      "authorization_file_sha256": "df79981122734bdec40c03972ea9fb15851331b0f5fc96eeecc9c3a7e2e3a7c1",
+      "command_authorization_sha256": "df79981122734bdec40c03972ea9fb15851331b0f5fc96eeecc9c3a7e2e3a7c1",
+      "request_sha256": "e75b64da05ca0f9a5629dda572dec8fc1ef54ab5852d596b84fddd8003cee05a",
+      "job_request_sha256": "e75b64da05ca0f9a5629dda572dec8fc1ef54ab5852d596b84fddd8003cee05a",
+      "request_contract_sha256": "81e0926e324882d3ab1bc4ac814a8521c8f42398a18c6dacaf0e8f8bb6bab041"
+    },
+    "trn22": {
+      "label": "fs-20260924-current-base-control-trn22-r1",
+      "hostname": "ip-172-31-32-253",
+      "authorization_file_sha256": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+      "command_authorization_sha256": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+      "request_sha256": "355a5dc8ffdff72a9974a591734f020bc444575255bee04ff820153f4b98c3ba",
+      "job_request_sha256": "355a5dc8ffdff72a9974a591734f020bc444575255bee04ff820153f4b98c3ba",
+      "request_contract_sha256": "a932aac93749674b20dee56b070efc5f400aa414dbb40f9056bc6d6cae2e0f48"
+    },
+    "result": "PASS",
+    "authorization_mutation_behavior": "A changed command authorization SHA fails control_job's exact SHA-256 comparison against the actual authorization file before host work begins."
+  },
+  "runtime_trust_audit": {
+    "launcher": "research/fresh_start_launch.py",
+    "launcher_sha256": "dc3479c09abe344ef8239f6ce7c06f903dd7213deca5f25fe260c7ce715afab2",
+    "exact_standard_launcher_runtime_schema_accepted": true,
+    "expected_and_observed_commit_equal_runtime_core": true,
+    "authorization_pins_request_contract": true,
+    "job_pins_exact_request_bytes": true,
+    "all_runtime_fingerprints_match_objects_at_runtime_core": true,
+    "exact_command_and_intended_environment_bound": true,
+    "mutation_rejections_per_host": 14,
+    "mutations_rejected": [
+      "compiler environment",
+      "outer timeout",
+      "arm argv",
+      "core argv",
+      "request-contract argv",
+      "expected commit",
+      "observed git commit",
+      "hostname",
+      "dirty-source state",
+      "expected source hash",
+      "observed source hash",
+      "extra runtime field",
+      "remote path",
+      "label"
+    ]
+  },
+  "cohort_contract": {
+    "one_unique_run_per_host": true,
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "smoke": false,
+    "lnc": 2,
+    "world_size": 4,
+    "compiler_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "launch_flag_count": 10,
+    "primary_eval_tokens": 2097152,
+    "primary_eval_bytes": "positive actual value recorded",
+    "full_eval_tokens": 20971520,
+    "full_eval_bytes": 83462186,
+    "finite_weights_only_checkpoint_required": true,
+    "checkpoint_immutable_across_evaluations_and_archive": true,
+    "sealed_archive_manifest_and_completion_required": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "submission_authorized": false
+  },
+  "checks_run": [
+    "clean final diff and commit-topology audit",
+    "current-base dual-control static gates: PASS",
+    "dual-host immutable request suite: PASS without dispatch",
+    "actual authorization-file SHA versus command argument: PASS for both hosts",
+    "request bytes versus job request SHA: PASS for both hosts",
+    "request contract versus authorization and command: PASS for both hosts",
+    "every expected fingerprint versus runtime-core Git object: PASS",
+    "exact standard-launcher runtime reconstruction: PASS for both hosts",
+    "fourteen runtime mutation attacks rejected per host",
+    "test-source shell and SSH scan: none found",
+    "exact ten-flag launch audit: PASS",
+    "protected train and prepare byte audit: PASS"
+  ],
+  "constraints": [
+    "This is verification of readiness, not launch authorization or submission approval.",
+    "The Operator must independently pass fresh host-lock, idle-device, memory, disk, inode and clean-source preflight gates on each host.",
+    "Only one job may run per host; dual execution is permissible only because the requests target distinct hosts.",
+    "The launcher inherits ambient variables beyond the explicitly bound request environment. Do not inject hostile LD_PRELOAD, XLA, TORCH or equivalent variables.",
+    "Remote ready-to-retrieve status is not local durability. Retrieve and hash-verify requests, runtime jobs, pre/postflight, logs, metrics, manifest, archive, completion and checkpoint receipts before analysis.",
+    "Any crash, NaN, timeout, budget failure, dirty source, postflight failure, count mismatch, checkpoint mutation or artifact mismatch invalidates that host's control.",
+    "No pruning, cache cleanup, retry, leaderboard submission or causal win claim is authorized."
+  ],
+  "actions_not_taken": [
+    "source edit",
+    "SSH",
+    "hardware launch",
+    "push",
+    "checkpoint prune",
+    "cache cleanup",
+    "leaderboard submission",
+    "submission approval"
+  ]
+}
