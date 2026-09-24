@@ -33,6 +33,11 @@ This section supersedes earlier Track-A readiness and host-control statements be
   pushed on `experiment/20260924-v2-a1-hybrid-rmsprop-ownership-repair`; native packaging and
   hardware remain forbidden while an Implementer adds exact ordered group-schema validation and a
   fresh Verifier repeats the gate.
+- Repair iteration 2 (`241ba406`) fixed group-kind/order drift and passed its supplied 10 tests,
+  but independent verifier commit `a350e2d2` found that malformed/missing/swapped optimizer state
+  and drifted ownership-summary fields could still reach raw loading or a collective. Native work
+  remains forbidden. Iteration 3 must authenticate the exact per-kind optimizer-state schema and
+  complete ownership summary before mutation/collectives, then receive another fresh verifier pass.
 - A separate source audit confirms clean-step replicated RMSProp is semantically equivalent to the
   ordinary optimizer only if tables are absent from ownership/all-gather, post-AVG joint table
   clipping is unchanged, and each rank executes exactly one RMS step. Source cannot prove Neuron
