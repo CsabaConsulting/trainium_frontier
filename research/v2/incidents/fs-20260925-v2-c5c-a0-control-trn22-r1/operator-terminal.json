@@ -1,0 +1,104 @@
+{
+  "schema": "operator-a0-terminal-incident-v1",
+  "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "status": "FAILED_DISK_SAFETY_STOP_NO_SCORE",
+  "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+  "source_tree": "a621cc531c352d1db949dc873ea12bf12e8fa22e",
+  "final_request_sha256": "4f1495c86ac236789a085d5f235a3d2c3550653c9690f49ff66bb596e3d17c8e",
+  "dispatch_receipt_sha256": "9f0a8e7381fc837bdf76a5a95ac121eb13343bfc3ad9c33f8d769de86e3efae5",
+  "run_root": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1",
+  "dispatch": {
+    "one_attempt_only": true,
+    "requested_at_utc": "2026-09-24T21:25:48.974364+00:00",
+    "started_at_utc": "2026-09-24T21:25:57.966143+00:00",
+    "launcher_returncode": 0,
+    "preflight_passed": true,
+    "guard_pid": 2963679,
+    "child_pid": 2963680,
+    "observer_pid": 2963059
+  },
+  "disk": {
+    "preflight_free_bytes": 7949975552,
+    "first_monitored_free_bytes": 7476391936,
+    "first_below_floor_free_bytes": 6449438720,
+    "postflight_free_bytes": 6449033216,
+    "latest_checked_free_bytes": 6448951296,
+    "operational_floor_bytes": 6979321856,
+    "preflight_to_postflight_consumed_bytes": 1500942336,
+    "remains_below_floor": true
+  },
+  "stop": {
+    "reason": "Root free space crossed the approved 6.5-GiB operational floor during native compile before the first optimizer boundary.",
+    "method": "Verified process manifest label, guard PID, UID and exact guard/job argv, then sent SIGTERM to guard PID 2963679 only.",
+    "torchrun_signal_logged_at_utc": "2026-09-24T21:28:01.160000+00:00",
+    "guard_postflight_completed_at_utc": "2026-09-24T21:28:07.305166+00:00",
+    "guard_command_returncode": 1,
+    "interrupted_signals": [15],
+    "host_clean": false,
+    "postflight_failures": ["less than6.5GiB operational disk space available"],
+    "cleanup_actions": [],
+    "remaining_owned_processes": [],
+    "artifacts_deleted": [],
+    "caches_deleted": [],
+    "device_holders_after": 0,
+    "neuron_processes_after": 0
+  },
+  "training": {
+    "step_boundary_count": 0,
+    "step_0_1_losses_available": false,
+    "checkpoint_present": false,
+    "public20m_evaluation_run": false,
+    "public20m_score": null,
+    "decide_verdict": null
+  },
+  "observer": {
+    "status": "COMPLETE_NON_SCORED",
+    "scored_timing_proof": false,
+    "invalid_reasons": [
+      "postflight_command_not_successful",
+      "postflight_host_not_clean",
+      "first_five_boundaries_incomplete_or_nonsequential"
+    ],
+    "terminal_json_sha256": "603139c587a0adef9c68b2139a4f541a9c3d154e177cf42885c53d1bfd18349e",
+    "stderr_bytes": 0
+  },
+  "read_only_disk_inventory": {
+    "retained_cache_parent": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train",
+    "six_cache_directory_device_and_inodes_unchanged": true,
+    "retained_debug_cache_before_apparent_bytes": 0,
+    "retained_debug_cache_after_apparent_bytes": 673388155,
+    "retained_cache_regular_files_before": 610,
+    "retained_cache_regular_files_after": 744,
+    "tmp_nki_directories_created_during_run": 48,
+    "tmp_nki_directories_apparent_bytes": 826409712,
+    "tmp_nki_birth_window_utc": ["2026-09-24T21:26:10Z", "2026-09-24T21:27:27Z"],
+    "tmp_nki_inventory": "tmp-nki-dirs.tsv",
+    "tmp_nki_inventory_sha256": "b95e190c7e9b7ac699b785949327d54a06cfab250df75a35e6e141a52c891ff7",
+    "two_apparent_size_increases_sum_bytes": 1499797867,
+    "difference_from_df_consumed_bytes": 1144469,
+    "attribution_limit": "Directory apparent sizes and df allocated bytes are different measures; their close sum supports attribution but does not prove exact physical block ownership.",
+    "a0_out_directory_present": false,
+    "a0_run_logs_apparent_bytes": 58103,
+    "tmp_neff_cache_kib_pre_and_post": 9617396
+  },
+  "kernel_log": {
+    "source": "run-logs/fs-20260925-v2-c5c-a0-control-trn22-r1.postflight.json health.kernel_log",
+    "observation": "Four Neuron TPB reset requests logged at 21:26:02 UTC and completed at 21:26:09 UTC; no causal conclusion drawn."
+  },
+  "retrieval": {
+    "run_log_files": 6,
+    "observer_files": 4,
+    "all_remote_local_sha256_match": true,
+    "run_log_sha256": {
+      "job.json": "947cba71a600b34d994d30609b9a4a73cc5dbe6c7e8ba4e4238c363aff2fe720",
+      "launch.json": "947cba71a600b34d994d30609b9a4a73cc5dbe6c7e8ba4e4238c363aff2fe720",
+      "log": "b63ffb72e5cd036bfd6690fcdbcaa499baf1d6e4323c11e911ca27fa264da18a",
+      "postflight.json": "72518b1ca9522626d35b73ce81d77780b3d1d15d6e5a1838ef52ef0878471ade",
+      "preflight.json": "80c568162842a597b2e6f736e6ab3f37b2d7f34f3694c711edc188d284b5d75a",
+      "process.json": "b599580df7335e632cfa3585e67ceea14a0a406fc31309a528d30f948fda3160"
+    }
+  },
+  "next_action": "Keep trn22 blocked. Human decides on disk capacity; no retry, new host job, fresh evaluation, cache deletion or breaker reset under this authorization."
+}
