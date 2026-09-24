@@ -33,7 +33,10 @@ independent-verification, Operator, and evidence gates.
    --ngram-ve-clip-exclude`.
 4. Second arm: the same table configuration on layers `1,-1`. If it is promising, compare the
    legal LNC1/world8 shape only against an LNC1/world8 control with otherwise identical bytes and
-   flags.
+   flags. This is not currently a flag-only run: the exact `35c9...` training adapter asserts
+   `dist.get_world_size() == 4`, and its adaptive NKI kernels must also be audited for one-core rank
+   geometry. B1 therefore requires a separately implemented and independently verified
+   world8-compatibility change before hardware use.
 5. Then screen the available constant/flag mechanisms: MLP sandwich norm; ReLU2 tau `0.5`; head
    gate plus per-head norm; embedding LR `0.45`, then `0.6`; warmdown `0.9`; x0 gate and out-pool as
    separate causal arms. Depth-8/width-768 is eligible only as a declared stack confirmation with
