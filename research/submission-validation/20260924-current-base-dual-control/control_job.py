@@ -13,9 +13,30 @@ METRIC_KEYS={"val_bpb","num_tokens","num_bytes","total_nats","eval_seconds","eva
 FINITE_KEYS={"schema","finite","weights_only","map_location","tensor_count","checkpoint_sha256","checkpoint_bytes"}
 BASE_ARTIFACTS={"training.log","training-rehearsal.json","training-steps.jsonl","checkpoint-finite.log","checkpoint-finite.json","primary-public1024.log","primary-eval-rehearsal.json","primary.metrics.json","fresh-public20m.log","eval-rehearsal.json","full20m.metrics.json","result.json","evidence.tar.gz"}
 HEX64=set("0123456789abcdef")
+RUNTIME_ADDITIONS={"started_at","hostname","git_commit","source_dirty","preflight_free_bytes","source_sha256"}
 WARNING_TAIL=["  Overriding a previously registered kernel for the same operator and the same dispatch key","  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)","    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6","  dispatch key: PrivateUse1","  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637","       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())"]
 WARNING_FIRST=re.compile(r"^\[W\d+ \d{2}:\d{2}:\d{2}\.\d+ OperatorEntry\.cpp:208\] Warning: Warning only once for all operators,  other operators may also be overridden\.$")
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def request_contract(data):
+ """Digest exact operator intent without creating a commit/request self-reference."""
+ base={k:data[k] for k in ("schema","host","expected_hostname","remote","origin","label","purpose","fingerprint_paths","environment","command","runner_owns_manifest","non_overwrite")}
+ command=list(base["command"])
+ for flag in ("--core-commit","--authorization-sha256","--request-contract-sha256"):
+  try: command[command.index(flag)+1]="<"+flag[2:].upper().replace("-","_")+">"
+  except (ValueError,IndexError): raise SystemExit("runtime command binding missing")
+ base["command"]=command
+ return hashlib.sha256(json.dumps(base,sort_keys=True,separators=(",",":")).encode()).hexdigest()
+def verify_runtime(data,host,label,core,contract):
+ required={"schema","host","expected_hostname","remote","expected_commit","origin","label","purpose","fingerprint_paths","expected_sha256","environment","command","runner_owns_manifest","non_overwrite"}
+ if set(data)!=required|RUNTIME_ADDITIONS: raise SystemExit("runtime job schema mismatch")
+ if data["host"]!=host or data["label"]!=label or data["expected_commit"]!=core or data["git_commit"]!=core: raise SystemExit("runtime job identity mismatch")
+ if data["hostname"]!=ARMS[host]["hostname"] or data["expected_hostname"]!=ARMS[host]["hostname"] or data["source_dirty"] is not False: raise SystemExit("runtime host/dirty mismatch")
+ if request_contract(data)!=contract: raise SystemExit("runtime request contract mismatch")
+ if set(data["fingerprint_paths"])!=set(data["expected_sha256"]) or not set(data["fingerprint_paths"])<=set(data["source_sha256"]): raise SystemExit("runtime fingerprint schema mismatch")
+ for path in data["fingerprint_paths"]:
+  want=data["expected_sha256"][path]
+  if type(want) is not str or len(want)!=64 or any(c not in HEX64 for c in want) or data["source_sha256"][path]!=want: raise SystemExit("runtime fingerprint mismatch")
+ return hashlib.sha256(json.dumps(data,sort_keys=True,separators=(",",":")).encode()).hexdigest()
 def artifact_module(label):
  path=HERE/"artifact_io.py"
  spec=importlib.util.spec_from_file_location("verified_artifacts",path); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
@@ -78,10 +99,10 @@ def revalidate_manifest(a,manifest,members):
 def copy_artifact(a,source,name):
  a.safe_regular(source); data,_=a.nofollow_bytes(source); a.durable(a.OUTPUT/name,data)
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--arm",choices=ARMS,required=True); ap.add_argument("--authorization-sha256",required=True); ap.add_argument("--sandbox-root",type=pathlib.Path,required=True); ap.add_argument("--core-commit",required=True); args=ap.parse_args()
+ ap=argparse.ArgumentParser(); ap.add_argument("--arm",choices=ARMS,required=True); ap.add_argument("--authorization-sha256",required=True); ap.add_argument("--sandbox-root",type=pathlib.Path,required=True); ap.add_argument("--core-commit",required=True); ap.add_argument("--request-contract-sha256",required=True); args=ap.parse_args()
  host=args.arm;hostname=ARMS[host]["hostname"];label=ARMS[host]["label"]
  auth_path=HERE/(host+"-authorization.json"); auth=json.loads(auth_path.read_text())
- exact={"schema":"current-base-control-authorization-v1","arm":host,"host":host,"expected_hostname":hostname,"label":label,"package":PACKAGE_REL,"train_sha256":TRAIN_SHA,"single_causal_change":"none","seed":42,"max_train_seconds":1800,"smoke_authorized":False,"checkpoint_prune_authorized":False,"state":"human_approved_pending_operator"}
+ exact={"schema":"current-base-control-authorization-v1","arm":host,"host":host,"expected_hostname":hostname,"label":label,"package":PACKAGE_REL,"train_sha256":TRAIN_SHA,"single_causal_change":"none","seed":42,"max_train_seconds":1800,"smoke_authorized":False,"checkpoint_prune_authorized":False,"request_contract_sha256":args.request_contract_sha256,"state":"human_approved_pending_operator"}
  if sha(auth_path)!=args.authorization_sha256 or auth!=exact: raise SystemExit("authorization mismatch")
  if socket.gethostname()!=hostname or subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()!=args.core_commit: raise SystemExit("host/core mismatch")
  evidence=ROOT/"out"/label; work=ROOT/"out"/(label+"-work")
@@ -91,8 +112,9 @@ def main():
  a=artifact_module(label); runtime=ROOT/"research/run-logs"/(label+".job.json")
  try: a.safe_regular(runtime); runtime_bytes,_=a.nofollow_bytes(runtime)
  except (FileNotFoundError,OSError): raise SystemExit("runtime job missing or unsafe")
- runtime_data=json.loads(runtime_bytes); request_sha=runtime_data.get("request_file_sha256")
- if runtime_data.get("label")!=label or runtime_data.get("host")!=host or runtime_data.get("expected_commit")!=args.core_commit or type(request_sha) is not str or len(request_sha)!=64 or any(c not in HEX64 for c in request_sha): raise SystemExit("runtime job identity mismatch")
+ runtime_data=json.loads(runtime_bytes)
+ if args.request_contract_sha256!=auth["request_contract_sha256"]: raise SystemExit("request contract authorization mismatch")
+ runtime_job_sha=verify_runtime(runtime_data,host,label,args.core_commit,args.request_contract_sha256)
  a.create_output(ROOT,evidence); work.mkdir(parents=True)
  env=scrub(os.environ); env.update(PYTHONUNBUFFERED="1",NEURON_LOGICAL_NC_CONFIG="2",NEURON_CC_FLAGS="--optlevel=1 --auto-cast matmult --auto-cast-type bf16")
  rehearsal=ROOT/"research/scratch/submission_rehearsal.py"; train_box=work/"train"; primary_box=work/"eval-primary"; eval_box=work/"eval-full20m"
@@ -127,7 +149,7 @@ def main():
  post_sha,post_bytes=a.nofollow_sha(checkpoint)
  if (post_sha,post_bytes)!=(before_sha,before_bytes): raise SystemExit("checkpoint changed after archive")
  members=a.inspect_artifacts(BASE_ARTIFACTS); manifest={"schema":"current-base-control-artifact-manifest-v1","label":label,"members":members}; a.durable_json(evidence/"artifact-manifest.json",manifest); manifest_sha=revalidate_manifest(a,manifest,members)
- completion={"schema":"current-base-control-completion-v1","label":label,"host":host,"hostname":hostname,"core_commit":args.core_commit,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"request_file_sha256":request_sha,"runtime_job_sha256":hashlib.sha256(runtime_bytes).hexdigest(),"artifact_manifest_sha256":manifest_sha,"artifact_members":members,"checkpoint_path":str(checkpoint),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,"checkpoint_post_sha256":post_sha,"checkpoint_post_bytes":post_bytes,"checkpoint_preserved":True,"archive_sha256":hashlib.sha256(archive).hexdigest(),"archive_bytes":len(archive),"prune_authorized":False,"cache_cleanup_authorized":False,"ready_to_retrieve":True}
+ completion={"schema":"current-base-control-completion-v1","label":label,"host":host,"hostname":hostname,"core_commit":args.core_commit,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"request_contract_sha256":args.request_contract_sha256,"runtime_job_sha256":runtime_job_sha,"artifact_manifest_sha256":manifest_sha,"artifact_members":members,"checkpoint_path":str(checkpoint),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,"checkpoint_post_sha256":post_sha,"checkpoint_post_bytes":post_bytes,"checkpoint_preserved":True,"archive_sha256":hashlib.sha256(archive).hexdigest(),"archive_bytes":len(archive),"prune_authorized":False,"cache_cleanup_authorized":False,"ready_to_retrieve":True}
  a.durable_json(evidence/"ready-to-retrieve.json",completion); completion_bytes=a.artifact_bytes("ready-to-retrieve.json"); completion_sha=hashlib.sha256(completion_bytes).hexdigest()
  if json.loads(completion_bytes)!=completion or a.inspect_artifacts(BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"})["ready-to-retrieve.json"]["sha256"]!=completion_sha: raise SystemExit("completion revalidation failed")
  print(json.dumps({"result":result,"artifact_manifest_sha256":manifest_sha,"completion_receipt_sha256":completion_sha,"ready_to_retrieve":True},sort_keys=True))
