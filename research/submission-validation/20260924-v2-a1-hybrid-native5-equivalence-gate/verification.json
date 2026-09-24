@@ -1,41 +1,49 @@
 {
-  "reviewed_commit": "942b22b08946ceaaac644a89fd2f8e46276c73ed",
-  "reviewed_parent": "c35504bc426d75e416498c1cbb6f086f8d845ca4",
-  "role": "independent_verifier_native_five_step_package",
-  "status": "FAIL",
-  "summary": "The package is scope-confined and its supplied checks pass, but the comparator normalizes any five hybrid all_gather_into_tensor calls as owner exchange without authenticating their shape, dtype, numel, or relationship to the frozen ownership plan. Arbitrary collectives can therefore produce a false full PASS.",
+  "reviewed_commit": "7528ca8dd9d9915097929217c2a2b0d9cfc17107",
+  "reviewed_parent": "7ad54edb67c0ceef39e87ead7b55adc5f543a168",
+  "role": "independent_verifier_native_five_step_package_repair",
+  "status": "PASS",
+  "summary": "The repaired comparator authenticates each of the five hybrid owner exchanges against the frozen dense ownership stride, world size, FP32 shapes and numels, and exact per-update placement before normalization. The prior arbitrary-gather false PASS and the expanded missing/extra/malformed/order/ordinary-gather matrix now fail closed.",
   "checks": {
-    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-native5.gYgYhX",
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-native5-r2.0qhs5O",
     "reviewed_commit_exact": true,
+    "reviewed_parent_is_prior_fail": true,
+    "repair_diff_paths": [
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py"
+    ],
     "py_compile_passed": true,
-    "supplied_tests_passed": 13,
+    "complete_gate_tests_passed": 15,
+    "original_gate_tests_preserved": 13,
+    "prior_forged_wrong_contract_regression_passed": true,
     "accepted_optimizer_regression_tests_passed": 13,
+    "independent_owner_exchange_attacks_rejected": 4,
     "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
-    "diff_is_nine_new_gate_package_files_only": true,
+    "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate_source_sha256": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate_source_sha256": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "comparator_sha256": "aa2d7c084ee17c5c639bd5ff7b6bc0cbf6e9575d5f802a056328eb4e387f5ca4",
+    "model_checker_sha256": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "frozen_owner_shard_elements": 30414976,
+    "world_size": 4,
+    "exact_owner_exchanges_per_hybrid_rank": 5,
+    "owner_exchange_input": "torch.float32 [30414976] / 30414976 elements",
+    "owner_exchange_output": "torch.float32 [121659904] / 121659904 elements",
+    "normalization_requires_exact_ordinary_sequence": true,
+    "ordinary_owner_gather_rejected": true,
+    "requests_sha256": "4549a064ecbc7caa456d4ed9759310fc2065d2c627da1ee68e74f0be1da555d0",
     "requests_pending_and_non_executable": true,
-    "g0_g1_g2_config_and_order_contract_present": true,
-    "compact_observation_only": true,
-    "model_only_strict_load_logit_causality_gate_present": true,
-    "secrets_or_tensor_value_dumps_found": false,
-    "runtime_timeout_is_deliberately_unfinalized": true,
-    "adversarial_owner_exchange_contract_rejected": false
+    "protected_files_changed_by_repair": false
   },
-  "blockers": [
-    {
-      "id": "B1_OWNER_EXCHANGE_NORMALIZATION_FAIL_OPEN",
-      "evidence": "Replacing every G0/G1 owner all-gather record with float64 input shape [7]/numel 7 and output shape [28]/numel 28, then recomputing each sequence SHA, returns status PASS, RMS_PASS and INTEGRATED_PASS.",
-      "cause": "compare_gate_reports.py checks only that G1 contains five all_gather_into_tensor records and _without_owner_exchange removes all such records. It never authenticates those records against ownership.summary.shard_elements, world_size, dtype, or the exact established exchange position per update.",
-      "required_fix": "Validate each of the exactly five owner exchanges on every hybrid rank before normalization: input float32 [shard_elements]/numel shard_elements, output float32 [world_size * shard_elements]/numel world_size * shard_elements, exact expected ordering relative to the shared collective sequence, and no other all-gather. Reject malformed, misplaced, extra, or missing gathers. Bind shard_elements and the complete ownership inventory schema fail-closed. Add the committed adversarial regression and rerun the full suite."
-    }
-  ],
   "request_finalization_requirements": [
-    "Do not finalize or execute G0, G1, or G2 while B1 is unresolved; independently verify the corrected comparator and observer/inventory binding first.",
-    "Finalize distinct immutable arm requests only after a PASS, binding exact final HEAD, request/auth hashes, gate source/observer/comparator/model-check hashes, candidate/prepare hashes, unique paths/caches, exact argv/env, trn21 identity, disk thresholds, and bounded process-group quiescence/evidence lifecycle.",
-    "Each final request must state one independently reviewed outer timeout long enough for compile plus the 1800-second in-process ceiling, and fail closed through bounded process-group TERM/KILL/reap/quiescence before artifact hashing.",
-    "G1 remains non-executable until the exact G0 archive and clean postflight are retrieved, hashed, committed, and bound; G2 likewise remains non-executable until the exact G1 evidence is bound.",
-    "A native comparison requires comparator PASS and model-check PASS over authenticated immutable archives; no result authorizes full A1, training, submission, checkpoint pruning, or cache cleanup by itself."
+    "A later finalizer must bind each immutable request to the exact reviewed core and verifier-receipt commits, while the Operator supplies the final request-bearing checkout HEAD and request/authorization SHA256 as external literals. Candidate, prepare, observer, hybrid/ordinary gate source, comparator, model-checker, launcher, guard, and runtime hashes must be exact; no self-derived or pending literal may remain executable.",
+    "Each arm must retain its exact source, G0/G1/G2 mode, seed 42, world size 4, LNC2, five-update argv, trn21 identity, unique initially absent remote/output/report/cache paths, compiler environment, disk floors, and one private process group.",
+    "Each request must state an independently reviewed outer timeout sufficient for compilation plus the 1800-second in-process ceiling and must enforce bounded process-group TERM/KILL/reap/quiescence before immutable artifact hashing.",
+    "Only G0 may be finalized first. G1 must remain non-executable until the exact G0 archive and clean postflight are retrieved, hashed, committed, and bound; G2 must likewise wait for exact authenticated G1 evidence.",
+    "Native evidence is complete only if the authenticated archives produce comparator PASS and model-check PASS. This package PASS does not authorize hardware execution, full A1 adoption, submission, checkpoint pruning, or cache cleanup."
   ],
   "hardware_authorized": false,
-  "requests_may_be_finalized": false
+  "request_finalization_may_be_prepared": true
 }
