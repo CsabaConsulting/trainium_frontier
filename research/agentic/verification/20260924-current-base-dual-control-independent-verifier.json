@@ -1,0 +1,150 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_PENDING_OPERATOR_PREFLIGHT",
+  "submission_approved": false,
+  "finalization_commit": "34eb289f06353461d26a88f994104f259ea06714",
+  "runtime_binding_core": "b02ea2d8229aa55431cfd0959cf555118e823053",
+  "verified_base_commit": "8a587d5983830444394e921240dabaf909ac0482",
+  "protected_source": {
+    "root_train_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "package_train_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "root_and_package_train_bytes_equal": true,
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "root_train_and_prepare_equal_verified_base": true
+  },
+  "arms": {
+    "trn21": {
+      "hostname": "ip-172-31-34-85",
+      "label": "fs-20260924-current-base-control-trn21-r1",
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn21_r1",
+      "request_sha256": "abbdfac2bc46b080bfe9d639ac397e911090690c013e2215dd13c35940dc4d78",
+      "request_contract_sha256": "81e0926e324882d3ab1bc4ac814a8521c8f42398a18c6dacaf0e8f8bb6bab041"
+    },
+    "trn22": {
+      "hostname": "ip-172-31-32-253",
+      "label": "fs-20260924-current-base-control-trn22-r1",
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1",
+      "request_sha256": "7bc0d968146c6c5b1dc05205698dd328e57b1fd29d88630877a10ac1ebd63a91",
+      "request_contract_sha256": "a932aac93749674b20dee56b070efc5f400aa414dbb40f9056bc6d6cae2e0f48"
+    }
+  },
+  "scientific_contract": {
+    "one_run_per_host": true,
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "smoke": false,
+    "world_size": 4,
+    "lnc": 2,
+    "compiler_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+    "launch_flag_count": 10,
+    "evaluation_order": [
+      {
+        "name": "primary-public1024",
+        "tokens": 2097152,
+        "bytes": "record positive actual value"
+      },
+      {
+        "name": "full20m",
+        "tokens": 20971520,
+        "bytes": 83462186
+      }
+    ]
+  },
+  "runtime_binding_verification": {
+    "standard_launcher_schema_source": "research/fresh_start_launch.py at SHA-256 dc3479c09abe344ef8239f6ce7c06f903dd7213deca5f25fe260c7ce715afab2",
+    "exact_launcher_runtime_object_accepted_for_both_arms": true,
+    "authorization_pins_request_contract": true,
+    "runtime_requires_exact_schema": true,
+    "runtime_requires_expected_and_actual_core_commit": true,
+    "runtime_requires_exact_host_hostname_label_remote_and_clean_source": true,
+    "runtime_requires_exact_argv_arm_core_and_contract_bindings": true,
+    "runtime_requires_exact_intended_environment": true,
+    "runtime_requires_each_expected_fingerprint_to_equal_launcher_observed_source_hash": true,
+    "completion_binds_request_contract_and_runtime_job_semantic_hash": true,
+    "rejected_mutations": [
+      "compiler environment",
+      "timeout argv",
+      "arm argv",
+      "core argv",
+      "request-contract argv",
+      "expected commit",
+      "observed git commit",
+      "hostname",
+      "dirty-source state",
+      "expected source hash",
+      "observed source hash",
+      "extra runtime field",
+      "remote path",
+      "label"
+    ]
+  },
+  "operational_and_artifact_gates": {
+    "fresh_start_host_lock_and_one_job_per_host": true,
+    "preflight_requires_clean_committed_source_idle_device_8gib_disk_16gib_available_memory_and_free_inodes": true,
+    "unique_non_overwrite_labels_remotes_outputs_and_runtime_jobs": true,
+    "finite_checkpoint_scan_weights_only": true,
+    "checkpoint_hash_and_size_revalidated_after_each_evaluation_and_archive": true,
+    "artifact_writes_are_exclusive_nofollow_fsynced_and_allowlisted": true,
+    "archive_members_are_byte_revalidated": true,
+    "manifest_and_ready_to_retrieve_receipt_are_revalidated": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "submission_authorized": false
+  },
+  "checks_run": [
+    {
+      "check": "current-base dual-control static gates",
+      "result": "PASS"
+    },
+    {
+      "check": "dual-host immutable request tests",
+      "result": "PASS_NO_DISPATCH"
+    },
+    {
+      "check": "independent exact standard-launcher runtime reconstruction for both hosts",
+      "result": "PASS"
+    },
+    {
+      "check": "independent runtime trust mutation matrix",
+      "result": "PASS_14_REJECTIONS_PER_HOST"
+    },
+    {
+      "check": "request/job/auth hash and request-contract recomputation",
+      "result": "PASS"
+    },
+    {
+      "check": "test-source shell and SSH scan",
+      "result": "PASS_NONE_FOUND"
+    },
+    {
+      "check": "exact launch token and ten-flag audit",
+      "result": "PASS"
+    },
+    {
+      "check": "finalization topology and tracked worktree cleanliness",
+      "result": "PASS"
+    }
+  ],
+  "constraints": [
+    "This receipt authorizes no launch by itself; the Operator must use the exact finalized request for each arm and independently pass every fresh-start preflight gate.",
+    "The two arms may run concurrently only because they are bound to different hosts; there remains exactly one device job per host.",
+    "The launcher inherits ambient process variables in addition to the contract-bound explicit environment. The driver removes distributed, competition and Neuron compiler/core overrides and then pins the required LNC and compiler flags, but the Operator must not inject hostile LD_PRELOAD, XLA, TORCH or equivalent ambient variables.",
+    "The primary evaluation intentionally records its positive actual byte count; only the subsequent full20m evaluation is required to equal 83,462,186 bytes.",
+    "Successful remote completion is not durable local retrieval. The Operator must retrieve and hash-verify the runtime job, pre/postflight, logs, manifest, archive, completion receipt and checkpoint receipt before analysis.",
+    "Any crash, NaN, timeout, dirty source, pre/postflight failure, missing checkpoint, artifact mismatch or count mismatch invalidates that host's control.",
+    "No checkpoint pruning, cache cleanup, retry, leaderboard submission or scientific win claim is authorized by this verification."
+  ],
+  "actions_not_taken": [
+    "source modification",
+    "SSH",
+    "hardware launch",
+    "push",
+    "checkpoint pruning",
+    "cache cleanup",
+    "leaderboard submission",
+    "submission approval"
+  ]
+}
