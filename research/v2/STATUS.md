@@ -2,6 +2,15 @@
 
 Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
 
+At 22:21:36 UTC, the human's console screenshot shows both exact root EBS
+volumes at 250 GiB, and a [read-only guest audit](../agentic/operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json)
+confirms both `/dev/nvme0n1` disks now expose 250 GiB. However, each root
+`/dev/nvme0n1p1` ext4 partition/filesystem is still the old size: trn21 free
+6,901,698,560 B and trn22 free 6,448,898,048 B, both below the immutable
+6,979,321,856-B floor. The human is doing guest `growpart` and `resize2fs`;
+no agent has done those actions. Training remains HOLD, and trn22 still needs
+an explicit human breaker acknowledgement/reset after the guest resize.
+
 Read-only guest disk audit at 22:05:10 UTC: trn21 has 6,901,743,616 B free and
 trn22 6,448,918,528 B free, both below the 6,979,321,856-B floor. Both root
 disks still report 200 GiB. This check did not query AWS-side resize state or

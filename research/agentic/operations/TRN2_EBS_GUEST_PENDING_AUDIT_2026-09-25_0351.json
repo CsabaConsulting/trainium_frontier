@@ -1,0 +1,36 @@
+{
+  "schema": "trn2-read-only-post-ebs-guest-audit-v1",
+  "observed_utc": "2026-09-24T22:21:36Z",
+  "region": "ap-southeast-4",
+  "source": "User console screenshot shows both exact existing EBS volume IDs at 250 GiB; independent read-only SSH lsblk and df confirm each guest detects a 250-GiB disk but still has the old root partition/filesystem size. AWS API modification state was not queried.",
+  "commands": [
+    "lsblk -b -o NAME,PATH,TYPE,SIZE,FSTYPE,MOUNTPOINTS /dev/nvme0n1",
+    "lsblk -b -o NAME,START,SIZE,FSTYPE,MOUNTPOINTS /dev/nvme0n1",
+    "df -B1 /"
+  ],
+  "hosts": {
+    "trn21": {
+      "root_volume_id_from_prior_serial_audit": "vol-09b9c7946aeaa8c57",
+      "root_disk_bytes": 268435456000,
+      "root_partition_path": "/dev/nvme0n1p1",
+      "root_partition_bytes": 213673557504,
+      "root_fstype": "ext4",
+      "root_filesystem_total_bytes": 206900281344,
+      "root_filesystem_available_bytes": 6901698560,
+      "status": "AWS_DISK_RESIZE_VISIBLE_GUEST_PARTITION_AND_FILESYSTEM_PENDING"
+    },
+    "trn22": {
+      "root_volume_id_from_prior_serial_audit": "vol-0d64a9cafbb4912e8",
+      "root_disk_bytes": 268435456000,
+      "root_partition_path": "/dev/nvme0n1p1",
+      "root_partition_bytes": 213673557504,
+      "root_fstype": "ext4",
+      "root_filesystem_total_bytes": 206900281344,
+      "root_filesystem_available_bytes": 6448898048,
+      "status": "AWS_DISK_RESIZE_VISIBLE_GUEST_PARTITION_AND_FILESYSTEM_PENDING_BREAKER_TRIPPED"
+    }
+  },
+  "operational_floor_bytes": 6979321856,
+  "next_human_action": "On each host grow /dev/nvme0n1 partition 1, then resize its ext4 filesystem; stop on any mismatch/error. No agent has performed the guest resize.",
+  "actions": "Read-only SSH checks only. No guest resize, AWS API action, deletion, breaker reset, evaluation, or training."
+}

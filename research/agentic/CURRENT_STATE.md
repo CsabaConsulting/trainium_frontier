@@ -1,8 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:17 UTC
+Last reconciled: 2026-09-24 22:21 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
+
+The human's Melbourne AWS console screenshot shows both exact root EBS volumes
+at 250 GiB. A [read-only guest audit](operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json)
+at 22:21:36 UTC confirms the 250-GiB parent disks are visible on both hosts,
+but their root p1 ext4 partition/filesystem remains 200-GiB-sized. Root free
+space is still below the immutable floor: trn21 6,901,698,560 B; trn22
+6,448,898,048 B. The human is being guided through guest `growpart` and
+`resize2fs`. No agent has resized the guest filesystem. trn22's breaker and
+all launch holds remain in place pending independent post-resize checks.
 
 At 22:05:10 UTC a new [read-only guest disk audit](operations/TRN2_DISK_READ_ONLY_AUDIT_2026-09-25_0335.json)
 still found 200-GiB root disks, with 6,901,743,616 B free on trn21 and
