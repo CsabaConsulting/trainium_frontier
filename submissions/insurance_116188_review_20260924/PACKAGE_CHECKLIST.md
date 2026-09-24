@@ -6,8 +6,12 @@
 - [x] Two cold seed-42 full-budget runs and their exact fresh public20M metrics are bound in `EVIDENCE_MANIFEST.json`.
 - [x] Existing reviewer, CPU/load-for-eval, checkpoint-finite, rehearsal, metrics, result, and operator receipts are hash-bound.
 - [x] Known authoritative rejection fragments and the missing full-text limitation are recorded without inference.
+- [x] Import-time Neuron compiler/cache defaults are explicitly disclosed and dispositioned in `REVIEWER_RISK.md`.
+- [x] Both runs' runtime-result, runtime-job, and postflight files are directly bound by path, byte size, and SHA-256.
 - [x] Offline packager checks are recorded in `OFFLINE_CHECKS.md`.
 - [ ] An independent verifier has audited this exact staged package and issued a final package receipt.
 - [ ] The human has explicitly approved one rate-limited leaderboard upload.
 
 `submission_approved` is **false**. This directory is staged for review only and must not be uploaded yet.
+
+Package status: **PENDING_INDEPENDENT_REVERIFICATION**.

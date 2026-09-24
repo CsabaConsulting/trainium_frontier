@@ -11,3 +11,5 @@ From commit `68bacfd7` (`research/submission-validation/20260923-dense6x1024-dir
 > REJECTED_BY_REVIEW: The submission is a dense GPT with custom NKI kernels, Muon optimizer, and several training-only adapters. The code is largely honest, but several constructs require closer human inspection: (1) `_sub
 
 Neither record identifies the staged `116188cf...` bytes as the uploaded candidate. The exact missing evidence is the portal's untruncated reviewer text plus a portal receipt binding submission ID, uploaded filename/hash, timestamp, and status to these exact staged bytes.
+
+Accordingly, the package remains pending independent re-verification and human risk acceptance. The missing text must not be guessed, expanded, or treated as resolved.

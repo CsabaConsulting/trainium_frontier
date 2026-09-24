@@ -1,6 +1,13 @@
 {
   "schema": "trainium-116188-insurance-upload-package-v1",
   "created_from_audit_commit": "83b433e398f34af175db82e5459a3f386ec19ba2",
+  "repair_basis": {
+    "verifier_commit": "4506b96b4ac55055e415a9442bcb61b3a38a7216",
+    "path": "research/agentic/verification/20260924-116188-insurance-final-package.json",
+    "bytes": 7480,
+    "sha256": "07434a20e192e75119622e0b7400b3e43f3c97e0b62f86fd53cd47212d6be578",
+    "verdict": "HOLD"
+  },
   "candidate": {
     "path": "train.py",
     "bytes": 85557,
@@ -10,7 +17,9 @@
   },
   "launch_command": {
     "path": "launch-command.txt",
+    "bytes": 246,
     "sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "trailing_newline_count": 1,
     "bare_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
   },
   "causal_provenance": {
@@ -69,6 +78,7 @@
     },
     {
       "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/result.json",
+      "bytes": 1481,
       "sha256": "f6c214eb7569e0c65cf10d3243a91d0c6d532f8f761d948249a6c430dd08c926"
     },
     {
@@ -93,6 +103,7 @@
     },
     {
       "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/result.json",
+      "bytes": 1672,
       "sha256": "6d718d82a1469901ca4a6dad7a307a7bbd258067f99d5adbb0c3bb826a3f584c"
     },
     {
@@ -100,8 +111,59 @@
       "sha256": "ad566be97dfddc488d686c605e96ba2033680f5d990c8d04fefb499c3b5af8d9"
     }
   ],
+  "direct_runtime_and_postflight_bindings": [
+    {
+      "run": "first-cold-run",
+      "kind": "runtime-result",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/result.json",
+      "bytes": 1481,
+      "sha256": "f6c214eb7569e0c65cf10d3243a91d0c6d532f8f761d948249a6c430dd08c926"
+    },
+    {
+      "run": "first-cold-run",
+      "kind": "runtime-job",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/run-logs/fs-20260924-c595-matrixlr015-trn21-r1.job.json",
+      "bytes": 7197,
+      "sha256": "df56b1bbad619b91b1cdcfd67bc02b7022db9df3b40619c9254c213d80093352"
+    },
+    {
+      "run": "first-cold-run",
+      "kind": "postflight",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/run-logs/fs-20260924-c595-matrixlr015-trn21-r1.postflight.json",
+      "bytes": 15510,
+      "sha256": "5ad286daf31ce7196fd717c801fd8a3bb507f1da737b62f0be47d069525551b4"
+    },
+    {
+      "run": "confirmation-cold-run",
+      "kind": "runtime-result",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/result.json",
+      "bytes": 1672,
+      "sha256": "6d718d82a1469901ca4a6dad7a307a7bbd258067f99d5adbb0c3bb826a3f584c"
+    },
+    {
+      "run": "confirmation-cold-run",
+      "kind": "runtime-job",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/run-logs/fs-20260924-c595-matrixlr015-confirm-trn21-r2.job.json",
+      "bytes": 9392,
+      "sha256": "c7209dbfb199e4e8c5c457a4e52af7d55882c5f1ae5a08ce34cf830e57d63bbc"
+    },
+    {
+      "run": "confirmation-cold-run",
+      "kind": "postflight",
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/run-logs/fs-20260924-c595-matrixlr015-confirm-trn21-r2.postflight.json",
+      "bytes": 15310,
+      "sha256": "5013442d652fb5364da0934d440aac7444214c534b4e5867f85dd0e01e561d68"
+    }
+  ],
+  "reviewer_risk_disposition": {
+    "path": "REVIEWER_RISK.md",
+    "import_time_neuron_defaults": "Disclosed: setdefault supplies compile-cache and compiler defaults only when the caller has not already provided them; __main__ selects the full intended compiler string before PyTorch import. These defaults affect compilation/training execution, not model weights, data, scorer logic, load_for_eval, or the eval forward path.",
+    "hidden_eval_path": false,
+    "unresolved_prior_rejection": "The portal exposed only truncated text for earlier candidate hashes. Human risk acceptance is required if the full text and exact upload binding remain unavailable."
+  },
   "review_rejection_record": "REJECTION_EVIDENCE.md",
   "offline_checks": "OFFLINE_CHECKS.md",
+  "package_status": "PENDING_INDEPENDENT_REVERIFICATION",
   "submission_approved": false,
   "human_upload_authorized": false,
   "required_next_authority": "Independent final package audit followed by explicit human submission approval."
