@@ -1,0 +1,98 @@
+{
+  "proposal_id": "20260925-v2-c5c-a0-control-trn22-r2",
+  "status": "DRAFT_RETRY_NOT_AUTHORIZED",
+  "owner_role": "implementer-retry-package",
+  "hypothesis": "After disk capacity is restored, the unchanged c5c research-v2 dense recipe can complete as a valid trn22 A0 numerical-equivalence control.",
+  "single_causal_change": "None in the model or training recipe; this is a new-label retry of the pre-step disk-failed A0 control, with a stronger operational disk gate.",
+  "mechanism_class": "control",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.001, 0.001],
+  "candidate_shortlist": [
+    {
+      "idea": "Retry exact c5c A0 on trn22 after human storage and breaker decisions",
+      "mechanism_class": "control",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "A same-host c5c public20M control is required before A1/A2 can yield valid advancement evidence; r1 produced zero steps and no score."
+    },
+    {
+      "idea": "S0 warm native check",
+      "mechanism_class": "diagnostic",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "A separate submission-safety lane; it does not establish the c5c research-base control."
+    },
+    {
+      "idea": "A1 last-layer tables",
+      "mechanism_class": "capacity",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Potentially higher upside but it needs its own native gates and a valid same-host c5c control."
+    },
+    {
+      "idea": "Data-wall diagnostic D1",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Important after a valid dense control exists; not a substitute for the missing A0 baseline."
+    }
+  ],
+  "selection_rationale": "The first attempt failed the operational disk gate before optimizer step 0, so the only scientifically valid next A0 attempt uses a unique label and a predeclared, evidence-based larger disk projection. No result from r1 can be carried forward as a control.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.1,
+  "trainium_feasibility": "Exact c5c source and prior Track-A argv; full-chip LNC2/world4; seed 42 and max_train_seconds 1800 explicitly fixed in a clean effective environment. Retain warm caches only. Pre-dispatch root free space must be at least 10 GiB (10,737,418,240 bytes), a provisional gate based on the observed r1 compile growth plus checkpoint/log/unknown-growth margin. Human EBS action and trn22 breaker acknowledgement/reset are prerequisites; no host action is authorized by this draft.",
+  "cheapest_falsifier": "Before any dispatch, fail on missing human breaker reset, free space below 10 GiB, source/cache/hash drift, absent exact-env G2 and independent Verifier receipt, dirty/occupied host, or a non-unique remote/output/log label.",
+  "prior_result_refs": [
+    "research/v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json: FAILED_DISK_SAFETY_STOP_NO_SCORE, zero boundaries",
+    "research/agentic/verification/20260925-a0-trn22-disk-safety-review.md: HOLD; r1 label consumed",
+    "499f753ca554c5c732c35ab4eab7e96488d5e355: same-host historical 35c9 step-0/1 anchor only"
+  ],
+  "evidence": [
+    "research/v2/DISK_DECISION_PACKET_2026-09-25.md: human volume decision and retained checkpoint size",
+    "research/agentic/verification/20260925-s0-warm-native-package-review.md: historical complete dense footprint",
+    "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json: trn22 eval calibration",
+    "submissions/research_v2/train.py SHA256 c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
+  ],
+  "duplicate_search_terms": ["c5c A0", "research-v2 control", "trn22 warm dense", "disk safety stop", "r1", "r2"],
+  "control": {
+    "git_commit": "499f753ca554c5c732c35ab4eab7e96488d5e355",
+    "run_label": "fs-20260924-v2-35c9-lr015-control-trn22-r1",
+    "public_val_bpb": null,
+    "public20m_status": "unknown; historical run supplies only the same-host training step-0/1 loss anchor and a public2M screen",
+    "steps": 3634,
+    "box_constraint": "trn22 only for step-0/1 numerical equivalence; a valid c5c public20M control does not yet exist"
+  },
+  "external_quality_reference": {
+    "public20m_bpb": 0.99195,
+    "absolute_tolerance": 0.001,
+    "acceptable_interval": [0.99095, 0.99295],
+    "meaning": "Predeclared global numerical-equivalence reference band, not an observed r1 score or same-host c5c control"
+  },
+  "candidate": {
+    "branch": "codex/20260925-v2-c5c-a0-trn22-r2-pending",
+    "files_allowed": ["train.py"],
+    "expected_diff": "No model-source edit. A future separately reviewed stage must copy the existing submissions/research_v2/train.py bytes exactly into the new host checkout root.",
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+    "launch_command": "Pending request materialization only: LNC2 torchrun --standalone --nproc_per_node=4 train.py with the unchanged Track-A argv in GATE_CONTRACT.json, seed=42 and max_train_seconds=1800 fixed in env -i. This is not a dispatch instruction."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "After a separate authorized fresh-process public20M eval, BPB lies within [0.99095, 0.99295]; this establishes a c5c control and is not a quality win.",
+    "throughput": "Informational only; warm-cache timing is not a quality or scientific equivalence claim.",
+    "correctness": "All pre-dispatch gates PASS, at least five sequential external optimizer boundaries, finite model-only checkpoint, clean quiescence, no budget breach, and later separate causality/public20M checks."
+  },
+  "abort_conditions": [
+    "Human has not expanded/verified the root volume or explicitly acknowledged/reset the trn22 disk breaker",
+    "Required free root space is below 10,737,418,240 bytes immediately before dispatch, or monitored space approaches the 6.5-GiB floor",
+    "Any exact source/prepare/argv/effective-environment/cache identity or G1/G2/Verifier receipt gate fails",
+    "Host is occupied, dirty, has a Neuron holder, or the new label/checkout/output/log already exists",
+    "Timeout, crash, NaN, nonfinite checkpoint, missing boundary/checkpoint, causality or budget failure",
+    "Any attempt to reuse r1, delete/prune protected artifacts, clean caches, or infer AWS/breaker authority from this draft"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}
