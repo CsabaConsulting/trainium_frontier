@@ -1,0 +1,171 @@
+{
+  "schema": "trn2-final-week-gate-cleanup-v1",
+  "authorization": {
+    "source": "research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md",
+    "scope": "bounded cleanup of controller-created archived artifacts after evidence preservation and push",
+    "restrictions_preserved": [
+      "no gate lowering",
+      "no training or evaluation launch",
+      "no AWS lifecycle action",
+      "no controller breaker transition",
+      "no data, shared cache, unknown worktree, source, log, JSON, verdict, or unretrieved artifact removal"
+    ]
+  },
+  "controller_repository": {
+    "path": "/home/poojith-devan/Desktop/Trainium",
+    "branch": "agent/control-plane-20260921",
+    "head_at_initial_inventory": "089d73c7e0c5a98dc0a516a7728ea52422b5f0b2",
+    "origin_head_at_initial_inventory": "089d73c7e0c5a98dc0a516a7728ea52422b5f0b2",
+    "clean_at_initial_inventory": true,
+    "concurrent_fast_forward_observed_after_cleanup": "3b3f324c53ca9b74a7eb3aa4fa18ef9809131f67",
+    "concurrent_fast_forward_note": "The shared controller checkout advanced through pushed final-week evidence/state commits while the remote cleanup was in progress; those commits did not alter the validated trn22 targets or remote host state."
+  },
+  "gate": {
+    "configured_gib": 7.4,
+    "bytes_ceil": 7945689498,
+    "config_path": "research/agentic/autoloop.json",
+    "config_line": 23
+  },
+  "trn21": {
+    "hostname": "ip-172-31-34-85",
+    "inventory_utc": "2026-09-24T09:04:32Z",
+    "free_bytes_inventory": 7363145728,
+    "free_gib_inventory": 6.857463836669922,
+    "workload_processes": [],
+    "neuron_device_holders": [],
+    "neuron_processes": [],
+    "experiment_lock_holders": [],
+    "controller_run_directories": [],
+    "controller_cache_root_present": false,
+    "cleanup_performed": false,
+    "fail_closed_reason": "No controller-owned archived checkpoint, cache, or worktree eligible under the standing authorization remained. The recent LR.015 confirmation r2 request and job explicitly set checkpoint_prune_authorized=false and cache_cleanup_authorized=false, so that worktree and checkpoint were excluded.",
+    "excluded_recent_artifact": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2",
+      "evidence_commit": "28b89bfc6d65be9188f8d8a78accd6187e7627b7",
+      "evidence_origin_ref": "origin/evidence/20260924-matrixlr015-confirm-r2",
+      "request_path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/request.json",
+      "job_path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/job.json",
+      "checkpoint_prune_authorized": false,
+      "cache_cleanup_authorized": false,
+      "preserved": true
+    },
+    "postflight_utc": "2026-09-24T09:08:09Z",
+    "free_bytes_postflight": 7363121152,
+    "free_gib_postflight": 6.857440948486328,
+    "gate_pass": false,
+    "postflight_workload_processes": [],
+    "postflight_neuron_device_holders": [],
+    "postflight_neuron_processes": []
+  },
+  "trn22": {
+    "hostname": "ip-172-31-32-253",
+    "inventory_utc": "2026-09-24T09:04:32Z",
+    "free_bytes_inventory": 7424724992,
+    "free_gib_inventory": 6.914804458618164,
+    "workload_processes": [],
+    "neuron_device_holders": [],
+    "neuron_processes": [],
+    "experiment_lock_holders": [],
+    "cleanup_lock": "/tmp/trainium-experiment.lock",
+    "started_utc": "2026-09-24T09:07:57Z",
+    "finished_utc": "2026-09-24T09:07:57Z",
+    "free_bytes_immediately_before": 7424716800,
+    "targets": [
+      {
+        "path": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--control-trn22-lnc2x4-9a4caa7b--al-20260922-control-trn22-lnc2x4-9a4caa7b-smoke-r2",
+        "owner": "ubuntu:ubuntu",
+        "inode": 1906853,
+        "mtime_utc": "2026-09-22T05:27:19.191761872Z",
+        "apparent_bytes": 190064511,
+        "allocated_bytes": 204890112,
+        "head": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+        "checkpoint_count": 0,
+        "symlink_count": 0,
+        "process_references": 0,
+        "archive_hashes": {
+          "run_log": "586a579b04ce52dfda38da60df256e8b027b94cca89d38d25b92c86c750d6dde",
+          "launch_receipt": "d7008f2b09144dea1db8fc3216847b9b11c32365ccf3a0e1b4bb785afecfc273",
+          "experiment_ledger": "3c1c1317417fc7aa87b8051df267159a8a6602f478786c7071b6123155a5084d",
+          "result": "f932c2937d8335993f81e72161e192cb138afe241e8b51c077d9ad264864e931",
+          "verdict": "80de6ecb3982aef001282bef1f4cfe8691fdb277f3db0793a926fd5065916e69",
+          "checkpoint_cleanup_receipt": "cecc8b8a549d1df367012b130ca41265ac6e693f3bf4bfd1b7e48253f795c3b9"
+        },
+        "pushed_evidence_commits": [
+          "691faccbe9c0005cd3674b19e0b8d21a61b9cc91",
+          "a94727e1405a4fc718fff9f27a403370cb303492",
+          "3abccf0d31ab3d65ec0a368c033c3f76393898c2"
+        ],
+        "absent_after": true
+      },
+      {
+        "path": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--control-trn22-lnc2x4-9a4caa7b--al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1",
+        "owner": "ubuntu:ubuntu",
+        "inode": 2415833,
+        "mtime_utc": "2026-09-22T05:39:54.774995193Z",
+        "apparent_bytes": 190085321,
+        "allocated_bytes": 204914688,
+        "head": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+        "checkpoint_count": 0,
+        "symlink_count": 0,
+        "process_references": 0,
+        "archive_hashes": {
+          "run_log": "fb572c9e6608082de432cf7c0bf1432ca2e4d598ac2e211555e6068a06d11ec4",
+          "launch_receipt": "bd929b36555ebda2e5013de79748c8e6f69a7b999cff67acfdfe20e8d18efdb8",
+          "experiment_ledger": "f08724ffab77a109dc811819f48ad0d98dff024fb0d040e1679ca4d3bc97cd4c",
+          "result": "55277cea0039287ed5312aa5157552d24748c7aa841a89908ebc18f9eb70b131",
+          "verdict": "17dd1ed69efd30f7fbcb3c9d3b8ef79cac24ae0a87baef4cd689e41c79775fbb",
+          "checkpoint_cleanup_receipt": "cecc8b8a549d1df367012b130ca41265ac6e693f3bf4bfd1b7e48253f795c3b9"
+        },
+        "pushed_evidence_commits": [
+          "691faccbe9c0005cd3674b19e0b8d21a61b9cc91",
+          "0f0588e7c68da5ec5322358e45f8fcc64e9dbbbe",
+          "3abccf0d31ab3d65ec0a368c033c3f76393898c2"
+        ],
+        "absent_after": true
+      },
+      {
+        "path": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-no-qk-shift-fixedbudget-r3--al-20260922-no-qk-shift-fixedbudget-r3-smoke-r1",
+        "owner": "ubuntu:ubuntu",
+        "inode": 2415832,
+        "mtime_utc": "2026-09-22T15:34:05.459211209Z",
+        "apparent_bytes": 190064871,
+        "allocated_bytes": 204886016,
+        "head": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+        "checkpoint_count": 0,
+        "symlink_count": 0,
+        "process_references": 0,
+        "archive_hashes": {
+          "run_log": "784631123ab7545dd57d5009d2b979e270368718789e0c13c411549c088552b2",
+          "launch_receipt": "637ee5db2d67ed0a8d8279226811f0f8748b7213e286f5fe8c88bee2a4747cdd",
+          "experiment_ledger": "7ff56293d144c2bd2af59329a46256b0701c7c8bdfe2c857dbeeedb5947df7b0",
+          "result": "c5c83f704ed048d8d21ea133d0cf3ec24b91bef2f65cfa3f2f832f7db23966b3",
+          "verdict": "1f4f6832c81c1552fa5ba4bd3bd6c3109ff434abce22442c259f630427ddc6f1",
+          "checkpoint_prune_receipt": "4e16ce528c864dbeef7040764132b19cac9a168cce951671b1479c771b51fb65"
+        },
+        "pushed_evidence_commits": [
+          "691faccbe9c0005cd3674b19e0b8d21a61b9cc91",
+          "f10f330c469fcc9abe4b679182ee7b5ce701f435",
+          "d91d9efcd7dc3401d8d5fed219a1934957043610"
+        ],
+        "absent_after": true
+      }
+    ],
+    "target_apparent_bytes_total": 570214703,
+    "target_allocated_bytes_total": 614690816,
+    "free_bytes_immediately_after": 8039407616,
+    "free_bytes_delta": 614690816,
+    "free_gib_immediately_after": 7.487281799316406,
+    "gate_pass": true,
+    "postflight_utc": "2026-09-24T09:08:09Z",
+    "postflight_free_bytes": 8039403520,
+    "postflight_free_gib": 7.487277984619141,
+    "remaining_controller_run_directories": 9,
+    "postflight_workload_processes": [],
+    "postflight_neuron_device_holders": [],
+    "postflight_neuron_processes": [],
+    "shared_data_caches_logs_json_verdicts_source_unknown_paths_preserved": true
+  },
+  "controller_breaker_cleared": false,
+  "training_or_evaluation_launched": false,
+  "aws_lifecycle_changed": false
+}
