@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:08 UTC
+Last reconciled: 2026-09-24 22:13 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -18,6 +18,10 @@ but is not dispatchable until host/storage, checkpoint/cache/environment and
 one-shot authority gates pass. An independent [S0 static audit](verification/20260925-s0-submission-static-recheck.md)
 found no proven rule violation, but native checks and two cold bare-command
 replays remain before the human can safely upload it.
+The newer human brief schedules A1/trn21 and A2/trn22 in parallel once each has
+a valid same-host control and exact gates; this supersedes the older A2-after-A1
+schedule but not the need for same-host A1 to attribute the incremental layer-1
+effect. See the [table gate brief](../v2/TABLE_GATE_BRIEF_2026-09-25.md).
 
 The one authorized warm c5c A0 trn22 run was stopped after root free space fell
 below the 6.5-GiB operational floor **before any optimizer step**. The authenticated

@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:08:41Z",
+  "written_utc": "2026-09-24T22:13:14Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -51,6 +51,7 @@
     "G1": {
       "status": "PASS_TRN22_FRESH_PUBLIC20M_TRN21_PENDING",
       "blocking": false,
+      "host_specific_blocking": {"trn21": true, "trn22": false},
       "scope": "trn22 only; trn21 requires its own fresh calibration after disk unblock",
       "receipt": "research/v2/g1.json",
       "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
@@ -76,6 +77,7 @@
     "G2": {
       "status": "PASS_EXACT_FOUR_CPU_PROBES_AND_THREE_COMPARISONS",
       "blocking": false,
+      "a0_retry_exact_environment_g2_pending": true,
       "receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
       "receipt_sha256": "0ac6424a52d03ccfe4a32840462282cf937ac7d6642d4df59fc0f22beec1834f",
       "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence. A0 trn22 r2 pins seed/budget in the literal environment, so a new exact-environment G2 is pending."
@@ -172,7 +174,7 @@
     }
   ],
   "last_event": "Read-only guest disk audit at 22:05:10 UTC confirms both root disks still 200 GiB and both filesystems below the 6.5-GiB floor; no AWS-side status or process check in this audit. Independent A0 retry static review passed but dispatch remains HOLD. A0 r1 is terminal with zero steps/no BPB, and trn22 breaker remains tripped. No relaunch or AWS action.",
-  "updated_utc": "2026-09-24T22:08:41Z",
+  "updated_utc": "2026-09-24T22:13:14Z",
   "latest_disk_audit": {
     "path": "research/agentic/operations/TRN2_DISK_READ_ONLY_AUDIT_2026-09-25_0335.json",
     "sha256": "ba6d7469bd57c29547d8573bcca0daef07ff116c76d987a6be4cf768fa06e291",

@@ -1,5 +1,19 @@
 # Table experiments: exact current gate, 25 September 2026
 
+## Newer human scheduling amendment (25 September IST)
+
+The active [controller brief](CONTROLLER_BRIEF_2026-09-25.md) incorporates the
+newer human request to run **A1 on trn21 and A2 on trn22 in parallel** once each
+has a valid same-host c5c A0 control and all exact-size G2, native-smoke,
+disk, containment and authority gates pass. This supersedes the older
+September-24 scheduling recommendation in `DECISION_LOG.md` that a full A2
+must wait for an A1 result; it does **not** weaken any safety gate. A2 can be
+evaluated as its predefined two-layer table *profile* against same-host A0.
+An incremental claim about adding layer 1 still requires a separate same-host
+A1 comparison, and neither profile is an adoption without the unchanged
+two-host `decide.py` rule and human acknowledgement. No table run is currently
+dispatchable.
+
 Researcher read-only reconciliation after the first-place amendment. This is an evidence
 inventory and queue recommendation, **not** a table result or launch authorization.
 
