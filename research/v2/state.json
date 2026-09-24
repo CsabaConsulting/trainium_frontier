@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:35:15Z",
+  "written_utc": "2026-09-24T22:53:15Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -72,12 +72,27 @@
         "independent_review": "research/agentic/verification/20260925-g1-trn21-pending-package-review.md",
         "independent_review_sha256": "d7e13f80b9d87521666352fc529ff55951aedc5cbd56f728e46381fc8af01a28",
         "remaining": "Guest storage gate passed at 22:26:14 UTC. Fresh staged host source/checkpoint/tokenizer/cache/environment/breaker checks, finalized request, independent review and one-shot authorization remain. This is evaluator calibration only, not an advancement control."
+      },
+      "trn21_retry_r2": {
+        "status": "EXACT_RETAINED_SOURCE_PACKAGE_PENDING_INDEPENDENT_REVIEW_NO_EVAL",
+        "label": "fs-20260925-g1-public20m-calibration-trn21-r2",
+        "package": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2",
+        "source_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+        "remaining": "Independent static review, isolated clean host staging, finalized request review, one-shot authorization, fresh-process public20M eval and independent result review."
       }
     },
     "G2": {
       "status": "PASS_EXACT_FOUR_CPU_PROBES_AND_THREE_COMPARISONS",
       "blocking": false,
       "a0_retry_exact_environment_g2_pending": true,
+      "a0_retry_exact_environment_g2_r2": {
+        "status": "OPERATOR_INFRA_HOLD_STEP_LOG_PARENT_MISSING_CPU_ONLY",
+        "label": "fs-20260925-g2-a0-c5c-exactenv-trn22-r2",
+        "receipt": "research/v2/g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/operator-stage-hold.json",
+        "new_label_retry_required": true,
+        "science_a0_r2_label_consumed": false,
+        "native_or_scored_training_started": false
+      },
       "receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
       "receipt_sha256": "0ac6424a52d03ccfe4a32840462282cf937ac7d6642d4df59fc0f22beec1834f",
       "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence. A0 trn22 r2 pins seed/budget in the literal environment, so a new exact-environment G2 is pending."
@@ -122,16 +137,16 @@
       "host_lock_holders": 0
     },
     "trn22": {
-      "status": "DISK_PASS_BREAKER_REARMED_LIVE_GATES_PENDING_NO_SCORE",
+      "status": "DISK_PASS_BREAKER_REARMED_CPU_G2_INFRA_HOLD_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T22:31:36Z",
+      "last_observed_utc": "2026-09-24T22:48:11Z",
       "root_disk_bytes": 268435456000,
       "root_partition_bytes": 267360648704,
       "root_ext4_total_bytes": 258906374144,
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
-      "latest_checked_free_bytes": 58454974464,
+      "latest_checked_free_bytes": 58452987904,
       "free_gib": 54.44,
       "preflight_free_bytes": 7949975552,
       "preflight_to_postflight_consumed_bytes": 1500942336,
@@ -188,8 +203,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "After explicit human consent and fresh independent safety PASS at 22:31 UTC, workflow-v2 trn22 disk breaker re-armed at 22:35:15 UTC; launch_allowed and launch_authorized remain false. Historical A0 r1 failure and postflight are unchanged. A0 r2 still needs exact-env G2, stage, live gates and one-shot authority. trn21 G1 stage is HOLD on missing pinned host commit after Git fetch rc128; secure exact-source transfer is being planned. A2 repaired package passed static re-review but is dispatch HOLD. No new run or BPB.",
-  "updated_utc": "2026-09-24T22:35:15Z",
+  "last_event": "At 22:48:11 UTC trn22 A0 r2 source staging passed, but its exact-env four-rank CPU G2 failed at step zero because the future science STEP_LOG parent was absent in the clean checkout. Operator archived hash-bound logs; G2 label consumed, science A0 r2 label unconsumed, no native run or BPB. A separate reviewed new-label G2 retry is being prepared. trn21 G1 r1 remains staged HOLD on missing pinned commit; an r2 package uses the exact retained trained commit and is under independent review. Both host launches remain disallowed and ready counts zero.",
+  "updated_utc": "2026-09-24T22:53:15Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -222,13 +237,13 @@
     "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
   },
   "a0_trn22_retry_package": {
-    "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
+    "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_INFRA_HOLD_NO_DISPATCH",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
     "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2",
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
+    "remaining": "Source staging passed but exact-env CPU G2 failed on missing STEP_LOG parent. A reviewed new-label G2 retry and numerical comparison, fresh source/cache/host/disk checks, independent final request check, external observer and separate one-shot authorization remain. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
   },
   "a0_trn21_control_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",

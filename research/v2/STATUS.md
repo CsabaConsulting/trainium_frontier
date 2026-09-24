@@ -2,6 +2,8 @@
 
 Status: **both guest disks expanded; trn22's named breaker re-armed after independent review; both launches still HOLD; no new BPB result.**
 
+At 22:48:11 UTC, the trn22 A0 r2 Operator [archived a source-staging PASS and CPU G2 infra HOLD](g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/operator-stage-hold.json). Its clean checkout has exact c5c/prepare/launcher hashes, unchanged retained checkpoint and six warm-cache identities, 58,452,987,904 B free after G2, and no train/eval/Neuron holder. The four-rank exact-environment CPU probe failed at step zero because its step-log path pointed into a deliberately clean checkout whose `research/run-logs` parent was absent. The G2 label is consumed; the A0 r2 science label is not. A separately reviewed, new-label G2 retry is being prepared with an isolated step-log path. **No native training, checkpoint, public BPB, or launch authorization resulted.** trn21's G1 r1 stage remains HOLD on absent host commit; [an r2 exact-retained-source package](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/RUNBOOK_PENDING.md) is under independent static review. Ready scored jobs remain zero on both hosts.
+
 At 22:26:14 UTC, a [fresh read-only guest and quiescence audit](../agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json)
 verified that both root disks, partitions, and ext4 filesystems have grown. Root
 free space is 58,907,762,688 B on trn21 and 58,454,982,656 B on trn22, above

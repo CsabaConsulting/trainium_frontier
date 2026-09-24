@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:35 UTC
+Last reconciled: 2026-09-24 22:53 UTC
+
+## Current handoff: post-resize staging and CPU preflight, no new score
+
+The trn22 c5c A0 r2 source-staging check passed on a new clean checkout, with
+58,452,987,904 B free after its four-rank CPU probe. That exact-environment G2
+[failed for infrastructure only](../v2/g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/operator-stage-hold.json):
+rank 0 could not append to the future science step log because its parent did
+not exist in the clean checkout. It reached zero training steps. The G2 label
+is consumed; the A0 r2 science label remains unused. A separate reviewed G2
+retry with a unique isolated step-log path is being prepared. No Neuron run,
+checkpoint, BPB or new model verdict exists. On trn21, the G1 r1 stage remains
+HOLD after the absent pinned commit/fetch failure; an r2 package to clone the
+exact retained trained commit locally is under independent review. Both hosts
+still have launch authorization false and ready scored-job counts zero.
+The best confirmed public20M stays 0.9918353324 single/0.9919537735 mean.
+The storage-fixed section below supplies context and remains authoritative for
+the disk expansion and trn22 breaker re-arm.
 
 ## Current handoff: storage fixed; trn22 breaker re-armed; no launch yet
 
