@@ -1,0 +1,132 @@
+{
+  "proposal_id": "20260924-v2-track-a-a1-confirmation",
+  "status": "human-approved-pending-evidence-and-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "A1's nominated 2M improvement transfers to fresh20M on trn21 and an exact full1800 replicate on trn22, with both matched full20M candidate-minus-control deltas negative and their Decimal mean at most -0.001.",
+  "single_causal_change": "Relative to each immutable 35c9 matrix-LR-0.015 host control, enable the complete A1 last-layer n-gram subsystem as one configuration: --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude.",
+  "mechanism_class": "capacity",
+  "evidence": [
+    "verified Track-A base HEAD 65155c668efaa215a2136f67617b44ed32d4c9f6",
+    "verified lifecycle core f58ab4a0d3fbfe8aa5acfb1c5b1cbdc15aaa2649",
+    "research/submission-validation/20260924-v2-track-a-35c9-controls-a1/EXPERIMENT_PROPOSAL.json",
+    "future authenticated Git-blob archives for both controls and the trn21 A1 screen"
+  ],
+  "duplicate_search_terms": [
+    "A1 last layer ngram 64x128",
+    "Track A full20M confirmation",
+    "two-host matched confirmation",
+    "ngram-ve-layers=-1"
+  ],
+  "immutable_source": {
+    "introduction_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "path": "submissions/dense6x1024_public0992851/train.py",
+    "sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "modified": false
+  },
+  "control": {
+    "git_commit": "65155c668efaa215a2136f67617b44ed32d4c9f6",
+    "run_label": "fs-20260924-v2-35c9-lr015-control-trn21-r1 and fs-20260924-v2-35c9-lr015-control-trn22-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Every 20M delta is candidate minus its authenticated same-host control; throughput is never compared across hosts."
+  },
+  "prerequisite_gate": {
+    "required_archives": [
+      "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+      "fs-20260924-v2-35c9-lr015-control-trn22-r1",
+      "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1"
+    ],
+    "screen_delta_definition": "trn21 A1 fresh2M BPB minus trn21 control fresh2M BPB",
+    "screen_threshold": "<= -0.001",
+    "failure_action": "DISCARD; neither confirmation arm may materialize",
+    "binding": "Each archive, result, manifest, metric receipt and retained checkpoint path/hash/size is bound from regular Git blobs."
+  },
+  "candidate": {
+    "branch": "experiment/20260924-v2-track-a-a1-confirmation",
+    "files_allowed": [],
+    "expected_diff": "No candidate, prepare, evaluator, tokenizer or scoring change; tooling/proposal evidence lane only.",
+    "run_label": "fs-20260924-v2-a1-replicate-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015"
+  },
+  "lane": [
+    {
+      "position": 1,
+      "arm": "pair-trn21",
+      "label": "fs-20260924-v2-a1-20m-pair-trn21-r1",
+      "host": "trn21",
+      "operation": "Fresh20M evaluation in separate processes of the retained authenticated trn21 control and A1 checkpoints.",
+      "next_gate": "Only a strictly negative candidate-minus-control delta nominates position 2; zero or positive discards."
+    },
+    {
+      "position": 2,
+      "arm": "replicate-trn22",
+      "label": "fs-20260924-v2-a1-replicate-trn22-r1",
+      "host": "trn22",
+      "operation": "Fresh20M evaluation of the retained trn22 control; exact A1 full1800 seed42 LNC2/world4 training; fresh2M and fresh20M evaluation of its finite retained checkpoint.",
+      "prerequisite": "Authenticated negative position-1 result plus all three prerequisite archives."
+    }
+  ],
+  "metric_contract": {
+    "screen2m": {
+      "seq_len": 1024,
+      "num_tokens": 2097152,
+      "num_bytes": 8418678,
+      "authority": "Diagnostic/nomination only"
+    },
+    "full20m": {
+      "seq_len": 1024,
+      "num_tokens": 20971520,
+      "num_bytes": 83462186,
+      "fresh_process_per_checkpoint": true
+    }
+  },
+  "decision": {
+    "delta_definition": "candidate full20M BPB minus authenticated same-host control full20M BPB",
+    "adopt": "Both trn21 and trn22 deltas strictly negative AND Decimal arithmetic mean <= -0.001.",
+    "discard": "Either full20M delta is zero or positive.",
+    "repeat": "Both deltas are negative but their Decimal mean is > -0.001: repeat the matched full20M pair once under a separately approved proposal.",
+    "other_host_replicate_alone_confirms": false
+  },
+  "safety": {
+    "operational_launch_floor_bytes": 6979321856,
+    "hard_abort_floor_bytes": 5368709120,
+    "one_run_per_host": true,
+    "private_process_sessions": true,
+    "term_then_kill_and_quiescence_before_hash": true,
+    "fresh_job_owned_compile_cache_per_process": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "all_authorizations_pending": true
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true,
+    "independent_verification": false,
+    "prerequisite_evidence_bound": false,
+    "trn21_pair_complete": false,
+    "trn22_replicate_complete": false,
+    "submission_authorized": false
+  },
+  "success_criteria": {
+    "quality": "Two strictly negative matched full20M deltas with Decimal mean <= -0.001.",
+    "throughput": "Diagnostic only and same-host only.",
+    "correctness": "Exact source/argv/env, seed42, full1800, finite checkpoints, exact token/byte counts, clean private process groups, immutable evidence and no unauthorized cleanup."
+  },
+  "abort_conditions": [
+    "Any prerequisite archive, checkpoint, source, prepare, request, runtime or evidence identity differs",
+    "The prerequisite trn21 fresh2M delta is greater than -0.001",
+    "The trn21 full20M delta is zero or positive",
+    "Any host is busy/dirty, violates one-run-per-host, or fails the disk floor",
+    "Any subprocess group is not quiescent before artifact/checkpoint hashing",
+    "Crash, timeout, NaN, over-budget training, nonfinite/missing checkpoint or count mismatch",
+    "Independent verification is absent"
+  ],
+  "human_approved_by": "human Track-A promotion/confirmation instruction dated 2026-09-24",
+  "verdict": null
+}
