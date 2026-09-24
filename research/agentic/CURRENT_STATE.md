@@ -1,6 +1,22 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:26 UTC
+Last reconciled: 2026-09-24 21:30 UTC
+
+## Current handoff: both hosts disk-blocked after A0 compile safety stop
+
+The one authorized warm c5c A0 trn22 run was stopped after root free space fell
+below the 6.5-GiB operational floor **before any optimizer step**. The authenticated
+guard ended at 21:28:07 UTC with rc 1; no owned processes or cleanup actions remain.
+The independent timing observer saw zero boundaries and reported NON_SCORED. No
+checkpoint/public20M result or quality verdict exists; this label is consumed.
+Terminal evidence retrieval and failure diagnosis are underway.
+
+trn21 and trn22 are both below the disk floor. The [disk packet](../v2/DISK_DECISION_PACKET_2026-09-25.md)
+asks the human to expand both existing root volumes by 50 GiB, then acknowledge the
+trn22 disk breaker after the reviewed diagnosis. No AWS action, deletion, new launch,
+relaunch or breaker reset has occurred. The best confirmed public20M remains
+0.9918353324 single/0.9919537735 mean. The current handoff supersedes the earlier
+active-A0 text below.
 
 ## Current handoff: one warm A0 control running on trn22
 

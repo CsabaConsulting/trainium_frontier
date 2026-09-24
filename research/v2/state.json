@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T21:28:28Z",
+  "written_utc": "2026-09-24T21:30:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -20,7 +20,7 @@
   "launch_authorized": false,
   "active_launcher": "one-off legacy fresh_start_launch/guard; no unattended controller",
   "one_job_authorization": {
-    "status": "SAFETY_STOP_REQUESTED_DISK_BELOW_FLOOR_POSTFLIGHT_PENDING",
+    "status": "CONSUMED_FAILED_DISK_FLOOR_PRE_STEP_NO_RELAUNCH",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
     "request": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r1.request.json",
     "request_sha256": "4f1495c86ac236789a085d5f235a3d2c3550653c9690f49ff66bb596e3d17c8e",
@@ -67,7 +67,7 @@
       "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence"
     },
     "native": {
-      "status": "A0_COMPILE_DISK_FLOOR_FAILURE_PRE_STEP_POSTFLIGHT_PENDING",
+      "status": "A0_COMPILE_DISK_FLOOR_FAILURE_PRE_STEP_TERMINAL",
       "blocking": true
     },
     "runner": {
@@ -99,17 +99,21 @@
       "neuron_device_holders": 0
     },
     "trn22": {
-      "status": "DISK_FLOOR_BREACH_GUARD_STOP_POSTFLIGHT_PENDING",
+      "status": "BLOCKED_DISK_BREAKER_A0_TERMINAL_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T21:28:28Z",
+      "last_observed_utc": "2026-09-24T21:28:07Z",
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
+      "terminal_reported_free_bytes": 6449004544,
       "operational_floor_bytes": 6979321856,
       "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
-      "guard_pid": 2963679,
-      "training_processes": null,
-      "neuron_device_holders": null,
-      "telemetry_note": "Operator authenticated guard PID/UID/argv and signaled only that guard on first below-floor observation; terminal postflight and process/device quiescence pending"
+      "guard_pid": null,
+      "training_processes": 0,
+      "neuron_device_holders": 0,
+      "command_returncode": 1,
+      "postflight_completed_utc": "2026-09-24T21:28:07.305166Z",
+      "observer_status": "COMPLETE_NON_SCORED_0_BOUNDARIES",
+      "telemetry_note": "Operator authenticated guard PID/UID/argv and signaled only that guard on first below-floor observation; postflight host_clean=false solely on disk floor, cleanup actions and remaining are empty"
     }
   },
   "breakers": {
@@ -132,10 +136,14 @@
       "packet": "research/v2/DISK_DECISION_PACKET_2026-09-25.md",
       "without_action": "trn21 remains disk-blocked; tables and cold S0 validation cannot advance",
       "deletion_targets": []
+    },
+    {
+      "item": "Human acknowledgement/reset of trn22 disk safety breaker after volume expansion and reviewed A0 failure diagnosis",
+      "without_action": "No training on trn22; failed label cannot be retried"
     }
   ],
-  "last_event": "A0 compile consumed disk before the first observed optimizer step; trn22 free space fell to 6,449,438,720 bytes below the immutable 6.5-GiB floor. Operator signaled only the authenticated guard. No score or checkpoint claim; postflight pending. No further training until human volume expansion and breaker decision.",
-  "updated_utc": "2026-09-24T21:28:28Z",
+  "last_event": "A0 compile stopped on trn22 disk floor before any optimizer step. Guard terminal rc1 at 21:28:07 UTC; no remaining owned process, no cleanup/deletion, observer NON_SCORED with zero boundaries, postflight host_clean=false only for disk. Evidence retrieval pending. No BPB result or relaunch.",
+  "updated_utc": "2026-09-24T21:30:00Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
   "ideation_policy": {

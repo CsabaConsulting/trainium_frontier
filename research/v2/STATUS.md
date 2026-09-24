@@ -1,6 +1,25 @@
 # Workflow installation and incremental launch status
 
-Status: **trn22 warm c5c A0 full run active; trn21 disk-blocked; no new BPB result.**
+Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
+
+## Safety update (2026-09-24 21:30 UTC)
+
+- trn22's first warm c5c A0 attempt crossed the immutable 6.5-GiB root-disk floor during
+  compilation **before any optimizer boundary**. The Operator authenticated and signaled
+  only that guard. Terminal postflight at 21:28:07 UTC was rc 1 and `host_clean=false`
+  solely for disk; no owned processes or cleanup actions remained. The observer reported
+  `COMPLETE_NON_SCORED` with zero boundaries. There is no checkpoint/BPB result or win.
+  The label is consumed and must never be reused. Artifact retrieval and diagnosis continue.
+- trn22 has about 6,449,004,544 bytes free, below the 6,979,321,856-byte floor;
+  trn21 was already below the floor. Both need the human root EBS expansion in the
+  [updated disk decision packet](DISK_DECISION_PACKET_2026-09-25.md). trn22's disk
+  breaker remains tripped; only the human can acknowledge/reset it after resize and
+  reviewed failure diagnosis. No new host run may start until then.
+- The R5/new-runner local synthetic suite passed earlier, but its one-host production
+  pilot and bare-S0 compatibility remain unverified. The timebox does not justify
+  switching launchers or bypassing any disk/containment gate.
+
+This safety update supersedes the earlier active-A0 status below.
 
 ## Live update (2026-09-24 21:26 UTC)
 
