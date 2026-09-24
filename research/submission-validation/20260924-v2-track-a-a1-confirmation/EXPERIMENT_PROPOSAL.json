@@ -40,7 +40,7 @@
     "screen_delta_definition": "trn21 A1 fresh2M BPB minus trn21 control fresh2M BPB",
     "screen_threshold": "<= -0.001",
     "failure_action": "DISCARD; neither confirmation arm may materialize",
-    "binding": "Each archive, result, manifest, metric receipt and retained checkpoint path/hash/size is bound from regular Git blobs."
+    "binding": "Each authorization must externally pin each archive commit/directory, finalization HEAD, verified core, authorization/request/runtime-job SHA256, source/prepare SHA256, retained checkpoint path/hash/size, and top-artifact SHA256. Completion self-report is never an authority. Every blob is read as a regular Git blob and compared exactly to those pins."
   },
   "candidate": {
     "branch": "experiment/20260924-v2-track-a-a1-confirmation",
@@ -116,7 +116,7 @@
   "success_criteria": {
     "quality": "Two strictly negative matched full20M deltas with Decimal mean <= -0.001.",
     "throughput": "Diagnostic only and same-host only.",
-    "correctness": "Exact source/argv/env, seed42, full1800, finite checkpoints, exact token/byte counts, clean private process groups, immutable evidence and no unauthorized cleanup."
+    "correctness": "Exact externally pinned provenance, source/evaluator/argv/env, seed42, full1800, finite checkpoints, exact token/byte counts, clean private process groups, immutable evidence and no unauthorized cleanup."
   },
   "abort_conditions": [
     "Any prerequisite archive, checkpoint, source, prepare, request, runtime or evidence identity differs",

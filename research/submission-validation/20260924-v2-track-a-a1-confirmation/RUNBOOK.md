@@ -29,3 +29,11 @@ Each runtime is protected by the standard host lock, 6.5-GiB operational/5-GiB h
 Git/source/request/runtime fingerprints, no-follow retained-checkpoint hashes, private subprocess
 sessions, bounded TERM-to-KILL cleanup and proven process-group disappearance before hashing. No
 checkpoint or cache deletion is authorized.
+
+Before either authorization can leave pending state, an independent Verifier must supply every
+evidence identity literal: archive commit and directory, run finalization HEAD, verified core,
+authorization/request/runtime-job SHA256, source/prepare SHA256, checkpoint path/SHA256/size, and
+top-artifact SHA256 values. The validator requires the commit pins to resolve as Git commits and
+compares completion bytes to the external literals. It also requires the complete protected
+`prepare.py eval-public` argv, source/prepare identity, host identity, exact evaluation population,
+and a clean private process-group receipt; a completion or metric receipt cannot authorize itself.

@@ -134,14 +134,10 @@ def make_archive(store, members):
 
 
 def metric_argv(sandbox, checkpoint, tokens):
-    return [
-        c.PYTHON, "prepare.py", "eval-public", "--train-py", "train.py",
-        "--checkpoint", str(checkpoint), "--device", "neuron", "--batch-size", "1",
-        "--seq-len", "1024", "--eval-tokens", str(tokens), "--timeout-seconds", "1200",
-    ]
+    return c.expected_eval_argv(str(checkpoint), tokens)
 
 
-def evaluate(store, work, sandbox, label, name, checkpoint, tokens, nbytes):
+def evaluate(store, work, sandbox, label, host, hostname, name, checkpoint, tokens, nbytes):
     disk_gate()
     before = validate_checkpoint(checkpoint)
     caches = fresh_caches(work, name)
@@ -157,7 +153,9 @@ def evaluate(store, work, sandbox, label, name, checkpoint, tokens, nbytes):
     metrics = c.parse_metric_output(output.decode(errors="replace"), tokens, nbytes)
     receipt = {
         "schema": "track-a-confirmation-metric-v1", "label": label, **before,
-        "argv": argv, "metrics": metrics, "wall_seconds": wall, "process_group": group,
+        "host": host, "hostname": hostname, "source_sha256": c.SOURCE_SHA,
+        "prepare_sha256": c.PREPARE_SHA, "argv": argv, "metrics": metrics,
+        "wall_seconds": wall, "process_group": group,
     }
     store.write_json(f"{name}.metrics.json", receipt)
     if validate_checkpoint(checkpoint) != before:
@@ -181,12 +179,13 @@ def finite_scan(checkpoint, env):
 
 
 def prior_summary(bundle):
-    return {key: {
-        "archive_commit": run["archive_commit"], "completion_sha256": run["completion_sha256"],
-        "manifest_sha256": run["manifest_sha256"], "result_sha256": run["result_sha256"],
-        "metrics_sha256": run["metrics_sha256"], "checkpoint_path": run["checkpoint_path"],
-        "checkpoint_sha256": run["checkpoint_sha256"], "checkpoint_bytes": run["checkpoint_bytes"],
-    } for key, run in bundle["runs"].items()}
+    fields = (
+        "archive_commit", "completion_sha256", "manifest_sha256", "result_sha256",
+        "metrics_sha256", "finalization_head", "verified_core_commit", "authorization_sha256",
+        "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256",
+        "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes",
+    )
+    return {key: {field: run[field] for field in fields} for key, run in bundle["runs"].items()}
 
 
 def run_pair(store, work, sandbox, label, bundle):
@@ -198,10 +197,14 @@ def run_pair(store, work, sandbox, label, bundle):
     }
     store.write_json("input-evidence.json", input_evidence)
     control, control_caches = evaluate(
-        store, work, sandbox, label, "control20m", runs["control-trn21"], c.FULL_TOKENS, c.FULL_BYTES
+        store, work, sandbox, label, c.ARMS["pair-trn21"]["host"],
+        c.ARMS["pair-trn21"]["hostname"], "control20m", runs["control-trn21"],
+        c.FULL_TOKENS, c.FULL_BYTES,
     )
     candidate, candidate_caches = evaluate(
-        store, work, sandbox, label, "a1-20m", runs["a1-trn21"], c.FULL_TOKENS, c.FULL_BYTES
+        store, work, sandbox, label, c.ARMS["pair-trn21"]["host"],
+        c.ARMS["pair-trn21"]["hostname"], "a1-20m", runs["a1-trn21"],
+        c.FULL_TOKENS, c.FULL_BYTES,
     )
     delta = c.decimal_value(candidate["metrics"]["val_bpb"], "trn21 A1 20M") - c.decimal_value(
         control["metrics"]["val_bpb"], "trn21 control 20M"
@@ -232,7 +235,9 @@ def run_replicate(store, work, sandbox, label, bundle, confirmation):
     inputs = prior_summary(bundle)
     confirmation_summary = {key: confirmation[key] for key in (
         "label", "archive_commit", "completion_sha256", "manifest_sha256", "result_sha256",
-        "control20m_sha256", "a120m_sha256", "trn21_delta",
+        "control20m_sha256", "a120m_sha256", "finalization_head", "verified_core_commit",
+        "authorization_sha256", "request_sha256", "runtime_job_sha256", "source_sha256",
+        "prepare_sha256", "trn21_delta",
     )}
     input_evidence = {
         "schema": "track-a-confirmation-input-v1", "prior_runs": inputs,
@@ -240,7 +245,9 @@ def run_replicate(store, work, sandbox, label, bundle, confirmation):
     }
     store.write_json("input-evidence.json", input_evidence)
     control, control_caches = evaluate(
-        store, work, sandbox, label, "control20m", runs["control-trn22"], c.FULL_TOKENS, c.FULL_BYTES
+        store, work, sandbox, label, c.ARMS["replicate-trn22"]["host"],
+        c.ARMS["replicate-trn22"]["hostname"], "control20m", runs["control-trn22"],
+        c.FULL_TOKENS, c.FULL_BYTES,
     )
     disk_gate()
     train_caches = fresh_caches(work, "train")
@@ -312,10 +319,14 @@ def run_replicate(store, work, sandbox, label, bundle, confirmation):
     })
     candidate_expected = {**checkpoint_identity}
     screen, screen_caches = evaluate(
-        store, work, sandbox, label, "a1-screen2m", candidate_expected, c.SCREEN_TOKENS, c.SCREEN_BYTES
+        store, work, sandbox, label, c.ARMS["replicate-trn22"]["host"],
+        c.ARMS["replicate-trn22"]["hostname"], "a1-screen2m", candidate_expected,
+        c.SCREEN_TOKENS, c.SCREEN_BYTES,
     )
     full, full_caches = evaluate(
-        store, work, sandbox, label, "a1-20m", candidate_expected, c.FULL_TOKENS, c.FULL_BYTES
+        store, work, sandbox, label, c.ARMS["replicate-trn22"]["host"],
+        c.ARMS["replicate-trn22"]["hostname"], "a1-20m", candidate_expected,
+        c.FULL_TOKENS, c.FULL_BYTES,
     )
     decision = c.final_decision(
         confirmation["metrics"]["control20m"]["val_bpb"],

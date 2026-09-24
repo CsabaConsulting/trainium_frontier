@@ -237,6 +237,14 @@ def train_argv():
     return words
 
 
+def expected_eval_argv(checkpoint_path, tokens):
+    return [
+        PYTHON, "prepare.py", "eval-public", "--train-py", "train.py",
+        "--checkpoint", checkpoint_path, "--device", "neuron", "--batch-size", "1",
+        "--seq-len", "1024", "--eval-tokens", str(tokens), "--timeout-seconds", "1200",
+    ]
+
+
 def expected_command(arm):
     spec = ARMS[arm]
     rel = str(HERE.relative_to(ROOT))
@@ -298,10 +306,15 @@ def validate_request(request, arm, core):
 def validate_identity(value, kind):
     if kind == "prior":
         keys = {"archive_commit", "directory", "completion_sha256", "manifest_sha256",
-                "result_sha256", "metrics_sha256"}
+                "result_sha256", "metrics_sha256", "finalization_head",
+                "verified_core_commit", "authorization_sha256", "request_sha256",
+                "runtime_job_sha256", "source_sha256", "prepare_sha256",
+                "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes"}
     elif kind == "confirmation":
         keys = {"archive_commit", "directory", "completion_sha256", "manifest_sha256",
-                "result_sha256", "control20m_sha256", "a120m_sha256"}
+                "result_sha256", "control20m_sha256", "a120m_sha256",
+                "finalization_head", "verified_core_commit", "authorization_sha256",
+                "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256"}
     else:
         raise SystemExit("unknown evidence identity kind")
     if type(value) is not dict or set(value) != keys or not HEX40.fullmatch(value.get("archive_commit", "")):
@@ -309,9 +322,22 @@ def validate_identity(value, kind):
     directory = Path(value["directory"])
     if directory.is_absolute() or ".." in directory.parts or not directory.parts:
         raise SystemExit(f"{kind} evidence directory rejected")
-    for key in keys - {"archive_commit", "directory"}:
+    for key in keys - {"archive_commit", "directory", "finalization_head",
+                       "verified_core_commit", "checkpoint_path", "checkpoint_bytes"}:
         if not valid_digest(value[key]):
             raise SystemExit(f"{kind} evidence digest invalid: {key}")
+    for key in ("archive_commit", "finalization_head", "verified_core_commit"):
+        commit = value[key]
+        if (not HEX40.fullmatch(commit)
+                or subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+                                  cwd=ROOT, stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL).returncode):
+            raise SystemExit(f"{kind} evidence commit invalid: {key}")
+    if kind == "prior":
+        checkpoint = Path(value["checkpoint_path"])
+        if (not checkpoint.is_absolute() or type(value["checkpoint_bytes"]) is not int
+                or value["checkpoint_bytes"] <= 0):
+            raise SystemExit("prior external checkpoint identity invalid")
     return value
 
 
@@ -375,6 +401,15 @@ def validate_prior_run(identity, key):
     }
     if any(completion.get(field) != expected for field, expected in exact_completion.items()):
         raise SystemExit("prior completion identity/state mismatch")
+    external_completion = {
+        field: identity[field] for field in (
+            "finalization_head", "verified_core_commit", "authorization_sha256",
+            "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256",
+            "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes",
+        )
+    }
+    if any(completion.get(field) != expected for field, expected in external_completion.items()):
+        raise SystemExit("prior completion differs from externally pinned identity")
     for field in ("authorization_sha256", "request_sha256", "runtime_job_sha256",
                   "artifact_manifest_sha256", "archive_sha256", "checkpoint_sha256"):
         if not valid_digest(completion[field]):
@@ -429,7 +464,11 @@ def validate_prior_run(identity, key):
     if any(result.get(field) != expected for field, expected in exact_result.items()):
         raise SystemExit("prior result identity/state mismatch")
     expected_checkpoint = Path(spec["remote"]) / "out" / f"{spec['label']}-work" / "sandbox/out/final.pt"
-    if result["checkpoint_path"] != str(expected_checkpoint) or completion["checkpoint_path"] != str(expected_checkpoint):
+    if (result["checkpoint_path"] != str(expected_checkpoint)
+            or completion["checkpoint_path"] != str(expected_checkpoint)
+            or identity["checkpoint_path"] != str(expected_checkpoint)
+            or result["checkpoint_sha256"] != identity["checkpoint_sha256"]
+            or result["checkpoint_bytes"] != identity["checkpoint_bytes"]):
         raise SystemExit("prior checkpoint path mismatch")
     finite = result["finite_scan"]
     if (type(finite) is not dict or finite.get("finite") is not True or finite.get("weights_only") is not True
@@ -440,6 +479,8 @@ def validate_prior_run(identity, key):
     validate_clean_lifecycle(finite.get("process_group"))
     if (set(metric_receipt) != {"schema", "argv", "metrics", "wall_seconds", "process_group"}
             or metric_receipt["schema"] != "track-a-screen2m-metrics-v1"
+            or metric_receipt["argv"] != expected_eval_argv(identity["checkpoint_path"], SCREEN_TOKENS)
+            or type(metric_receipt["wall_seconds"]) is not float or metric_receipt["wall_seconds"] <= 0
             or metric_receipt["metrics"] != result["screen2m"]):
         raise SystemExit("prior screen metric receipt mismatch")
     validate_clean_lifecycle(metric_receipt["process_group"])
@@ -468,7 +509,14 @@ def validate_prior_run(identity, key):
         "checkpoint_bytes": result["checkpoint_bytes"], "screen2m": metrics,
         "archive_commit": identity["archive_commit"], "completion_sha256": identity["completion_sha256"],
         "manifest_sha256": identity["manifest_sha256"], "result_sha256": identity["result_sha256"],
-        "metrics_sha256": identity["metrics_sha256"], "a1_decision": result["a1_decision"],
+        "metrics_sha256": identity["metrics_sha256"],
+        "finalization_head": identity["finalization_head"],
+        "verified_core_commit": identity["verified_core_commit"],
+        "authorization_sha256": identity["authorization_sha256"],
+        "request_sha256": identity["request_sha256"],
+        "runtime_job_sha256": identity["runtime_job_sha256"],
+        "source_sha256": identity["source_sha256"], "prepare_sha256": identity["prepare_sha256"],
+        "a1_decision": result["a1_decision"],
     }
 
 
@@ -489,14 +537,18 @@ def validate_prior_bundle(value):
     return {"runs": runs, "screen_delta": str(delta), "nominated": True}
 
 
-def validate_metric_receipt(raw, name, label, checkpoint, tokens, nbytes):
+def validate_metric_receipt(raw, name, label, host, hostname, checkpoint, tokens, nbytes):
     receipt = json_object(raw, name, canonical=True)
     keys = {"schema", "label", "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes",
-            "argv", "metrics", "wall_seconds", "process_group"}
+            "host", "hostname", "source_sha256", "prepare_sha256", "argv", "metrics",
+            "wall_seconds", "process_group"}
     if (set(receipt) != keys or receipt["schema"] != "track-a-confirmation-metric-v1"
             or receipt["label"] != label or receipt["checkpoint_path"] != checkpoint["checkpoint_path"]
             or receipt["checkpoint_sha256"] != checkpoint["checkpoint_sha256"]
             or receipt["checkpoint_bytes"] != checkpoint["checkpoint_bytes"]
+            or receipt["host"] != host or receipt["hostname"] != hostname
+            or receipt["source_sha256"] != SOURCE_SHA or receipt["prepare_sha256"] != PREPARE_SHA
+            or receipt["argv"] != expected_eval_argv(checkpoint["checkpoint_path"], tokens)
             or type(receipt["wall_seconds"]) is not float or receipt["wall_seconds"] <= 0):
         raise SystemExit(f"{name} receipt identity mismatch")
     validate_clean_lifecycle(receipt["process_group"])
@@ -539,6 +591,14 @@ def validate_trn21_confirmation(identity, prior_bundle):
             or completion["prepare_sha256"] != PREPARE_SHA or completion["checkpoint_inputs_preserved"] is not True
             or completion["candidate_checkpoint"] is not None or completion["ready_to_retrieve"] is not True):
         raise SystemExit("trn21 confirmation completion identity mismatch")
+    external_completion = {
+        field: identity[field] for field in (
+            "finalization_head", "verified_core_commit", "authorization_sha256",
+            "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256",
+        )
+    }
+    if any(completion.get(field) != expected for field, expected in external_completion.items()):
+        raise SystemExit("trn21 confirmation completion differs from externally pinned identity")
     for field in ("authorization_sha256", "request_sha256", "runtime_job_sha256",
                   "artifact_manifest_sha256", "archive_sha256"):
         if not valid_digest(completion[field]):
@@ -579,11 +639,13 @@ def validate_trn21_confirmation(identity, prior_bundle):
         raise SystemExit("trn21 confirmation result mismatch")
     runs = prior_bundle["runs"]
     control_receipt = validate_metric_receipt(
-        top["control20m.metrics.json"], "control20m", spec["label"], runs["control-trn21"],
+        top["control20m.metrics.json"], "control20m", spec["label"], spec["host"],
+        spec["hostname"], runs["control-trn21"],
         FULL_TOKENS, FULL_BYTES,
     )
     a1_receipt = validate_metric_receipt(
-        top["a1-20m.metrics.json"], "a1-20m", spec["label"], runs["a1-trn21"],
+        top["a1-20m.metrics.json"], "a1-20m", spec["label"], spec["host"],
+        spec["hostname"], runs["a1-trn21"],
         FULL_TOKENS, FULL_BYTES,
     )
     metrics = {"control20m": control_receipt["metrics"], "a1_20m": a1_receipt["metrics"]}
@@ -598,12 +660,13 @@ def validate_trn21_confirmation(identity, prior_bundle):
         "verdict": "NOMINATE_TRN22_REPLICATE" if delta < 0 else "DISCARD",
         "adoption_authorized": False,
     }
-    expected_prior = {key: {
-        "archive_commit": run["archive_commit"], "completion_sha256": run["completion_sha256"],
-        "manifest_sha256": run["manifest_sha256"], "result_sha256": run["result_sha256"],
-        "metrics_sha256": run["metrics_sha256"], "checkpoint_path": run["checkpoint_path"],
-        "checkpoint_sha256": run["checkpoint_sha256"], "checkpoint_bytes": run["checkpoint_bytes"],
-    } for key, run in runs.items()}
+    summary_keys = (
+        "archive_commit", "completion_sha256", "manifest_sha256", "result_sha256",
+        "metrics_sha256", "finalization_head", "verified_core_commit", "authorization_sha256",
+        "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256",
+        "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes",
+    )
+    expected_prior = {key: {field: run[field] for field in summary_keys} for key, run in runs.items()}
     expected_inputs = {
         "schema": "track-a-confirmation-input-v1", "prior_runs": expected_prior,
         "screen_delta": prior_bundle["screen_delta"], "trn21_confirmation": None,
@@ -619,6 +682,12 @@ def validate_trn21_confirmation(identity, prior_bundle):
         "completion_sha256": identity["completion_sha256"], "manifest_sha256": identity["manifest_sha256"],
         "result_sha256": identity["result_sha256"], "control20m_sha256": identity["control20m_sha256"],
         "a120m_sha256": identity["a120m_sha256"], "metrics": metrics,
+        "finalization_head": identity["finalization_head"],
+        "verified_core_commit": identity["verified_core_commit"],
+        "authorization_sha256": identity["authorization_sha256"],
+        "request_sha256": identity["request_sha256"],
+        "runtime_job_sha256": identity["runtime_job_sha256"],
+        "source_sha256": identity["source_sha256"], "prepare_sha256": identity["prepare_sha256"],
         "trn21_delta": str(delta), "input_evidence": expected_inputs,
     }
 

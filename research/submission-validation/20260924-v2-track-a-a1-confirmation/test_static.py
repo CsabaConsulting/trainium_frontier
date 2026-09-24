@@ -65,7 +65,7 @@ def tar_bytes(values, names):
     return output.getvalue()
 
 
-def prior_fixture(key, bpb, control_bpb=1.0, mutate=None):
+def prior_fixture(key, bpb, control_bpb=1.0, mutate=None, completion_mutate=None):
     spec = c.PRIOR[key]
     checkpoint_sha = hashlib.sha256(key.encode()).hexdigest()
     checkpoint_path = str(Path(spec["remote"]) / "out" / f"{spec['label']}-work" / "sandbox/out/final.pt")
@@ -97,7 +97,8 @@ def prior_fixture(key, bpb, control_bpb=1.0, mutate=None):
         "a1_decision": decision, "ready_to_retrieve": False,
     }
     receipt = {
-        "schema": "track-a-screen2m-metrics-v1", "argv": ["eval"], "metrics": screen,
+        "schema": "track-a-screen2m-metrics-v1",
+        "argv": c.expected_eval_argv(checkpoint_path, c.SCREEN_TOKENS), "metrics": screen,
         "wall_seconds": 12.6, "process_group": clean_lifecycle(125),
     }
     values = {name: (name + "\n").encode() for name in c.PRIOR_ARCHIVE_MEMBERS}
@@ -116,7 +117,7 @@ def prior_fixture(key, bpb, control_bpb=1.0, mutate=None):
     completion = {
         "schema": "track-a-completion-v1", "arm": spec["arm"], "role": spec["role"],
         "label": spec["label"], "host": spec["host"], "hostname": spec["hostname"],
-        "finalization_head": "a" * 40, "verified_core_commit": "b" * 40,
+        "finalization_head": c.VERIFIED_BASE_HEAD, "verified_core_commit": c.VERIFIED_LIFECYCLE_CORE,
         "authorization_sha256": "1" * 64, "request_sha256": "2" * 64,
         "runtime_job_sha256": "3" * 64, "source_sha256": c.SOURCE_SHA,
         "prepare_sha256": c.PREPARE_SHA, "artifact_manifest_sha256": aio.digest(manifest_bytes),
@@ -126,15 +127,23 @@ def prior_fixture(key, bpb, control_bpb=1.0, mutate=None):
         "checkpoint_preserved": True, "checkpoint_prune_authorized": False,
         "cache_cleanup_authorized": False, "screen2m": screen, "ready_to_retrieve": True,
     }
+    if completion_mutate:
+        completion_mutate(completion)
     values["artifact-manifest.json"] = manifest_bytes
     values["ready-to-retrieve.json"] = c.canonical_json(completion)
     directory = f"research/run-logs/{spec['label']}/artifacts"
     identity = {
-        "archive_commit": "d" * 40, "directory": directory,
+        "archive_commit": c.VERIFIED_BASE_HEAD, "directory": directory,
         "completion_sha256": aio.digest(values["ready-to-retrieve.json"]),
         "manifest_sha256": aio.digest(values["artifact-manifest.json"]),
         "result_sha256": aio.digest(values["result.json"]),
         "metrics_sha256": aio.digest(values["screen2m.metrics.json"]),
+        "finalization_head": c.VERIFIED_BASE_HEAD,
+        "verified_core_commit": c.VERIFIED_LIFECYCLE_CORE,
+        "authorization_sha256": "1" * 64, "request_sha256": "2" * 64,
+        "runtime_job_sha256": "3" * 64, "source_sha256": c.SOURCE_SHA,
+        "prepare_sha256": c.PREPARE_SHA, "checkpoint_path": checkpoint_path,
+        "checkpoint_sha256": checkpoint_sha, "checkpoint_bytes": 123456,
     }
     return Reader(values), identity
 
@@ -158,17 +167,21 @@ def reader_patch(readers):
 
 
 def full_receipt(label, checkpoint, bpb, pgid):
+    spec = c.ARMS["pair-trn21"]
     return {
         "schema": "track-a-confirmation-metric-v1", "label": label,
         "checkpoint_path": checkpoint["checkpoint_path"],
         "checkpoint_sha256": checkpoint["checkpoint_sha256"],
-        "checkpoint_bytes": checkpoint["checkpoint_bytes"], "argv": ["fresh-eval"],
+        "checkpoint_bytes": checkpoint["checkpoint_bytes"], "host": spec["host"],
+        "hostname": spec["hostname"], "source_sha256": c.SOURCE_SHA,
+        "prepare_sha256": c.PREPARE_SHA,
+        "argv": c.expected_eval_argv(checkpoint["checkpoint_path"], c.FULL_TOKENS),
         "metrics": metric(c.FULL_TOKENS, c.FULL_BYTES, bpb), "wall_seconds": 100.0,
         "process_group": clean_lifecycle(pgid),
     }
 
 
-def confirmation_fixture(bundle, mutate=None):
+def confirmation_fixture(bundle, mutate=None, completion_mutate=None):
     spec = c.ARMS["pair-trn21"]
     runs = bundle["runs"]
     control = full_receipt(spec["label"], runs["control-trn21"], 1.0, 210)
@@ -181,12 +194,13 @@ def confirmation_fixture(bundle, mutate=None):
         "trn21_delta": "-0.002", "strictly_negative": True,
         "verdict": "NOMINATE_TRN22_REPLICATE", "adoption_authorized": False,
     }
-    prior = {key: {
-        "archive_commit": run["archive_commit"], "completion_sha256": run["completion_sha256"],
-        "manifest_sha256": run["manifest_sha256"], "result_sha256": run["result_sha256"],
-        "metrics_sha256": run["metrics_sha256"], "checkpoint_path": run["checkpoint_path"],
-        "checkpoint_sha256": run["checkpoint_sha256"], "checkpoint_bytes": run["checkpoint_bytes"],
-    } for key, run in runs.items()}
+    summary_keys = (
+        "archive_commit", "completion_sha256", "manifest_sha256", "result_sha256",
+        "metrics_sha256", "finalization_head", "verified_core_commit", "authorization_sha256",
+        "request_sha256", "runtime_job_sha256", "source_sha256", "prepare_sha256",
+        "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes",
+    )
+    prior = {key: {field: run[field] for field in summary_keys} for key, run in runs.items()}
     inputs = {"schema": "track-a-confirmation-input-v1", "prior_runs": prior,
               "screen_delta": bundle["screen_delta"], "trn21_confirmation": None}
     result = {
@@ -213,8 +227,8 @@ def confirmation_fixture(bundle, mutate=None):
     completion = {
         "schema": "track-a-confirmation-completion-v1", "arm": "pair-trn21",
         "role": spec["role"], "label": spec["label"], "host": spec["host"],
-        "hostname": spec["hostname"], "finalization_head": "a" * 40,
-        "verified_core_commit": "b" * 40, "authorization_sha256": "1" * 64,
+        "hostname": spec["hostname"], "finalization_head": c.VERIFIED_BASE_HEAD,
+        "verified_core_commit": c.VERIFIED_LIFECYCLE_CORE, "authorization_sha256": "1" * 64,
         "request_sha256": "2" * 64, "runtime_job_sha256": "3" * 64,
         "source_sha256": c.SOURCE_SHA, "prepare_sha256": c.PREPARE_SHA,
         "artifact_manifest_sha256": aio.digest(manifest_bytes), "artifact_members": members,
@@ -224,16 +238,23 @@ def confirmation_fixture(bundle, mutate=None):
         "checkpoint_inputs_preserved": True, "candidate_checkpoint": None,
         "ready_to_retrieve": True,
     }
+    if completion_mutate:
+        completion_mutate(completion)
     values["artifact-manifest.json"] = manifest_bytes
     values["ready-to-retrieve.json"] = c.canonical_json(completion)
     directory = f"research/run-logs/{spec['label']}/artifacts"
     identity = {
-        "archive_commit": "e" * 40, "directory": directory,
+        "archive_commit": c.VERIFIED_BASE_HEAD, "directory": directory,
         "completion_sha256": aio.digest(values["ready-to-retrieve.json"]),
         "manifest_sha256": aio.digest(values["artifact-manifest.json"]),
         "result_sha256": aio.digest(values["result.json"]),
         "control20m_sha256": aio.digest(values["control20m.metrics.json"]),
         "a120m_sha256": aio.digest(values["a1-20m.metrics.json"]),
+        "finalization_head": c.VERIFIED_BASE_HEAD,
+        "verified_core_commit": c.VERIFIED_LIFECYCLE_CORE,
+        "authorization_sha256": "1" * 64, "request_sha256": "2" * 64,
+        "runtime_job_sha256": "3" * 64, "source_sha256": c.SOURCE_SHA,
+        "prepare_sha256": c.PREPARE_SHA,
     }
     return Reader(values), identity
 
@@ -408,6 +429,42 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(attack=attack), reader_patch(readers), self.assertRaises(SystemExit):
                 c.validate_prior_bundle(identities)
 
+    def test_prior_completion_provenance_is_externally_pinned(self):
+        attacks = (
+            ("finalization_head", "a" * 40), ("verified_core_commit", "b" * 40),
+            ("authorization_sha256", "a" * 64), ("request_sha256", "b" * 64),
+            ("runtime_job_sha256", "c" * 64), ("source_sha256", "d" * 64),
+            ("checkpoint_sha256", "e" * 64), ("checkpoint_bytes", 999),
+        )
+        for field, bad in attacks:
+            readers, identities = bundle_fixtures()
+            reader, identity = prior_fixture(
+                "control-trn21", 1.0,
+                completion_mutate=lambda value, f=field, b=bad: value.__setitem__(f, b),
+            )
+            readers[identity["directory"]] = reader
+            identities["control-trn21"] = identity
+            with self.subTest(field=field), reader_patch(readers), self.assertRaises(SystemExit):
+                c.validate_prior_bundle(identities)
+
+    def test_external_commit_and_checkpoint_pins_reject_syntax_or_noncommit(self):
+        readers, identities = bundle_fixtures()
+        for field, bad in (("finalization_head", "NOT_A_COMMIT"),
+                           ("verified_core_commit", "a" * 40),
+                           ("archive_commit", "b" * 40),
+                           ("checkpoint_path", "relative.pt")):
+            attacked = copy.deepcopy(identities)
+            attacked["control-trn21"][field] = bad
+            with self.subTest(field=field), reader_patch(readers), self.assertRaises(SystemExit):
+                c.validate_prior_bundle(attacked)
+
+    def test_prior_screen_eval_argv_is_exact(self):
+        readers, identities = bundle_fixtures(
+            "control-trn21", lambda _result, receipt, _values: receipt.__setitem__("argv", ["fresh-eval"])
+        )
+        with reader_patch(readers), self.assertRaises(SystemExit):
+            c.validate_prior_bundle(identities)
+
     def test_missing_late_appended_and_digest_mutations_reject(self):
         readers, identities = bundle_fixtures()
         readers[identities["control-trn21"]["directory"]].values["training.log"] += b"late"
@@ -440,6 +497,44 @@ class EvidenceTests(unittest.TestCase):
             lambda _result, control, _candidate, _values: control["process_group"].__setitem__("quiescent", False),
             lambda result, _control, _candidate, _values: result["input_evidence"].__setitem__("screen_delta", "-9"),
         ]
+        for attack in attacks:
+            reader, identity = confirmation_fixture(bundle, attack)
+            local = dict(readers)
+            local[identity["directory"]] = reader
+            with self.subTest(attack=attack), reader_patch(local), self.assertRaises(SystemExit):
+                c.validate_trn21_confirmation(identity, bundle)
+
+    def test_confirmation_completion_provenance_is_externally_pinned(self):
+        readers, identities = bundle_fixtures()
+        with reader_patch(readers):
+            bundle = c.validate_prior_bundle(identities)
+        attacks = (
+            ("finalization_head", "NOT_A_COMMIT"),
+            ("verified_core_commit", "NOT_A_CORE"),
+            ("authorization_sha256", "a" * 64), ("request_sha256", "b" * 64),
+            ("runtime_job_sha256", "c" * 64),
+        )
+        for field, bad in attacks:
+            reader, identity = confirmation_fixture(
+                bundle, completion_mutate=lambda value, f=field, b=bad: value.__setitem__(f, b)
+            )
+            local = dict(readers)
+            local[identity["directory"]] = reader
+            with self.subTest(field=field), reader_patch(local), self.assertRaises(SystemExit):
+                c.validate_trn21_confirmation(identity, bundle)
+
+    def test_confirmation_eval_argv_hash_host_and_process_are_exact(self):
+        readers, identities = bundle_fixtures()
+        with reader_patch(readers):
+            bundle = c.validate_prior_bundle(identities)
+        attacks = (
+            lambda _result, control, _candidate, _values: control.__setitem__("argv", ["fresh-eval"]),
+            lambda _result, control, _candidate, _values: control.__setitem__("source_sha256", "a" * 64),
+            lambda _result, control, _candidate, _values: control.__setitem__("prepare_sha256", "b" * 64),
+            lambda _result, control, _candidate, _values: control.__setitem__("hostname", "wrong-host"),
+            lambda _result, control, _candidate, _values:
+                control["process_group"].__setitem__("cleanup_required", True),
+        )
         for attack in attacks:
             reader, identity = confirmation_fixture(bundle, attack)
             local = dict(readers)
