@@ -375,6 +375,7 @@ class EndToEndTempCleanupTests(unittest.TestCase):
             self.assertTrue(r2.is_dir())
             self.assertEqual(len(list(r2.glob("runtime/*"))), 8)
             self.assertEqual(checkpoint.read_bytes(), b"checkpoint")
+            self.assertEqual(result["free_before"], result["free_after"])
 
 
 if __name__ == "__main__":

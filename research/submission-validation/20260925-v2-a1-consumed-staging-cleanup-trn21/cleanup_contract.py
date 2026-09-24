@@ -671,6 +671,7 @@ def execute(request: dict[str, Any], request_sha: str, inventory: dict[str, Any]
         for key in ("parent_metadata", "targets", "protected"):
             if fresh[key] != inventory[key]:
                 raise ContractError(f"read-only inventory drift: {key}")
+        execution_free_before = fresh["free_before"]
         parent_fd = open_safe_dir(PARENT)
         deleted: list[str] = []
         try:
@@ -681,9 +682,9 @@ def execute(request: dict[str, Any], request_sha: str, inventory: dict[str, Any]
             if protected_after != inventory["protected"]:
                 raise ContractError("preserved r2/G0 identity changed")
             free_after = free_record(PARENT)
-            if free_after["fragment_size"] != inventory["free_before"]["fragment_size"]:
+            if free_after["fragment_size"] != execution_free_before["fragment_size"]:
                 raise ContractError("filesystem geometry changed during cleanup")
-            if free_after["free_bytes"] < inventory["free_before"]["free_bytes"]:
+            if free_after["free_bytes"] < execution_free_before["free_bytes"]:
                 raise ContractError("free bytes decreased after cleanup")
             if free_after["free_bytes"] < MIN_POST_CLEANUP_FREE_BYTES:
                 raise ContractError("post-cleanup free bytes below r4 staging requirement")
@@ -699,7 +700,9 @@ def execute(request: dict[str, Any], request_sha: str, inventory: dict[str, Any]
                 "request_sha256": request_sha, "inventory_sha256": inventory_sha,
                 "authorization_sha256": authorization_sha, "health": health,
                 "deleted_exact_paths": deleted, "targets_absent": True,
-                "protected_after": protected_after, "free_before": inventory["free_before"],
+                "protected_after": protected_after,
+                "authorized_inventory_free_before": inventory["free_before"],
+                "free_before": execution_free_before,
                 "free_after": free_after, "minimum_post_cleanup_free_bytes": MIN_POST_CLEANUP_FREE_BYTES,
                 "same_filesystem": True, "parent_fsynced_after_each_target": True,
                 "training_authorized": False, "evaluation_authorized": False,
