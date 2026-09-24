@@ -1,0 +1,49 @@
+{
+  "schema": "trainium-supervisor-proposal-ratification-v1",
+  "status": "SELECTED_COMPLETE_CONDITIONAL_NOT_DISPATCH",
+  "selected_by_role": "supervisor",
+  "selected_at_utc": "2026-09-24T23:48:00Z",
+  "proposal_id": "20260925-v2-c5c-a0-control-trn21-r1",
+  "proposal_path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1/EXPERIMENT_PROPOSAL.json",
+  "proposal_sha256": "55c6d500fbc535a45ad3afb6ef32882e30726b8ec90ac412e2ba987b5c71c1b9",
+  "contract_path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1/GATE_CONTRACT.json",
+  "contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
+  "independent_static_review": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
+  "independent_static_review_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
+  "standing_development_run_authorization": "research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md",
+  "decision": "Select the unchanged c5c dense A0 same-host control on trn21. It is a numerical control, not a quality arm or leaderboard candidate. Dispatch remains held until all host-specific gates, independent final review, and a separate one-label authorization pass.",
+  "selection_rationale": "The historical trn21 35c9 result is public2M only and does not establish a c5c public20M control. A same-host c5c control is necessary before evaluating A1 tables on trn21. The trn22 A0 r1 attempt ended before step zero and cannot substitute for this run.",
+  "one_attempt_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "host": "trn21",
+  "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "train_argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"],
+  "effective_environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+  },
+  "gate_findings_at_selection": {
+    "human_guest_disk_expansion": "PASS_READ_ONLY_AUDIT_2026-09-24T22:26:14Z",
+    "disk_audit_path": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
+    "disk_audit_sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
+    "trn21_g1_fresh_process_public20m": "GUARDED_EVALUATOR_RUNNING_RESULT_HOLD",
+    "trn21_exact_environment_four_rank_g2": "NOT_RUN_FOR_THIS_CONTROL",
+    "clean_exact_source_stage": "NOT_DONE_FOR_THIS_CONTROL",
+    "independent_final_request_review": "NOT_DONE",
+    "continuous_disk_monitor": "NOT_REVIEWED_FOR_NATIVE_RUN",
+    "native_training": "NOT_STARTED",
+    "new_bpb_result": false
+  },
+  "required_before_dispatch": [
+    "Independent PASS on the trn21 G1 retained-checkpoint evaluator result and clean postflight",
+    "Clean source staging with exact c5c and unchanged prepare.py, six authenticated warm caches and protected checkpoints",
+    "Exact-environment four-rank CPU G2 and independent numerical comparison for this host and request",
+    "A final SHA-bound request, independent final review, fresh live host and >=10-GiB disk preflight",
+    "A reviewed continuous owned-guard root-disk monitor and external step-boundary observer started before launch",
+    "A separate one-shot Supervisor authorization for this label after all above gates"
+  ],
+  "launch_authorized": false,
+  "submission_authorized": false
+}
