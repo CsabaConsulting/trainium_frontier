@@ -1,0 +1,144 @@
+{
+  "schema": "a1-native-five-g0-comparator-fix-verification-v1",
+  "verdict": "FAIL",
+  "review_date": "2026-09-24",
+  "role": "independent-verifier",
+  "reviewed_implementation": {
+    "branch": "implement/20260924-v2-a1-native5-g0-comparator-fix",
+    "commit": "f8670808b1f81c0b11ead49c6a8776df93c4b762",
+    "parent": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+    "origin_contains_exact_commit": true
+  },
+  "historical_inputs": {
+    "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+    "analysis_sha256": "f8f8e068cf841bdd9673cf254bbeece02a47840993f98f82b36632cc8e1b14da",
+    "prior_fail_commit": "01d3cc04b3d55ed4d453fc1aff0e0eddad581682",
+    "prior_fail_receipt_sha256": "11269947fe9be583671bd5b261d2b79dd651ec264b34a60d64522a7d80f8dcbb",
+    "immutable_evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "accepted_gate_commit": "7528ca8dd9d9915097929217c2a2b0d9cfc17107"
+  },
+  "reviewed_hashes": {
+    "ownership_manifest": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "comparator": "28225d289756e4d2ec2aee51f48736cad4d269a9d94586759ef4453a0e005b61",
+    "candidate": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "observer": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "model_checker": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "immutable_rank_reports": {
+      "rank-0.jsonl": "8aa51461a8cfba1efd1467d97d3ff4788728870b1809b93c2f27c8c8a1054064",
+      "rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
+      "rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
+      "rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee"
+    }
+  },
+  "scope_audit": {
+    "changed_files": [
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-ownership-revalidation.pending.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py"
+    ],
+    "diff_check_passed": true,
+    "candidate_prepare_observer_gates_model_checker_unchanged": true,
+    "historical_g0_consumed_and_not_relaunchable": true,
+    "g1_locked": true,
+    "g2_locked": true,
+    "execution_authorized": false
+  },
+  "independent_positive_reconstruction": {
+    "status": "PASS",
+    "owned_entry_count": 66,
+    "owned_dtype": "torch.float32",
+    "group_count": 11,
+    "elements_by_owner": [
+      27405059,
+      30540035,
+      30408963,
+      29362179
+    ],
+    "estimated_ms_by_owner": [
+      12.991316601116363,
+      12.99464796558983,
+      12.984647965589831,
+      12.988706969361804
+    ],
+    "owned_elements": 117716236,
+    "shard_elements": 30540160,
+    "total_padded_elements": 122160640,
+    "total_padded_bytes": 488642560,
+    "replicated_rmsprop_tables_excluded": [
+      "ngram_embeds.b5.weight",
+      "ngram_embeds.t5.weight"
+    ],
+    "exact_owner_exchanges_per_rank": 5,
+    "owner_exchange_input_shape": [
+      30540160
+    ],
+    "owner_exchange_output_shape": [
+      122160640
+    ],
+    "owner_exchange_dtype": "torch.float32",
+    "notes": "The deterministic make_plan cost/order/owner/offset calculation was independently reconstructed from the pinned candidate source, and every immutable rank inventory and exchange matched it. This resolves the old dense-plan numerical mismatch but does not overcome the fail-closed I/O blockers below."
+  },
+  "tests": [
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "result": "PASS: 38 tests"
+    },
+    {
+      "command": "python -m py_compile research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python compare_gate_reports.py --validate-g0-only <immutable-native-gate-dir> --output <fresh-O_EXCL-output>",
+      "result": "PASS with the exact 66-entry A1 contract"
+    },
+    {
+      "command": "independent in-memory semantic mutation matrix",
+      "result": "PASS: stale dense stride, entry drop, rename, resize, reassignment, group, cost, offset, RMS-table inclusion, owner count, stride, replicated dtype and gather mutations all rejected (13/13)"
+    },
+    {
+      "command": "independent manifest/report/source pin mutation matrix",
+      "result": "PASS: manifest digest, report digest and candidate source pin mutations rejected (3/3)"
+    },
+    {
+      "command": "independent report path replacement race",
+      "result": "FAIL: rank-0 was replaced by a symlink to an unpinned report after digest verification but immediately before parse; loss was changed to 12345.0 with an arbitrary scalar digest, yet validate_immutable_g0 returned PASS"
+    },
+    {
+      "command": "independent manifest stat/read replacement race",
+      "result": "FAIL: a checked regular manifest was replaced by a symlink immediately before read and _load_ownership_manifest accepted it"
+    },
+    {
+      "command": "independent short os.write injection against _write_exclusive",
+      "result": "FAIL: _write_exclusive returned normally after writing only 7 bytes ({\"schem)"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B1",
+      "severity": "blocking",
+      "finding": "Pinned manifest, source and immutable-report authentication is vulnerable to check/use replacement. _file_sha performs path checks and then reads by path; _load_ownership_manifest hashes and then separately rereads the manifest; validate_immutable_g0 hashes each report and _load_rank separately checks and opens it. The exact symlink race above authenticated old bytes but parsed attacker-selected unpinned bytes and returned PASS.",
+      "required_correction": "Use dirfd/openat-style O_NOFOLLOW opens under authenticated real directories. Read each manifest/source/report once from one regular single-link descriptor, hash and parse those same captured bytes, and revalidate descriptor/path dev+ino+mode+nlink before consuming the result. Do not authenticate and parse through separate pathname opens. Add deterministic pre-open, post-open and post-hash replacement/symlink/hardlink regressions for manifest, every source pin and every rank report."
+    },
+    {
+      "id": "B2",
+      "severity": "blocking",
+      "finding": "The O_EXCL result writer makes one unchecked os.write call, so a legal short write returns success and can pair process exit code 0 with a truncated/non-JSON PASS artifact.",
+      "required_correction": "Loop until all bytes are written or fail, fsync, reread and validate the persisted exact JSON bytes/schema/status from the same sealed inode, revalidate name-to-inode binding, and only then return success. Add short-write and zero-write regressions."
+    }
+  ],
+  "adjudication": {
+    "corrected_package_re_adjudicates_immutable_g0_pass": false,
+    "reason": "The ownership math and immutable bytes replay correctly, but the comparator can return PASS after consuming bytes other than the authenticated bytes and can return success without persisting its complete result.",
+    "supervisor_may_prepare_distinct_g1_authorization_request": false,
+    "g1_execution_authorized": false,
+    "g2_execution_authorized": false,
+    "required_next_step": "Correct B1-B2 without changing protected science files, then obtain a fresh independent verifier PASS over the immutable G0 evidence before preparing any G1 authorization request."
+  }
+}
