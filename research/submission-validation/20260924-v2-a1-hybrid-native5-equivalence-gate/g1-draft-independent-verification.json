@@ -1,0 +1,113 @@
+{
+  "schema": "a1-native-five-g1-draft-independent-verification-v1",
+  "verdict": "PASS",
+  "reviewed_commit": "638ef6bf15e96401958649a85d02dcc8c9569d6e",
+  "reviewed_parent": "994d302b0036c56aaab63797f0561797bc4cf431",
+  "reviewed_origin_branch": "origin/implement/20260924-v2-a1-native5-g1-finalization-draft",
+  "review_role": "independent-verifier",
+  "review_date": "2026-09-24",
+  "prerequisites": {
+    "g1_checklist_commit": "9749a572fbf2344be02c7a1e16ba01e963f33a82",
+    "g1_checklist_sha256": "a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17",
+    "g0_pass_receipt_commit": "8add2585d30b11ac2c50fb2701957657a1a6f30d",
+    "g0_pass_receipt_sha256": "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68",
+    "g0_evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "g0_replay_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+    "g0_replay_bytes": 326,
+    "r4_comparator_sha256": "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c",
+    "ownership_manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2"
+  },
+  "reviewed_files": {
+    "g1_request_template_sha256": "32f69599970589c440f1679c3497f836f552b3fe86ba5af8bb14b9bd916b909d",
+    "g1_pending_authorization_sha256": "4c3920b6bf44f56dc77e6d286a5496b062ac96f3de4f81450b47aa85979b0b28",
+    "g1_finalization_sha256": "fa22f10f6b8d315bcbae78c5abd30c7aca3ea3c5ca1f97dbf2bf8e5949589c19",
+    "g0_g1_adjudicator_sha256": "02e72336e5d9d11b39ca231ac580caed05e534f4baf3cd395a1c5eb91fbf6af7",
+    "proposal_sha256": "021f468b56fbf6fe351ee7eaf10f216e2ef38b53a2cb3387d6826e83f09dee1c",
+    "runbook_sha256": "1d79dd6321c623f34035551519c1782d482bada2c27b5dc09a9e47d57eb61c83",
+    "pending_requests_sha256": "d5e86cd4c8f97c53da705b4417a47656a559afa877d86db825ccbad24db96860",
+    "g1_tests_sha256": "8ad8bcaa74ab6104c9961004d5e1a84dce1afc667cf82085a5270dafa05237ff",
+    "gate_tests_sha256": "07722d60dacfe15986e2c5ed9c39cf9983690fd93ca45d985e4a64ddc681d541"
+  },
+  "protected_identities": {
+    "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "candidate_train_py_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate_sha256": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate_sha256": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "model_checker_sha256": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "protected_paths_changed_from_r4": false,
+    "template_source_hashes_verified": 25,
+    "template_source_hash_failures": 0
+  },
+  "tests": [
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "result": "PASS",
+      "tests_run": 60
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
+      "result": "PASS",
+      "tests_run": 10
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py",
+      "result": "PASS",
+      "tests_run": 13
+    },
+    {
+      "command": "python -m py_compile research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py --validate-g0-only <immutable-g0-rank-report-dir> --output <fresh-output>",
+      "result": "PASS",
+      "output_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+      "output_bytes": 326
+    },
+    {
+      "command": "g1_finalization.py materialize with the checked-in pending authorization and with the absent finalized authorization",
+      "result": "PASS_FAIL_CLOSED",
+      "returncodes": [
+        2,
+        2
+      ],
+      "concrete_request_created": false
+    }
+  ],
+  "findings": {
+    "diff_scope_matches_g1_draft": true,
+    "request_template_non_executable": true,
+    "pending_authorization_non_executable": true,
+    "final_authorization_absent": true,
+    "concrete_request_absent": true,
+    "host_hostname_unique_paths_exact": true,
+    "command_environment_seed_world_lnc_resources_exact": true,
+    "g0_dependency_exact_and_replayed": true,
+    "shared_record_equality_normalizes_only_arm_detailed_label": true,
+    "g1_detailed_records_complete_finite_and_cross_rank_checked": true,
+    "model_only_checkpoint_and_lifecycle_bound": true,
+    "g2_locked": true,
+    "full_a1_locked": true,
+    "cleanup_and_prune_locked": true,
+    "submission_locked": true
+  },
+  "authority": {
+    "supervisor_may_create_state_only_g1_authorization_for_separate_verification": true,
+    "this_receipt_authorizes_request_materialization": false,
+    "this_receipt_authorizes_host_access": false,
+    "this_receipt_authorizes_native_execution": false,
+    "this_receipt_authorizes_g2": false,
+    "this_receipt_authorizes_full_a1": false,
+    "this_receipt_authorizes_cleanup_or_prune": false,
+    "this_receipt_authorizes_submission": false,
+    "required_next_gate": "A distinct state-only G1 authorization commit must bind the exact request-bearing HEAD, request-template SHA-256, finalized authorization SHA-256, and protected finalization hashes, then receive independent verification before any materialization or Operator action."
+  },
+  "scope_limitations": {
+    "host_access_performed": false,
+    "hardware_executed": false,
+    "training_executed": false,
+    "authorization_created": false,
+    "launch_performed": false
+  }
+}
