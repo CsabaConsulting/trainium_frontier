@@ -1,16 +1,64 @@
 # A1 native five-step equivalence gate
 
-This is a prepared, non-executable package. `requests.pending.json` deliberately contains
-`PENDING_EXTERNAL_VERIFIER` and `executable=false`. It authorizes no SSH, host mutation, cache
-cleanup, native execution, training, full A1, or submission. An independent Verifier must first
-pin the clean origin-aligned final HEAD, every package/source hash, and three distinct runtime
-requests. The production candidate remains byte-for-byte
+The package implementation is independently verified by commit
+`aeb85c2cee3481901c827d7a2313b9178906fc84`; its receipt bytes are SHA-256
+`3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf` and it reviewed
+implementation `7528ca8dd9d9915097929217c2a2b0d9cfc17107`. This later commit prepares only
+G0 finalization and is still non-executable. `g0-request.template.json`,
+`g0-authorization.pending.json`, and `requests.pending.json` deliberately contain
+`PENDING_EXTERNAL_VERIFIER` and `executable=false`. They authorize no SSH, host mutation, cache
+cleanup, native execution, training, full A1, or submission. G1 and G2 remain locked and do not
+have a materializable authorization.
+
+The production candidate remains byte-for-byte
 `9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae`; only authenticated
 gate copies import `research/a1_native_gate_observer.py`.
 
+## G0-only external finalization
+
+`g0_finalization.py` is a fail-closed materializer and runtime, not authority. An independent
+Verifier must create a later `g0-authorization.json` that pins the current template, driver,
+proposal, runbook, tests, all source hashes, reviewed implementation, and verifier receipt. The
+authorization must enable G0 only; G1/G2, checkpoint pruning, and cache cleanup stay false. The
+Verifier then supplies three literals out of band: the exact clean request-bearing HEAD, the
+SHA-256 of the committed `g0-request.template.json` (the immutable request trust root), and the
+SHA-256 of `g0-authorization.json`. Neither hash nor the HEAD is derived from the checkout by the
+Operator, and the authorization never embeds its own hash.
+
+Only after that separate verification may the Operator substitute the three supplied literals in
+this non-executable template and materialize one concrete standard-launcher request:
+
+```text
+python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0_finalization.py materialize \
+  --authorized-head EXTERNAL_40_HEX_HEAD \
+  --request-sha256 EXTERNAL_64_HEX_REQUEST_TEMPLATE_SHA256 \
+  --authorization-sha256 EXTERNAL_64_HEX_AUTHORIZATION_SHA256 \
+  --request-template research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-request.template.json \
+  --authorization research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-authorization.json \
+  --output /tmp/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json
+```
+
+The sentinel spelling above is intentionally not valid CLI input. This repository does not supply
+the literals. The materializer requires the exact symbolic branch, exact external HEAD, clean
+protected files, exact source hashes, executable independently finalized authorization, and
+O_EXCL output. It never launches. After inspecting its emitted SHA, the later authorized Operator
+would pass that concrete file unchanged to the existing launcher:
+
+```text
+python research/fresh_start_launch.py \
+  /tmp/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json
+```
+
+No command in this section is currently authorized or executable because
+`g0-authorization.json` is absent and all external literals remain pending. A descendant commit
+cannot authorize itself: the external HEAD must equal the checkout exactly, and the independent
+Verifier must issue a new literal set after reviewing any changed bytes.
+
 ## Fixed order and lifecycle
 
-The sole eligible host is `trn21`. Run G0, then G1, then G2, never concurrently. Before every arm,
+The sole eligible host is `trn21` (`ip-172-31-34-85`). Only G0 can be finalized in this package.
+G1 stays locked until the exact G0 archive and clean postflight are retrieved, hashed, committed,
+and externally bound; G2 stays locked until the corresponding authenticated G1 evidence. Before G0,
 the standard fresh-start launcher/guard must prove: the exact symbolic branch at the independently
 approved HEAD, clean tree and origin alignment, exact regular no-follow source files and hashes,
 no live training or descendants, and absent unique remote/output/report/cache paths. It must sample
@@ -36,7 +84,7 @@ PYTHONUNBUFFERED=1
 NEURON_COMPILE_CACHE_DIR=<the exact unique initially absent cache in requests.pending.json>
 ```
 
-The finalized launcher must construct the argv arrays below from the pending request without shell
+The finalized launcher must construct the argv array below from the committed G0 template without shell
 evaluation. `<SOURCE>`, `<ARM>`, `<OBSERVATION>`, `<LABEL>`, `<OUT>` and `<REPORT>` are the literal
 fields of the corresponding request entry, not Operator choices:
 
@@ -52,7 +100,7 @@ fields of the corresponding request entry, not Operator choices:
   --native-gate-label <LABEL> --native-gate-host trn21 --native-gate-report-dir <REPORT>
 ```
 
-G0 and G1 use `train_gate_hybrid.py`; G2 uses `train_gate_ordinary.py`. G0 passes
+G0 uses `train_gate_hybrid.py` and passes
 `--no-native-gate-observation`; G1/G2 pass `--native-gate-observation`. Those and the ordinary
 source's omission of ownership installation are the enumerated gate-only differences. G0 still
 emits losses, pre/post persistent model and logical optimizer hashes, final state and ordered

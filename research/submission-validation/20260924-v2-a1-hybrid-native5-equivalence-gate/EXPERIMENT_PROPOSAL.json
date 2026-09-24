@@ -1,11 +1,18 @@
 {
   "proposal_id": "20260924-v2-a1-hybrid-native5-equivalence-gate",
-  "status": "human-approved-package-pending-independent-verification-and-authorization",
+  "status": "package-verified-g0-finalization-prepared-pending-external-literals-and-authorization",
   "owner_role": "implementer",
   "hypothesis": "The verified hybrid RMSProp repair is byte-exact to ordinary replicated RMSProp for the A1 tables while the AdamW/Muon ownership exchange is exact for the integrated model.",
   "single_causal_change": "Gate-only observation and optimizer-dispatch selection; production candidate bytes are immutable and no scientific setting changes.",
   "mechanism_class": "throughput",
   "verified_parent": "c35504bc426d75e416498c1cbb6f086f8d845ca4",
+  "reviewed_package_implementation": "7528ca8dd9d9915097929217c2a2b0d9cfc17107",
+  "independent_verifier": {
+    "receipt_commit": "aeb85c2cee3481901c827d7a2313b9178906fc84",
+    "receipt_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verification.json",
+    "receipt_sha256": "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf",
+    "verdict": "PASS"
+  },
   "immutable_sources": {
     "production_candidate_path": "submissions/dense6x1024_public0992851/train.py",
     "production_candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
@@ -87,6 +94,20 @@
     "checkpoint_prune_authorized": false,
     "cache_cleanup_authorized": false
   },
+  "g0_finalization": {
+    "request_template": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-request.template.json",
+    "pending_authorization_template": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-authorization.pending.json",
+    "runtime_driver": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0_finalization.py",
+    "request_bearing_head": "PENDING_EXTERNAL_VERIFIER",
+    "request_sha256": "PENDING_EXTERNAL_VERIFIER",
+    "authorization_sha256": "PENDING_EXTERNAL_VERIFIER",
+    "executable": false,
+    "outer_timeout_seconds": 4200,
+    "child_timeout_seconds": 3600,
+    "timeout_justification": "3600 seconds covers the 900-second startup allowance plus the immutable 1800-second in-process ceiling, checkpoint and evidence finalization; the 4200-second outer timeout leaves 600 seconds for bounded TERM/KILL/reap and guard postflight.",
+    "G1": "locked pending authenticated G0 archive and clean postflight",
+    "G2": "locked pending authenticated G1 archive and clean postflight"
+  },
   "observations": {
     "format": "canonical compact JSONL hashes and scalar metadata only; tensor values are never dumped",
     "table_gradients": ["local_pre_avg", "post_avg_preclip", "postclip"],
@@ -108,7 +129,7 @@
   },
   "gates": {
     "human_implementation_approval": true,
-    "independent_verification": false,
+    "independent_verification": true,
     "requests_finalized": false,
     "native_execution_authorized": false,
     "launched": false,

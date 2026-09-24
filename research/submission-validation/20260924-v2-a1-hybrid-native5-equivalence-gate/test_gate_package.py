@@ -8,6 +8,8 @@ import json
 import math
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -30,6 +32,7 @@ def load(name: str, path: Path):
 COMPARE = load("a1_gate_compare", HERE / "compare_gate_reports.py")
 MODEL_CHECK = load("a1_gate_model_check", HERE / "verify_model_checkpoints.py")
 OBSERVER = load("a1_gate_observer", ROOT / "research/a1_native_gate_observer.py")
+G0_FINALIZATION = load("a1_gate_g0_finalization", HERE / "g0_finalization.py")
 
 
 def sha(path: Path) -> str:
@@ -213,7 +216,7 @@ class SourceContractTests(unittest.TestCase):
 
     def test_proposal_and_runbook_refuse_authorization(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
-        self.assertFalse(proposal["gates"]["independent_verification"])
+        self.assertTrue(proposal["gates"]["independent_verification"])
         self.assertFalse(proposal["gates"]["native_execution_authorized"])
         self.assertFalse(proposal["gates"]["launched"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
@@ -222,6 +225,133 @@ class SourceContractTests(unittest.TestCase):
         runbook = (HERE / "RUNBOOK.md").read_text()
         self.assertIn("RMS_PASS_INTEGRATED_BLOCKED", runbook)
         self.assertIn("STOP; below", runbook)
+
+
+class G0FinalizationTests(unittest.TestCase):
+    def template(self):
+        return json.loads((HERE / "g0-request.template.json").read_text())
+
+    def authorized(self, template):
+        return {
+            "schema": "a1-native-five-g0-authorization-v1",
+            "state": "independent-verifier-finalized-g0-only",
+            "executable": True,
+            "arm": "G0", "host": "trn21", "label": template["label"],
+            "verified_core_commit": G0_FINALIZATION.CORE,
+            "verifier_receipt_commit": G0_FINALIZATION.VERIFIER_COMMIT,
+            "verifier_receipt_sha256": G0_FINALIZATION.VERIFIER_SHA,
+            "request_template_path": template["request_template_path"],
+            "request_sha256": sha(HERE / "g0-request.template.json"),
+            "head_binding": "external-literals-only",
+            "protected_finalization_sha256": {
+                relative: sha(ROOT / relative) for relative in G0_FINALIZATION.FINALIZATION_PATHS
+            },
+            "source_sha256": template["source_sha256"],
+            "native_execution_authorized": True,
+            "g1_authorized": False, "g2_authorized": False,
+            "checkpoint_prune_authorized": False, "cache_cleanup_authorized": False,
+        }
+
+    def test_g0_template_is_exact_and_only_g0_materializes(self):
+        template = self.template()
+        G0_FINALIZATION.validate_template(template)
+        request_sha = sha(HERE / "g0-request.template.json")
+        auth = self.authorized(template)
+        G0_FINALIZATION.validate_authorization(auth, template, request_sha)
+        concrete = G0_FINALIZATION.build_concrete_request(
+            template, head="a" * 40, request_sha=request_sha,
+            authorization_sha="b" * 64,
+            authorization_path=template["authorization_path"],
+        )
+        self.assertEqual(concrete["arm"], "G0")
+        self.assertEqual(concrete["host"], "trn21")
+        self.assertEqual((template["seed"], template["world_size"], template["lnc"],
+                          template["optimizer_updates"], template["in_process_max_seconds"]),
+                         (42, 4, 2, 5, 1800))
+        self.assertEqual(concrete["command"][:5],
+                         ["timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s"])
+        self.assertIn("--no-native-gate-observation", template["train_argv"])
+        self.assertNotIn("--native-gate-observation", template["train_argv"])
+        self.assertEqual(template["child_environment"]["TRAINIUM_FRESH_START_RUN_ID"],
+                         template["label"])
+        self.assertEqual(template["train_argv"][:6],
+                         ["--num-steps", "5", "--max-train-seconds", "1800", "--n-embd", "1024"])
+
+    def test_g1_g2_are_locked_and_have_no_authorization(self):
+        template = self.template()
+        self.assertEqual(set(template["downstream_locks"]), {"G1", "G2"})
+        self.assertTrue(all(value.startswith("PENDING_")
+                            for value in template["downstream_locks"].values()))
+        pending = json.loads((HERE / "requests.pending.json").read_text())
+        by_arm = {arm["arm"]: arm for arm in pending["arms"]}
+        self.assertIn("PENDING_AUTHENTICATED_G0", by_arm["G1"]["prerequisite"])
+        self.assertIn("PENDING_AUTHENTICATED_G1", by_arm["G2"]["prerequisite"])
+        self.assertFalse((HERE / "g0-authorization.json").exists())
+        self.assertFalse(any((HERE / name).exists() for name in
+                             ("g1-authorization.json", "g2-authorization.json")))
+
+    def test_pending_authorization_is_not_executable(self):
+        template = self.template()
+        pending = json.loads((HERE / "g0-authorization.pending.json").read_text())
+        self.assertFalse(pending["executable"])
+        self.assertFalse(pending["native_execution_authorized"])
+        with self.assertRaises(G0_FINALIZATION.ContractError):
+            G0_FINALIZATION.validate_authorization(
+                pending, template, sha(HERE / "g0-request.template.json")
+            )
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "must-not-exist.json"
+            result = subprocess.run([
+                sys.executable, str(HERE / "g0_finalization.py"), "materialize",
+                "--authorized-head", "a" * 40,
+                "--request-sha256", sha(HERE / "g0-request.template.json"),
+                "--authorization-sha256", sha(HERE / "g0-authorization.pending.json"),
+                "--request-template", str((HERE / "g0-request.template.json").relative_to(ROOT)),
+                "--authorization", str((HERE / "g0-authorization.pending.json").relative_to(ROOT)),
+                "--output", str(output),
+            ], cwd=ROOT, text=True, capture_output=True, check=False)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            self.assertFalse(output.exists())
+            self.assertIn("G0_FINALIZATION_INVALID", result.stderr)
+
+    def test_exact_source_launcher_guard_and_verifier_hashes(self):
+        template = self.template()
+        for relative, expected in template["source_sha256"].items():
+            self.assertEqual(sha(ROOT / relative), expected, relative)
+        self.assertEqual(template["verified_core_commit"],
+                         "7528ca8dd9d9915097929217c2a2b0d9cfc17107")
+        self.assertEqual(template["verifier_receipt_commit"],
+                         "aeb85c2cee3481901c827d7a2313b9178906fc84")
+        self.assertEqual(template["verifier_receipt_sha256"],
+                         "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf")
+
+    def test_request_or_environment_mutation_fails_closed(self):
+        attacks = []
+        for mutate in (
+            lambda value: value.update(arm="G1"),
+            lambda value: value["train_argv"].__setitem__(1, "6"),
+            lambda value: value["outer_timeout_argv"].__setitem__(-1, "9999s"),
+            lambda value: value["child_environment"].update(NEURON_LOGICAL_NC_CONFIG="1"),
+            lambda value: value["downstream_locks"].update(G1="authorized"),
+            lambda value: value["paths"].update(output="out/attacker"),
+            lambda value: value["source_sha256"].__setitem__("prepare.py", "0" * 64),
+        ):
+            attacked = copy.deepcopy(self.template())
+            mutate(attacked)
+            attacks.append(attacked)
+        for attacked in attacks:
+            with self.subTest(arm=attacked.get("arm"), argv=attacked.get("train_argv", [])[:2]):
+                with self.assertRaises(G0_FINALIZATION.ContractError):
+                    G0_FINALIZATION.validate_template(attacked)
+
+    def test_lifecycle_source_contains_private_group_and_bounded_quiescence(self):
+        source = (HERE / "g0_finalization.py").read_text()
+        for required in (
+            "start_new_session=True", "os.killpg", "signal.SIGTERM", "signal.SIGKILL",
+            "_group_members", "os.O_EXCL", "os.O_NOFOLLOW", "os.fsync",
+            "process_group_quiescent", "checkpoint_pruned", "cache_cleaned",
+        ):
+            self.assertIn(required, source)
 
 
 class ComparatorTests(unittest.TestCase):
