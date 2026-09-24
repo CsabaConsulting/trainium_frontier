@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-c",
+    "import hashlib,json,os,sys,torch\np=sys.argv[1];fd=os.open(p,os.O_RDONLY|os.O_NOFOLLOW);h=hashlib.sha256();z=0\nwhile True:\n b=os.read(fd,8388608)\n if not b:break\n h.update(b);z+=len(b)\nos.close(fd);v=torch.load(p,map_location='cpu',weights_only=True);s=[v];n=0\nwhile s:\n x=s.pop()\n if isinstance(x,dict):s.extend(x.values())\n elif isinstance(x,(list,tuple)):s.extend(x)\n elif isinstance(x,torch.Tensor):\n  n+=1\n  assert not (x.is_floating_point() or x.is_complex()) or torch.isfinite(x).all().item()\nprint(json.dumps({'checkpoint_bytes':z,'checkpoint_sha256':h.hexdigest(),'finite':True,'map_location':'cpu','tensor_count':n,'weights_only':True},sort_keys=True))\n",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/sandbox/out/final.pt"
+  ],
+  "checkpoint_bytes": 469834849,
+  "checkpoint_sha256": "db92ca7bc7fd428aab1f5f53d2868d791cd8271d707087f3f764459f02974c0f",
+  "finite": true,
+  "map_location": "cpu",
+  "process_group": {
+    "cleanup_required": false,
+    "kill_grace_seconds": 10.0,
+    "kill_sent": false,
+    "leader_returncode": 0,
+    "pgid": 2925239,
+    "quiescent": true,
+    "reaped_descendants": [],
+    "term_grace_seconds": 15.0,
+    "term_sent": false
+  },
+  "schema": "track-a-finite-v1",
+  "tensor_count": 62,
+  "wall_seconds": 3.0459937369450927,
+  "weights_only": true
+}
