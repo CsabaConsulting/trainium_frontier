@@ -4523,6 +4523,7 @@ class OwnedOptimizer:
         self.parameter_ids = [id(p) for p in self.parameters]
         self.replicated_rmsprop_schema = self.summary_schema['replicated_rmsprop_groups']
         self.replicated_rmsprop_groups = [item['group'] for item in self.replicated_rmsprop_schema]
+        self.replicated_rmsprop_group_identity = tuple(self.replicated_rmsprop_groups)
         self.replicated_rmsprop_parameters = [p for index in self.replicated_rmsprop_groups for p in optimizer.param_groups[index]['params']]
         all_parameters = [p for group in optimizer.param_groups for p in group['params']]
         if (len({id(p) for p in all_parameters}) != len(all_parameters)
@@ -4564,6 +4565,7 @@ class OwnedOptimizer:
                 or _owned_live_identity(self.groups) != self.owned_group_identity
                 or _owned_entries_identity(self.entries) != self.entries_identity
                 or self.summary != self.summary_schema
+                or tuple(self.replicated_rmsprop_groups) != self.replicated_rmsprop_group_identity
                 or tuple(id(p) for p in self.parameters) != self.exchange_parameter_ids
                 or tuple(id(p) for p in self.owned) != self.owned_parameter_ids):
             raise ValueError('optimizer kind changed after planning or ordered parameter/entry plan drifted')
@@ -4595,7 +4597,7 @@ class OwnedOptimizer:
         self.calls += 1
 
     def state_dict(self):
-        if self.replicated_rmsprop_groups:
+        if self.replicated_rmsprop_group_identity:
             raise ValueError(HYBRID_OPTIMIZER_RESUME_ERROR)
         self._validate_live_plan()
         state = self.raw_state_dict()
@@ -4603,7 +4605,7 @@ class OwnedOptimizer:
         return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
 
     def load_state_dict(self, payload):
-        if self.replicated_rmsprop_groups:
+        if self.replicated_rmsprop_group_identity:
             raise ValueError(HYBRID_OPTIMIZER_RESUME_ERROR)
         self._validate_live_plan()
         if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries):

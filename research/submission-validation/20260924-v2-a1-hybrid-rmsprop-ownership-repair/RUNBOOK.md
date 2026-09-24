@@ -6,7 +6,7 @@ A1 r2 request. That request pins the old `35c9…` train bytes and must fail aga
 
 The only candidate edit is inside `make_plan` / `OwnedOptimizer` in
 `submissions/dense6x1024_public0992851/train.py`. Candidate SHA256 is
-`431f70a75589182f9e8627abc000801503c3f2acf13bf95b21d06cffd5dcf711`; unchanged `prepare.py` is
+`9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae`; unchanged `prepare.py` is
 `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb`.
 
 Hybrid mid-run optimizer serialization and resume are deliberately unsupported. Both operations
