@@ -23,12 +23,22 @@ Bounded changes:
   `Popen`, stops, reaps and proves quiescence before releasing the host lease;
 - treats an outer eval or causality timeout as failure even when the child printed valid-looking JSON
   before hanging;
-- requires exactly one expected `--train-py` and `--checkpoint`, preventing later eval arguments from
-  redirecting argparse to alternate source or checkpoint bytes.
+- admits only the exact G1 eval suffix (`device=neuron`, `batch-size=1`, context 1024, public-20M,
+  timeout 1200) and exactly one expected `--train-py`/`--checkpoint`, rejecting argparse
+  abbreviations, equals forms, unknowns and duplicates before they can redirect evaluation.
 
 An independent review of the first hardening commit found those last three defects and recorded FAIL
 at `c1a2bc1867589b0ebefb69d96f13f71a62c93382`. They are repaired here with adversarial regressions;
 this repair still requires a fresh independent review.
+
+The current human constraint forbids checkpoint deletion without fresh approval. Production jobs
+therefore fail preflight unless `protect_checkpoint` is exactly `true`; the local test mode alone
+retains unprotected-prune coverage for the archive/order regression.
+
+This pilot intentionally requires explicit `--seed 42`, `--max-train-seconds 1800`, and
+`--no-eval-public` in a research-v2 job. It is not ready for S0's bare-launch/default contract; S0
+must continue through the already-proven legacy path unless a separate pinned source-profile change
+is proposed and independently verified.
 
 Local checks:
 

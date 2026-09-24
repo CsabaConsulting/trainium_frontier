@@ -31,7 +31,8 @@ json.dump({
     "quiescence_window_s": 0.05, "stop_grace_s": 0.2,
     "test_ignore_other_training_processes": True,
     "env": {"NEURON_LOGICAL_NC_CONFIG": "2"},
-    "eval_args": ["--seq-len", "1024", "--eval-tokens", "20971520", "--timeout-seconds", "60"],
+    "eval_args": ["--device", "neuron", "--batch-size", "1", "--seq-len", "1024",
+                  "--eval-tokens", "20971520", "--timeout-seconds", "60"],
     "eval_args_verified": True,
     "train_cmd_override": ["python3", f"{tools}/fake/fake_train.py"],
     "eval_cmd_override": ["python3", f"{tools}/fake/fake_eval.py"],
@@ -350,10 +351,13 @@ sys.path.insert(0, sys.argv[1])
 import run_job
 tmp = pathlib.Path(sys.argv[2]); out = tmp / "eval-identity-out"
 job = {"train_py": "train.py"}
-for option, value in (("--checkpoint", "/tmp/alternate.pt"),
-                      ("--train-py", "/tmp/alternate.py")):
-    cfg = {"python": "python3", "eval_args": ["--seq-len", "1024", "--eval-tokens",
-           "20971520", "--timeout-seconds", "60", option, value]}
+base = ["--device", "neuron", "--batch-size", "1", "--seq-len", "1024",
+        "--eval-tokens", "20971520", "--timeout-seconds", "60"]
+run_job.build_eval_cmd({"python": "python3", "test_mode": True, "eval_args": base}, job, out)
+for option, value in (("--checkpoint", "/tmp/alternate.pt"), ("--checkp", "/tmp/alternate.pt"),
+                      ("--train-py", "/tmp/alternate.py"), ("--train-p", "/tmp/alternate.py"),
+                      ("--seq-len=1024", "ignored"), ("--unknown", "ignored")):
+    cfg = {"python": "python3", "test_mode": True, "eval_args": base + [option, value]}
     try:
         run_job.build_eval_cmd(cfg, job, out)
     except run_job.JobError:
@@ -415,6 +419,21 @@ except run_job.JobError:
     pass
 else:
     raise SystemExit("symlink root accepted")
+PY
+
+# Production policy requires checkpoint retention until a later human approval.
+python3 - "$W" <<'PY'
+import sys
+sys.path.insert(0, sys.argv[1])
+import run_job
+try:
+    run_job.validate_checkpoint_policy({}, False)
+except run_job.JobError:
+    pass
+else:
+    raise SystemExit("unprotected production checkpoint policy accepted")
+run_job.validate_checkpoint_policy({"protect_checkpoint": True}, False)
+run_job.validate_checkpoint_policy({}, True)
 PY
 
 # Reusing a correct content-addressed archive never replaces it; symlink checkpoints are refused.

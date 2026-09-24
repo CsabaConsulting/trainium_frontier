@@ -213,6 +213,33 @@ def require_option(argv, option, expected, stage="preflight") -> None:
                        f"expected exactly one {option} {expected}; got {got}")
 
 
+def canonical_eval_args(cfg: dict) -> list[str]:
+    args = cfg.get("eval_args")
+    if not isinstance(args, list) or any(not isinstance(x, str) for x in args) or len(args) % 2:
+        raise JobError(4, "preflight", "eval_args must be exact option/value string pairs")
+    expected = {
+        "--device": "neuron",
+        "--batch-size": "1",
+        "--seq-len": str(EVAL_SEQ),
+        "--eval-tokens": str(EVAL_TOKENS),
+        "--timeout-seconds": "1200",
+    }
+    seen = {}
+    for option, value in zip(args[::2], args[1::2]):
+        if option not in expected or option in seen:
+            raise JobError(4, "preflight", f"unknown, abbreviated, or duplicate eval option: {option}")
+        seen[option] = value
+    if set(seen) != set(expected):
+        raise JobError(4, "preflight", f"eval_args field set differs: {sorted(set(seen) ^ set(expected))}")
+    for option, value in expected.items():
+        if option == "--timeout-seconds" and cfg.get("test_mode") is True:
+            if not seen[option].isdigit() or int(seen[option]) <= 0:
+                raise JobError(4, "preflight", "test eval timeout must be a positive integer")
+        elif seen[option] != value:
+            raise JobError(4, "preflight", f"eval option {option} must equal {value}")
+    return list(args)
+
+
 def validate_science_argv(job: dict) -> None:
     argv = job.get("argv")
     if not isinstance(argv, list) or any(not isinstance(x, str) for x in argv):
@@ -222,6 +249,11 @@ def validate_science_argv(job: dict) -> None:
     require_option(argv, "--seq-len", EVAL_SEQ)
     if argv.count("--no-eval-public") != 1 or "--eval-public" in argv:
         raise JobError(4, "preflight", "training must have exactly one --no-eval-public")
+
+
+def validate_checkpoint_policy(job: dict, test_mode: bool) -> None:
+    if not test_mode and job.get("protect_checkpoint") is not True:
+        raise JobError(4, "preflight", "production checkpoint must remain protected pending human approval")
 
 
 def validate_g2(g2: dict, job: dict, prepare_sha: str, test_mode: bool) -> None:
@@ -509,8 +541,9 @@ def build_eval_cmd(cfg, job, out_dir):
         cmd = list(cfg["eval_cmd_override"])
     else:
         cmd = [cfg.get("python", "python"), "prepare.py"]
+    eval_args = canonical_eval_args(cfg)
     cmd += ["eval-public", "--train-py", job["train_py"], "--checkpoint", str(out_dir / "final.pt")]
-    cmd += list(cfg.get("eval_args", []))
+    cmd += eval_args
     if cmd.count("eval-public") != 1:
         raise JobError(6, "eval", "eval command needs one literal eval-public")
     require_option(cmd, "--train-py", job["train_py"], "eval")
@@ -707,6 +740,7 @@ def run(cfg: dict, job: dict, repo: Path, job_path: Path) -> dict:
     if any(cfg.get(k) is not None for k in ("train_cmd_override", "eval_cmd_override", "causality_cmd_override")) and not test_mode:
         raise JobError(4, "preflight", "command override requires host test_mode")
     validate_science_argv(job)
+    validate_checkpoint_policy(job, test_mode)
     env = effective_env(cfg)
     out_root = confined(repo, cfg.get("out_root", "out"), "out_root")
     if out_root.exists():
@@ -840,7 +874,8 @@ def run(cfg: dict, job: dict, repo: Path, job_path: Path) -> dict:
         if anomalies:
             verdict = {**verdict, "human_alert": "containment intervention recorded; Supervisor disposition required"}
         write_new(d / "verdict.json", verdict)
-        protected = job.get("kind") == "control" or label in cfg.get("protected_labels", [])
+        protected = (job.get("protect_checkpoint") is True or job.get("kind") == "control"
+                     or label in cfg.get("protected_labels", []))
         if not protected:
             write_new(d / "prune-authorized.json", {"schema": "checkpoint-prune-authorization-v1",
                                                       "utc": now(), "path": str(ckpt),
