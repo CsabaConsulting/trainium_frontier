@@ -96,6 +96,13 @@ This section supersedes earlier Track-A readiness and host-control statements be
   512 MiB each of replicated RMSProp moments and dense gradients, so ownership correctness, HBM,
   collectives, checkpoint/load, causality, throughput, and same-host A1 comparison must gate it.
   No executable A2 proposal may exist before A1 clears those dependencies.
+- A duplicate-clear audit found one lower-upside survivor after A1/A2/A11:
+  `--qkv-norm-cse`. On exact no-QK-shift serial 35c9, Q/K/V inputs are identical, so the flag
+  reuses one normalization instead of computing three in each of six blocks, removing 12 redundant
+  norm operations with no parameter/state change. There is CPU coverage but no durable hardware
+  result. Predicted throughput gain is 0–2% (central about 1%) and central wall-clock BPB delta
+  about `-0.0007`; require native identity/causality and reproducible >=1% same-host whole-step
+  gain before any full run. This is queued behind the higher-upside A1/A2 and A11 work.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
