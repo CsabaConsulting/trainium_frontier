@@ -24,3 +24,24 @@ Before launch: G1 calibration PASS, exact staging/fingerprint and full cleanline
 host lock, no other job, cache/disk recheck, and boundary observer in place. Separate Operator
 performs dispatch only after controller's explicit request-bound authorization. Full training's
 native first-step equivalence, budget, checkpoint, causality and fresh 20M gates remain pending.
+
+## Corrected retained-cache review (2026-09-24 21:04 UTC)
+
+The prior request named `/tmp/neuron_cache`, which was absent on trn22. It was never launched.
+Implementer corrected only the cache-path metadata and environment in source commit
+`e65a3097a5b00f6178188a935bb2acb9a5042c6c` and externally bound child request
+`bb2045e1dbcc87d02541d10183cce54f4762c80e`, request SHA-256
+`2948fff0018628a9da5ba406b9c6630dfd6525387b6bb97ef907357464b7f3cf`.
+The six paths are the retained same-host 35c9 control's training caches. The old
+`track_a_job.py` `fresh_caches(..., "train")` mapping independently confirms the keys
+to `neff`, `local`, `hlo`, `inductor`, `compiler`, and `debug`. Read-only inspection of the
+exact old run root confirmed all six directories, with 176,381,952 bytes in their parent.
+
+I read the full correction diff and independently reran the exact static contract: PASS.
+The reviewed c5c model SHA, prepare.py SHA, complete training argv, seed/time defaults,
+compiler flags, label, operational floor, and checkpoint preservation are unchanged.
+The source commit includes the corrected proposal/runbook/test; the request-binding child
+contains the final request. Operator must dispatch from that authenticated external child
+request while checking out the source parent, not use the older pending in-tree template.
+Status: **PASS for source and metadata; dispatch still conditional on G1, live six-cache
+identity, fresh disk projection, reviewed observer, source cleanliness and host/device lock.**
