@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed G1 r2 transport-retry request materializer and runtime.
+"""Fail-closed G1 r3 correctness-retry request materializer and runtime.
 
 This file is not authority.  ``materialize`` requires three exact literals supplied by an
 independent finalizer and an authorization blob whose current pending template deliberately cannot
@@ -27,13 +27,13 @@ from typing import NamedTuple
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 TEMPLATE_PATH = HERE / "g1-request.template.json"
-EXPECTED_BRANCH = "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization"
+EXPECTED_BRANCH = "experiment/20260925-v2-a1-hybrid-native5-g1-r3-finalization"
 CORE = "994d302b0036c56aaab63797f0561797bc4cf431"
 VERIFIER_COMMIT = "8add2585d30b11ac2c50fb2701957657a1a6f30d"
 VERIFIER_SHA = "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68"
 ANALYST_COMMIT = "9749a572fbf2344be02c7a1e16ba01e963f33a82"
 ANALYST_SHA = "a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17"
-R4_COMPARATOR_SHA = "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c"
+R4_COMPARATOR_SHA = "4b199343a1cecfc6be4b86242da421127c39e8dcf9f67b378ef56f75927fdd32"
 G0_EVIDENCE_COMMIT = "37aa3644e63e20a1427cfa69b44fd6de7e25cd81"
 G0_REPLAY_SHA = "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a"
 R1_FAILURE_COMMIT = "e1550203a61c53cd7c73b0c543ced8a157312612"
@@ -43,29 +43,50 @@ R1_AUTHORIZATION_SHA = "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d
 R1_CONCRETE_REQUEST_SHA = "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0"
 R1_DISPATCH_SHA = "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44"
 R1_FAILURE_RECEIPT_SHA = "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943"
-G1_LABEL = "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2"
+R2_IMPLEMENTATION_COMMIT = "a455a207f0f19603b4d3dd52bd7a93fa5a445f39"
+R2_VERIFICATION_COMMIT = "8096e47cf86358527c742b023fc7810d7381da5d"
+R2_VERIFICATION_SHA = "987d103735959d11759c05180369ac87061abd718af0f821bcb81cb7906d2be0"
+R2_AUTHORIZATION_COMMIT = "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0"
+R2_AUTHORIZATION_SHA = "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771"
+R2_TEMPLATE_SHA = "a2d1a0a60e8672d816e0ef94ee77d04af771d70b05fc72fb416f3ee252bc7fee"
+R2_CONCRETE_REQUEST_SHA = "dfde895a86c66a71eb6a450c4f82bacf44209c6c815fc81a368af23499e921fb"
+R2_AUTH_VERIFICATION_COMMIT = "3a5e47f917f39063885500d9a3c00bd1417e8d8c"
+R2_AUTH_VERIFICATION_SHA = "40434954117bd94af3ee05d8101de395634ea68b0ba3924cef5be3960b33979c"
+R2_REQUEST_VERIFICATION_COMMIT = "65b807dab3ea6a785e44aef91fef32c5168b3879"
+R2_REQUEST_VERIFICATION_SHA = "bcd1e09dd09c8c8d448d1e4b9ed39fe238d4abd7fb70caadf7a3feb2ecc76572"
+R2_REMATERIALIZATION_RULING_COMMIT = "2ddcddd30b5df9297735d5631513c173998d8fda"
+R2_REMATERIALIZATION_RULING_SHA = "4a208caf59500eb6d54e9609edef1bcd7526f19e33863228ac29fc38bb764843"
+R2_REMATERIALIZED_VERIFICATION_COMMIT = "60c108bdd42bffdbc1a8a106c693c18165b5f268"
+R2_REMATERIALIZED_VERIFICATION_SHA = "b86b2cc04c93b89392eabe8a89cbde4a46dd06fde22428fbe739a1a7d7fbbf0c"
+R2_FAILURE_COMMIT = "5b392db4bc8c01a47da2f5969cb33df0c50ec52b"
+R2_ANALYSIS_COMMIT = "5313527dd34ad1c5927636340b4d97252a644828"
+R2_ANALYSIS_SHA = "014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a"
+R2_FAILURE_RECEIPT_SHA = "c6db31c323c545c851c63fb1c8313b46a0b2d0aeafc1e2a1ea8045e43acd8fb5"
+R2_CHILD_LOG_SHA = "87dedc4345bb1605e115acf995ceb5dedb56c20bfddb423343405a85632e9f4a"
+R2_RUNTIME_RESULT_SHA = "705547ff56258ac69232b0dd515d07a52056445c32ce5e513ac15613ffba8596"
+G1_LABEL = "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3"
 FINALIZATION_PATHS = [
     "research/fresh_start_launch.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_TRANSPORT_RETRY_AMENDMENT.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R3_CORRECTNESS_RETRY_AMENDMENT.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r3_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/adjudicate_g0_g1.py",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.pending.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.pending.json",
 ]
 EXPECTED_SOURCE_SHA256 = {
     "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "submissions/dense6x1024_public0992851/train.py": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
-    "research/a1_native_gate_observer.py": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "research/a1_native_gate_observer.py": "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": R4_COMPARATOR_SHA,
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verification.json": "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-comparator-r4-independent-verification.json": VERIFIER_SHA,
@@ -90,9 +111,15 @@ EXPECTED_SOURCE_SHA256 = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/OPERATOR_FAILURE_RECEIPT.json": R1_FAILURE_RECEIPT_SHA,
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/concrete-request.json": R1_CONCRETE_REQUEST_SHA,
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/dispatch.json": R1_DISPATCH_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_CORRECTNESS_FAILURE_ANALYSIS.md": R2_ANALYSIS_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-transport-independent-verification.json": R2_VERIFICATION_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json": R2_AUTHORIZATION_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/OPERATOR_RECEIPT.json": R2_FAILURE_RECEIPT_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/runtime/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.child.log": R2_CHILD_LOG_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/runtime/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.runtime-result.json": R2_RUNTIME_RESULT_SHA,
 }
 EXPECTED_PATHS = {
-    "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+    "compile_cache": "/home/ubuntu/neuron_cache_20260925_v2_a1_native5_g1_trn21_r3",
     "output": f"out/{G1_LABEL}",
     "report": f"research/run-logs/{G1_LABEL}/native-gate",
     "child_log": f"research/run-logs/{G1_LABEL}.child.log",
@@ -372,7 +399,7 @@ def validate_template(template: dict) -> None:
         "remote", "origin", "purpose", "exact_symbolic_branch", "verified_core_commit", "verifier_receipt_commit",
         "verifier_receipt_sha256", "external_literals", "authorization_path",
         "request_template_path", "runtime_driver_path", "runtime_job_path", "finalization_paths", "paths",
-        "staging_bundle_remote_path", "r1_transport_failure",
+        "staging_bundle_remote_path", "r1_transport_failure", "r2_correctness_failure",
         "environment", "child_environment", "outer_timeout_argv", "child_timeout_seconds",
         "term_grace_seconds", "kill_grace_seconds", "min_free_bytes", "hard_abort_bytes",
         "world_size", "lnc", "seed", "optimizer_updates", "in_process_max_seconds",
@@ -382,7 +409,7 @@ def validate_template(template: dict) -> None:
     if set(template) != required:
         raise ContractError("G1 request-template schema mismatch")
     expected = {
-        "schema": "a1-native-five-g1-r2-request-template-v1",
+        "schema": "a1-native-five-g1-r3-request-template-v1",
         "state": "pending-external-finalization",
         "executable": False,
         "arm": "G1",
@@ -390,11 +417,11 @@ def validate_template(template: dict) -> None:
         "expected_hostname": "ip-172-31-34-85",
         "label": G1_LABEL,
         "exact_symbolic_branch": EXPECTED_BRANCH,
-        "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
-        "staging_bundle_remote_path": "/home/ubuntu/v2-a1-native5-g1-r2.bundle",
+        "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_a1_native5_g1_hybrid_observation_on_trn21_r3",
+        "staging_bundle_remote_path": "/home/ubuntu/v2-a1-native5-g1-r3.bundle",
         "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
-        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on transport retry r2",
-        "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
+        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on correctness retry r3",
+        "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.json",
         "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
         "runtime_driver_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
         "runtime_job_path": f"research/run-logs/{G1_LABEL}.job.json",
@@ -422,7 +449,7 @@ def validate_template(template: dict) -> None:
         "accepted_contract": {
             "r4_commit": CORE,
             "r4_comparator_sha256": R4_COMPARATOR_SHA,
-            "ownership_manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+            "ownership_manifest_sha256": "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007",
             "pass_receipt_commit": VERIFIER_COMMIT,
             "pass_receipt_sha256": VERIFIER_SHA,
             "analyst_commit": ANALYST_COMMIT,
@@ -447,6 +474,34 @@ def validate_template(template: dict) -> None:
             "failure_receipt_sha256": R1_FAILURE_RECEIPT_SHA,
             "training_started": False,
             "retry_under_r1_identity_authorized": False,
+        },
+        "r2_correctness_failure": {
+            "state": "historical-consumed-pre-step0-observer-label-contract-failure",
+            "implementation_commit": R2_IMPLEMENTATION_COMMIT,
+            "verification_commit": R2_VERIFICATION_COMMIT,
+            "verification_sha256": R2_VERIFICATION_SHA,
+            "authorization_commit": R2_AUTHORIZATION_COMMIT,
+            "authorization_sha256": R2_AUTHORIZATION_SHA,
+            "request_template_sha256": R2_TEMPLATE_SHA,
+            "concrete_request_sha256": R2_CONCRETE_REQUEST_SHA,
+            "authorization_verification_commit": R2_AUTH_VERIFICATION_COMMIT,
+            "authorization_verification_sha256": R2_AUTH_VERIFICATION_SHA,
+            "request_verification_commit": R2_REQUEST_VERIFICATION_COMMIT,
+            "request_verification_sha256": R2_REQUEST_VERIFICATION_SHA,
+            "rematerialization_ruling_commit": R2_REMATERIALIZATION_RULING_COMMIT,
+            "rematerialization_ruling_sha256": R2_REMATERIALIZATION_RULING_SHA,
+            "rematerialized_verification_commit": R2_REMATERIALIZED_VERIFICATION_COMMIT,
+            "rematerialized_verification_sha256": R2_REMATERIALIZED_VERIFICATION_SHA,
+            "failure_commit": R2_FAILURE_COMMIT,
+            "analysis_commit": R2_ANALYSIS_COMMIT,
+            "analysis_sha256": R2_ANALYSIS_SHA,
+            "failure_receipt_sha256": R2_FAILURE_RECEIPT_SHA,
+            "child_log_sha256": R2_CHILD_LOG_SHA,
+            "runtime_result_sha256": R2_RUNTIME_RESULT_SHA,
+            "training_updates": 0,
+            "rank_reports": 0,
+            "checkpoint_exists": False,
+            "retry_under_r2_identity_authorized": False,
         },
     }
     for key, value in expected.items():
@@ -514,13 +569,13 @@ def validate_authorization(auth: dict, template: dict, request_sha: str) -> None
         "protected_finalization_sha256", "source_sha256", "native_execution_authorized",
         "g1_authorized", "g2_authorized", "checkpoint_prune_authorized",
         "cache_cleanup_authorized", "full_a1_authorized", "submission_authorized",
-        "g0_prerequisite", "r1_transport_failure",
+        "g0_prerequisite", "r1_transport_failure", "r2_correctness_failure",
     }
     if set(auth) != required:
         raise ContractError("authorization schema mismatch")
     expected = {
-        "schema": "a1-native-five-g1-r2-authorization-v1",
-        "state": "independent-verifier-finalized-g1-r2-only",
+        "schema": "a1-native-five-g1-r3-authorization-v1",
+        "state": "independent-verifier-finalized-g1-r3-only",
         "executable": True,
         "arm": "G1", "host": "trn21", "label": template["label"],
         "verified_core_commit": CORE,
@@ -535,6 +590,7 @@ def validate_authorization(auth: dict, template: dict, request_sha: str) -> None
         "full_a1_authorized": False, "submission_authorized": False,
         "g0_prerequisite": template["g0_prerequisite"],
         "r1_transport_failure": template["r1_transport_failure"],
+        "r2_correctness_failure": template["r2_correctness_failure"],
     }
     for key, value in expected.items():
         if auth.get(key) != value:
@@ -569,7 +625,7 @@ def build_concrete_request(
         template["runtime_driver_path"], template["request_template_path"], authorization_path,
     })
     return {
-        "schema": "a1-native-five-g1-r2-concrete-request-v1",
+        "schema": "a1-native-five-g1-r3-concrete-request-v1",
         "arm": "G1", "host": "trn21", "expected_hostname": template["expected_hostname"],
         "label": template["label"], "remote": template["remote"],
         "expected_commit": head, "origin": template["origin"], "purpose": template["purpose"],
@@ -1080,7 +1136,7 @@ def run(args: argparse.Namespace) -> int:
     if success:
         _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
     result = {
-        "schema": "a1-native-five-g1-r2-runtime-result-v1", "arm": "G1",
+        "schema": "a1-native-five-g1-r3-runtime-result-v1", "arm": "G1",
         "status": "PASS" if success else "FAILED", "complete": success,
         "label": template["label"], "host": "trn21", "authorized_head": args.authorized_head,
         "request_sha256": args.request_sha256,
@@ -1138,7 +1194,7 @@ def main() -> int:
     try:
         return materialize(args) if args.action == "materialize" else run(args)
     except ContractError as exc:
-        print(f"G1_R2_FINALIZATION_INVALID: {exc}", file=sys.stderr)
+        print(f"G1_R3_FINALIZATION_INVALID: {exc}", file=sys.stderr)
         return 2
 
 

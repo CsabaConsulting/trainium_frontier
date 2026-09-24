@@ -1,6 +1,6 @@
 {
   "schema": "a1-native-five-pending-requests-v1",
-  "state": "g0-authenticated-g1-r1-transport-failed-consumed-g1-r2-pending-g2-locked",
+  "state": "g0-authenticated-g1-r1-transport-and-r2-correctness-failures-consumed-g1-r3-pending-g2-locked",
   "executable": false,
   "finalization_head": "PENDING_EXTERNAL_VERIFIER",
   "authorization_sha256": "PENDING_EXTERNAL_VERIFIER",
@@ -9,7 +9,7 @@
   "g0_runtime_driver": "g0_finalization.py",
   "g0_comparator_correction_request": "g0-ownership-revalidation.pending.json",
   "g1_finalization_template": "g1-request.template.json",
-  "g1_authorization_template": "g1-r2-authorization.pending.json",
+  "g1_authorization_template": "g1-r3-authorization.pending.json",
   "g1_runtime_driver": "g1_finalization.py",
   "g0_g1_adjudicator": "adjudicate_g0_g1.py",
   "g1_r1_failure": {
@@ -17,6 +17,15 @@
     "analysis_commit": "2029ca66ec83cbcc98fef42b1e0571205c013c69",
     "analysis_sha256": "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b",
     "state": "historical-consumed-no-retry-no-training"
+  },
+  "g1_r2_failure": {
+    "implementation_commit": "a455a207f0f19603b4d3dd52bd7a93fa5a445f39",
+    "verification_commit": "8096e47cf86358527c742b023fc7810d7381da5d",
+    "authorization_commit": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "evidence_commit": "5b392db4bc8c01a47da2f5969cb33df0c50ec52b",
+    "analysis_commit": "5313527dd34ad1c5927636340b4d97252a644828",
+    "analysis_sha256": "014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a",
+    "state": "historical-consumed-no-retry-no-updates-no-checkpoint"
   },
   "g1_analyst_checklist": {
     "commit": "9749a572fbf2344be02c7a1e16ba01e963f33a82",
@@ -52,19 +61,19 @@
     },
     {
       "arm": "G1",
-      "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+      "label": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
       "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
       "observation_argv": ["--native-gate-arm", "G1", "--native-gate-observation"],
-      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
-      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
-      "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
-      "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/native-gate",
-      "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.child.log",
-      "runtime_job": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.job.json",
-      "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.runtime-result.json",
-      "dispatch": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.dispatch.json",
-      "bundle_remote": "/home/ubuntu/v2-a1-native5-g1-r2.bundle",
-      "prerequisite": "G0_ARCHIVE_AUTHENTICATED_BY_8ADD2585_R2_REQUEST_AND_AUTHORIZATION_PENDING"
+      "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_a1_native5_g1_hybrid_observation_on_trn21_r3",
+      "compile_cache": "/home/ubuntu/neuron_cache_20260925_v2_a1_native5_g1_trn21_r3",
+      "output": "out/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
+      "report": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3/native-gate",
+      "child_log": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.child.log",
+      "runtime_job": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.job.json",
+      "runtime_result": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.runtime-result.json",
+      "dispatch": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.dispatch.json",
+      "bundle_remote": "/home/ubuntu/v2-a1-native5-g1-r3.bundle",
+      "prerequisite": "G0_ARCHIVE_AUTHENTICATED_BY_8ADD2585_R1_AND_R2_FAILURES_CONSUMED_R3_REQUEST_AND_AUTHORIZATION_PENDING"
     },
     {
       "arm": "G2",
@@ -79,7 +88,7 @@
     }
   ],
   "requirements": {
-    "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
+    "exact_symbolic_branch": "experiment/20260925-v2-a1-hybrid-native5-g1-r3-finalization",
     "min_free_bytes_before_each_arm": 6979321856,
     "hard_abort_bytes": 5368709120,
     "sequential": true,

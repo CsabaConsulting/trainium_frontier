@@ -18,7 +18,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 OWNERSHIP_MANIFEST_PATH = Path(__file__).with_name("a1_ownership_manifest.json")
-OWNERSHIP_MANIFEST_SHA256 = "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2"
+OWNERSHIP_MANIFEST_SHA256 = "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007"
 OWNERSHIP_MANIFEST_SCHEMA = "a1-native-five-ownership-manifest-v1"
 SCHEMA = "a1-native-five-equivalence-v1"
 TABLES = {"ngram_embeds.b5.weight", "ngram_embeds.t5.weight"}

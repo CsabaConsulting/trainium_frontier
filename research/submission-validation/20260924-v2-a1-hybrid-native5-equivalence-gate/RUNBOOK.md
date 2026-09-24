@@ -16,10 +16,23 @@ analysis commit `2029ca66` / SHA-256 `c457bb70c161d1db5f048581cbfbe321acc260bd24
 are controlling. The r1 request, authorization, dispatch, checkout and bundle are historical and
 consumed; they must not be changed, reused or cleaned by this package.
 
-`G1_R2_TRANSPORT_RETRY_AMENDMENT.json` defines only a non-executable G1 r2 transport retry. It has a unique r2 label and
-fresh remote, bundle, cache, output, report, child-log, runtime-job, dispatch and result paths. Its
-pending r2 authorization has every authority false, and `g1-r2-authorization.json` and the r2
-concrete request do not exist. G2, full A1, cleanup, pruning and submission remain locked.
+G1 r2 reached the runtime but failed before step 0 because the observer still required the consumed
+r1 label. Evidence commit `5b392db4` and analysis commit `5313527d` / SHA-256
+`014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a` are controlling; the r2
+authorization, concrete request and every r2 path are consumed.
+
+`G1_R3_CORRECTNESS_RETRY_AMENDMENT.json` defines only a non-executable G1 r3 correctness retry.
+The sole gate-code edit changes `ARM_LABELS["G1"]` from the consumed r1 label to the exact unique
+r3 label; G0/G2 labels, host validation and all arithmetic remain exact. The package allocates fresh
+remote, bundle, cache, output, report, child-log, runtime-job, dispatch and result paths. Its pending
+r3 authorization has every authority false, and neither `g1-r3-authorization.json` nor an r3
+concrete request exists. G2, full A1, cleanup, pruning and submission remain locked.
+
+Because the ownership manifest authenticates the observer source, its sole source-pin value is
+rebound to observer SHA-256 `25bc72a2...e225`; the manifest becomes `5fd3b2f0...2007`. The
+comparator's sole corresponding manifest-hash literal is rebound, producing comparator SHA-256
+`4b199343...dd32`. No ownership entry, tensor contract, numerical gate, report parser or result
+publication behavior changes; independent verification must nevertheless review these new bytes.
 
 ## Historical comparator-correction sequence
 
@@ -133,13 +146,14 @@ The commands in this historical section were consumed by the archived G0 run and
 The corrected comparator changes protected package bytes, so the old authorization cannot
 authorize a descendant or any rerun. No rerun is requested by this correction.
 
-## G1 r2 transport-retry finalization (not executable)
+## G1 r3 correctness-retry finalization (not executable)
 
-`g1-request.template.json`, `g1-r2-authorization.pending.json` and `g1_finalization.py` define the
-r2 chain. Science is byte-for-byte the G1 r1 contract: same hybrid source, seed, data start,
-LNC2/world4, five-update argv and environment. The only operational change is the reviewed
-controller identity selection in `research/fresh_start_launch.py`. The sentinel command cannot run
-because the three external literals and executable `g1-r2-authorization.json` do not exist:
+`g1-request.template.json`, `g1-r3-authorization.pending.json` and `g1_finalization.py` define the
+r3 chain. The hybrid source, seed, data start, LNC2/world4, five-update argv and environment are
+unchanged. The repaired launcher remains exact. The observer diff is limited to the one exact G1
+allowlist label literal and is exercised at the real request/parser/constructor boundary before
+authorization. The sentinel command cannot run
+because the three external literals and executable `g1-r3-authorization.json` do not exist:
 
 ```text
 python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py materialize \
@@ -147,8 +161,8 @@ python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-
   --request-sha256 EXTERNAL_64_HEX_G1_TEMPLATE_SHA256 \
   --authorization-sha256 EXTERNAL_64_HEX_G1_AUTHORIZATION_SHA256 \
   --request-template research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json \
-  --authorization research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json \
-  --output /tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.request.json
+  --authorization research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.json \
+  --output /tmp/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.request.json
 ```
 
 Only after separate authorization and request verification could an Operator invoke the standard
@@ -160,7 +174,7 @@ digest. This non-executable form deliberately leaves the external path unset:
 ```text
 python research/fresh_start_launch.py \
   --identity-file EXTERNAL_OPERATOR_SUPPLIED_ABSOLUTE_0600_SINGLE_LINK_IDENTITY \
-  /tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.request.json
+  /tmp/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.request.json
 ```
 
 Raw `torchrun`, r1 request/authorization reuse, SSH-agent/default fallback, SSH-config mutation,
@@ -178,7 +192,7 @@ checkpoint contract. A PASS is only `G1_OBSERVATION_NONPERTURBING`; it does not 
 ## Fixed order and lifecycle
 
 The sole eligible host is `trn21` (`ip-172-31-34-85`). G0 and G1 r1 are historical and must not be
-rerun. G1 r2 may be finalized only by a later independent Verifier and remains unlaunchable. G2
+rerun. G1 r3 may be finalized only by a later independent Verifier and remains unlaunchable. G2
 stays locked until corresponding authenticated G1 evidence and a separate proposal. Before G1,
 the standard fresh-start launcher/guard must prove: the exact symbolic branch at the independently
 approved HEAD, clean tree and origin alignment, exact regular no-follow source files and hashes,
@@ -280,9 +294,11 @@ The Implementer may run only CPU/static tests:
 
 ```text
 python -m unittest -v \
-  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py
-python -m unittest -v \
-  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py \
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py \
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py \
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r3_package.py \
+  research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py
 python -m py_compile research/a1_native_gate_observer.py \
   research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py
 ```

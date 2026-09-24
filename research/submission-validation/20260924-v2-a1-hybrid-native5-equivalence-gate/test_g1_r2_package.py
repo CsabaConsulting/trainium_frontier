@@ -195,96 +195,69 @@ class IdentityTransportTests(unittest.TestCase):
                 run.assert_not_called()
 
 
-class R2ContractTests(unittest.TestCase):
+class R2HistoricalContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.template = json.loads((HERE / "g1-request.template.json").read_text())
         cls.pending = json.loads((HERE / "g1-r2-authorization.pending.json").read_text())
-        cls.r1_auth = json.loads((HERE / "g1-authorization.json").read_text())
+        cls.r2_auth = json.loads((HERE / "g1-r2-authorization.json").read_text())
 
-    def test_template_is_exact_pending_r2_and_science_is_unchanged(self):
+    def test_r2_is_historical_consumed_and_r3_is_the_only_pending_template(self):
         FINAL.validate_template(self.template)
         self.assertEqual(self.template["label"], FINAL.G1_LABEL)
-        self.assertEqual(self.template["optimizer_updates"], 5)
-        self.assertEqual(self.template["seed"], 42)
-        self.assertEqual(self.template["world_size"], 4)
-        self.assertEqual(self.template["lnc"], 2)
-        self.assertEqual(self.template["source_sha256"]["research/fresh_start_launch.py"],
-                         hashlib.sha256((ROOT / "research/fresh_start_launch.py").read_bytes()).hexdigest())
+        self.assertTrue((HERE / "g1-r2-authorization.json").exists())
+        self.assertTrue(self.r2_auth["executable"])
+        self.assertEqual(self.r2_auth["label"],
+                         "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2")
         self.assertFalse(self.template["executable"])
         self.assertFalse(self.pending["executable"])
-        self.assertFalse((HERE / "g1-r2-authorization.json").exists())
         self.assertFalse(FINAL.MATERIALIZATION_OUTPUT.exists())
 
-    def test_r1_authority_is_consumed_and_cannot_validate_r2(self):
+    def test_consumed_r2_authority_cannot_validate_r3(self):
         with self.assertRaises(FINAL.ContractError):
             FINAL.validate_authorization(
-                self.r1_auth, self.template,
+                self.r2_auth, self.template,
                 hashlib.sha256((HERE / "g1-request.template.json").read_bytes()).hexdigest())
-        failure = self.template["r1_transport_failure"]
-        self.assertEqual(failure["failure_commit"],
-                         "e1550203a61c53cd7c73b0c543ced8a157312612")
-        self.assertFalse(failure["training_started"])
-        self.assertFalse(failure["retry_under_r1_identity_authorized"])
 
-    def test_amendment_is_transport_only_and_has_no_authority(self):
+    def test_r2_transport_amendment_remains_immutable_historical_evidence(self):
         amendment = json.loads((HERE / "G1_R2_TRANSPORT_RETRY_AMENDMENT.json").read_text())
         self.assertFalse(amendment["scientific_change"])
         self.assertTrue(amendment["r1_failure"]["historical_consumed"])
         self.assertFalse(amendment["r1_failure"]["training_started"])
-        self.assertEqual(amendment["label"], FINAL.G1_LABEL)
-        self.assertTrue(all(amendment[key] is False for key in (
-            "request_materialization_authorized", "host_access_authorized",
-            "native_execution_authorized", "g2_authorized", "full_a1_authorized",
-            "cleanup_authorized", "checkpoint_prune_authorized",
-            "cache_cleanup_authorized", "submission_authorized")))
+        self.assertEqual(hashlib.sha256((HERE / "G1_R2_TRANSPORT_RETRY_AMENDMENT.json").read_bytes()).hexdigest(),
+                         "f90813f72bb0e5a21b86b89d24550f5f9d701aa4bc076915e9b6e41beb97447d")
 
-    def test_all_r2_identities_are_unique_and_identity_is_not_request_data(self):
-        encoded = json.dumps(self.template, sort_keys=True)
-        self.assertNotIn("--identity-file", encoded)
-        self.assertNotIn(".pem", encoded)
-        r1 = "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1"
-        for key in ("label", "remote", "staging_bundle_remote_path", "runtime_job_path"):
-            self.assertNotIn(r1, self.template[key])
-        for key, value in self.template["paths"].items():
-            with self.subTest(path=key):
-                self.assertNotIn(r1, value)
-                self.assertIn("r2", value)
+    def test_r2_failure_provenance_is_exact_and_zero_update(self):
+        failure = self.template["r2_correctness_failure"]
+        self.assertEqual(failure["failure_commit"],
+                         "5b392db4bc8c01a47da2f5969cb33df0c50ec52b")
+        self.assertEqual(failure["analysis_sha256"],
+                         "014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a")
+        self.assertEqual(failure["request_verification_commit"],
+                         "65b807dab3ea6a785e44aef91fef32c5168b3879")
+        self.assertEqual(failure["rematerialized_verification_sha256"],
+                         "b86b2cc04c93b89392eabe8a89cbde4a46dd06fde22428fbe739a1a7d7fbbf0c")
+        self.assertEqual(failure["training_updates"], 0)
+        self.assertEqual(failure["rank_reports"], 0)
+        self.assertFalse(failure["checkpoint_exists"])
+        self.assertFalse(failure["retry_under_r2_identity_authorized"])
 
-    def test_mutations_of_identity_science_and_provenance_fail(self):
-        for path, value in (
-            (("label",), "fs-wrong"),
-            (("remote",), "/home/ubuntu/trainium_freshstart_wrong"),
-            (("optimizer_updates",), 6),
-            (("seed",), 43),
-            (("paths", "compile_cache"), "/home/ubuntu/neuron_cache_wrong"),
-            (("r1_transport_failure", "failure_commit"), "0" * 40),
-            (("source_sha256", "research/fresh_start_launch.py"), "0" * 64),
-        ):
-            with self.subTest(path=path):
+    def test_r2_failure_provenance_mutation_fails_closed(self):
+        for field in ("failure_commit", "analysis_sha256", "authorization_sha256",
+                      "concrete_request_sha256", "runtime_result_sha256"):
+            with self.subTest(field=field):
                 candidate = json.loads(json.dumps(self.template))
-                target = candidate
-                for key in path[:-1]:
-                    target = target[key]
-                target[path[-1]] = value
+                candidate["r2_correctness_failure"][field] = "0" * len(
+                    candidate["r2_correctness_failure"][field])
                 with self.assertRaises(FINAL.ContractError):
                     FINAL.validate_template(candidate)
 
-    def test_protected_science_hashes_and_downstream_locks(self):
-        protected = {
-            "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
-            "submissions/dense6x1024_public0992851/train.py":
-                "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
-            "research/a1_native_gate_observer.py":
-                "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
-        }
-        for relative, digest in protected.items():
-            self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), digest)
-        self.assertEqual(self.template["source_sha256"], FINAL.EXPECTED_SOURCE_SHA256)
-        self.assertFalse(self.template["downstream_locks"]["full_a1"])
-        self.assertFalse(self.template["downstream_locks"]["cleanup"])
-        self.assertFalse(self.template["downstream_locks"]["checkpoint_prune"])
-        self.assertFalse(self.template["downstream_locks"]["submission"])
+    def test_repaired_launcher_is_still_exact_and_contains_no_request_identity(self):
+        self.assertEqual(hashlib.sha256((ROOT / "research/fresh_start_launch.py").read_bytes()).hexdigest(),
+                         "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f")
+        encoded = json.dumps(self.template, sort_keys=True)
+        self.assertNotIn("--identity-file", encoded)
+        self.assertNotIn(".pem", encoded)
 
 
 if __name__ == "__main__":

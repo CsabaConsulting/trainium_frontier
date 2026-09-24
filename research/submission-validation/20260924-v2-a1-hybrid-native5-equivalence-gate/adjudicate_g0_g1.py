@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed G0/G1-r2-only evidence adjudication.
+"""Fail-closed G0/G1-r3-only evidence adjudication.
 
 This is gate infrastructure, not execution authority.  It authenticates the immutable G0
 archive, an externally hash-bound G1 evidence manifest, and exact detailed G1 reports.  It
@@ -28,11 +28,11 @@ import torch
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 COMPARATOR_PATH = HERE / "compare_gate_reports.py"
-COMPARATOR_SHA256 = "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c"
-MANIFEST_SCHEMA = "a1-native-five-g0-g1-r2-evidence-manifest-v1"
-RESULT_SCHEMA = "a1-native-five-g0-g1-r2-adjudication-v1"
+COMPARATOR_SHA256 = "4b199343a1cecfc6be4b86242da421127c39e8dcf9f67b378ef56f75927fdd32"
+MANIFEST_SCHEMA = "a1-native-five-g0-g1-r3-evidence-manifest-v1"
+RESULT_SCHEMA = "a1-native-five-g0-g1-r3-adjudication-v1"
 G0_LABEL = "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
-G1_LABEL = "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2"
+G1_LABEL = "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3"
 G0_BASE = (
     HERE / "operator-evidence" / G0_LABEL / "runtime" / "research" / "run-logs" / G0_LABEL
 )
@@ -49,10 +49,10 @@ EXPECTED_GATHER_INDEXES = [68, 138, 208, 278, 348]
 EXPECTED_FIXED_SOURCES = {
     "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "submissions/dense6x1024_public0992851/train.py": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
-    "research/a1_native_gate_observer.py": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "research/a1_native_gate_observer.py": "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": COMPARATOR_SHA256,
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-comparator-r4-independent-verification.json": G0_PASS_RECEIPT_SHA256,
@@ -69,6 +69,12 @@ EXPECTED_FIXED_SOURCES = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/OPERATOR_FAILURE_RECEIPT.json": "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/concrete-request.json": "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/dispatch.json": "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_CORRECTNESS_FAILURE_ANALYSIS.md": "014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-transport-independent-verification.json": "987d103735959d11759c05180369ac87061abd718af0f821bcb81cb7906d2be0",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json": "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/OPERATOR_RECEIPT.json": "c6db31c323c545c851c63fb1c8313b46a0b2d0aeafc1e2a1ea8045e43acd8fb5",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/runtime/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.child.log": "87dedc4345bb1605e115acf995ceb5dedb56c20bfddb423343405a85632e9f4a",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/runtime/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.runtime-result.json": "705547ff56258ac69232b0dd515d07a52056445c32ce5e513ac15613ffba8596",
 }
 REQUIRED_RUNTIME_SOURCE_PATHS = {
     "prepare.py", "submissions/dense6x1024_public0992851/train.py",
@@ -83,14 +89,14 @@ REQUIRED_RUNTIME_SOURCE_PATHS = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.pending.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.pending.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/adjudicate_g0_g1.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r3_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_TRANSPORT_RETRY_AMENDMENT.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R3_CORRECTNESS_RETRY_AMENDMENT.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
 }
@@ -282,17 +288,17 @@ def _expected_environment(cache: str) -> dict[str, str]:
     }
 
 
-def _parse_g1_r2_rank_bytes(data: bytes, rank: int) -> list[dict[str, Any]]:
+def _parse_g1_r3_rank_bytes(data: bytes, rank: int) -> list[dict[str, Any]]:
     """Adapt only the fresh retry label to the immutable r4 G1 science parser."""
     lines = data.splitlines(keepends=True)
     if not lines or not lines[0].endswith(b"\n"):
-        raise InvalidEvidence(f"G1 r2 rank {rank}: missing terminated header")
+        raise InvalidEvidence(f"G1 r3 rank {rank}: missing terminated header")
     try:
         header = json.loads(lines[0])
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
-        raise InvalidEvidence(f"G1 r2 rank {rank}: malformed header") from error
+        raise InvalidEvidence(f"G1 r3 rank {rank}: malformed header") from error
     if not isinstance(header, dict) or header.get("label") != G1_LABEL:
-        raise InvalidEvidence(f"G1 r2 rank {rank}: retry label mismatch")
+        raise InvalidEvidence(f"G1 r3 rank {rank}: retry label mismatch")
     header["label"] = CMP.LABELS["G1"]
     adapted = json.dumps(header, sort_keys=True, separators=(",", ":")).encode() + b"\n"
     adapted += b"".join(lines[1:])
@@ -319,8 +325,8 @@ def _validate_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
         raise InvalidEvidence("G1 evidence identity mismatch")
     paths = manifest["paths"]
     expected_paths = {
-        "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
-        "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+        "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_a1_native5_g1_hybrid_observation_on_trn21_r3",
+        "compile_cache": "/home/ubuntu/neuron_cache_20260925_v2_a1_native5_g1_trn21_r3",
         "output": f"out/{G1_LABEL}",
         "report": f"research/run-logs/{G1_LABEL}/native-gate",
     }
@@ -393,7 +399,7 @@ def _validate_lifecycle(manifest: dict[str, Any]) -> dict[str, Any]:
     )
     authorization = (
         "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/"
-        "g1-r2-authorization.json"
+        "g1-r3-authorization.json"
     )
     driver = (
         "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/"
@@ -411,11 +417,11 @@ def _validate_lifecycle(manifest: dict[str, Any]) -> dict[str, Any]:
         "--runtime-job", runtime_job_relative,
     ]
     expected_job = {
-        "schema": "a1-native-five-g1-r2-concrete-request-v1", "arm": "G1",
+        "schema": "a1-native-five-g1-r3-concrete-request-v1", "arm": "G1",
         "host": "trn21", "expected_hostname": "ip-172-31-34-85", "label": G1_LABEL,
         "remote": paths["remote"], "expected_commit": manifest["evidence_head"],
         "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
-        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on transport retry r2",
+        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on correctness retry r3",
         "command": outer_command, "environment": outer_environment,
         "min_free_bytes": 6_979_321_856, "runner_owns_manifest": False,
         "non_overwrite": True, "verified_core_commit":
@@ -440,7 +446,7 @@ def _validate_lifecycle(manifest: dict[str, Any]) -> dict[str, Any]:
             or not runtime_job["started_at"]):
         raise InvalidEvidence("G1 launcher preflight identity/budget mismatch")
     required_runtime = {
-        "schema": "a1-native-five-g1-r2-runtime-result-v1", "arm": "G1", "status": "PASS",
+        "schema": "a1-native-five-g1-r3-runtime-result-v1", "arm": "G1", "status": "PASS",
         "complete": True, "label": G1_LABEL, "host": "trn21",
         "authorized_head": manifest["evidence_head"],
         "request_sha256": manifest["request_sha256"],
@@ -509,7 +515,7 @@ def _validate_g1_records(g0_dir: Path, g1_dir: Path, manifest: dict[str, Any]) -
             raise InvalidEvidence(f"G1 rank {rank} path binding mismatch")
         captured = CMP._capture_file(
             g1_dir, expected_path, expected_sha256=binding["sha256"],
-            parser=lambda data, rank=rank: _parse_g1_r2_rank_bytes(data, rank),
+            parser=lambda data, rank=rank: _parse_g1_r3_rank_bytes(data, rank),
         )
         if captured["identity"][6] != binding["bytes"]:
             raise InvalidEvidence(f"G1 rank {rank} byte-size binding mismatch")

@@ -233,8 +233,9 @@ class SourceContractTests(unittest.TestCase):
         self.assertFalse(proposal["gates"]["native_execution_authorized"])
         self.assertFalse(proposal["gates"]["launched"])
         self.assertTrue(proposal["g0_comparator_correction"]["g1_execution_remains_locked"])
-        self.assertFalse(proposal["g1_transport_retry_r2"]["executable"])
-        self.assertTrue(proposal["g1_transport_retry_r2"]["r1_failure"]["historical_consumed"])
+        self.assertFalse(proposal["g1_correctness_retry_r3"]["executable"])
+        self.assertTrue(proposal["g1_correctness_retry_r3"]["r1_failure"]["historical_consumed"])
+        self.assertTrue(proposal["g1_correctness_retry_r3"]["r2_correctness_failure"]["historical_consumed"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
         for relative, expected in proposal["immutable_sources"]["gate_sources"].items():
             self.assertEqual(sha(ROOT / relative), expected, relative)
@@ -250,9 +251,13 @@ class SourceContractTests(unittest.TestCase):
         self.assertFalse(request["g1_authorized"])
         self.assertEqual(request["implementation_head"], "PENDING_INDEPENDENT_VERIFIER")
         self.assertEqual(request["pins"]["ownership_manifest_sha256"],
-                         sha(HERE / "a1_ownership_manifest.json"))
+                         "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2")
         self.assertEqual(request["pins"]["comparator_sha256"],
-                         sha(HERE / "compare_gate_reports.py"))
+                         "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c")
+        self.assertEqual(sha(HERE / "a1_ownership_manifest.json"),
+                         "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007")
+        self.assertEqual(sha(HERE / "compare_gate_reports.py"),
+                         "4b199343a1cecfc6be4b86242da421127c39e8dcf9f67b378ef56f75927fdd32")
         self.assertEqual(request["expected_contract"]["elements_by_owner"],
                          [27_405_059, 30_540_035, 30_408_963, 29_362_179])
         self.assertEqual(request["expected_contract"]["owner_exchange_output"],
@@ -329,7 +334,7 @@ class G0FinalizationTests(unittest.TestCase):
         self.assertTrue(historical_g1["executable"])
         self.assertFalse(historical_g1["g2_authorized"])
         self.assertFalse(any((HERE / name).exists() for name in
-                             ("g1-r2-authorization.json", "g2-authorization.json")))
+                             ("g1-r3-authorization.json", "g2-authorization.json")))
 
     def test_pending_authorization_is_not_executable(self):
         template = self.template()
@@ -368,6 +373,11 @@ class G0FinalizationTests(unittest.TestCase):
                                  "872c29d6703be64e3bcfdae4deff99acb459eca804f5a7bb574ac6d788e4a80c")
                 self.assertEqual(actual,
                                  "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f")
+            elif relative.endswith("a1_native_gate_observer.py"):
+                self.assertEqual(expected,
+                                 "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7")
+                self.assertEqual(actual,
+                                 "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225")
             else:
                 self.assertEqual(actual, expected, relative)
         self.assertEqual(template["verified_core_commit"],
@@ -378,7 +388,7 @@ class G0FinalizationTests(unittest.TestCase):
                          "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf")
         correction = json.loads((HERE / "g0-ownership-revalidation.pending.json").read_text())
         self.assertEqual(correction["pins"]["comparator_sha256"],
-                         sha(HERE / "compare_gate_reports.py"))
+                         "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c")
 
     def test_request_or_environment_mutation_fails_closed(self):
         attacks = []

@@ -22,7 +22,7 @@ REPORT_SCHEMA = "a1-native-five-equivalence-v1"
 TABLE_NAMES = ("ngram_embeds.b5.weight", "ngram_embeds.t5.weight")
 ARM_LABELS = {
     "G0": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
-    "G1": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+    "G1": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
     "G2": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
 }
 
