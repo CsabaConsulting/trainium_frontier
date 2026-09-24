@@ -1,0 +1,72 @@
+{
+  "schema": "a1-native-five-g1-operator-pre-dispatch-failure-v1",
+  "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+  "arm": "G1",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "observed_hostname": "ip-172-31-34-85",
+  "authorized_head": "149cc9124ff0b9306eff9747182079ab708fc4ed",
+  "observed_remote_head": "149cc9124ff0b9306eff9747182079ab708fc4ed",
+  "request": {
+    "path": "concrete-request.json",
+    "sha256": "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0",
+    "size": 6983,
+    "source_mode": "0600"
+  },
+  "request_template_sha256": "32f69599970589c440f1679c3497f836f552b3fe86ba5af8bb14b9bd916b909d",
+  "authorization_sha256": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+  "dispatch": {
+    "path": "dispatch.json",
+    "sha256": "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44",
+    "size": 7476,
+    "returncode": 255
+  },
+  "staging": {
+    "bundle_remote_path": "/home/ubuntu/v2-a1-native5-g1-head-149cc912-trn21-r1.bundle",
+    "bundle_sha256": "942b85ec982b1834ab44d41219523c0ffbf640464d8a847417b529436c03116e",
+    "bundle_size": 46549993,
+    "checkout_remote_path": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
+    "git_fsck_full_strict": "pass",
+    "clean_checkout": true,
+    "fingerprints_verified": 34,
+    "free_bytes_after_staging": 7287144448,
+    "required_free_bytes": 6979321856
+  },
+  "failure": {
+    "stage": "local_launcher_ssh_transport_before_remote_script",
+    "status": "FAIL_PRE_DISPATCH_TRANSPORT",
+    "reason": "fresh_start_launch.py selected /home/csaba/.ssh/trn2.pem, which was absent; SSH returned 255",
+    "remote_script_executed": false,
+    "training_started": false,
+    "retry_performed": false,
+    "launcher_bypassed": false
+  },
+  "remote_post_failure_observation": {
+    "timestamp_utc": "2026-09-24T17:40:45Z",
+    "free_bytes": 7287128064,
+    "workflow_lock": "free",
+    "neuron_device_count": 1,
+    "neuron_cores": 4,
+    "neuron_device_holders": [],
+    "checkout_clean": true,
+    "paths_confirmed_absent": [
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.launch.json",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.job.json",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.log",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.child.log",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.runtime-result.json",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1/research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate",
+      "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1"
+    ]
+  },
+  "preservation": {
+    "remote_bundle_preserved": true,
+    "remote_checkout_preserved": true,
+    "remote_artifacts_deleted": false,
+    "cleanup_performed": false
+  },
+  "verdict": "FAIL",
+  "failure_is_experiment_result": false,
+  "notes": "No G1 program, torchrun process, or training step executed. A fresh authorization and corrected independently verified launcher transport would be required for any future attempt."
+}
