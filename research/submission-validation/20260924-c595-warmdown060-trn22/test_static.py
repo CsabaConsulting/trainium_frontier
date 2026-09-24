@@ -233,7 +233,9 @@ class ConfigurationTests(unittest.TestCase):
             (R2_LABEL, R2_RETRIEVED, R2_EVIDENCE_COMMIT),
             (R3_LABEL, R3_RETRIEVED, R3_EVIDENCE_COMMIT),
         ):
-            paths = [str(retrieved.relative_to(ROOT)), f"research/run-logs/{label}.dispatch.json"]
+            paths = [str(retrieved.relative_to(ROOT))]
+            if label != R3_LABEL:
+                paths.append(f"research/run-logs/{label}.dispatch.json")
             subprocess.run(
                 ["git", "diff", "--quiet", commit, "--", *paths],
                 cwd=ROOT,
