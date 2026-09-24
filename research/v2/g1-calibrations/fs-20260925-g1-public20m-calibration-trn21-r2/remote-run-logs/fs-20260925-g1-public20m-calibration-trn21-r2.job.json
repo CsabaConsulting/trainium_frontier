@@ -1,0 +1,161 @@
+{
+  "schema": "fresh-start-request-v2",
+  "status": "AUTHORIZED_ONE_LABEL_G1_EVALUATOR",
+  "launch_authorized": true,
+  "authorization": {
+    "decision": "AUTHORIZE_ONE_LABEL_G1_EVALUATOR",
+    "pending_package_sha256": "921498a53b010006649a4570f10513d43988a1f0ea770031f1c739158519ff91",
+    "stage_review_sha256": "bf3c78a7db65ea7829386129969e7bb06cc700f11c2d4b2f251c448f04878a21",
+    "guard_package_verifier": {
+      "path": "/home/poojith-devan/Desktop/Trainium/research/agentic/verification/20260925-g1-trn21-r2-guard-schema-r2-review.md",
+      "sha256": "d230c312378d25a6c09314145cc98d5debbd23801aa024e626d5799f7ae5ed62"
+    },
+    "supervisor_authorized_at_utc": "2026-09-24T23:33:27Z"
+  },
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "label": "fs-20260925-g1-public20m-calibration-trn21-r2",
+  "purpose": "One fresh public20M evaluator calibration of retained 116188 checkpoint; no training, new checkpoint, advancement control, or model result",
+  "remote": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2",
+  "expected_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+  "non_overwrite": true,
+  "runner_owns_manifest": false,
+  "source_stage_binding": {
+    "staged_request_path": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/request.staged.json",
+    "staged_request_sha256": "aba839eb87b041fbb266e2db3795d49f29afcf76c91ecd5eee96a5b3f978dd2a",
+    "operator_stage_receipt_sha256": "ca417a419557c4891236716cb6d844c607dd1de22d9e1a8c4187a42a63015d52",
+    "independent_stage_review_sha256": "bf3c78a7db65ea7829386129969e7bb06cc700f11c2d4b2f251c448f04878a21"
+  },
+  "fingerprint_paths": [
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "prepare.py"
+  ],
+  "expected_sha256": {
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/fresh_start_launch.py": "06eefe82e04a810474614295228e1cef84923373e653a9c62f97f5dca3456b94",
+    "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3"
+  },
+  "checkpoint": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+    "expected_bytes": 469831009,
+    "expected_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+    "preserve": true,
+    "prune_authorized": false,
+    "reference_public20m_bpb": 0.9918353324459732,
+    "reference_num_tokens": 20971520,
+    "reference_num_bytes": 83462186
+  },
+  "command": [
+    "timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/.cache/trainium_freshstart/fs-20260925-g1-public20m-calibration-trn21-r2-guarded-eval.py",
+    "--job",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2/research/run-logs/fs-20260925-g1-public20m-calibration-trn21-r2.job.json"
+  ],
+  "calibration_eval_command": [
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2/prepare.py",
+    "eval-public",
+    "--train-py",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2/submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+    "--device",
+    "neuron",
+    "--batch-size",
+    "1",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/hlo",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/inductor",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/compiler",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/debug"
+  },
+  "environment_must_be_unset": [
+    "RANK",
+    "LOCAL_RANK",
+    "WORLD_SIZE",
+    "LOCAL_WORLD_SIZE",
+    "GROUP_RANK",
+    "ROLE_RANK",
+    "ROLE_WORLD_SIZE",
+    "MASTER_ADDR",
+    "MASTER_PORT",
+    "PYTHONHOME",
+    "NEURON_COMPETITION_R1_STEP_LOG",
+    "NEURON_COMPETITION_R1_CACHE_DIR",
+    "NEURON_COMPETITION_R1_TOKENIZER_PATH"
+  ],
+  "environment_must_be_unset_prefixes": [
+    "TORCHELASTIC_",
+    "NEURON_RT_",
+    "NEURON_COMPETITION_R1_"
+  ],
+  "monitor": {
+    "script_path": "/home/ubuntu/.cache/trainium_freshstart/fs-20260925-g1-public20m-calibration-trn21-r2-guarded-eval.py",
+    "script_sha256": "5438d644513b0cddb554727e9c50f4b5e09bba43628ce5869109d17c1c598e70",
+    "floor_bytes": 6979321856,
+    "reserved_bytes": 2147483648,
+    "stop_below_bytes": 9126805504,
+    "poll_seconds": 1.0,
+    "events_path": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r2/research/run-logs/fs-20260925-g1-public20m-calibration-trn21-r2.disk-monitor.jsonl"
+  },
+  "eval_settings": {
+    "single_process": true,
+    "device": "neuron",
+    "batch_size": 1,
+    "context_length": 1024,
+    "num_tokens": 20971520,
+    "timeout_seconds": 1200,
+    "reference_tolerance_abs": 0.0002,
+    "not_a_new_model_result": true,
+    "not_an_advancement_control": true
+  },
+  "disk_gate": {
+    "operational_floor_bytes": 6979321856,
+    "reserved_eval_headroom_bytes": 2147483648,
+    "pre_launch_required_free_bytes": 9126805504,
+    "continuous_monitor_required": true
+  },
+  "forbidden_actions": [
+    "No training, submission, AWS action, cleanup, cache deletion, checkpoint pruning, protected artifact mutation, breaker reset, or automatic next scored run.",
+    "No dispatch with launch_authorized=false. Any attempted r2 evaluator dispatch consumes r2; retry requires a new label and diagnosis."
+  ],
+  "request_file_sha256": "af6cd24d0b3443ea7ed10801b7eab6e977d94dbeb3451ff5f629495c46c26ce0",
+  "started_at": "2026-09-24T23:41:16.268995+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+  "source_dirty": false,
+  "preflight_free_bytes": 58684805120,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d"
+  }
+}
