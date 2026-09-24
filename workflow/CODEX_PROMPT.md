@@ -112,12 +112,13 @@ Read these first, in this order:
   3. quiescence proof;
   4. log parsing;
   5. contained 20M eval;
-  6. ledger append;
-  7. `decide.py` verdict;
-  8. hash-verified checkpoint archive.
+  6. fresh checkpoint-bound causality;
+  7. hash-verified checkpoint archive while retaining the source;
+  8. durable record, locked ledger append and `decide.py` verdict;
+  9. exact prune only after all prior receipts are durable.
 
   Exit codes: 0 done; 3 containment breaker; 4 preflight refused; 5 train failed; 6 eval failed;
-  7 archive failed.
+  7 postflight/archive/evidence failed.
 - **`preflight_dryrun.py`** is the G2 gate. It runs the exact bytes and argv through the file's own
   `__main__` on CPU/gloo with 4 ranks. It also has a `--compare` lockstep mode and `--trace-rmsprop`.
 - **`decide.py`** gives mechanical verdicts and control-drift alarms. **`contained.py`** handles
@@ -182,7 +183,7 @@ Record the answers in `research/v2/g1.json` and commit the file.
    - the subcommand;
    - how to pass the checkpoint and the train file;
    - the flag names for context length and token count, so we can request 1024 and 20,971,520;
-   - what it prints, which must match `host.json` `eval_bpb_regex`.
+   - the exact JSON fields it prints; the runner validates and recomputes BPB from nats/bytes.
 2. **Layout.** How the team's previous `submissions/<name>/train.py` runs resolved `import prepare`:
    the same directory, `PYTHONPATH` or the working directory.
    - If `PYTHONPATH` is needed, put it in `host.json` `env`.

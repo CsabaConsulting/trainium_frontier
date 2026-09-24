@@ -1,8 +1,22 @@
-C1  rc=0 {'public_20m': 0.992, 'verdict': 'control'}
-C2  rc=0 {'public_20m': 0.9918, 'verdict': 'control'}
-F6  rc=0 {'public_20m': 0.9905, 'verdict': 'NOMINATE'}
-E1  rc=0 {'public_20m': 0.993, 'verdict': 'DISCARD', 'anomalies': ['E1: a tagged descendant outlived the leader and was stopped by containment']}
-B1  rc=5 {'failed_stage': 'train'}
-X1  rc=4 {'failed_stage': 'preflight'}
-tagged processes left: none
-ledger rows: 4 (expected 4); scratch dir: /tmp/tmp.IYaBDlpFz1
+Local run on 2026-09-25 (scratch paths omitted):
+
+C1           rc=0 {'public_20m': 0.992, 'verdict': 'control'}
+C2           rc=0 {'public_20m': 0.9918, 'verdict': 'control'}
+F6           rc=0 {'public_20m': 0.9905, 'verdict': 'NOMINATE'}
+E1           rc=0 {'public_20m': 0.993, 'verdict': 'DISCARD', 'anomalies': ['train: tagged descendant outlived leader and containment stopped it']}
+B1           rc=5 {'failed_stage': 'train', 'error': 'training failed rc=1'}
+B1           rc=4 {'failed_stage': 'preflight', 'error': 'label was already claimed/launched/recorded'}
+X1           rc=4 {'failed_stage': 'preflight', 'error': 'train.py SHA-256 differs from pin'}
+ENV1         rc=4 {'failed_stage': 'preflight', 'error': 'effective NEURON_CC_FLAGS lacks --optlevel=1'}
+DIRTY        rc=4 {... 'repository has tracked or untracked changes'}
+DIRTY        rc=0 {'public_20m': 0.9922, 'verdict': 'DISCARD'}
+LOCK2        rc=4 {'failed_stage': 'preflight', 'error': 'shared host/device lease is already held'}
+LOCK2        rc=0 {'public_20m': 0.9921, 'verdict': 'DISCARD'}
+EVBAD        rc=6 {'failed_stage': 'eval', 'error': "evaluator field set differs: ['num_tokens']"}
+CBAD         rc=6 {'failed_stage': 'causality', 'error': 'causality PASS is not bound to exact source/checkpoint/context'}
+PASS rows=7 no_leaked_processes
+
+The same run also passed silent assertions for: cfg.env optlevel refusal; production rejection of
+the tiny test-only G2 fixture; malformed/extra/multiple/non-finite/wrong-count evaluator JSON;
+missing/duplicate/non-finite training summaries; traversal and symlink refusal; archive non-overwrite;
+checkpoint retention across injected archive/record/ledger/verdict failures; and unchanged decide.py.

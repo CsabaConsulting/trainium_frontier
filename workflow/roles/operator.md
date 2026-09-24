@@ -8,8 +8,8 @@ interpret results.
    `fuser /dev/neuron*` is silent.
 2. Disk: `df -B1 /` free ≥ 6.5 GiB plus the predicted footprint (≈0.6 GB dense, ≈1.1 GB table arms, plus
    compile-cache growth).
-3. Code: `git rev-parse HEAD` matches the job; `git status --porcelain` is empty; SHA-256 of `train.py`
-   equals the job's `base_sha256`.
+3. Code: the pinned science commit is an ancestor of the clean current HEAD, current HEAD matches the
+   pinned origin ref, and SHA-256 of tracked regular `train.py` and `prepare.py` matches the job.
 4. Env: `NEURON_CC_FLAGS` unset or containing `--optlevel=1`; record `NEURON_COMPILE_CACHE_DIR` and the host
    id.
 5. The G2 receipt exists for exactly these bytes and argv and says PASS.
@@ -17,7 +17,8 @@ interpret results.
 ## Default path: one command per job
 `python workflow/tools/run_job.py --host-config research/v2/host.json --job research/v2/experiments/<label>/job.json`
 It performs the preflight, contained launch, wait, quiescence proof, summary parsing, contained 20M eval,
-ledger record, `decide.py` verdict and checkpoint archive, and writes every receipt. Commit the
+fresh checkpoint-bound causality, checkpoint archive, ledger record, `decide.py` verdict and
+post-verdict prune, and writes every receipt. Commit the
 experiment directory and the ledger afterwards. Exit code 3 is a breaker: stop and alert the human. Use
 the manual steps below only if `run_job.py` itself is being debugged.
 

@@ -30,8 +30,8 @@ prefix only.
 5. One training job per host. Comparisons are same-host only. Never launch without a passing G2
    preflight receipt and a clean Operator preflight.
 6. Never weaken containment. A run is collected only after `contained.py quiesce` succeeds.
-7. Never rewrite Git history, force-push, or relabel a failed run. A retry is a new label (`-r2`) with a
-   diagnosis.
+7. Never rewrite Git history, force-push, or relabel a launched run. A retry after launch is a new label
+   (`-r2`) with a diagnosis. A label refused before launch remains retryable after the refusal is fixed.
 8. Separation of authority per run: whoever proposes does not verify; whoever implements does not verify
    or operate. Flag-only arms are verified *mechanically* (G2 plus exact bytes hash), not by the proposer.
 
@@ -40,8 +40,8 @@ prefix only.
 ```
                  +-------------------- deterministic core (scripts, no LLM) --------------------+
  queue.json  --> | select next job -> G2 preflight -> Operator preflight -> contained launch       |
- (approved)      | -> monitor -> contained stop/quiesce -> fresh 20M eval -> ledger append        |
-                 | -> decide.py verdict -> archive/hash -> git commit/push -> alerts/summaries     |
+ (approved)      | -> monitor -> quiesce -> fresh 20M eval + causality -> archive/hash             |
+                 | -> record/ledger -> decide.py -> exact prune -> git commit/push -> alerts       |
                  +---------------------------------------------------------------------------------+
     ^ proposals          ^ implementations         ^ receipts           | verdicts, anomalies
     |                    |                         |                    v
@@ -75,8 +75,8 @@ workflow/candidates/S0/                 # review-clean dense submission candidat
 workflow/templates/*.json               # proposal, run record, verdict, submission package
 research/v2/queue.json                  # approved, ordered jobs (seeded from reports/2026-09-24-queue-v2.json)
 research/v2/ledger.jsonl                # append-only run records (schema: templates/run-record.json)
-research/v2/experiments/<label>/        # proposal.json, g2.json, preflight.json, launch.json, run.log(.gz),
-                                        # stop.json, quiescence.json, eval.json, record.json, verdict.json
+research/v2/experiments/<label>/        # proposal/job/G2, immutable stage receipts and logs,
+                                        # eval/causality/archive/record/verdict/prune receipts
 research/v2/state.json                  # controller lease, host states, breaker states
 research/v2/summaries/<utc>.md          # six-hourly summaries
 ```
@@ -90,8 +90,9 @@ the record stores the hash and URI.
 `python workflow/tools/run_job.py --host-config research/v2/host.json --job research/v2/experiments/<label>/job.json`
 (templates: `workflow/templates/host.json`, `workflow/templates/job.json`). It refuses to start without a
 PASS G2 receipt for the exact bytes and argv, and it refuses until `eval_args_verified` is set from the G1
-receipt. Exit codes: 0 done; 3 containment breaker; 4 preflight refused; 5 training failed; 6 eval failed;
-7 archive failed. Re-run `workflow/tools/test_run_job.sh` after any change to the tools.
+receipt. Exit codes: 0 done; 3 containment breaker; 4 preflight refused; 5 training failed;
+6 eval/causality failed; 7 postflight/archive/evidence failed. Re-run
+`workflow/tools/test_run_job.sh` after any change to the tools.
 
 
 | # | Step | Command / artifact | Gate |
@@ -103,12 +104,13 @@ receipt. Exit codes: 0 done; 3 containment breaker; 4 preflight refused; 5 train
 | 5 | Launch | `contained.py launch --label L --dir D --cgroup -- env NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py <argv> --out-dir out/L` | `launch.json` written; workers visible within 5 min |
 | 6 | Monitor | tail `run.log`; watch step time, loss, `epoch` field | NaN, loss > 100, or startup > 870 s → mark and let the file's own guard stop it; never kill silently |
 | 7 | Stop/quiesce | `contained.py wait`, then `contained.py quiesce --files out/L/final.pt D/run.log` (on failure: `contained.py stop`, then quiesce) | exit 0, else breaker plus human alert |
-| 8 | Eval | fresh process: `prepare.py eval-public` on `out/L/final.pt`, context 1024, 20,971,520 tokens (flags per G1 receipt), under `contained.py` with label `L-eval` | `eval.json`; finite; tokens and seq as required |
-| 9 | Record | append `record.json` to `ledger.jsonl` | schema-valid |
-| 10 | Verdict | `python workflow/tools/decide.py --ledger research/v2/ledger.jsonl --arm <arm_id>` → `verdict.json` | mechanical |
-| 11 | Archive | copy the checkpoint to the archive; verify the hash remotely; delete on the host unless it is a current control or submission candidate (≤2 per host) | hash match |
-| 12 | Commit | `git add research/v2/experiments/L research/v2/ledger.jsonl`; commit; push with 4× backoff | pushed |
-| 13 | Follow-up | NOMINATE → enqueue the cross-host replicate first; ADOPT_PENDING_HUMAN_ACK → alert the human, enqueue new-base controls; HOLD → independent cold replay plus audit; CONFOUNDED → re-plan; DISCARD → close | |
+| 8 | Eval | fresh process: `prepare.py eval-public` on `out/L/final.pt`, context 1024, 20,971,520 tokens (flags per G1 receipt), under `contained.py` with label `L-eval` | exact organizer JSON; BPB recomputes from nats/bytes; checkpoint unchanged |
+| 9 | Causality | fresh process loads the same checkpoint and calls unchanged `prepare.causality_check` | exact `True`, source/checkpoint/context bound; checkpoint unchanged |
+| 10 | Archive | content-addressed copy, fsync and readback verification | `archive.json`; source still present |
+| 11 | Record/verdict | durable `record.json`, locked ledger append, then mechanical `verdict.json` | schema-valid; no duplicate label |
+| 12 | Prune | only for an unprotected checkpoint, after archive+record+ledger+verdict are durable | exact inode/path/hash revalidated; `prune.json` |
+| 13 | Commit | `git add research/v2/experiments/L research/v2/ledger.jsonl`; commit; push with 4× backoff | pushed |
+| 14 | Follow-up | NOMINATE → enqueue the cross-host replicate first; ADOPT_PENDING_HUMAN_ACK → alert the human, enqueue new-base controls; HOLD → independent cold replay plus audit; CONFOUNDED → re-plan; DISCARD → close | |
 
 ## 4. Decision rules (implemented in `decide.py`; do not reinterpret)
 

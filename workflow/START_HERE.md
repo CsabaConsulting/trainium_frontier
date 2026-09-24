@@ -32,8 +32,9 @@ session. It walks Codex through the setup, gates, run loop and submission track 
   Deploy it at `submissions/research_v2/train.py` next to the organizer `prepare.py`.
 - Submission candidate S0: `workflow/candidates/S0/` (bare launch command; see its `EVIDENCE.md`).
 - Host runner: `workflow/tools/run_job.py`. Copy `workflow/templates/host.json` to
-  `research/v2/host.json` on each host, set `host`, `archive_dir` and the G1-verified `eval_args`, then
-  set `eval_args_verified: true`.
+  `research/v2/host.json` on the one pilot host first, set `host`, `expected_hostname`, `archive_dir`
+  and the G1-verified `eval_args`, then set `eval_args_verified: true`. Pass the local self-test before
+  switching that host; keep the working legacy dense launcher available during the pilot.
 
 ## First 6 hours (what should happen without you)
 1. **op:** G1 receipt (prepare.py facts, shard counts). Then A0 controls on both hosts.
