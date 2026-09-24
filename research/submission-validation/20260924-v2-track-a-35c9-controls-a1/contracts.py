@@ -212,7 +212,8 @@ def validate_request(request, arm, core):
     mandatory = {SOURCE_PATH, "prepare.py", "README.md", f"{rel}/track_a_job.py", f"{rel}/contracts.py",
                  f"{rel}/artifact_io.py", f"{rel}/launch_adapter.py", f"{rel}/EXPERIMENT_PROPOSAL.json",
                  "research/fresh_start_launch.py", "research/fresh_start_host.py",
-                 "research/fresh_start_guard.py", "research/fresh_start_backup.py"}
+                 "research/fresh_start_guard.py", "research/fresh_start_backup.py",
+                 "research/fresh_start_sync.py", "research/run_experiment.py"}
     if not mandatory <= set(request["source_sha256"]):
         raise SystemExit("request source fingerprint set incomplete")
     immutable = {SOURCE_PATH: SOURCE_SHA, "prepare.py": PREPARE_SHA, "README.md": RULES_SHA}

@@ -120,6 +120,8 @@ def request_fixture(arm, core="a" * 40):
         "research/fresh_start_host.py": "7" * 64,
         "research/fresh_start_guard.py": "8" * 64,
         "research/fresh_start_backup.py": "9" * 64,
+        "research/fresh_start_sync.py": "a" * 64,
+        "research/run_experiment.py": "b" * 64,
     }
     spec = c.ARMS[arm]
     return {
