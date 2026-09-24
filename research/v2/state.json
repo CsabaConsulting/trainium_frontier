@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:28:04Z",
+  "written_utc": "2026-09-24T22:35:15Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -122,16 +122,16 @@
       "host_lock_holders": 0
     },
     "trn22": {
-      "status": "DISK_PASS_BREAKER_TRIPPED_A0_TERMINAL_NO_SCORE",
+      "status": "DISK_PASS_BREAKER_REARMED_LIVE_GATES_PENDING_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T22:26:14Z",
+      "last_observed_utc": "2026-09-24T22:31:36Z",
       "root_disk_bytes": 268435456000,
       "root_partition_bytes": 267360648704,
       "root_ext4_total_bytes": 258906374144,
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
-      "latest_checked_free_bytes": 58454982656,
+      "latest_checked_free_bytes": 58454974464,
       "free_gib": 54.44,
       "preflight_free_bytes": 7949975552,
       "preflight_to_postflight_consumed_bytes": 1500942336,
@@ -158,27 +158,46 @@
       "tripped": false
     },
     "trn22": {
-      "tripped": true,
-      "reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
-      "human_reset_required": true
+      "tripped": false,
+      "reason": null,
+      "human_reset_required": false,
+      "last_cleared_incident": {
+        "reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
+        "failed_label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+        "cleared_utc": "2026-09-24T22:35:15Z",
+        "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+        "independent_safety_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+        "independent_safety_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+        "fresh_root_free_bytes": 58454974464
+      }
     }
   },
   "alert_cmd": "${TRAINIUM_ALERT_CMD}",
-  "pending_human_decisions": [
-    {
-      "item": "Human acknowledgement/reset of trn22 disk safety breaker after guest filesystem expansion and reviewed A0 failure diagnosis",
-      "without_action": "No training on trn22; failed label cannot be retried"
-    }
-  ],
+  "pending_human_decisions": [],
   "resolved_human_decisions": [
     {
       "item": "Human AWS-side 200-to-250-GiB root EBS expansion and guest p1/ext4 expansion on both hosts",
       "verified_by": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
       "verified_utc": "2026-09-24T22:26:14Z"
+    },
+    {
+      "item": "Conditional human acknowledgement of trn22 disk-breaker re-arm after fresh independent safety review",
+      "acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+      "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+      "resolved_utc": "2026-09-24T22:35:15Z",
+      "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "Human guest p1/ext4 expansion independently verified at 22:26:14 UTC. Both hosts now have about 54 GiB root free and no matched process, Neuron holder or host-lock holder. Storage-only gate passed. trn21 G1 source/checkpoint/cache/env staging is next; trn22 remains breaker-tripped after terminal zero-step A0 incident. No new run, BPB, breaker reset, AWS or guest resize action by agent.",
-  "updated_utc": "2026-09-24T22:28:04Z",
+  "last_event": "After explicit human consent and fresh independent safety PASS at 22:31 UTC, workflow-v2 trn22 disk breaker re-armed at 22:35:15 UTC; launch_allowed and launch_authorized remain false. Historical A0 r1 failure and postflight are unchanged. A0 r2 still needs exact-env G2, stage, live gates and one-shot authority. trn21 G1 stage is HOLD on missing pinned host commit after Git fetch rc128; secure exact-source transfer is being planned. A2 repaired package passed static re-review but is dispatch HOLD. No new run or BPB.",
+  "updated_utc": "2026-09-24T22:35:15Z",
+  "latest_breaker_rearm": {
+    "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
+    "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+    "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+    "independent_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+    "cleared_utc": "2026-09-24T22:35:15Z",
+    "does_not_authorize_launch": true
+  },
   "latest_disk_audit": {
     "path": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
     "sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
@@ -194,6 +213,14 @@
     "verifier_receipt_sha256": "05fa1efa929a20b95d7768619fbdbc507ba566848cfd198ddfb93575d8c5985a",
     "remaining": "Host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated. Storage-only gate passed."
   },
+  "table_a2_exact_gate_package": {
+    "status": "STATIC_PASS_INDEPENDENT_R2_REVIEW_DISPATCH_HOLD",
+    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1",
+    "contract_sha256": "a40723151099e0fec912d670b702ef9f2774fe14853025660a9ffc116d2fc364",
+    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md",
+    "verifier_receipt_sha256": "c1f4665335c3af3201593ff3c1770b21c6430abf821be078422e890f4a16d85d",
+    "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
+  },
   "a0_trn22_retry_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
@@ -201,7 +228,7 @@
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Explicit human trn22 breaker acknowledgement/reset; fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. Storage-only gate passed; no launch is authorized."
+    "remaining": "Fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
   },
   "a0_trn21_control_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",

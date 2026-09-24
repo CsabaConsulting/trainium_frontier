@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disk expansions verified; trn21 G1 staging is next; trn22 remains on a separate safety stop; no new BPB result.**
+Status: **both guest disks expanded; trn22's named breaker re-armed after independent review; both launches still HOLD; no new BPB result.**
 
 At 22:26:14 UTC, a [fresh read-only guest and quiescence audit](../agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json)
 verified that both root disks, partitions, and ext4 filesystems have grown. Root
@@ -11,8 +11,21 @@ holder at audit time. This clears the **storage-only** block. It does not
 authenticate the pinned code, checkpoint, caches, exact environment, or a new
 one-run authorization. trn21's G1 calibration remains pending those checks;
 trn22's reviewed zero-step A0 incident still has `host_clean=false` and its
-controller disk breaker is still tripped. No training or evaluator was launched
-by this audit. The pre-resize snapshots below are historical, not live state.
+controller disk breaker was still tripped at audit time. The human then
+[conditionally authorized re-arm](authorizations/20260925-trn22-disk-breaker-human-ack.md),
+the [fresh independent review](../agentic/verification/20260925-trn22-disk-breaker-rearm-review.md)
+passed, and only the workflow-v2 trn22 disk breaker was cleared. Both host
+`launch_allowed` flags and top-level `launch_authorized` remain false. No
+training or evaluator was launched by these actions. The pre-resize snapshots
+below are historical, not live state.
+
+trn21 G1 [staging stopped safely](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/operator-stage-hold.json):
+fresh disk, checkpoint, caches, tokenizer and idle checks passed, but the pinned
+source commit is absent from the host and its Git fetch returned 128. No staged
+checkout or eval process exists. An exact-source transport is being reviewed.
+The repaired [A2 table package](../submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/GATE_CONTRACT.json)
+has an [independent static PASS / dispatch HOLD](../agentic/verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md),
+not a G2, native or BPB result.
 
 Historical pre-resize status at 22:21:36 UTC: the human's console screenshot shows both exact root EBS
 volumes at 250 GiB, and a [read-only guest audit](../agentic/operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json)

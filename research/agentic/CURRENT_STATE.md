@@ -1,8 +1,8 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:28 UTC
+Last reconciled: 2026-09-24 22:35 UTC
 
-## Current handoff: guest storage fixed; trn21 G1 staging; trn22 breaker held
+## Current handoff: storage fixed; trn22 breaker re-armed; no launch yet
 
 The human completed both guest root-partition/ext4 expansions. The
 [independent read-only host audit](operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json)
@@ -13,15 +13,20 @@ No matched train/eval process, Neuron holder, or host-lock holder was found.
 This is a storage/quiescence finding, **not** a full preflight or launch approval.
 
 trn21's next gate is the independently reviewed retained-checkpoint G1
-public20M calibration. An Operator is staging and reauthenticating its pinned
-source, checkpoint, six warm caches, environment and disk; evaluation cannot
-start until a separate Verifier approves a finalized request and the Supervisor
-grants one-label authorization. The static-reviewed trn21 A0 control then needs
-its own exact-environment G2 and live gates. trn22's earlier A0 remains a
-terminal zero-step disk incident with no BPB; its breaker is still tripped and
-requires explicit human acknowledgement/reset after fresh checks. The A2 table
-package failed an initial static review, was repaired, and awaits independent
-re-review. Neither host has a new model result or a submission-ready S0 file.
+public20M calibration. Fresh disk, checkpoint, six warm caches, tokenizer and
+idle checks passed, but staging [stopped safely](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/operator-stage-hold.json)
+because the pinned commit is missing on the host and Git fetch returned 128.
+An exact-source transfer is being prepared; no evaluator was launched. The
+static-reviewed trn21 A0 control then needs G1, exact-environment G2 and live
+gates. The human conditionally [approved](../v2/authorizations/20260925-trn22-disk-breaker-human-ack.md)
+re-arming trn22's named disk breaker; a fresh [independent safety review](verification/20260925-trn22-disk-breaker-rearm-review.md)
+passed, and that workflow-v2 breaker has been cleared. The previous A0 r1
+remains a terminal zero-step disk incident with no BPB and unchanged failed
+postflight. trn22 launch remains disabled pending A0 r2's own G2, staging,
+preflight, observer and one-shot authority. The repaired A2 table package now
+has an independent [static PASS / dispatch HOLD](verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md);
+it has no native or BPB result. Neither host has a new model result or a
+submission-ready S0 file.
 Best confirmed public20M remains 0.9918353324 single/0.9919537735 mean.
 This handoff supersedes the pre-resize sections below.
 
