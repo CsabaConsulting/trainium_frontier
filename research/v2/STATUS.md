@@ -2,6 +2,11 @@
 
 Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
 
+Read-only Operator inventory at 21:50:53 UTC: trn21 free 6,901,788,672 B,
+trn22 free 6,448,939,008 B; both root disks still 200 GiB, with no training
+processes or Neuron holders. The requested EBS expansion is not reflected in
+either guest. AWS-side status was not checked.
+
 An hourly Codex heartbeat now checks this thread for a meaningful change while the
 hosts are blocked. It is **not** a verified unattended host/Bedrock scheduler and
 does not authorize training, AWS changes or breaker reset. Unchanged checks stay quiet.

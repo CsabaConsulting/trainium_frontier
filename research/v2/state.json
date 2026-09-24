@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T21:46:00Z",
+  "written_utc": "2026-09-24T21:54:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -100,8 +100,11 @@
     "trn21": {
       "status": "BLOCKED_DISK",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T21:42:00Z",
-      "free_bytes_read_only_df": 6901800960,
+      "last_observed_utc": "2026-09-24T21:50:53Z",
+      "free_bytes_read_only_df": 6901788672,
+      "root_disk_bytes": 214748364800,
+      "root_partition_bytes": 213673557504,
+      "root_ext4_total_bytes": 206900281344,
       "free_gib": 6.43,
       "training_processes": 0,
       "neuron_device_holders": 0
@@ -109,7 +112,10 @@
     "trn22": {
       "status": "BLOCKED_DISK_BREAKER_A0_TERMINAL_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T21:42:00Z",
+      "last_observed_utc": "2026-09-24T21:50:53Z",
+      "root_disk_bytes": 214748364800,
+      "root_partition_bytes": 213673557504,
+      "root_ext4_total_bytes": 206900281344,
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
@@ -156,8 +162,8 @@
       "without_action": "No training on trn22; failed label cannot be retried"
     }
   ],
-  "last_event": "Final hash-verified A0 incident receipt, independent review and failed ledger row archived. Compile crossed disk floor before any optimizer step; guard terminal rc1 at 21:28:07 UTC, no remaining owned process or deletion, observer NON_SCORED with zero boundaries. No BPB result or relaunch; trn22 disk breaker remains tripped.",
-  "updated_utc": "2026-09-24T21:46:00Z",
+  "last_event": "Read-only Operator audit at 21:50:53 UTC confirms both guests still expose 200-GiB root disks and remain below the 6.5-GiB floor; neither has a train process or Neuron holder. A0 incident remains terminal with zero steps/no BPB, and trn22 breaker remains tripped. No relaunch or AWS action.",
+  "updated_utc": "2026-09-24T21:54:00Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
   "table_a1_exact_gate_package": {

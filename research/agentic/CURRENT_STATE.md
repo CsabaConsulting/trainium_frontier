@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:45 UTC
+Last reconciled: 2026-09-24 21:54 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -12,7 +12,11 @@ checkpoint/public20M result or quality verdict exists; this label is consumed.
 The hash-verified [terminal receipt](../v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json)
 and [independent safety review](verification/20260925-a0-trn22-disk-safety-review.md)
 are now archived. Compile-time free-space consumption was 1,500,942,336 bytes;
-trn22's latest free space was 6,448,951,296 bytes.
+trn22's immediate post-incident free space was 6,448,951,296 bytes. A later
+read-only Operator inventory at 21:50:53 UTC found 6,448,939,008 bytes free
+on trn22 and 6,901,788,672 on trn21; both guests still expose 200-GiB root
+disks, with no train process or Neuron holder. AWS-side resize status was not
+queried.
 
 trn21 and trn22 are both below the disk floor. The exact-size c5c A1 table-gate
 package now has an [independent static PASS / dispatch HOLD](../submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json);
