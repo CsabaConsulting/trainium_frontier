@@ -1,0 +1,108 @@
+{
+  "schema": "trainium-116188-insurance-upload-package-v1",
+  "created_from_audit_commit": "83b433e398f34af175db82e5459a3f386ec19ba2",
+  "candidate": {
+    "path": "train.py",
+    "bytes": 85557,
+    "sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "source_path": "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "byte_for_byte_copy": true
+  },
+  "launch_command": {
+    "path": "launch-command.txt",
+    "sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "bare_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "causal_provenance": {
+    "review_clean_base_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "single_change": "MATRIX_LR = 0.02 to MATRIX_LR = 0.015",
+    "copied_receipt": "evidence/source-provenance.json",
+    "copied_receipt_sha256": "5c27f134df94f5873c317d03b01e13458bfb97f9d2b59d7cfa8401f6b9486168"
+  },
+  "cold_runs": [
+    {
+      "evidence_commit": "7fe770b2185f594cfd66fead05aee2051ce1793b",
+      "host": "trn21",
+      "seed": 42,
+      "steps": 3635,
+      "charged_seconds": "1790.328",
+      "fresh_public20m_bpb": "0.9920722144854677",
+      "tokens": 20971520,
+      "bytes": 83462186,
+      "checkpoint_sha256": "503dbfda2ec0fe90fdaee44f07551d1c0520b575e6ab23d1a52444f3d1365e88"
+    },
+    {
+      "evidence_commit": "28b89bfc6d65be9188f8d8a78accd6187e7627b7",
+      "host": "trn21",
+      "seed": 42,
+      "steps": 3654,
+      "charged_seconds": "1790.191",
+      "fresh_public20m_bpb": "0.9918353324459732",
+      "tokens": 20971520,
+      "bytes": 83462186,
+      "checkpoint_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9"
+    }
+  ],
+  "review_and_cpu_load_receipts": [
+    {
+      "path": "evidence/canonical-independent-verifier.json",
+      "sha256": "b60cebb33a57f8bd9db6a493dbc5c574f078993ff6823a00849dfa426e1fdc85",
+      "source_commit": "8a587d5983830444394e921240dabaf909ac0482",
+      "verdict": "PASS_AS_PINNED_RESEARCH_BASE",
+      "submission_approved": false
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/operator-receipt.json",
+      "sha256": "77eb17b1a4ac24588bc1194296753533e51cdc3a193d3a3fca5b1924310b3939"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/checkpoint-finite.json",
+      "sha256": "458307cadee8f0af22d357f94e4508cd62165e032b3e97927febe1169db0ba7e"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/eval-rehearsal.json",
+      "sha256": "e6dbd5c45d62f80a3fc093aca36cd92432ee80b9da5ac000381ff9368a329188"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/full20m.metrics.json",
+      "sha256": "868f0cefdfa90f819eeed2557cd90f322aace7be4602e6e78f11656a33396c1d"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/result.json",
+      "sha256": "f6c214eb7569e0c65cf10d3243a91d0c6d532f8f761d948249a6c430dd08c926"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/training-rehearsal.json",
+      "sha256": "fc5a1678124aad5927a940f4c18fdbbcbcc6d1881b34d35038dcc70191aad50a"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/operator-receipt.json",
+      "sha256": "a927297c8d42ded74f39f3d1deb7befef1e8fd273b3858237281b2fbef43f1ae"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/checkpoint-finite.json",
+      "sha256": "113fd38835657d523df4dfe5b39ba1dfda129ba1128fa558a0207556656d43b5"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/eval-rehearsal.json",
+      "sha256": "0cc18dd5102df96e0214901e3846770c5f079dcf82a890b462ede8568f3cd0e1"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/full20m.metrics.json",
+      "sha256": "e1eb711787f90ea52d2648967632d7a7b32d04c3eb6ec1a699eea01c35b2b95e"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/result.json",
+      "sha256": "6d718d82a1469901ca4a6dad7a307a7bbd258067f99d5adbb0c3bb826a3f584c"
+    },
+    {
+      "path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/training-rehearsal.json",
+      "sha256": "ad566be97dfddc488d686c605e96ba2033680f5d990c8d04fefb499c3b5af8d9"
+    }
+  ],
+  "review_rejection_record": "REJECTION_EVIDENCE.md",
+  "offline_checks": "OFFLINE_CHECKS.md",
+  "submission_approved": false,
+  "human_upload_authorized": false,
+  "required_next_authority": "Independent final package audit followed by explicit human submission approval."
+}
