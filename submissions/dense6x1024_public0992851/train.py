@@ -4469,7 +4469,7 @@ def make_plan(groups, world_size):
                 if id(p) in seen:
                     raise ValueError('ownership requires unique Parameters across owned and replicated groups')
                 seen.add(id(p))
-                positions.append(dict(position=position, shape=list(p.shape), elements=p.numel(), dtype=str(p.dtype)))
+                positions.append(dict(position=position, **_owned_parameter_schema(p)))
             replicated_rmsprop.append(dict(group=group_index, parameters=positions))
             continue
         for position, p in enumerate(group['params']):
@@ -4490,6 +4490,19 @@ def make_plan(groups, world_size):
     stride = (max(counts) + 127) // 128 * 128
     return (entries, parameters, dict(elements_by_owner=counts, estimated_ms_by_owner=costs, shard_elements=stride, total_padded_bytes=stride * world_size * 4, replicated_rmsprop_groups=replicated_rmsprop))
 
+def _owned_parameter_schema(p):
+    return dict(shape=list(p.shape), elements=p.numel(), dtype=str(p.dtype), contiguous=p.is_contiguous(), requires_grad=p.requires_grad, device_type=p.device.type, device_index=p.device.index)
+
+def _owned_group_schema(groups):
+    return [dict(group=index, kind=group.get('kind'), parameters=[_owned_parameter_schema(p) for p in group.get('params', ())]) for index, group in enumerate(groups)]
+
+def _owned_live_identity(groups):
+    return [(group.get('kind'), tuple((id(p), tuple(p.shape), p.numel(), str(p.dtype), p.is_contiguous(), p.requires_grad, p.device.type, p.device.index) for p in group.get('params', ()))) for group in groups]
+
+def _owned_entries_identity(entries):
+    keys = ('index', 'group', 'position', 'kind', 'shape', 'elements', 'estimated_ms', 'owner', 'offset')
+    return [tuple((key, tuple(entry[key]) if key == 'shape' else entry[key]) for key in keys) for entry in entries]
+
 class OwnedOptimizer:
 
     def __init__(self, optimizer, pad_singleton_muon=False):
@@ -4501,8 +4514,12 @@ class OwnedOptimizer:
         self.pad_singleton_muon = bool(pad_singleton_muon)
         self.rank, self.world_size = (dist.get_rank(), dist.get_world_size())
         self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
+        self.group_schema = _owned_group_schema(optimizer.param_groups)
+        self.live_group_identity = _owned_live_identity(optimizer.param_groups)
+        self.entries_identity = _owned_entries_identity(self.entries)
         self.parameter_ids = [id(p) for p in self.parameters]
-        self.replicated_rmsprop_groups = [item['group'] for item in self.summary['replicated_rmsprop_groups']]
+        self.replicated_rmsprop_schema = json.loads(json.dumps(self.summary['replicated_rmsprop_groups']))
+        self.replicated_rmsprop_groups = [item['group'] for item in self.replicated_rmsprop_schema]
         self.replicated_rmsprop_parameters = [p for index in self.replicated_rmsprop_groups for p in optimizer.param_groups[index]['params']]
         all_parameters = [p for group in optimizer.param_groups for p in group['params']]
         if (len({id(p) for p in all_parameters}) != len(all_parameters)
@@ -4532,11 +4549,38 @@ class OwnedOptimizer:
                 self.send_views.append(self.send.narrow(0, entry['offset'], entry['elements']).view_as(p))
         self.raw_state_dict = optimizer.state_dict
         self.raw_load_state_dict = optimizer.load_state_dict
+        initial_state = self.raw_state_dict()
+        self.checkpoint_parameter_order = tuple(tuple(group['params']) for group in initial_state['param_groups'])
+        self.owned_group_identity = _owned_live_identity(self.groups)
+        self.exchange_parameter_ids = tuple(id(p) for p in self.parameters)
+        self.owned_parameter_ids = tuple(id(p) for p in self.owned)
         self.calls = 0
         self.replicated_rmsprop_calls = 0
 
+    def _validate_live_plan(self):
+        if (_owned_group_schema(self.optimizer.param_groups) != self.group_schema
+                or _owned_live_identity(self.optimizer.param_groups) != self.live_group_identity
+                or _owned_live_identity(self.groups) != self.owned_group_identity
+                or _owned_entries_identity(self.entries) != self.entries_identity
+                or self.summary.get('replicated_rmsprop_groups') != self.replicated_rmsprop_schema
+                or tuple(id(p) for p in self.parameters) != self.exchange_parameter_ids
+                or tuple(id(p) for p in self.owned) != self.owned_parameter_ids):
+            raise ValueError('optimizer kind changed after planning or ordered parameter/entry plan drifted')
+
+    def _validate_checkpoint_groups(self, state):
+        if type(state) is not dict or type(state.get('state')) is not dict or type(state.get('param_groups')) is not list or len(state['param_groups']) != len(self.group_schema):
+            raise ValueError('optimizer checkpoint ownership/schema mismatch')
+        valid_parameters = {item for group in self.checkpoint_parameter_order for item in group}
+        if any(type(item) is not int for item in state['state']) or not set(state['state']).issubset(valid_parameters):
+            raise ValueError('optimizer checkpoint ownership/schema mismatch')
+        for index, (group, schema, parameter_order) in enumerate(zip(state['param_groups'], self.group_schema, self.checkpoint_parameter_order)):
+            if (type(group) is not dict or group.get('kind') != schema['kind']
+                    or tuple(group.get('params', ())) != parameter_order or schema['group'] != index):
+                raise ValueError('optimizer checkpoint ownership/schema mismatch')
+
     @torch.no_grad()
     def step(self, update_adamw=True):
+        self._validate_live_plan()
         opt = self.optimizer
         for source, owned in zip(opt.param_groups, self.groups):
             if source['kind'] == 'rmsprop':
@@ -4561,13 +4605,17 @@ class OwnedOptimizer:
         self.calls += 1
 
     def state_dict(self):
+        self._validate_live_plan()
         state = self.raw_state_dict()
+        self._validate_checkpoint_groups(state)
         state['state'] = {key: {name: value for name, value in fields.items() if name not in ('stacked_params', 'stacked_grads')} for key, fields in state['state'].items()}
-        return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, replicated_rmsprop_groups=self.summary['replicated_rmsprop_groups'], pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
+        return dict(schema='fresh-start-owned-optimizer-v2', rank=self.rank, world_size=self.world_size, entries=json.loads(json.dumps(self.entries)), group_schema=json.loads(json.dumps(self.group_schema)), replicated_rmsprop_groups=json.loads(json.dumps(self.replicated_rmsprop_schema)), pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
 
     def load_state_dict(self, payload):
-        if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries) or (payload.get('replicated_rmsprop_groups') != self.summary['replicated_rmsprop_groups']):
+        self._validate_live_plan()
+        if type(payload) is not dict or set(payload) != {'schema', 'rank', 'world_size', 'entries', 'group_schema', 'replicated_rmsprop_groups', 'pad_singleton_muon', 'adamw_math_mode', 'optimizer'} or payload.get('schema') != 'fresh-start-owned-optimizer-v2' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries) or (payload.get('group_schema') != self.group_schema) or (payload.get('replicated_rmsprop_groups') != self.replicated_rmsprop_schema):
             raise ValueError('optimizer checkpoint ownership/schema mismatch')
+        self._validate_checkpoint_groups(payload.get('optimizer'))
         self.raw_load_state_dict(payload['optimizer'])
         self.optimizer._scalar_cache.clear()
 

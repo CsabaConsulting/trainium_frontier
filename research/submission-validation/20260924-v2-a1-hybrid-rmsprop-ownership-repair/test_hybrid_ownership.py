@@ -34,6 +34,7 @@ class FakeDist:
         self.rank = 0
         self.world_size = 1
         self.gathered = None
+        self.collective_calls = 0
 
     def is_initialized(self):
         return True
@@ -45,6 +46,7 @@ class FakeDist:
         return self.world_size
 
     def all_gather_into_tensor(self, received, send):
+        self.collective_calls += 1
         if self.world_size == 1:
             received.copy_(send)
         else:
@@ -60,7 +62,12 @@ def load_adapter():
     source = CANDIDATE.read_text()
     start = source.index("def make_plan(groups, world_size):")
     end = source.index("\ndef build_kernels():", start)
-    namespace = {"torch": torch, "dist": DIST, "MethodType": types.MethodType}
+    namespace = {
+        "torch": torch,
+        "dist": DIST,
+        "json": json,
+        "MethodType": types.MethodType,
+    }
     exec(compile(source[start:end], str(CANDIDATE), "exec"), namespace)
     return namespace
 
@@ -258,7 +265,7 @@ def tensor_bytes(tensor):
 
 class PlanGates(unittest.TestCase):
     def setUp(self):
-        DIST.rank, DIST.world_size, DIST.gathered = 0, 1, None
+        DIST.rank, DIST.world_size, DIST.gathered, DIST.collective_calls = 0, 1, None, 0
 
     def test_rmsprop_is_replicated_and_never_owner_planned(self):
         adam = torch.nn.Parameter(torch.zeros(4, dtype=torch.float32))
@@ -270,7 +277,9 @@ class PlanGates(unittest.TestCase):
         self.assertEqual({entry["kind"] for entry in entries}, {"adamw"})
         self.assertEqual(summary["replicated_rmsprop_groups"], [{
             "group": 1, "parameters": [{"position": 0, "shape": [8], "elements": 8,
-                                         "dtype": "torch.bfloat16"}],
+                                         "dtype": "torch.bfloat16", "contiguous": True,
+                                         "requires_grad": True, "device_type": "cpu",
+                                         "device_index": None}],
         }])
 
     def test_unknown_duplicate_and_bf16_owned_groups_fail_closed(self):
@@ -291,7 +300,7 @@ class PlanGates(unittest.TestCase):
 
 class WorldOneEquivalence(unittest.TestCase):
     def setUp(self):
-        DIST.rank, DIST.world_size, DIST.gathered = 0, 1, None
+        DIST.rank, DIST.world_size, DIST.gathered, DIST.collective_calls = 0, 1, None, 0
         generator = torch.Generator().manual_seed(42)
         self.initial = [torch.randn((2, 3), generator=generator), torch.randn(5, generator=generator),
                         torch.randn((2, 2), generator=generator),
@@ -402,6 +411,43 @@ class WorldOneEquivalence(unittest.TestCase):
                     restored_adapter.load_state_dict(attacked)
                 self.assertEqual([group["kind"] for group in restored.param_groups], expected_kinds)
 
+    def test_checkpoint_group_and_parameter_attacks_reject_atomically(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        set_grads(parameters, 0)
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+        attacks = []
+        changed_kind_and_schema = clone_value(payload)
+        changed_kind_and_schema["optimizer"]["param_groups"][2]["kind"] = "adamw"
+        changed_kind_and_schema["group_schema"][2]["kind"] = "adamw"
+        attacks.append(changed_kind_and_schema)
+        reordered_refs = clone_value(payload)
+        reordered_refs["optimizer"]["param_groups"][0]["params"].reverse()
+        attacks.append(reordered_refs)
+        reordered_refs_and_schema = clone_value(payload)
+        reordered_refs_and_schema["optimizer"]["param_groups"][0]["params"].reverse()
+        reordered_refs_and_schema["group_schema"][0]["parameters"].reverse()
+        attacks.append(reordered_refs_and_schema)
+        changed_parameter_schema = clone_value(payload)
+        changed_parameter_schema["group_schema"][2]["parameters"][0]["dtype"] = "torch.float32"
+        attacks.append(changed_parameter_schema)
+        unknown_state_parameter = clone_value(payload)
+        unknown_state_parameter["optimizer"]["state"][999] = {"step": 1}
+        attacks.append(unknown_state_parameter)
+        for index, attacked in enumerate(attacks):
+            with self.subTest(attack=index):
+                before_parameters = [parameter.detach().clone() for parameter in parameters]
+                before_state = clone_value(optimizer.state)
+                before_calls = (adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls)
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    adapter.load_state_dict(attacked)
+                for actual, expected in zip(parameters, before_parameters):
+                    self.assertTrue(torch.equal(actual, expected))
+                assert_tree_equal(self, optimizer.state, before_state)
+                self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls),
+                                 before_calls)
+
     def test_post_plan_kind_drift_rejects_before_updates_or_collective(self):
         parameters, optimizer = make_toy(self.initial)
         adapter = OwnedOptimizer(optimizer)
@@ -414,10 +460,43 @@ class WorldOneEquivalence(unittest.TestCase):
         for actual, expected in zip(parameters, before):
             self.assertTrue(torch.equal(actual, expected))
 
+    def test_every_live_plan_drift_rejects_before_mutation_or_collective(self):
+        def cases(adapter, optimizer):
+            replacement = torch.nn.Parameter(optimizer.param_groups[0]["params"][0].detach().clone())
+            return [
+                lambda: optimizer.param_groups[0]["params"].reverse(),
+                lambda: optimizer.param_groups[0]["params"].__setitem__(0, replacement),
+                lambda: adapter.groups[0].__setitem__("kind", "muon"),
+                lambda: adapter.groups[0]["params"].reverse(),
+                lambda: adapter.entries[0].__setitem__("owner", 99),
+                lambda: adapter.summary["replicated_rmsprop_groups"].clear(),
+                lambda: adapter.parameters.reverse(),
+                lambda: adapter.owned.clear(),
+            ]
+
+        for case_index in range(8):
+            with self.subTest(case=case_index):
+                parameters, optimizer = make_toy(self.initial)
+                adapter = OwnedOptimizer(optimizer)
+                set_grads(parameters, 0)
+                adapter.step()
+                set_grads(parameters, 1)
+                before_parameters = [parameter.detach().clone() for parameter in parameters]
+                before_state = clone_value(optimizer.state)
+                before_calls = (adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls)
+                cases(adapter, optimizer)[case_index]()
+                with self.assertRaisesRegex(ValueError, "changed after planning|plan drifted"):
+                    adapter.step()
+                for actual, expected in zip(parameters, before_parameters):
+                    self.assertTrue(torch.equal(actual, expected))
+                assert_tree_equal(self, optimizer.state, before_state)
+                self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls),
+                                 before_calls)
+
 
 class FakeWorldFour(unittest.TestCase):
     def test_replicated_rmsprop_params_and_state_match_on_all_ranks(self):
-        DIST.world_size = 4
+        DIST.world_size, DIST.collective_calls = 4, 0
         initial_adam = torch.tensor([1.0, -2.0, 3.0, -4.0])
         initial_rms = torch.linspace(-0.5, 0.5, 16).reshape(4, 4).to(torch.bfloat16)
         instances = []
