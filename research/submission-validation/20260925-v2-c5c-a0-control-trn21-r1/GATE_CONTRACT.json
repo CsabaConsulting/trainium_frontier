@@ -1,0 +1,156 @@
+{
+  "schema": "pending-a0-control-gate-contract-v1",
+  "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "status": "PENDING_HUMAN_DISK_TRN21_G1_EXACT_ENV_G2_AND_INDEPENDENT_REVIEW",
+  "prepared_by_role": "implementer",
+  "dispatch_authorized": false,
+  "final_run_request_exists": false,
+  "supervisor_ratification_receipt": null,
+  "independent_verifier_receipt": null,
+  "human_volume_action_receipt": null,
+  "trn21_g1_pass_receipt": null,
+  "exact_environment_g2_receipt": null,
+  "operator_stage_receipt": null,
+  "operator_preflight_receipt": null,
+  "host": "trn21",
+  "historical_expected_hostname": "ip-172-31-34-85",
+  "hostname_live_verified_for_this_package": false,
+  "label_uniqueness": {
+    "local_prepackage_records_match_count": 0,
+    "searched": "Current local ledgers, decision log, research/workflow/submission/report/run records and archived host evidence; path names, local commit messages, branch names and target remote branch name",
+    "live_host_checkout_output_step_and_log_absence_verified": false,
+    "one_attempt_per_label": true
+  },
+  "attempt_lineage": {
+    "first_trn21_c5c_a0_attempt": true,
+    "historical_trn21_35c9_control_label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "historical_trn21_35c9_evidence_commit": "b0b23cbc",
+    "historical_trn21_35c9_public2m_bpb": 0.9866973734526626,
+    "historical_trn21_35c9_public20m_bpb": null,
+    "historical_trn21_35c9_optimizer_steps": 3636,
+    "trn22_c5c_r1_terminal_receipt": "research/v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json",
+    "trn22_c5c_r1_optimizer_boundaries": 0,
+    "trn22_c5c_r1_public20m_score": null,
+    "matched_pending_trn22_r2_science_contract": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2/GATE_CONTRACT.json"
+  },
+  "immutable_science": {
+    "train_source_path": "submissions/research_v2/train.py",
+    "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "root_train_py_stage_required": true,
+    "staged_source_commit": null,
+    "launcher_shape": {
+      "logical_nc_config": 2,
+      "nproc_per_node": 4,
+      "full_chip": true,
+      "outer_timeout_seconds": 3600
+    },
+    "train_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "effective_environment_to_bind_in_clean_env": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    },
+    "effective_value_proof": [
+      "The pinned train.py parses NEURON_COMPETITION_R1_SEED as the --seed default and passes args.seed to init_runtime.",
+      "The pinned train.py parses NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS as the --max-train-seconds default.",
+      "The unchanged prepare.py fixes TRAIN_TIME_BUDGET_SECONDS at 30 * 60.",
+      "The future finalized request must bind the complete env -i command, output and step paths, source and launcher hashes; this contract supplies no executable request."
+    ],
+    "forbidden_science_changes": [
+      "No --seed, --max-train-seconds, --num-steps or additional model flag in train_argv.",
+      "No model, prepare.py, tokenizer, evaluator, data or scoring edit.",
+      "No unreviewed cold-cache fallback or new launch machinery."
+    ]
+  },
+  "host_specific_historical_assumptions_pending_live_verification": {
+    "source": "No trn21 c5c checkout is staged by this package; future root train.py and unchanged prepare.py must be rehashed at a clean pinned commit.",
+    "checkpoints_to_preserve": [
+      {
+        "purpose": "Historical 35c9 research control and training-loss anchor only",
+        "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/sandbox/out/final.pt",
+        "historical_bytes": 469834849,
+        "historical_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+        "live_identity_verified_for_this_package": false
+      },
+      {
+        "purpose": "Retained 116188 LR0.015 confirmation and separate pending trn21 G1 calibration reference only",
+        "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+        "historical_bytes": 469831009,
+        "historical_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+        "live_identity_verified_for_this_package": false
+      }
+    ],
+    "new_a0_checkpoint": "Future unique output under the r1 label; path and hash must be bound in a later request. Neither retained checkpoint is a warm start.",
+    "retained_checkpoint_prune_authorized": false
+  },
+  "warm_cache_policy": {
+    "historical_root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train",
+    "historical_evidence": "b0b23cbc: trn21 35c9 control cache-observations.json",
+    "live_existence_device_inode_and_path_identity_verified": false,
+    "reuse_existing_only": ["neff", "local", "hlo", "inductor", "compiler", "debug"],
+    "cache_env_to_child": {
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "hlo",
+      "TORCHINDUCTOR_CACHE_DIR": "inductor",
+      "NEURON_COMPILE_CACHE_DIR": "compiler",
+      "TORCH_NEURONX_DEBUG_DIR": "debug"
+    },
+    "cold_cache_authorized": false,
+    "cache_cleanup_authorized": false
+  },
+  "disk_projection": {
+    "operational_floor_bytes": 6979321856,
+    "last_archived_trn21_free_bytes": 6901788672,
+    "last_archived_trn21_observed_utc": "2026-09-24T21:50:53Z",
+    "historical_trn21_35c9_preflight_free_bytes": 9141866496,
+    "historical_trn21_35c9_postflight_free_bytes": 7295262720,
+    "historical_trn21_35c9_preflight_to_postflight_decline_bytes": 1846603776,
+    "historical_other_host_complete_dense_footprint_bytes": 1854160896,
+    "observed_trn22_c5c_r1_pre_step_compile_growth_bytes": 1500942336,
+    "retained_dense_checkpoint_example_bytes": 469831009,
+    "provisional_unrounded_requirement_bytes": 10023837025,
+    "unrounded_formula": "6.5-GiB floor + max(trn21 35c9 pre/post decline, historical other-host complete dense footprint, trn22 c5c r1 pre-step compile growth + retained checkpoint example) + 1 GiB unknown/log reserve",
+    "required_prelaunch_free_bytes": 10737418240,
+    "required_prelaunch_free_gib": 10,
+    "matches_or_exceeds_trn22_r2_gate": true,
+    "extra_bytes_above_unrounded_formula": 713581215,
+    "no_trn21_c5c_footprint_upper_bound_exists": true,
+    "projection_is_provisional_not_a_maximum": true,
+    "fresh_live_disk_evidence_required_after_human_resize_and_immediately_before_dispatch": true,
+    "monitoring_rule": "Sample root free space throughout compile and training; if it approaches the 6.5-GiB operational floor, stop only the authenticated owned guard before a breach. Any below-floor sample is a failed safety gate; never lower either threshold."
+  },
+  "required_gates_before_any_new_authorization": [
+    "The human modifies the existing trn21 root EBS volume and guest partition/filesystem under the reviewed disk packet. An Operator records fresh read-only root-device, filesystem and df -B1 / evidence. This Implementer performs no AWS or resize action.",
+    "The separate trn21 G1 retained-checkpoint calibration completes at context 1024/public20M, with a clean Operator receipt and independent PASS review; the trn22 G1 PASS does not transfer hosts.",
+    "A Supervisor ratifies this complete conditional control proposal and a different Verifier independently checks the package, identical trn22 r2 science, arithmetic, unique-label evidence and unchanged source/prepare hashes.",
+    "A new unique trn21 checkout is staged at a clean pinned commit with exact c5c bytes copied to root train.py, unchanged prepare.py and launcher files. A final hash-bound request may be materialized only after stage and absent r1 checkout/output/step/log paths are proven live.",
+    "A new four-rank G2 PASS and numerical comparison bind the exact env -i effective environment and unchanged train_argv. Old trn22 G2 and historical trn21 35c9 evidence are supporting data only.",
+    "The historical warm cache root and all six child paths are reauthenticated live without cleanup or substitution; protected checkpoint identity is checked without overwriting it; the shared lock is free and the host is quiescent with no train/eval/guard process or Neuron holder.",
+    "Immediately before a separately authorized dispatch, root free bytes are at least 10737418240, all source/request hashes match and the read-only external optimizer-boundary observer is staged and running before launch.",
+    "A Supervisor issues a separate one-attempt authorization binding the final request SHA, trn21 G1 and G2 PASS receipts, independent review, human volume receipt, stage receipt, fresh preflight and exact command."
+  ],
+  "post_dispatch_contract_if_later_authorized": {
+    "one_attempt_per_label": true,
+    "quiescence_required": true,
+    "minimum_sequential_optimizer_boundaries": 5,
+    "finite_model_only_checkpoint_required": true,
+    "fresh_public20m_eval_requires_separate_authorization": true,
+    "public_eval_context": 1024,
+    "public_eval_tokens": 20971520,
+    "historical_same_host_35c9_step_0_1_loss_anchor": [9.0112, 8.7822],
+    "numerical_equivalence_reference_interval": [0.99095, 0.99295],
+    "a0_is_not_a_quality_win": true,
+    "failed_attempt_uses_new_label_after_diagnosis": true
+  },
+  "forbidden_actions": [
+    "No launch, SSH, AWS action, guest filesystem resize, breaker reset, cache/artifact deletion, checkpoint prune, leaderboard submission or adoption acknowledgement under this contract."
+  ]
+}
