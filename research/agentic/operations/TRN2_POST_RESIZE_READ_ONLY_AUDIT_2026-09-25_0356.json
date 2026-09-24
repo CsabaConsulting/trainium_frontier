@@ -1,0 +1,104 @@
+{
+  "schema": "trn2-post-resize-read-only-guest-audit-v1",
+  "audit_window_utc": {
+    "trn21": ["2026-09-24T22:26:14.124681Z", "2026-09-24T22:26:14.168765Z"],
+    "trn22": ["2026-09-24T22:26:14.152120Z", "2026-09-24T22:26:14.197285Z"]
+  },
+  "source_checkout_commit": "408af35b4d272c50937195be9944377ff9bd397f",
+  "transport": "Read-only SSH to the pinned trn21/trn22 endpoints in research/agentic/autoloop/config.py, using the existing configured key by path, BatchMode, IdentitiesOnly, and strict host-key checking. No key contents were read or recorded.",
+  "remote_commands": {
+    "hostname": ["hostname"],
+    "lsblk": ["lsblk", "-b", "-J", "-o", "NAME,PATH,TYPE,SIZE,FSTYPE,MOUNTPOINTS,PKNAME,SERIAL", "/dev/nvme0n1"],
+    "findmnt": ["findmnt", "-J", "-b", "-T", "/", "-o", "TARGET,SOURCE,FSTYPE,SIZE,USED,AVAIL"],
+    "df": ["df", "-B1", "--output=source,fstype,size,used,avail,target", "/"],
+    "statfs": ["stat", "-f", "-c", "%S %b %a", "/"],
+    "ps": ["ps", "-eo", "pid=,comm=,args="],
+    "neuron_fuser": ["sudo", "-n", "fuser", "/dev/neuron0"],
+    "host_lock_fuser": ["sudo", "-n", "fuser", "/home/ubuntu/.cache/trainium_freshstart/device0.lock"]
+  },
+  "thresholds_bytes": {
+    "operational_floor_6_5_gib": 6979321856,
+    "planned_a0_predispatch_10_gib": 10737418240
+  },
+  "hosts": {
+    "trn21": {
+      "hostname": "ip-172-31-34-85",
+      "root_volume_id_from_nvme_serial": "vol-09b9c7946aeaa8c57",
+      "root_disk_path": "/dev/nvme0n1",
+      "root_disk_bytes": 268435456000,
+      "root_partition_path": "/dev/nvme0n1p1",
+      "root_partition_bytes": 267360648704,
+      "root_mount": "/",
+      "root_fstype": "ext4",
+      "root_filesystem_total_bytes": 258906374144,
+      "root_filesystem_used_bytes": 199981834240,
+      "root_filesystem_available_bytes": 58907762688,
+      "disk_floor_pass": true,
+      "planned_a0_predispatch_space_pass": true,
+      "matching_process_counts": {"train": 0, "torchrun": 0, "prepare_eval": 0, "other_run_related": 0},
+      "neuron0_fuser": {"rc": 1, "stdout_empty": true, "stderr_empty": true, "holder_count": 0},
+      "host_lock": {"exists": true, "fuser_rc": 1, "stdout_empty": true, "stderr_empty": true, "holder_count": 0},
+      "last_host_postflight": {
+        "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+        "host_clean": true,
+        "completed_at_utc": "2026-09-24T18:37:01.857340Z",
+        "state_file_sha256": "d60de68f710a5382b2250ae37dca1fb7595c4a6388a9e7653ce6c90af262a60f"
+      },
+      "command_results": {
+        "hostname": [0, "2255b16037dc55771fd7a51fef1a047cff20301760449b39044471f96227b7cb"],
+        "lsblk": [0, "39e657f824158c3ae99a94750ba876ea84c46c3701000197596df591e99f3783"],
+        "findmnt": [0, "b49c8f32d0336bdf22c6ae33173ae0376b08bbc648c14f10be5f2a725df0428f"],
+        "df": [0, "cec9d6c0a8893ce37ddd9fdaaa4c7c0ff23afdef8d5190304128dfb25e280b7f"],
+        "statfs": [0, "c4d3364b9f5e621dbc3197fef4050637d0fa14e6dfe70db4b1e212a6f3968070"],
+        "ps": [0, "077eac9019cb15542c70711089042b94ebc7e48b29fbb0aed76827d9c67bfa0b"],
+        "neuron_fuser": [1, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+        "host_lock_fuser": [1, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+      }
+    },
+    "trn22": {
+      "hostname": "ip-172-31-32-253",
+      "root_volume_id_from_nvme_serial": "vol-0d64a9cafbb4912e8",
+      "root_disk_path": "/dev/nvme0n1",
+      "root_disk_bytes": 268435456000,
+      "root_partition_path": "/dev/nvme0n1p1",
+      "root_partition_bytes": 267360648704,
+      "root_mount": "/",
+      "root_fstype": "ext4",
+      "root_filesystem_total_bytes": 258906374144,
+      "root_filesystem_used_bytes": 200434614272,
+      "root_filesystem_available_bytes": 58454982656,
+      "disk_floor_pass": true,
+      "planned_a0_predispatch_space_pass": true,
+      "matching_process_counts": {"train": 0, "torchrun": 0, "prepare_eval": 0, "other_run_related": 0},
+      "neuron0_fuser": {"rc": 1, "stdout_empty": true, "stderr_empty": true, "holder_count": 0},
+      "host_lock": {"exists": true, "fuser_rc": 1, "stdout_empty": true, "stderr_empty": true, "holder_count": 0},
+      "last_host_postflight": {
+        "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+        "host_clean": false,
+        "completed_at_utc": "2026-09-24T21:28:07.305166Z",
+        "state_file_sha256": "b7a047e5c7e4098099c5557a48eed64f2ddf8bc329e98be6030f28699dbfb5eb"
+      },
+      "command_results": {
+        "hostname": [0, "2d93ca1a267c9127cf831e1f460d6a4b808b8c4ffe9d0d9e3bce522f71c62cc0"],
+        "lsblk": [0, "a5d137a965b356e2589035fb4fe99277a61a8ea14c4bc88a0f3d3da388575053"],
+        "findmnt": [0, "7c3802aa1ad6b5e5d2d3b0f91ec40e1334d596e8d2d750b137e619ea8d759abb"],
+        "df": [0, "8ee7e46c139b575f7b61c0d0d9fded5ffee047806c8f67833c5d2c70fb1410cf"],
+        "statfs": [0, "a6900e41e94b2a96ec2d2409fe3961114094fab508d980eff1b0e9a74ddc8738"],
+        "ps": [0, "4efe73fa937b04dabdef5bdbaf9b0ba31b437a55876e1caa7fb89cdeffb9a7e1"],
+        "neuron_fuser": [1, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+        "host_lock_fuser": [1, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+      }
+    }
+  },
+  "controller_breaker_snapshot": {
+    "source": "research/v2/state.json at source_checkout_commit",
+    "source_sha256": "d807f350949be84ae99660ef77ddde3bc39415e5f0bd1639d37afcc2a20f4a35",
+    "global_correctness_tripped": false,
+    "trn21_tripped": false,
+    "trn22_tripped": true,
+    "trn22_reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
+    "trn22_human_reset_required": true
+  },
+  "assessment": "PASS for guest resize and read-only live storage/quiescence observations on both hosts. trn22's persisted failed postflight and controller breaker remain in effect. This audit is not full preflight, one-shot authorization, breaker reset, training, or evaluation.",
+  "actions": "Read-only remote inventory and local receipt only; no AWS, guest resize, deletion, breaker, process, Neuron, or launch action."
+}
