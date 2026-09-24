@@ -1,0 +1,67 @@
+{
+  "schema": "trainium-supervisor-proposal-ratification-v1",
+  "status": "SELECTED_COMPLETE_FOR_FINAL_REQUEST_REVIEW_NOT_DISPATCH",
+  "selected_by_role": "supervisor",
+  "selected_at_utc": "2026-09-24T23:31:00Z",
+  "proposal_id": "20260925-v2-c5c-a0-control-trn22-r2",
+  "proposal_path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2/EXPERIMENT_PROPOSAL.json",
+  "proposal_sha256": "2256f5f9a04622b4389523872592a18f3db3c3fbc5107405d4e6a00ede3650aa",
+  "proposal_complete_for_this_one_control": true,
+  "draft_false_gate_flags_are_historical": true,
+  "staged_request_path": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.request.staged.json",
+  "staged_request_sha256": "8a22424d58afe1826ec6973f8ff9d294235ce8e6c499699d00b58dbd44528f0a",
+  "decision": "Select the unchanged c5c dense A0 same-host control retry after the r1 pre-step disk incident. It is a control, not a quality claim; run once only after final independent request review and fresh host gates.",
+  "selection_rationale": "A valid c5c control on trn22 is needed before A2 tables can be judged. The r1 attempt had zero optimizer boundaries and no score. Human-expanded storage, a human-acknowledged breaker reset, an isolated clean source stage, host-specific G1 calibration and the exact-environment four-rank CPU G2 have now passed their respective independent checks.",
+  "standing_development_run_authorization": "research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md",
+  "one_attempt_label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+  "host": "trn22",
+  "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+  "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "immutable_science": "The exact full-chip LNC2 x four-rank seed-42, max-1800-second command and six retained warm-cache paths in the independently reviewed staged request; no model or evaluator edit.",
+  "train_argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"],
+  "effective_environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+  },
+  "six_warm_cache_paths": "Bound exactly by staged_request_sha256; no cold fallback, cache cleanup or path substitution",
+  "evidence": {
+    "draft_static_review_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
+    "human_disk_breaker_ack_sha256": "5dcb2f64860001dacd3d70dfbaf530a745da49e232230fb1a0a387323db034d0",
+    "independent_breaker_rearm_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+    "source_stage_receipt_sha256": "a476312c1b9b24e785b72aac1ef78d165fc65b36fa193ea65530a1d188dc9aba",
+    "g1_trn22_operator_receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
+    "exact_env_cpu_g2_r3_operator_receipt_sha256": "c8d73cc447a4fb99c9aba1869f3df47accee550ea2e04d704b9a43cd1bd8e116",
+    "exact_env_cpu_g2_r3_independent_review_sha256": "e76654c7882c2ede9e382914aebb672b10841a083fc0eb2271e15b39965a1de4",
+    "staged_core_independent_review_sha256": "6bfe09889c3022497a46711952211a5bb01560a1e5a052f92024d5453368d5b7",
+    "fresh_stage_preflight_sha256": "0ad7051c6e6eb543b95271f763eec8a4dbd8e580805b3266332364a71a7f9a06"
+  },
+  "pre_dispatch_gate_findings": {
+    "rules_and_unchanged_model_static_review": "PASS",
+    "human_disk_expansion_and_breaker_rearm": "PASS_FOR_THIS_NAMED_INCIDENT_ONLY",
+    "clean_exact_source_stage": "PASS",
+    "host_specific_public_evaluator_calibration_g1": "PASS_TRN22",
+    "exact_environment_four_rank_cpu_g2_and_numeric_comparison": "PASS_TRN22",
+    "fresh_stage_preflight": "PASS_SNAPSHOT_ONLY",
+    "native_smoke_or_full_control": "NOT_YET_RUN",
+    "causality_and_public20m_on_new_checkpoint": "POST_TRAINING_GATE_PENDING"
+  },
+  "abort_conditions": [
+    "Any protected source, prepare.py, train argv, effective environment, cache or checkpoint identity drift",
+    "Any STOP or breaker, dirty or occupied host, Neuron/device/lock holder, reused label, or missing external observer",
+    "Root free bytes below 10737418240 immediately before launch or approaching the 6979321856-byte operational floor during compile/training",
+    "Any timeout, crash, NaN, missing sequential boundary, nonfinite checkpoint, budget or causality failure"
+  ],
+  "remaining_before_dispatch": [
+    "Materialize an exact top-level one-shot request from the staged template and independently review its SHA-256 with this ratification bound",
+    "Immediately before launch, recheck source, caches, checkpoint, host idle/device/lock/STOP/breakers, unique label, at least 10 GiB free and the external boundary observer",
+    "Issue a separate one-label Supervisor authorization bound to the final reviewed request and fresh preflight; an Operator alone dispatches once"
+  ],
+  "launch_authorized": false,
+  "launcher_false_metadata_is_not_a_mechanical_interlock": true,
+  "no_final_executable_request_is_authorized": true,
+  "native_training_started": false,
+  "new_bpb_result": false
+}
