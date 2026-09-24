@@ -1,6 +1,23 @@
 # A1 native five-step equivalence gate
 
-## Current comparator-correction state
+## Current authority state
+
+Comparator r4 at `994d302b0036c56aaab63797f0561797bc4cf431` independently passed at
+`8add2585d30b11ac2c50fb2701957657a1a6f30d`; the signed JSON receipt is SHA-256
+`c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68`. Its corrected immutable
+G0 replay is PASS with 326-byte result SHA-256
+`7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a`. Analyst checklist
+`9749a572fbf2344be02c7a1e16ba01e963f33a82` / SHA-256
+`a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17` permits drafting G1 only.
+
+This package now contains a distinct G1-only request template, pending authorization, runtime
+driver, and G0/G1 adjudicator. They remain non-executable and are not authority. There is no
+`g1-authorization.json`, concrete request, host permission, cleanup permission, G2 permission,
+full-A1 permission or submission permission. A later independent Verifier must supply a new exact
+clean request-bearing HEAD, request SHA-256 and authorization SHA-256; until then even request
+materialization must fail.
+
+## Historical comparator-correction sequence
 
 G0 ran once under the exact historical request-bearing head
 `03bfeabf0f4293e30dc86eecf3aa9cce49e9735b`. Its immutable evidence is commit
@@ -25,8 +42,8 @@ source, and rank report exactly once with `O_RDONLY|O_CLOEXEC|O_NOFOLLOW`, const
 single-link owner/mode/size identity, hashes and parses the same captured bytes while that descriptor
 and its parent chain remain open, and revalidates the inode/path after both operations. Result output
 uses an O_EXCL inode, a complete EINTR-safe write loop, file and directory fsync, same-inode exact
-JSON readback, and removes its own partial inode on failure. These changes are still pending fresh
-independent verification and do not unlock either later arm.
+JSON readback, and removes its own partial inode on failure. Those changes were superseded by the
+r4 correction and the independent PASS receipt above; they did not themselves unlock a later arm.
 
 Independent verifier commit `3fb4deb222152564d7bf5dc4028246edcfd30c7a` accepted the
 descriptor-bound input repair but found the result could still be overwritten through its writable
@@ -37,7 +54,7 @@ hashes exact bytes read-only, publishes with `renameat2(RENAME_NOREPLACE)`, fsyn
 directory, revalidates every lexical ancestor from `/`, and performs final read-only inode/content
 seals. Failure cleanup removes only the created inode at the authorized temp/final names despite
 link/mode/size drift and unlinks substituted symlink names without following their targets. This
-local correction is also non-executable and pending independent verification.
+local correction was also non-executable and was superseded by r4.
 
 Independent verifier commit `42558bf6f8f7cfea69fc5a4db4491aa6eb6f3fa1` found two final
 publication boundaries: a same-size overwrite after the last directory callback, and an unrelated
@@ -55,11 +72,10 @@ filesystem callback, returns the exact sealed SHA-256 and full inode identity, a
 to verify that receipt. Durable evidence consumers must reauthenticate the archived result against
 that receipt; a bare path observed later is never authority.
 
-This Implementer correction is not self-verified. The non-executable request
-`g0-ownership-revalidation.pending.json` requires a fresh independent Verifier to reconstruct the
-manifest from the pinned source and flags, run the positive archive check and mutation suite, and
-issue a superseding G0 receipt. G1/G2, host access, training, cleanup, full A1 and submission all
-remain locked.
+The r4 correction was independently verified by the receipt named above. Its historical
+`g0-ownership-revalidation.pending.json` is retained as provenance and is not reusable. G1 remains
+locked for execution pending its own independent finalization; G2, cleanup, full A1 and submission
+remain locked in all cases.
 
 The local-only immutable G0 check writes a new O_EXCL result and performs no host action:
 
@@ -113,11 +129,42 @@ The commands in this historical section were consumed by the archived G0 run and
 The corrected comparator changes protected package bytes, so the old authorization cannot
 authorize a descendant or any rerun. No rerun is requested by this correction.
 
+## G1-only draft finalization (not executable)
+
+`g1-request.template.json`, `g1-authorization.pending.json` and `g1_finalization.py` are distinct
+from the consumed G0 chain. G1 uses exactly the G0 hybrid source, seed, data start, LNC2/world4,
+five-update argv and environment. The only gate changes are observation ON, arm `G1`, and the
+unique G1 label/remote/cache/output/report paths. The pending authorization has every authority
+bit false. The sentinel command below is documentation only and cannot run because this repository
+does not contain its three external literals or an executable `g1-authorization.json`:
+
+```text
+python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py materialize \
+  --authorized-head EXTERNAL_40_HEX_HEAD \
+  --request-sha256 EXTERNAL_64_HEX_G1_TEMPLATE_SHA256 \
+  --authorization-sha256 EXTERNAL_64_HEX_G1_AUTHORIZATION_SHA256 \
+  --request-template research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json \
+  --authorization research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json \
+  --output /tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.request.json
+```
+
+Only after a separate independent PASS could an Operator invoke the standard launcher on that
+exact materialized request. Raw `torchrun`, manual field substitution, G0 authorization reuse, a
+descendant's self-supplied literals, or a different path is invalid.
+
+After a future G1 archive, `adjudicate_g0_g1.py` requires an independently hash-bound exact-schema
+evidence manifest, the immutable G0 archive, the unique archived G1 rank reports and checkpoint,
+and an initially absent verdict path. It authenticates the r4 comparator by SHA-256 and executes
+its exact source bytes without a pyc, reuses its no-follow report loader and sealed result writer,
+requires exact G0/G1 shared records after normalizing only `arm`, `detailed` and `label`, and checks
+the complete detailed gradient/clip/table/state/RMS/ownership/collective/cross-rank/lifecycle/
+checkpoint contract. A PASS is only `G1_OBSERVATION_NONPERTURBING`; it does not authorize G2.
+
 ## Fixed order and lifecycle
 
-The sole eligible host is `trn21` (`ip-172-31-34-85`). Only G0 can be finalized in this package.
-G1 stays locked until the exact G0 archive and clean postflight are retrieved, hashed, committed,
-and externally bound; G2 stays locked until the corresponding authenticated G1 evidence. Before G0,
+The sole eligible host is `trn21` (`ip-172-31-34-85`). G0 is historical and must not be rerun. G1
+may be finalized only by a later independent Verifier and remains unlaunchable in this draft. G2
+stays locked until corresponding authenticated G1 evidence and a separate proposal. Before G1,
 the standard fresh-start launcher/guard must prove: the exact symbolic branch at the independently
 approved HEAD, clean tree and origin alignment, exact regular no-follow source files and hashes,
 no live training or descendants, and absent unique remote/output/report/cache paths. It must sample
@@ -143,7 +190,7 @@ PYTHONUNBUFFERED=1
 NEURON_COMPILE_CACHE_DIR=<the exact unique initially absent cache in requests.pending.json>
 ```
 
-The finalized launcher must construct the argv array below from the committed G0 template without shell
+The finalized launcher must construct the argv array below from the committed G1 template without shell
 evaluation. `<SOURCE>`, `<ARM>`, `<OBSERVATION>`, `<LABEL>`, `<OUT>` and `<REPORT>` are the literal
 fields of the corresponding request entry, not Operator choices:
 
@@ -219,6 +266,8 @@ The Implementer may run only CPU/static tests:
 ```text
 python -m unittest -v \
   research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py
+python -m unittest -v \
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py
 python -m py_compile research/a1_native_gate_observer.py \
   research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py
 ```

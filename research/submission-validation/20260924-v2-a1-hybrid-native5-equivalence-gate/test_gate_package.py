@@ -217,7 +217,8 @@ class SourceContractTests(unittest.TestCase):
             self.assertEqual(len({arm[key] for arm in arms}), 3)
         self.assertEqual([arm["arm"] for arm in arms], ["G0", "G1", "G2"])
         self.assertTrue(arms[0]["prerequisite"].startswith("HISTORICAL_G0_COMPLETED_"))
-        self.assertTrue(all(arm["prerequisite"].startswith("PENDING_") for arm in arms[1:]))
+        self.assertIn("G0_ARCHIVE_AUTHENTICATED", arms[1]["prerequisite"])
+        self.assertTrue(arms[2]["prerequisite"].startswith("PENDING_"))
         self.assertEqual(request["g0_comparator_correction_request"],
                          "g0-ownership-revalidation.pending.json")
         self.assertIn("--clip-after-reduce", request["common_train_argv"])
@@ -228,10 +229,11 @@ class SourceContractTests(unittest.TestCase):
     def test_proposal_and_runbook_refuse_authorization(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
         self.assertTrue(proposal["gates"]["independent_verification"])
-        self.assertFalse(proposal["gates"]["comparator_correction_independent_verification"])
+        self.assertTrue(proposal["gates"]["comparator_correction_independent_verification"])
         self.assertFalse(proposal["gates"]["native_execution_authorized"])
         self.assertTrue(proposal["gates"]["launched"])
-        self.assertTrue(proposal["g0_comparator_correction"]["g1_remains_locked"])
+        self.assertTrue(proposal["g0_comparator_correction"]["g1_execution_remains_locked"])
+        self.assertFalse(proposal["g1_draft"]["executable"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
         for relative, expected in proposal["immutable_sources"]["gate_sources"].items():
             self.assertEqual(sha(ROOT / relative), expected, relative)
@@ -315,7 +317,8 @@ class G0FinalizationTests(unittest.TestCase):
                             for value in template["downstream_locks"].values()))
         pending = json.loads((HERE / "requests.pending.json").read_text())
         by_arm = {arm["arm"]: arm for arm in pending["arms"]}
-        self.assertIn("PENDING_AUTHENTICATED_G0", by_arm["G1"]["prerequisite"])
+        self.assertIn("G0_ARCHIVE_AUTHENTICATED", by_arm["G1"]["prerequisite"])
+        self.assertIn("AUTHORIZATION_STILL_PENDING", by_arm["G1"]["prerequisite"])
         self.assertIn("PENDING_AUTHENTICATED_G1", by_arm["G2"]["prerequisite"])
         historical_g0 = json.loads((HERE / "g0-authorization.json").read_text())
         self.assertTrue(historical_g0["executable"])
