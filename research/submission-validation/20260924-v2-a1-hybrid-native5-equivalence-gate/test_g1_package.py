@@ -71,15 +71,15 @@ class G1FinalizationContractTests(unittest.TestCase):
 
     def test_pending_authorization_cannot_materialize(self):
         template = self.template()
-        pending = json.loads((HERE / "g1-authorization.pending.json").read_text())
+        pending = json.loads((HERE / "g1-r2-authorization.pending.json").read_text())
         self.assertFalse(pending["executable"])
         self.assertFalse(pending["native_execution_authorized"])
         self.assertFalse(pending["g1_authorized"])
         self.assertFalse(pending["g2_authorized"])
         with self.assertRaises(G1.ContractError):
             G1.validate_authorization(pending, template, sha(HERE / "g1-request.template.json"))
-        self.assertFalse((HERE / "g1-authorization.json").exists())
-        self.assertFalse(Path("/tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.request.json").exists())
+        self.assertFalse((HERE / "g1-r2-authorization.json").exists())
+        self.assertFalse(G1.MATERIALIZATION_OUTPUT.exists())
 
     def test_concrete_draft_has_exact_launcher_contract(self):
         template = self.template()
@@ -88,7 +88,7 @@ class G1FinalizationContractTests(unittest.TestCase):
             authorization_sha="c" * 64,
             authorization_path=template["authorization_path"],
         )
-        self.assertEqual(concrete["schema"], "a1-native-five-g1-concrete-request-v1")
+        self.assertEqual(concrete["schema"], "a1-native-five-g1-r2-concrete-request-v1")
         self.assertEqual(concrete["arm"], "G1")
         self.assertEqual(concrete["command"][:5],
                          ["timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s"])
@@ -181,8 +181,8 @@ class G0G1AdjudicationTests(unittest.TestCase):
         self._write_reports(report_mutate)
         source = "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py"
         paths = {
-            "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
-            "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
+            "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
+            "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
             "output": f"out/{ADJ.G1_LABEL}",
             "report": f"research/run-logs/{ADJ.G1_LABEL}/native-gate",
         }
@@ -212,12 +212,12 @@ class G0G1AdjudicationTests(unittest.TestCase):
         runtime_sources.update({
             "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py": "1" * 64,
             "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json": "2" * 64,
-            "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json": "3" * 64,
+            "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json": "3" * 64,
         })
         outer_environment = {key: value for key, value in environment.items()
                              if key not in {"NEURON_COMPILE_CACHE_DIR", "TRAINIUM_FRESH_START_RUN_ID"}}
         request_template = "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json"
-        authorization = "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json"
+        authorization = "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json"
         driver = "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py"
         outer_command = [
             "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s",
@@ -228,11 +228,11 @@ class G0G1AdjudicationTests(unittest.TestCase):
             f"research/run-logs/{ADJ.G1_LABEL}.job.json",
         ]
         runtime_job = {
-            "schema": "a1-native-five-g1-concrete-request-v1", "arm": "G1",
+            "schema": "a1-native-five-g1-r2-concrete-request-v1", "arm": "G1",
             "host": "trn21", "expected_hostname": "ip-172-31-34-85", "label": ADJ.G1_LABEL,
             "remote": paths["remote"], "expected_commit": "a" * 40,
             "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
-            "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on equivalence gate",
+            "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on transport retry r2",
             "command": outer_command, "environment": outer_environment,
             "min_free_bytes": 6_979_321_856, "runner_owns_manifest": False,
             "non_overwrite": True, "verified_core_commit":
@@ -263,7 +263,7 @@ class G0G1AdjudicationTests(unittest.TestCase):
             artifacts[f"{paths['report']}/{name}"] = {
                 "bytes": row["bytes"], "sha256": row["sha256"], "mtime_ns": 1}
         runtime = {
-            "schema": "a1-native-five-g1-runtime-result-v1", "arm": "G1",
+            "schema": "a1-native-five-g1-r2-runtime-result-v1", "arm": "G1",
             "status": "PASS", "complete": True, "label": ADJ.G1_LABEL, "host": "trn21",
             "authorized_head": "a" * 40, "request_sha256": "b" * 64,
             "authorization_sha256": "c" * 64, "runtime_job_sha256": sha(runtime_job_path),

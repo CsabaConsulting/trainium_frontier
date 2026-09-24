@@ -1,6 +1,6 @@
 {
   "schema": "a1-native-five-pending-requests-v1",
-  "state": "g0-authenticated-g1-draft-pending-independent-finalization-g2-locked",
+  "state": "g0-authenticated-g1-r1-transport-failed-consumed-g1-r2-pending-g2-locked",
   "executable": false,
   "finalization_head": "PENDING_EXTERNAL_VERIFIER",
   "authorization_sha256": "PENDING_EXTERNAL_VERIFIER",
@@ -9,9 +9,15 @@
   "g0_runtime_driver": "g0_finalization.py",
   "g0_comparator_correction_request": "g0-ownership-revalidation.pending.json",
   "g1_finalization_template": "g1-request.template.json",
-  "g1_authorization_template": "g1-authorization.pending.json",
+  "g1_authorization_template": "g1-r2-authorization.pending.json",
   "g1_runtime_driver": "g1_finalization.py",
   "g0_g1_adjudicator": "adjudicate_g0_g1.py",
+  "g1_r1_failure": {
+    "evidence_commit": "e1550203a61c53cd7c73b0c543ced8a157312612",
+    "analysis_commit": "2029ca66ec83cbcc98fef42b1e0571205c013c69",
+    "analysis_sha256": "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b",
+    "state": "historical-consumed-no-retry-no-training"
+  },
   "g1_analyst_checklist": {
     "commit": "9749a572fbf2344be02c7a1e16ba01e963f33a82",
     "sha256": "a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17"
@@ -46,14 +52,19 @@
     },
     {
       "arm": "G1",
-      "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
       "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
       "observation_argv": ["--native-gate-arm", "G1", "--native-gate-observation"],
-      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
-      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
-      "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
-      "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate",
-      "prerequisite": "G0_ARCHIVE_AUTHENTICATED_BY_8ADD2585_G1_REQUEST_AND_AUTHORIZATION_STILL_PENDING"
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
+      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+      "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+      "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/native-gate",
+      "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.child.log",
+      "runtime_job": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.job.json",
+      "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.runtime-result.json",
+      "dispatch": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.dispatch.json",
+      "bundle_remote": "/home/ubuntu/v2-a1-native5-g1-r2.bundle",
+      "prerequisite": "G0_ARCHIVE_AUTHENTICATED_BY_8ADD2585_R2_REQUEST_AND_AUTHORIZATION_PENDING"
     },
     {
       "arm": "G2",
@@ -68,7 +79,7 @@
     }
   ],
   "requirements": {
-    "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-equivalence-gate",
+    "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
     "min_free_bytes_before_each_arm": 6979321856,
     "hard_abort_bytes": 5368709120,
     "sequential": true,

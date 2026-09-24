@@ -10,12 +10,14 @@ Deployment and selection of an experiment remain separate decisions.
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shlex
+import stat
 import subprocess
 
-from fresh_start_sync import HOSTS, ROOT, SSH
+from fresh_start_sync import HOSTS, ROOT
 
 
 REMOTE_SCRIPT = r'''
@@ -78,10 +80,40 @@ print(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,
 '''
 
 
+def validate_identity_file(path: Path) -> Path:
+    """Validate controller SSH identity metadata without opening the key."""
+    if not path.is_absolute():
+        raise ValueError("--identity-file must be an absolute path")
+    try:
+        identity = os.lstat(path)
+    except OSError:
+        raise ValueError("--identity-file is unavailable") from None
+    if not stat.S_ISREG(identity.st_mode) or stat.S_ISLNK(identity.st_mode):
+        raise ValueError("--identity-file must be a regular non-symlink file")
+    if identity.st_uid != os.getuid():
+        raise ValueError("--identity-file must be owned by the current user")
+    if identity.st_nlink != 1:
+        raise ValueError("--identity-file must have exactly one hard link")
+    if stat.S_IMODE(identity.st_mode) != 0o600:
+        raise ValueError("--identity-file mode must be exactly 0600")
+    return path
+
+
+def transport_argv(program: str, identity_file: Path) -> list[str]:
+    """Return deterministic SSH-family argv with default identities disabled."""
+    if program not in {"ssh", "scp"}:
+        raise ValueError("unsupported SSH transport program")
+    return [program, "-o", "BatchMode=yes", "-o", "ConnectTimeout=12",
+            "-o", "IdentitiesOnly=yes", "-i", str(identity_file)]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("request", type=Path)
+    parser.add_argument("--identity-file", required=True, type=Path,
+                        help="absolute controller-local SSH identity path (metadata only)")
     args = parser.parse_args()
+    identity_file = validate_identity_file(args.identity_file)
     request = json.loads(args.request.read_text())
     assert request["host"] in HOSTS
     assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", request["label"])
@@ -102,9 +134,19 @@ def main():
         payload = dict(request=request, requested_at=datetime.now(timezone.utc).isoformat())
         json.dump(payload, output, indent=2)
         output.flush()
-    completed = subprocess.run(
-        [*SSH, HOSTS[request["host"]], "python3 -c " + shlex.quote(REMOTE_SCRIPT)],
-        input=json.dumps(request), text=True, capture_output=True, timeout=90)
+    try:
+        completed = subprocess.run(
+            [*transport_argv("ssh", identity_file), HOSTS[request["host"]],
+             "python3 -c " + shlex.quote(REMOTE_SCRIPT)],
+            input=json.dumps(request), text=True, capture_output=True, timeout=90)
+    except subprocess.TimeoutExpired:
+        payload.update(returncode=None, stdout="", stderr="", transport_status="TIMEOUT")
+        receipt.write_text(json.dumps(payload, indent=2) + "\n")
+        raise RuntimeError("SSH transport timed out") from None
+    except OSError:
+        payload.update(returncode=None, stdout="", stderr="", transport_status="OS_ERROR")
+        receipt.write_text(json.dumps(payload, indent=2) + "\n")
+        raise RuntimeError("SSH transport failed before remote execution") from None
     payload.update(returncode=completed.returncode, stdout=completed.stdout, stderr=completed.stderr)
     receipt.write_text(json.dumps(payload, indent=2) + "\n")
     print(completed.stdout, end="")

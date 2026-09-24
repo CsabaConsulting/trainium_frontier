@@ -1,15 +1,16 @@
 {
-  "schema": "a1-native-five-g1-request-template-v1",
+  "schema": "a1-native-five-g1-r2-request-template-v1",
   "state": "pending-external-finalization",
   "executable": false,
   "arm": "G1",
   "host": "trn21",
   "expected_hostname": "ip-172-31-34-85",
-  "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
-  "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
+  "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+  "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
+  "staging_bundle_remote_path": "/home/ubuntu/v2-a1-native5-g1-r2.bundle",
   "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
-  "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on equivalence gate",
-  "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-finalization",
+  "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on transport retry r2",
+  "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
   "verified_core_commit": "994d302b0036c56aaab63797f0561797bc4cf431",
   "verifier_receipt_commit": "8add2585d30b11ac2c50fb2701957657a1a6f30d",
   "verifier_receipt_sha256": "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68",
@@ -30,31 +31,46 @@
     "checkpoint_sha256": "2d0891c569e6046bd4a3635c62c1ebdb4c6ea6ed0d9788212910a26e61ad3b13",
     "checkpoint_bytes": 739322371
   },
+  "r1_transport_failure": {
+    "state": "historical-consumed-pre-dispatch-transport-failure",
+    "failure_commit": "e1550203a61c53cd7c73b0c543ced8a157312612",
+    "analysis_commit": "2029ca66ec83cbcc98fef42b1e0571205c013c69",
+    "analysis_sha256": "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b",
+    "authorization_sha256": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+    "concrete_request_sha256": "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0",
+    "dispatch_sha256": "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44",
+    "failure_receipt_sha256": "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943",
+    "training_started": false,
+    "retry_under_r1_identity_authorized": false
+  },
   "external_literals": {
     "request_bearing_head": "PENDING_EXTERNAL_VERIFIER",
     "request_sha256": "PENDING_EXTERNAL_VERIFIER",
     "authorization_sha256": "PENDING_EXTERNAL_VERIFIER"
   },
-  "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json",
+  "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
   "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
   "runtime_driver_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
-  "runtime_job_path": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.job.json",
+  "runtime_job_path": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.job.json",
   "finalization_paths": [
+    "research/fresh_start_launch.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/adjudicate_g0_g1.py",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.pending.json"
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.pending.json"
   ],
   "paths": {
-    "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
-    "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
-    "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate",
-    "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.child.log",
-    "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.runtime-result.json"
+    "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+    "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+    "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/native-gate",
+    "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.child.log",
+    "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.runtime-result.json",
+    "dispatch": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.dispatch.json"
   },
   "environment": {
     "HOME": "/home/ubuntu",
@@ -83,8 +99,8 @@
     "PYTHONUNBUFFERED": "1",
     "TMPDIR": "/tmp",
     "USER": "ubuntu",
-    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
-    "TRAINIUM_FRESH_START_RUN_ID": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1"
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+    "TRAINIUM_FRESH_START_RUN_ID": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2"
   },
   "outer_timeout_argv": [
     "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s"
@@ -108,11 +124,11 @@
     "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
     "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
     "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015",
-    "--out-dir", "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+    "--out-dir", "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
     "--native-gate-arm", "G1", "--native-gate-observation",
-    "--native-gate-label", "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+    "--native-gate-label", "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
     "--native-gate-host", "trn21",
-    "--native-gate-report-dir", "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate"
+    "--native-gate-report-dir", "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2/native-gate"
   ],
   "source_sha256": {
     "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
@@ -134,12 +150,18 @@
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee",
-    "research/fresh_start_launch.py": "872c29d6703be64e3bcfdae4deff99acb459eca804f5a7bb574ac6d788e4a80c",
+    "research/fresh_start_launch.py": "08d6e861f86c766bf75a80f11d7753cbd6f416027ba76ff99c908345fddd4ff2",
     "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
     "research/fresh_start_host.py": "f5bc5034b4ac77e2af3234a9630ab8e4d0e3f1b24f7404ac22778d30016e6d16",
     "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
     "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
-    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705"
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R1_TRANSPORT_FAILURE_ANALYSIS.md": "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-draft-independent-verification.json": "15fb8d9396693ba70ee1c181bc1060196a616987c4b1908dc4a5a58e0b6c07cd",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/OPERATOR_FAILURE_RECEIPT.json": "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/concrete-request.json": "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/dispatch.json": "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44"
   },
   "lifecycle": {
     "one_run_per_host": true,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed G1 request materializer and runtime.
+"""Fail-closed G1 r2 transport-retry request materializer and runtime.
 
 This file is not authority.  ``materialize`` requires three exact literals supplied by an
 independent finalizer and an authorization blob whose current pending template deliberately cannot
@@ -27,7 +27,7 @@ from typing import NamedTuple
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 TEMPLATE_PATH = HERE / "g1-request.template.json"
-EXPECTED_BRANCH = "experiment/20260924-v2-a1-hybrid-native5-g1-finalization"
+EXPECTED_BRANCH = "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization"
 CORE = "994d302b0036c56aaab63797f0561797bc4cf431"
 VERIFIER_COMMIT = "8add2585d30b11ac2c50fb2701957657a1a6f30d"
 VERIFIER_SHA = "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68"
@@ -36,15 +36,25 @@ ANALYST_SHA = "a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17"
 R4_COMPARATOR_SHA = "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c"
 G0_EVIDENCE_COMMIT = "37aa3644e63e20a1427cfa69b44fd6de7e25cd81"
 G0_REPLAY_SHA = "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a"
+R1_FAILURE_COMMIT = "e1550203a61c53cd7c73b0c543ced8a157312612"
+R1_ANALYSIS_COMMIT = "2029ca66ec83cbcc98fef42b1e0571205c013c69"
+R1_ANALYSIS_SHA = "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b"
+R1_AUTHORIZATION_SHA = "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e"
+R1_CONCRETE_REQUEST_SHA = "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0"
+R1_DISPATCH_SHA = "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44"
+R1_FAILURE_RECEIPT_SHA = "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943"
+G1_LABEL = "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2"
 FINALIZATION_PATHS = [
+    "research/fresh_start_launch.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/adjudicate_g0_g1.py",
-    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.pending.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.pending.json",
 ]
 EXPECTED_SOURCE_SHA256 = {
     "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
@@ -66,23 +76,30 @@ EXPECTED_SOURCE_SHA256 = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee",
-    "research/fresh_start_launch.py": "872c29d6703be64e3bcfdae4deff99acb459eca804f5a7bb574ac6d788e4a80c",
+    "research/fresh_start_launch.py": "08d6e861f86c766bf75a80f11d7753cbd6f416027ba76ff99c908345fddd4ff2",
     "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
     "research/fresh_start_host.py": "f5bc5034b4ac77e2af3234a9630ab8e4d0e3f1b24f7404ac22778d30016e6d16",
     "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
     "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
     "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R1_TRANSPORT_FAILURE_ANALYSIS.md": R1_ANALYSIS_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-draft-independent-verification.json": "15fb8d9396693ba70ee1c181bc1060196a616987c4b1908dc4a5a58e0b6c07cd",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json": R1_AUTHORIZATION_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/OPERATOR_FAILURE_RECEIPT.json": R1_FAILURE_RECEIPT_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/concrete-request.json": R1_CONCRETE_REQUEST_SHA,
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1-pre-dispatch-failure/dispatch.json": R1_DISPATCH_SHA,
 }
 EXPECTED_PATHS = {
-    "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
-    "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
-    "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate",
-    "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.child.log",
-    "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.runtime-result.json",
+    "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r2",
+    "output": f"out/{G1_LABEL}",
+    "report": f"research/run-logs/{G1_LABEL}/native-gate",
+    "child_log": f"research/run-logs/{G1_LABEL}.child.log",
+    "runtime_result": f"research/run-logs/{G1_LABEL}.runtime-result.json",
+    "dispatch": f"research/run-logs/{G1_LABEL}.dispatch.json",
 }
 MATERIALIZATION_ROOT = Path("/tmp")
 MATERIALIZATION_OUTPUT = MATERIALIZATION_ROOT / (
-    "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.request.json"
+    f"{G1_LABEL}.request.json"
 )
 COMPILE_CACHE_ROOT = Path("/home/ubuntu")
 EXPECTED_ENVIRONMENT = {
@@ -353,6 +370,7 @@ def validate_template(template: dict) -> None:
         "remote", "origin", "purpose", "exact_symbolic_branch", "verified_core_commit", "verifier_receipt_commit",
         "verifier_receipt_sha256", "external_literals", "authorization_path",
         "request_template_path", "runtime_driver_path", "runtime_job_path", "finalization_paths", "paths",
+        "staging_bundle_remote_path", "r1_transport_failure",
         "environment", "child_environment", "outer_timeout_argv", "child_timeout_seconds",
         "term_grace_seconds", "kill_grace_seconds", "min_free_bytes", "hard_abort_bytes",
         "world_size", "lnc", "seed", "optimizer_updates", "in_process_max_seconds",
@@ -362,27 +380,28 @@ def validate_template(template: dict) -> None:
     if set(template) != required:
         raise ContractError("G1 request-template schema mismatch")
     expected = {
-        "schema": "a1-native-five-g1-request-template-v1",
+        "schema": "a1-native-five-g1-r2-request-template-v1",
         "state": "pending-external-finalization",
         "executable": False,
         "arm": "G1",
         "host": "trn21",
         "expected_hostname": "ip-172-31-34-85",
-        "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+        "label": G1_LABEL,
         "exact_symbolic_branch": EXPECTED_BRANCH,
-        "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
+        "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2",
+        "staging_bundle_remote_path": "/home/ubuntu/v2-a1-native5-g1-r2.bundle",
         "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
-        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on equivalence gate",
-        "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json",
+        "purpose": "Human-approved G1-only A1 native five-update hybrid observation-on transport retry r2",
+        "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
         "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
         "runtime_driver_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py",
-        "runtime_job_path": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1.job.json",
+        "runtime_job_path": f"research/run-logs/{G1_LABEL}.job.json",
         "paths": EXPECTED_PATHS,
         "environment": EXPECTED_ENVIRONMENT,
         "child_environment": {
             **EXPECTED_ENVIRONMENT,
             "NEURON_COMPILE_CACHE_DIR": EXPECTED_PATHS["compile_cache"],
-            "TRAINIUM_FRESH_START_RUN_ID": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+            "TRAINIUM_FRESH_START_RUN_ID": G1_LABEL,
         },
         "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
         "verified_core_commit": CORE,
@@ -414,6 +433,18 @@ def validate_template(template: dict) -> None:
             "corrected_replay_bytes": 326,
             "checkpoint_sha256": "2d0891c569e6046bd4a3635c62c1ebdb4c6ea6ed0d9788212910a26e61ad3b13",
             "checkpoint_bytes": 739_322_371,
+        },
+        "r1_transport_failure": {
+            "state": "historical-consumed-pre-dispatch-transport-failure",
+            "failure_commit": R1_FAILURE_COMMIT,
+            "analysis_commit": R1_ANALYSIS_COMMIT,
+            "analysis_sha256": R1_ANALYSIS_SHA,
+            "authorization_sha256": R1_AUTHORIZATION_SHA,
+            "concrete_request_sha256": R1_CONCRETE_REQUEST_SHA,
+            "dispatch_sha256": R1_DISPATCH_SHA,
+            "failure_receipt_sha256": R1_FAILURE_RECEIPT_SHA,
+            "training_started": False,
+            "retry_under_r1_identity_authorized": False,
         },
     }
     for key, value in expected.items():
@@ -481,13 +512,13 @@ def validate_authorization(auth: dict, template: dict, request_sha: str) -> None
         "protected_finalization_sha256", "source_sha256", "native_execution_authorized",
         "g1_authorized", "g2_authorized", "checkpoint_prune_authorized",
         "cache_cleanup_authorized", "full_a1_authorized", "submission_authorized",
-        "g0_prerequisite",
+        "g0_prerequisite", "r1_transport_failure",
     }
     if set(auth) != required:
         raise ContractError("authorization schema mismatch")
     expected = {
-        "schema": "a1-native-five-g1-authorization-v1",
-        "state": "independent-verifier-finalized-g1-only",
+        "schema": "a1-native-five-g1-r2-authorization-v1",
+        "state": "independent-verifier-finalized-g1-r2-only",
         "executable": True,
         "arm": "G1", "host": "trn21", "label": template["label"],
         "verified_core_commit": CORE,
@@ -501,6 +532,7 @@ def validate_authorization(auth: dict, template: dict, request_sha: str) -> None
         "checkpoint_prune_authorized": False, "cache_cleanup_authorized": False,
         "full_a1_authorized": False, "submission_authorized": False,
         "g0_prerequisite": template["g0_prerequisite"],
+        "r1_transport_failure": template["r1_transport_failure"],
     }
     for key, value in expected.items():
         if auth.get(key) != value:
@@ -535,7 +567,7 @@ def build_concrete_request(
         template["runtime_driver_path"], template["request_template_path"], authorization_path,
     })
     return {
-        "schema": "a1-native-five-g1-concrete-request-v1",
+        "schema": "a1-native-five-g1-r2-concrete-request-v1",
         "arm": "G1", "host": "trn21", "expected_hostname": template["expected_hostname"],
         "label": template["label"], "remote": template["remote"],
         "expected_commit": head, "origin": template["origin"], "purpose": template["purpose"],
@@ -1046,7 +1078,7 @@ def run(args: argparse.Namespace) -> int:
     if success:
         _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
     result = {
-        "schema": "a1-native-five-g1-runtime-result-v1", "arm": "G1",
+        "schema": "a1-native-five-g1-r2-runtime-result-v1", "arm": "G1",
         "status": "PASS" if success else "FAILED", "complete": success,
         "label": template["label"], "host": "trn21", "authorized_head": args.authorized_head,
         "request_sha256": args.request_sha256,
@@ -1104,7 +1136,7 @@ def main() -> int:
     try:
         return materialize(args) if args.action == "materialize" else run(args)
     except ContractError as exc:
-        print(f"G1_FINALIZATION_INVALID: {exc}", file=sys.stderr)
+        print(f"G1_R2_FINALIZATION_INVALID: {exc}", file=sys.stderr)
         return 2
 
 
