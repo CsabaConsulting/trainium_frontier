@@ -1,0 +1,39 @@
+{
+  "schema": "trn22-c5c-a0-r2-disk-monitor-no-launch-hold-v1",
+  "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+  "recorded_utc": "2026-09-24T23:44:30Z",
+  "verdict": "HOLD_NO_LAUNCH_MONITOR_NOT_VERIFIED",
+  "prelaunch_readonly_receipt_path": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json",
+  "prelaunch_readonly_receipt_sha256": "2ef2dfb359d3867560519f1d0811c8b300df746dee66f09702f4902fdbd2c179",
+  "earlier_stage_preflight_sha256": "0ad7051c6e6eb543b95271f763eec8a4dbd8e580805b3266332364a71a7f9a06",
+  "final_request_sha256": "7c4d1af77fe8c332170feebf444e0c292ef8d78ff3bf76d5ef3056533e2279cc",
+  "independent_final_request_review_sha256": "58f2025549204f73fcbb170545ac87534fb90147ff3e08b7dd26bdc8809b32f3",
+  "reason": "The pinned A0 launcher checks free space before spawning its guard and the pinned guard handles owned-child cleanup and postflight, but neither contains a continuous root-free-space monitor. The prior r1 external intermittent monitoring observed its first sub-floor value only after native compile had already crossed the immutable 6.5-GiB floor. A read-only observer measures optimizer boundaries, not root space or guard stopping. No independently reviewed host-local A0 disk monitor and authenticated guard-stop mechanism was identified for r2.",
+  "pinned_source_evidence": {
+    "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "launcher_sha256": "822d4317408a09ee0dd6ab3eaaa4f706f0a173741659ea5e47cc12e45e4f1bef",
+    "launcher_disk_check_line": 34,
+    "launcher_guard_spawn_line": 71,
+    "guard_sha256": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "guard_signal_handler_lines": [29, 38],
+    "guard_postflight_lines": [47, 70],
+    "guard_continuous_disk_poll_present": false,
+    "g1_guarded_eval_is_separate_evaluator_only": true
+  },
+  "required_new_gate": {
+    "host_local_root_free_poll_seconds_max": 1.0,
+    "preemptive_stop_below_bytes": 9126805504,
+    "immutable_operational_floor_bytes": 6979321856,
+    "before_signal_requirements": ["exact r2 label", "guard PID", "guard UID", "guard process start ticks", "expected guard script argv", "owned child/process group"],
+    "stop_target": "Only the authenticated owned guard, so its existing signal handler and scoped postflight run",
+    "on_monitor_error": "Fail closed; stop the authenticated owned guard and mark the run failed, preserving logs and artifacts",
+    "approval": "Separate Implementer package plus independent Verifier PASS before any one-shot Supervisor authorization"
+  },
+  "observer_started": false,
+  "launcher_invoked": false,
+  "native_training_started": false,
+  "evaluation_started": false,
+  "science_r2_label_consumed": false,
+  "host_mutations": [],
+  "next_action": "Hold A0 r2, preserve exact source/score gates, prepare and independently verify a host-local disk monitor, then issue a new separate exact-SHA one-attempt authorization after another fresh live preflight."
+}
