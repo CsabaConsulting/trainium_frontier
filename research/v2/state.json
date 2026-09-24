@@ -25,20 +25,29 @@
   },
   "gates": {
     "G1": {
-      "status": "SOURCE_AND_PAIRED_HOST_METADATA_VERIFIED_CALIBRATION_PENDING",
+      "status": "TRN22_FRESH_PUBLIC20M_CALIBRATION_RUNNING",
       "blocking": true,
-      "receipt": "research/v2/g1.json"
+      "receipt": "research/v2/g1.json",
+      "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+      "request": "research/v2/g1-calibration-trn22-request.json",
+      "request_sha256": "2efe1b6404ab262e818ef607a4630e82d641800a03813bf0427c3ad82a4d35b6",
+      "guard_pid": 2950407,
+      "started_utc": "2026-09-24T20:53:19.756924+00:00",
+      "operator_dispatch_receipt_sha256": "a35ce0fbabcec5a680e2de8bebb83be2363f977088b7d17591867ae53090188b"
     },
     "G2": {
-      "status": "PENDING_INDEPENDENT_VERIFIER",
-      "blocking": true
+      "status": "PASS_EXACT_FOUR_CPU_PROBES_AND_THREE_COMPARISONS",
+      "blocking": false,
+      "receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
+      "receipt_sha256": "0ac6424a52d03ccfe4a32840462282cf937ac7d6642d4df59fc0f22beec1834f",
+      "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence"
     },
     "native": {
       "status": "PENDING",
       "blocking": true
     },
     "runner": {
-      "status": "NEEDS_REVIEWED_FIXES",
+      "status": "REPAIRED_LOCAL_SYNTHETIC_SUITE_PASS_HOST_PILOT_PENDING",
       "blocking": false,
       "blocks": "new run_job.py production pilot only; separate known-working launcher retains its own gates",
       "findings": [
@@ -47,7 +56,13 @@
         "measured evaluator JSON instead of config-derived metric claims",
         "causality/checkpoint/archive evidence before selection"
       ],
-      "real_scored_run_affected": false
+      "real_scored_run_affected": false,
+      "repair_branch": "fix/20260925-run-job-mechanical-correctness",
+      "repair_commit": "d7733fbae5d89d968ad2b6937e4b81defe309442",
+      "independent_local_suite_exit_code": 0,
+      "pilot_only": true,
+      "s0_bare_launch_supported": false,
+      "production_switch_authorized": false
     }
   },
   "hosts": {
@@ -60,12 +75,15 @@
       "neuron_device_holders": 0
     },
     "trn22": {
-      "status": "GATES_PENDING_CPU_VALIDATION_PREPARING",
+      "status": "RUNNING_G1_WARM_CALIBRATION_NO_TRAINING",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T20:16:29Z",
+      "last_observed_utc": "2026-09-24T20:53:19Z",
       "free_gib": 7.46,
+      "prelaunch_free_bytes": 8010055680,
+      "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+      "guard_pid": 2950407,
       "training_processes": 0,
-      "neuron_device_holders": 0
+      "neuron_device_holders": null
     }
   },
   "breakers": {
@@ -88,8 +106,8 @@
       "deletion_targets": []
     }
   ],
-  "last_event": "New controller brief persisted; disk packet disproves stale 3.89GB cleanup opportunity; no deletion performed; incremental migration and stricter selection adopted as policy.",
-  "updated_utc": "2026-09-24T20:38:00Z",
+  "last_event": "Four CPU/G2 probes and three exact comparisons archived PASS. Corrected historical compiler flags; G1 trn22 fresh warm 20M calibration started under proven guard. No new model score, deletion, or AWS action.",
+  "updated_utc": "2026-09-24T20:55:00Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
   "ideation_policy": {
@@ -115,7 +133,8 @@
     "source_breaker_reset": false
   },
   "validation_only": {
-    "cpu_g2": "Four baseline/S0 exact-argv synthetic CPU/gloo checks assigned to a separate Operator; fresh host preflight, retained shared device lock, scoped tmpfs, and contained stop/quiescence required.",
-    "native_or_scored_training_authorized": false
+    "cpu_g2": "PASS; four baseline/S0 exact-argv CPU/gloo probes, three identical comparisons, retrieved hashed receipts, no surviving processes or device holders.",
+    "native_or_scored_training_authorized": false,
+    "calibration_only_authorized": "fs-20260925-g1-public20m-calibration-trn22-r1"
   }
 }

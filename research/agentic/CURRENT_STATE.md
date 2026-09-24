@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 20:42 UTC
+Last reconciled: 2026-09-24 20:55 UTC
 
 ## Latest controller brief and live gate work
 
@@ -14,15 +14,19 @@ the historical 3.89 GB old-controller cleanup opportunity is gone; that director
 Both LR0.015 checkpoints remain intact. Human EBS expansion 200 -> 250 GiB per host is requested.
 No deletion, volume action or breaker reset was performed. Cold S0 and table runs remain blocked.
 
-trn22 started the contained CPU-only four-probe G2 batch
-`fs-20260925-v2-g2-baseline-s0-trn22-r1`, parent PID 2948470. This is not scored training.
-The first two individual receipts (35c9 and research-v2) PASS; full comparisons/S0 are pending.
+trn22 completed all four contained CPU/G2 probes and all three exact comparisons PASS.
+The compact, hash-verified evidence is committed at `50e346bf` under
+`research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/`.
+Fresh-process retained-checkpoint G1 calibration started at 20:53:19 UTC, guard PID 2950407,
+label `fs-20260925-g1-public20m-calibration-trn22-r1`; the corrected request preserves the
+historical compiler flags and warm cache paths. No new candidate is being trained in that job.
 trn21 remains idle/disk-blocked. Best confirmed public20M is unchanged: single 0.9918353324,
 two-run mean 0.9919537735. Ready full experiments remain zero until required gates are complete.
 
 The local legacy autoloop service is inactive and its watchdog timer active; do not claim an
-unattended research scheduler is running. The new runner's Implementer tests pass, but independent
-review and one-host pilot are pending. This does not block a separately verified legacy launch.
+unattended research scheduler is running. The repaired new runner at `d7733fba` passed a root-run
+synthetic suite, but one-host pilot and bare-S0 compatibility remain pending; production migration
+is not authorized. This does not block the separately prepared legacy warm A0 launch.
 
 ## Requested workflow v2 installed; runtime gates still pending
 

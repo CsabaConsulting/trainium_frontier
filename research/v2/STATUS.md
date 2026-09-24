@@ -1,6 +1,23 @@
 # Workflow installation and incremental launch status
 
-Status: **Phase 0 installed; independent review and all runtime gates pending.**
+Status: **CPU/G2 PASS; trn22 fresh 20M evaluator calibration running; first warm A0 prepared.**
+
+## Live update (2026-09-24 20:55 UTC)
+
+- All four CPU probes passed, with three exact comparisons, at `50e346bf`. Receipt:
+  `g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json`.
+- trn22 started retained-checkpoint calibration at 20:53:19 UTC, guard PID 2950407, label
+  `fs-20260925-g1-public20m-calibration-trn22-r1`. Corrected request SHA `2efe1b6404ab262e818ef607a4630e82d641800a03813bf0427c3ad82a4d35b6`
+  preserves the historical compiler flags and six existing warm cache directories. This is
+  evaluator verification, not a new trained candidate or win. Historical runtime was about 12 minutes.
+- Corrected warm A0 package `6f63f598` passed independent static/fingerprint checks; dispatch remains
+  conditional on G1 and complete live gates. It establishes a new c5c same-host control, not a win.
+- New-runner repair `d7733fb` passed the independent local synthetic safety suite. It is not merged
+  into production, not bare-S0-ready, and still needs a one-host pilot. The legacy launch stays separate.
+- trn21 remains blocked awaiting the human disk decision. No deletion, AWS action, breaker reset,
+  new adoption, or new BPB result occurred. Ready scored-job count is still zero pending G1.
+
+The live update above supersedes older pending-gate statements below.
 
 ## Latest human brief (25 September, 02:06 IST)
 
