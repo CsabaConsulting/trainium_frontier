@@ -7,6 +7,7 @@ only from exact hashed local files; it never reads an SSH key's contents.
 """
 
 import argparse
+from datetime import datetime, timedelta
 import hashlib
 import importlib
 import json
@@ -23,10 +24,34 @@ STAGE_REVIEW_SHA256 = "bf3c78a7db65ea7829386129969e7bb06cc700f11c2d4b2f251c448f0
 LAUNCHER_SHA256 = "06eefe82e04a810474614295228e1cef84923373e653a9c62f97f5dca3456b94"
 SYNC_SHA256 = "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c"
 HOST = "ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com"
+AUTH_KEYS = frozenset({
+    "decision", "pending_package_sha256", "stage_review_sha256",
+    "guard_package_verifier", "supervisor_authorized_at_utc",
+})
+VERIFIER_KEYS = frozenset({"path", "sha256"})
 
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def require_exact_authorization_shape(auth: dict) -> dict:
+    if set(auth) != AUTH_KEYS:
+        raise RuntimeError("authorization keys differ from the five-key one-label contract")
+    verifier = auth["guard_package_verifier"]
+    if not isinstance(verifier, dict) or set(verifier) != VERIFIER_KEYS:
+        raise RuntimeError("guard_package_verifier keys differ from the two-key contract")
+    stamp = auth["supervisor_authorized_at_utc"]
+    if (not isinstance(stamp, str) or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)", stamp)):
+        raise RuntimeError("Supervisor authorization timestamp is not UTC ISO-8601")
+    try:
+        parsed = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("Supervisor authorization timestamp is not UTC ISO-8601") from error
+    if parsed.utcoffset() != timedelta(0):
+        raise RuntimeError("Supervisor authorization timestamp is not UTC")
+    return verifier
 
 
 def main() -> None:
@@ -53,20 +78,18 @@ def main() -> None:
     auth = request.get("authorization")
     if request.get("launch_authorized") is not True or not isinstance(auth, dict):
         raise RuntimeError("separate one-label Supervisor authorization is missing")
+    verifier = require_exact_authorization_shape(auth)
     if (request.get("label") != LABEL or request.get("host") != "trn21"
             or auth.get("decision") != "AUTHORIZE_ONE_LABEL_G1_EVALUATOR"
             or auth.get("pending_package_sha256") != pending_sha
             or auth.get("stage_review_sha256") != STAGE_REVIEW_SHA256):
         raise RuntimeError("authorization does not bind this reviewed package and stage")
-    verifier = auth.get("guard_package_verifier", {})
     verifier_path = Path(verifier.get("path", ""))
     verifier_sha = verifier.get("sha256", "")
     if (not verifier_path.is_absolute() or not verifier_path.is_file()
             or not re.fullmatch(r"[0-9a-f]{64}", verifier_sha)
             or sha256(verifier_path) != verifier_sha):
         raise RuntimeError("independent guard-package Verifier receipt is absent or changed")
-    if not auth.get("supervisor_authorized_at_utc"):
-        raise RuntimeError("Supervisor authorization timestamp is absent")
     if request.get("source_stage_binding", {}).get("independent_stage_review_sha256") != STAGE_REVIEW_SHA256:
         raise RuntimeError("stage review binding changed")
     monitor_path = HERE / "guarded_eval.py"
