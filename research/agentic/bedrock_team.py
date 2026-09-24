@@ -34,7 +34,10 @@ DEFAULT_CONTEXT = [
     "research/agentic/CURRENT_STATE.md",
     "research/agentic/DECISION_LOG.md",
 ]
-MAX_FILE_BYTES = 250_000
+# The active train.py is about 430 KiB.  Allow one source file of that size so
+# read-only research panels can audit the real candidate rather than infer from
+# summaries; the aggregate context ceiling below remains the hard guardrail.
+MAX_FILE_BYTES = 500_000
 MAX_TOTAL_BYTES = 700_000
 
 
