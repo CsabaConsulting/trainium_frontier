@@ -1,0 +1,37 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+  ],
+  "classification": "RuntimeError in main:4031",
+  "error": "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:20666: Connection reset by peer",
+  "rank": 3,
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "status": "FAIL",
+  "torch": "2.11.0+cpu",
+  "traceback_tail": [
+    "Traceback (most recent call last):\n",
+    "  File \"/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+    "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4856, in <module>\n    main()\n",
+    "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4031, in main\n    dist.all_reduce(control, op=dist.ReduceOp.MAX)\n",
+    "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 83, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+    "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 3075, in all_reduce\n    work.wait()\n",
+    "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:20666: Connection reset by peer\n"
+  ],
+  "train_py_frame": {
+    "code": "dist.all_reduce(control, op=dist.ReduceOp.MAX)",
+    "function": "main",
+    "line": 4031
+  }
+}
