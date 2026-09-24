@@ -31,6 +31,9 @@ def verify_runtime(data,host,label,core,contract):
  if set(data)!=required|RUNTIME_ADDITIONS: raise SystemExit("runtime job schema mismatch")
  if data["host"]!=host or data["label"]!=label or data["expected_commit"]!=core or data["git_commit"]!=core: raise SystemExit("runtime job identity mismatch")
  if data["hostname"]!=ARMS[host]["hostname"] or data["expected_hostname"]!=ARMS[host]["hostname"] or data["source_dirty"] is not False: raise SystemExit("runtime host/dirty mismatch")
+ command=data["command"]
+ for flag,want in (("--arm",host),("--core-commit",core),("--request-contract-sha256",contract)):
+  if command.count(flag)!=1 or command[command.index(flag)+1]!=want: raise SystemExit("runtime argv binding mismatch")
  if request_contract(data)!=contract: raise SystemExit("runtime request contract mismatch")
  if set(data["fingerprint_paths"])!=set(data["expected_sha256"]) or not set(data["fingerprint_paths"])<=set(data["source_sha256"]): raise SystemExit("runtime fingerprint schema mismatch")
  for path in data["fingerprint_paths"]:
