@@ -1,6 +1,28 @@
 # Current state
 
-Last reconciled: 2026-09-24 20:27 UTC
+Last reconciled: 2026-09-24 20:42 UTC
+
+## Latest controller brief and live gate work
+
+The human's newest brief is summarized in `research/v2/CONTROLLER_BRIEF_2026-09-25.md`.
+It requires incremental migration using proven launches, not a whole-runner replacement;
+2M screens are permitted again but only fresh public20M/context1024 is a confirmed result.
+The stricter adoption mean delta `<= -0.0010` applies, with human acknowledgement.
+
+The verified disk packet is `research/v2/DISK_DECISION_PACKET_2026-09-25.md`:
+the historical 3.89 GB old-controller cleanup opportunity is gone; that directory is empty.
+Both LR0.015 checkpoints remain intact. Human EBS expansion 200 -> 250 GiB per host is requested.
+No deletion, volume action or breaker reset was performed. Cold S0 and table runs remain blocked.
+
+trn22 started the contained CPU-only four-probe G2 batch
+`fs-20260925-v2-g2-baseline-s0-trn22-r1`, parent PID 2948470. This is not scored training.
+The first two individual receipts (35c9 and research-v2) PASS; full comparisons/S0 are pending.
+trn21 remains idle/disk-blocked. Best confirmed public20M is unchanged: single 0.9918353324,
+two-run mean 0.9919537735. Ready full experiments remain zero until required gates are complete.
+
+The local legacy autoloop service is inactive and its watchdog timer active; do not claim an
+unattended research scheduler is running. The new runner's Implementer tests pass, but independent
+review and one-host pilot are pending. This does not block a separately verified legacy launch.
 
 ## Requested workflow v2 installed; runtime gates still pending
 
