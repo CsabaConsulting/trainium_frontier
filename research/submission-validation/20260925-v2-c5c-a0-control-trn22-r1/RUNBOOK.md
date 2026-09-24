@@ -1,0 +1,50 @@
+# Warm c5c A0 control — pending runbook
+
+This package prepares one warm trn22 A0 control. It does not authorize dispatch. The Operator must
+not use `request-template.json` directly: its non-hex `expected_commit`, empty hash map, pending
+state, and `dispatch_authorized=false` are intentional fail-closed sentinels.
+
+## Immutable science contract
+
+- Host: `trn22` / `ip-172-31-32-253`; seed 42, 1800 seconds, world 4, LNC2 are exact source/default
+  semantics. Do not add `--seed`, `--max-train-seconds`, or `--num-steps` to the G2-tested argv.
+- Root `train.py` SHA256: `c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586`.
+- `prepare.py` SHA256: `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb`.
+- Compiler flags: `--optlevel=1 --auto-cast matmult --auto-cast-type bf16`.
+- Warm caches only: `/tmp/neuron_cache` and `/tmp/neff_cache`. Never purge, replace, or redirect them;
+  `/var/neuron-cache/research` is out of scope.
+- Exact workload argv is the suffix after `train.py` in the request template.
+
+## Required order
+
+1. Obtain durable PASS receipts for retained-checkpoint G1 calibration and the exact four c5c G2
+   probes/comparisons. A missing or non-PASS receipt stops this package.
+2. An independent Verifier reviews this commit and produces a separate finalized request bound to
+   the reviewed core commit and the exact fingerprint map. The finalized request changes only the
+   four pending fields; it must not alter command, environment, label, paths, floors, or policies.
+3. Stage the reviewed core into the unique absent checkout
+   `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1`. Do not edit or reuse any
+   retained checkout. Verify clean HEAD, origin, all hashes, hostname, unique path/label absence,
+   idle device, quiescence, and the canonical device lock.
+4. Snapshot both warm caches by anchored path/device/inventory without modifying them. Require at
+   least `7,623,566,951` free bytes before dispatch: the legacy guard's exact 6.5-GiB floor plus a
+   conservative 0.6-GiB dense-output allowance. Refuse if the projection is unsafe.
+5. Dispatch the finalized request once through the unchanged generic `fresh_start_launch.py`. Its
+   child command is bounded at 3600 seconds; return code 124 is failure. No cleanup or deletion is
+   authorized.
+6. After quiescence, retrieve and hash the launch/job/process/log/postflight files, the chronological
+   step-boundary JSONL, and `out/.../final.pt`. The step log must be finite, strictly chronological,
+   within the declared run, and contain exactly one step 0 and one step 1. Their losses must equal
+   `9.0112` and `8.7822`; later warm/cold timing-dependent losses are not an equality gate.
+7. Seal a parsed checkpoint receipt (weights-only load, finite tensors, tensor count and exact
+   SHA/bytes), then run causality and a fresh public20M evaluation in separate later-authorized,
+   bounded guarded jobs. Public20M must be within absolute `0.0010` of `0.99195`; otherwise open a
+   breaker and alert the human.
+8. Archive all evidence before any verdict. Preserve the checkpoint, caches, checkout, and logs.
+   There is no prune, cache cleanup, cold run, deletion, submission, or leaderboard authority here.
+
+## Known boundary
+
+The generic launcher records runtime source hashes but does not compare `expected_sha256` itself.
+Therefore staging verification and post-retrieval manifest comparison are mandatory independent
+gates. This package deliberately does not add a new driver or modify the known working launcher.

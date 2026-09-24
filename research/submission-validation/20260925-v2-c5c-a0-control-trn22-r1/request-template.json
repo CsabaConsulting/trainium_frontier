@@ -1,0 +1,57 @@
+{
+  "schema": "fresh-start-request-v2",
+  "state": "PENDING_INDEPENDENT_VERIFICATION",
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1",
+  "expected_commit": "PENDING_VERIFIED_CORE_COMMIT",
+  "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+  "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+  "purpose": "Warm research-v2 c5c A0 numerical-equivalence control; full1800 seed42 by authenticated source defaults; preserve checkpoint.",
+  "min_free_bytes": 6979321856,
+  "pre_launch_required_free_bytes": 7623566951,
+  "fingerprint_paths": [
+    "train.py",
+    "prepare.py",
+    "research/run_experiment.py",
+    "research/fresh_start_launch.py",
+    "research/fresh_start_sync.py",
+    "research/fresh_start_guard.py",
+    "research/fresh_start_host.py",
+    "research/fresh_start_backup.py",
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/EXPERIMENT_PROPOSAL.json",
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/RUNBOOK.md",
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/test_static.py"
+  ],
+  "expected_sha256": {},
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "command": [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
+    "env", "-i",
+    "HOME=/home/ubuntu",
+    "PATH=/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH=/home/ubuntu/workspace/native_venv",
+    "PYTHONUNBUFFERED=1",
+    "NEURON_LOGICAL_NC_CONFIG=2",
+    "NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache",
+    "NEURON_COMPETITION_R1_OUT_DIR=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1/out/fs-20260925-v2-c5c-a0-control-trn22-r1",
+    "NEURON_COMPETITION_R1_STEP_LOG=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r1.steps.jsonl",
+    "TRAINIUM_FRESH_START_RUN_ID=fs-20260925-v2-c5c-a0-control-trn22-r1",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone", "--nproc_per_node=4", "train.py",
+    "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+    "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
+  ],
+  "runner_owns_manifest": false,
+  "non_overwrite": true,
+  "warm_cache_policy": {
+    "reuse_only": ["/tmp/neuron_cache", "/tmp/neff_cache"],
+    "cold_cache_authorized": false,
+    "cache_cleanup_authorized": false
+  },
+  "checkpoint_prune_authorized": false,
+  "dispatch_authorized": false
+}

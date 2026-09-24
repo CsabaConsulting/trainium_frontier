@@ -1,0 +1,91 @@
+{
+  "proposal_id": "20260925-v2-c5c-a0-control-trn22-r1",
+  "status": "human-approved-pending-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "The exact research-v2 c5c base is a numerically valid dense A0 control on trn22 when run warm with the standard Track-A argv.",
+  "single_causal_change": "None: this is the A0 control for the exact c5c research-v2 bytes and standard Track-A argv.",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.001, 0.001],
+  "candidate_shortlist": [
+    {
+      "idea": "Run the exact c5c research-v2 A0 control warm on trn22",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Required numerical-equivalence control before any research-v2 arm; reuses authenticated warm caches and the known legacy guard."
+    },
+    {
+      "idea": "S0 bare-launch control",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Deferred because the current human direction prohibits a cold run until disk is fixed."
+    },
+    {
+      "idea": "A1 table arm",
+      "mechanism_class": "capacity",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Blocked behind a passing A0 and independent authorization."
+    },
+    {
+      "idea": "Schedule retune",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Lower information value than establishing the new base control."
+    }
+  ],
+  "selection_rationale": "A0 is the cheapest decisive gate for the newly installed research-v2 base and keeps the known working launcher unchanged.",
+  "p_improve": 0.5,
+  "estimated_host_hours": 1.1,
+  "trainium_feasibility": "Exact c5c source, seed-42 and 1800-second source defaults, LNC2/world4, warm authenticated /tmp/neuron_cache and /tmp/neff_cache, and a 3600-second outer bound. No cold compile-cache creation or deletion is permitted.",
+  "cheapest_falsifier": "Reject if G1 calibration or G2 is not PASS, step 0/1 differ from 9.0112/8.7822, the checkpoint is missing/nonfinite, causality fails, or fresh public20M differs from 0.99195 by more than 0.0010.",
+  "prior_result_refs": [
+    "499f753ca554c5c732c35ab4eab7e96488d5e355: fs-20260924-v2-35c9-lr015-control-trn22-r1",
+    "68ecfeb168ddd095ed14f1908fee7c0284dbc97f: authenticated trn22 warm-cache/disk evidence",
+    "c025d216c2c07210449651099a982fe5656169fd: generic legacy fresh-start guard core"
+  ],
+  "evidence": [
+    "workflow/CODEX_PROMPT.md sections 5-6 at the canonical workflow installation",
+    "submissions/research_v2/train.py SHA256 c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare.py SHA256 5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "same-host historical losses: step 0=9.0112, step 1=8.7822"
+  ],
+  "duplicate_search_terms": ["research-v2 A0", "c5c control", "matrix-lr 0.015", "trn22 warm dense"],
+  "control": {
+    "git_commit": "499f753ca554c5c732c35ab4eab7e96488d5e355",
+    "run_label": "fs-20260924-v2-35c9-lr015-control-trn22-r1",
+    "public_val_bpb": 0.99195,
+    "steps": 3634,
+    "box_constraint": "trn22 only; use the same-host control solely for the exact step-0/1 and public20M equivalence gates"
+  },
+  "candidate": {
+    "branch": "experiment/20260925-v2-c5c-a0-control-trn22-r1",
+    "files_allowed": ["train.py"],
+    "expected_diff": "Root train.py is an exact byte copy of submissions/research_v2/train.py SHA256 c5c410af; prepare.py and the legacy launcher family are unchanged.",
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+    "launch_command": "The exact argv is frozen in request-template.json; no --seed, --max-train-seconds, --num-steps, or cold-cache flag is added."
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Exact logged step-0/1 losses 9.0112 and 8.7822; fresh public20M BPB within absolute 0.0010 of 0.99195.",
+    "throughput": "Informational only; warm/cold timing differences are not an equality or selection gate.",
+    "correctness": "G1 and G2 pass first; finite chronological step log; rc not 124; finite hashed model-only checkpoint; causality passes; fresh public20M completes within its separate bounded job."
+  },
+  "abort_conditions": [
+    "G1 retained-checkpoint calibration or exact c5c G2 is not independently PASS",
+    "The host is not trn22/ip-172-31-32-253, is not clean/idle, or the unique label/remote/output/log path already exists",
+    "Pre-launch free space is below 7.1 GiB or the legacy 6.5 GiB operational floor is crossed",
+    "Either warm cache is absent or changed by an unauthorized cleanup/cold-cache action",
+    "Timeout 124, crash, NaN/nonfinite value, missing checkpoint, causality failure, budget failure, or source/hash drift",
+    "Any attempt to prune/delete artifacts or caches without new human approval"
+  ],
+  "human_approved_by": "human direction dated 2026-09-25: warm dense first; no cold or deletion",
+  "verdict": null
+}
