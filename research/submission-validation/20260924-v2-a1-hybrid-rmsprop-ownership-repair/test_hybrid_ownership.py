@@ -387,6 +387,33 @@ class WorldOneEquivalence(unittest.TestCase):
             self.assertTrue(torch.equal(actual, expected))
             self.assertTrue(torch.equal(resumed, expected))
 
+    def test_checkpoint_rejects_param_group_kind_drift_before_mutation(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        payload = clone_value(adapter.state_dict())
+        expected_kinds = [group["kind"] for group in optimizer.param_groups]
+        for group_index, bad_kind in ((2, "sgd"), (2, "adamw"), (0, "rmsprop")):
+            with self.subTest(group=group_index, kind=bad_kind):
+                restored_parameters, restored = make_toy(self.initial)
+                restored_adapter = OwnedOptimizer(restored)
+                attacked = clone_value(payload)
+                attacked["optimizer"]["param_groups"][group_index]["kind"] = bad_kind
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    restored_adapter.load_state_dict(attacked)
+                self.assertEqual([group["kind"] for group in restored.param_groups], expected_kinds)
+
+    def test_post_plan_kind_drift_rejects_before_updates_or_collective(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        set_grads(parameters, 0)
+        before = [parameter.detach().clone() for parameter in parameters]
+        optimizer.param_groups[2]["kind"] = "sgd"
+        with self.assertRaisesRegex(ValueError, "kind changed after planning"):
+            adapter.step()
+        self.assertEqual(adapter.calls, 0)
+        for actual, expected in zip(parameters, before):
+            self.assertTrue(torch.equal(actual, expected))
+
 
 class FakeWorldFour(unittest.TestCase):
     def test_replicated_rmsprop_params_and_state_match_on_all_ranks(self):

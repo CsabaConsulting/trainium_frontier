@@ -1,0 +1,32 @@
+{
+  "reviewed_commit": "bf46f25c4b4fe267fc8e4922d9395e603bdc3835",
+  "reviewed_parent": "6cb04c550d497e09b2e0ffa530b5ec4488c229b4",
+  "role": "independent_verifier",
+  "status": "FAIL",
+  "summary": "The intended RMSProp replication and provided equivalence tests pass, but optimizer checkpoint/runtime group-kind identity is not fail-closed.",
+  "checks": {
+    "clean_detached_verifier_worktree": true,
+    "provided_tests_passed": 6,
+    "adversarial_tests_added": 2,
+    "expanded_suite_result": "6 passed; 4 expected failing subcases across the 2 adversarial tests",
+    "candidate_sha256": "3a89332327e4fd9b003b3b39495c8289ad9e06148beb62ec228699aadc032aaa",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "base_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "scope_confined_to_ownership_adapter": true,
+    "new_authorization_or_request_present": false
+  },
+  "blockers": [
+    {
+      "id": "B1",
+      "finding": "OwnedOptimizer.load_state_dict authenticates ownership entries and RMSProp metadata but not optimizer.param_groups kind identity. A payload that changes the replicated RMSProp group to sgd or adamw loads successfully and subsequent step silently skips the RMSProp parameter and state update.",
+      "required_correction": "Bind exact planned group kinds/indices in the checkpoint schema and reject mismatches before raw_load_state_dict mutates the optimizer. Preserve the live optimizer on rejection."
+    },
+    {
+      "id": "B2",
+      "finding": "OwnedOptimizer.step does not validate every live group kind against the plan before updates. Post-plan kind drift can be silently skipped for an empty owned group or fail only on owner ranks after earlier groups have already updated, creating rank-asymmetric collective risk.",
+      "required_correction": "Validate the complete group-kind/partition identity on every step before any parameter/state mutation or collective. Unknown or changed kinds must reject uniformly on every rank."
+    }
+  ],
+  "hardware_authorized": false,
+  "native_five_step_package_may_be_prepared": false
+}
