@@ -28,6 +28,17 @@ uses an O_EXCL inode, a complete EINTR-safe write loop, file and directory fsync
 JSON readback, and removes its own partial inode on failure. These changes are still pending fresh
 independent verification and do not unlock either later arm.
 
+Independent verifier commit `3fb4deb222152564d7bf5dc4028246edcfd30c7a` accepted the
+descriptor-bound input repair but found the result could still be overwritten through its writable
+descriptor, detached by a parent rename, redirected through an ancestor symlink, or left at the
+authorized name after hardlink drift. The r3 publication repair writes only a private O_EXCL 0600
+temporary inode under a pinned parent dirfd, closes the writable descriptor, repeatedly reopens and
+hashes exact bytes read-only, publishes with `renameat2(RENAME_NOREPLACE)`, fsyncs the pinned
+directory, revalidates every lexical ancestor from `/`, and performs final read-only inode/content
+seals. Failure cleanup removes only the created inode at the authorized temp/final names despite
+link/mode/size drift and unlinks substituted symlink names without following their targets. This
+local correction is also non-executable and pending independent verification.
+
 This Implementer correction is not self-verified. The non-executable request
 `g0-ownership-revalidation.pending.json` requires a fresh independent Verifier to reconstruct the
 manifest from the pinned source and flags, run the positive archive check and mutation suite, and

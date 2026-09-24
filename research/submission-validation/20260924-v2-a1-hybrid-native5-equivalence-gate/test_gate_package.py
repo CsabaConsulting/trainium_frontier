@@ -1193,6 +1193,10 @@ class ComparatorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "out.json"
             COMPARE._write_exclusive(output, {"status": "first"})
+            info = output.stat()
+            self.assertEqual(stat.S_IMODE(info.st_mode), 0o600)
+            self.assertEqual(info.st_nlink, 1)
+            self.assertEqual(list(output.parent.glob(".a1-comparator-*.tmp")), [])
             with self.assertRaises(FileExistsError):
                 COMPARE._write_exclusive(output, {"status": "overwrite"})
 
@@ -1200,26 +1204,37 @@ class ComparatorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "out.json"
             original_write = COMPARE.os.write
+            original_read = COMPARE.os.read
             original_fsync = COMPARE.os.fsync
-            calls = 0
+            write_calls = 0
+            read_calls = 0
             synced_types = []
 
             def interrupted_short(fd, data):
-                nonlocal calls
-                calls += 1
-                if calls == 1:
+                nonlocal write_calls
+                write_calls += 1
+                if write_calls == 1:
                     raise InterruptedError
                 return original_write(fd, bytes(data[:3]))
+
+            def interrupted_short_read(fd, size):
+                nonlocal read_calls
+                read_calls += 1
+                if read_calls == 1:
+                    raise InterruptedError
+                return original_read(fd, min(size, 3))
 
             def observed_fsync(fd):
                 synced_types.append(os.fstat(fd).st_mode)
                 return original_fsync(fd)
 
             with mock.patch.object(COMPARE.os, "write", side_effect=interrupted_short), \
+                    mock.patch.object(COMPARE.os, "read", side_effect=interrupted_short_read), \
                     mock.patch.object(COMPARE.os, "fsync", side_effect=observed_fsync):
                 COMPARE._write_exclusive(output, {"status": "PASS", "value": 7})
             self.assertEqual(json.loads(output.read_bytes()), {"status": "PASS", "value": 7})
-            self.assertGreater(calls, 2)
+            self.assertGreater(write_calls, 2)
+            self.assertGreater(read_calls, 2)
             self.assertTrue(any(stat.S_ISREG(mode) for mode in synced_types))
             self.assertTrue(any(stat.S_ISDIR(mode) for mode in synced_types))
 
@@ -1243,6 +1258,181 @@ class ComparatorTests(unittest.TestCase):
                     with self.assertRaises((COMPARE.InvalidGate, OSError)):
                         COMPARE._write_exclusive(output, {"status": "PASS"})
                 self.assertFalse(output.exists(), "partial success artifact survived")
+
+    def test_same_size_overwrite_after_each_temp_or_final_readback_is_rejected(self):
+        original_validate = COMPARE._read_validate_result
+        pass_bytes = b'{"status":"PASS"}\n'
+        fail_bytes = b'{"status":"FAIL"}\n'
+        self.assertEqual(len(pass_bytes), len(fail_bytes))
+        for stage in range(1, 5):
+            with self.subTest(stage=stage), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                output = root / "out.json"
+                temp_name = ".fixed-publication.tmp"
+                calls = 0
+
+                def mutate_after_readback(parent_fd, name, *args, **kwargs):
+                    nonlocal calls
+                    result = original_validate(parent_fd, name, *args, **kwargs)
+                    calls += 1
+                    if calls == stage:
+                        target = root / name
+                        self.assertEqual(target.read_bytes(), pass_bytes)
+                        target.write_bytes(fail_bytes)
+                    return result
+
+                with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                        mock.patch.object(COMPARE, "_read_validate_result",
+                                          side_effect=mutate_after_readback):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._write_exclusive(output, {"status": "PASS"})
+                self.assertFalse(output.exists())
+                self.assertFalse((root / temp_name).exists())
+
+    def test_parent_rename_during_directory_fsync_is_rejected_and_cleaned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            parent = root / "parent"
+            renamed = root / "renamed-parent"
+            parent.mkdir()
+            output = parent / "out.json"
+            original_fsync = COMPARE.os.fsync
+            moved = False
+
+            def rename_parent(fd):
+                nonlocal moved
+                if stat.S_ISDIR(os.fstat(fd).st_mode) and not moved:
+                    moved = True
+                    parent.rename(renamed)
+                return original_fsync(fd)
+
+            with mock.patch.object(COMPARE.os, "fsync", side_effect=rename_parent):
+                with self.assertRaises((COMPARE.InvalidGate, FileNotFoundError)):
+                    COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertTrue(moved)
+            self.assertFalse(output.exists())
+            self.assertFalse((renamed / "out.json").exists())
+
+    def test_output_ancestor_symlink_redirect_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            outside = root / "outside"
+            outside_parent = outside / "parent"
+            outside_parent.mkdir(parents=True)
+            alias = root / "alias"
+            alias.symlink_to(outside, target_is_directory=True)
+            output = alias / "parent" / "out.json"
+            with self.assertRaises(OSError):
+                COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertFalse((outside_parent / "out.json").exists())
+
+    def test_hardlink_injection_before_validation_cannot_leave_authorized_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "out.json"
+            temp_name = ".fixed-publication.tmp"
+            original_validate = COMPARE._read_validate_result
+            injected = False
+
+            def inject_final(parent_fd, name, *args, **kwargs):
+                nonlocal injected
+                if not injected:
+                    injected = True
+                    os.link(temp_name, output.name, src_dir_fd=parent_fd,
+                            dst_dir_fd=parent_fd, follow_symlinks=False)
+                return original_validate(parent_fd, name, *args, **kwargs)
+
+            with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                    mock.patch.object(COMPARE, "_read_validate_result", side_effect=inject_final):
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertTrue(injected)
+            self.assertFalse(output.exists())
+            self.assertFalse((root / temp_name).exists())
+
+    def test_cleanup_removes_created_inode_despite_mode_or_size_drift(self):
+        for attack in ("chmod", "truncate", "append"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                output = root / "out.json"
+                temp_name = ".fixed-publication.tmp"
+                original_validate = COMPARE._read_validate_result
+                attacked = False
+
+                def mutate_before_validation(parent_fd, name, *args, **kwargs):
+                    nonlocal attacked
+                    if not attacked:
+                        attacked = True
+                        target = root / name
+                        if attack == "chmod":
+                            target.chmod(0o400)
+                        elif attack == "truncate":
+                            target.write_bytes(b"x")
+                        else:
+                            with target.open("ab") as handle:
+                                handle.write(b"attacker")
+                    return original_validate(parent_fd, name, *args, **kwargs)
+
+                with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                        mock.patch.object(COMPARE, "_read_validate_result",
+                                          side_effect=mutate_before_validation):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._write_exclusive(output, {"status": "PASS"})
+                self.assertTrue(attacked)
+                self.assertFalse(output.exists())
+                self.assertFalse((root / temp_name).exists())
+
+    def test_hardlink_injection_during_cleanup_is_removed_only_at_authorized_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "out.json"
+            temp_name = ".fixed-publication.tmp"
+            external = root / "external-hardlink"
+            original_unlink = COMPARE.os.unlink
+            injected = False
+
+            def fail_after_external_link(parent_fd, name, *args, **kwargs):
+                os.link(temp_name, external.name, src_dir_fd=parent_fd,
+                        dst_dir_fd=parent_fd, follow_symlinks=False)
+                raise COMPARE.InvalidGate("deterministic publication failure")
+
+            def inject_during_cleanup(name, *args, **kwargs):
+                nonlocal injected
+                result = original_unlink(name, *args, **kwargs)
+                if name == temp_name and not injected:
+                    injected = True
+                    os.link(external, output)
+                return result
+
+            with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                    mock.patch.object(COMPARE, "_read_validate_result",
+                                      side_effect=fail_after_external_link), \
+                    mock.patch.object(COMPARE.os, "unlink", side_effect=inject_during_cleanup):
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertTrue(injected)
+            self.assertFalse(output.exists())
+            self.assertFalse((root / temp_name).exists())
+            self.assertTrue(external.exists(), "cleanup chased an external hardlink")
+
+    def test_final_path_symlink_substitution_is_rejected_without_chasing_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "out.json"
+            displaced = root / "displaced-created-inode"
+            original_rename = COMPARE._rename_noreplace
+
+            def substitute(parent_fd, source, destination):
+                original_rename(parent_fd, source, destination)
+                output.rename(displaced)
+                output.symlink_to(displaced)
+
+            with mock.patch.object(COMPARE, "_rename_noreplace", side_effect=substitute):
+                with self.assertRaises((COMPARE.InvalidGate, OSError)):
+                    COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertFalse(output.exists())
+            self.assertTrue(displaced.exists(), "cleanup chased the displaced target")
+            self.assertEqual(json.loads(displaced.read_bytes()), {"status": "PASS"})
 
 
 class ObserverAndCheckpointTests(unittest.TestCase):

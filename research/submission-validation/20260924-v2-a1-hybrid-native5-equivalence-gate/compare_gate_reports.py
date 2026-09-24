@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
+import errno
 import hashlib
 import json
 import math
 import os
 from pathlib import Path
 import re
+import secrets
 import stat
 from typing import Any
 
@@ -802,68 +805,229 @@ def _write_all(fd: int, data: bytes) -> None:
         written += count
 
 
-def _stable_file_identity(info: os.stat_result) -> tuple[int, ...]:
-    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
-            info.st_uid, info.st_gid)
+def _file_inode(info: os.stat_result) -> tuple[int, int]:
+    return (info.st_dev, info.st_ino)
+
+
+def _absolute_output(path: Path) -> Path:
+    raw = Path(path)
+    if any(part == ".." for part in raw.parts):
+        raise InvalidGate("output path contains a lexical parent escape")
+    absolute = Path(os.path.abspath(os.fspath(raw)))
+    if absolute.name in ("", ".", "..") or absolute.parent == absolute:
+        raise InvalidGate("output path has no safe final component")
+    return absolute
+
+
+def _open_output_directory_chain(path: Path) -> tuple[list[int], list[str], list[tuple[int, ...]]]:
+    """Open every lexical ancestor from / through the output parent without following links."""
+    absolute = _absolute_output(path)
+    names = list(absolute.parent.parts[1:])
+    fds: list[int] = []
+    identities: list[tuple[int, ...]] = []
+    try:
+        root_fd = os.open("/", _required_open_flags(directory=True))
+        fds.append(root_fd)
+        root_info = os.fstat(root_fd)
+        if not stat.S_ISDIR(root_info.st_mode):
+            raise InvalidGate("filesystem root is not a directory")
+        identities.append(_directory_identity(root_info))
+        if _directory_identity(os.lstat("/")) != identities[0]:
+            raise InvalidGate("filesystem root identity changed")
+        for component in names:
+            child_fd = os.open(component, _required_open_flags(directory=True), dir_fd=fds[-1])
+            fds.append(child_fd)
+            child_info = os.fstat(child_fd)
+            if not stat.S_ISDIR(child_info.st_mode):
+                raise InvalidGate(f"output ancestor is not a directory: {component}")
+            named = os.stat(component, dir_fd=fds[-2], follow_symlinks=False)
+            identity = _directory_identity(child_info)
+            if _directory_identity(named) != identity:
+                raise InvalidGate(f"output ancestor changed during open: {component}")
+            identities.append(identity)
+        _validate_directory(os.fstat(fds[-1]), os.fspath(absolute.parent))
+        return fds, names, identities
+    except Exception:
+        for fd in reversed(fds):
+            os.close(fd)
+        raise
+
+
+def _revalidate_output_directory_chain(fds: list[int], names: list[str],
+                                       identities: list[tuple[int, ...]]) -> None:
+    if len(fds) != len(identities) or len(fds) != len(names) + 1:
+        raise InvalidGate("output directory-chain cardinality changed")
+    if (_directory_identity(os.fstat(fds[0])) != identities[0]
+            or _directory_identity(os.lstat("/")) != identities[0]):
+        raise InvalidGate("filesystem root binding changed")
+    for index, component in enumerate(names, start=1):
+        child = os.fstat(fds[index])
+        named = os.stat(component, dir_fd=fds[index - 1], follow_symlinks=False)
+        if (_directory_identity(child) != identities[index]
+                or _directory_identity(named) != identities[index]):
+            raise InvalidGate(f"output lexical ancestor binding changed: {component}")
+
+
+def _assert_final_absent(parent_fd: int, final_name: str) -> None:
+    try:
+        os.stat(final_name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    raise FileExistsError(errno.EEXIST, "exclusive output already exists", final_name)
+
+
+def _private_temp_name() -> str:
+    return f".a1-comparator-{os.getpid()}-{secrets.token_hex(16)}.tmp"
+
+
+def _validate_result_info(info: os.stat_result, expected_inode: tuple[int, int],
+                          expected_size: int, label: str) -> None:
+    if (not stat.S_ISREG(info.st_mode) or _file_inode(info) != expected_inode
+            or info.st_nlink != 1 or info.st_uid != os.getuid()
+            or info.st_gid != os.getgid() or stat.S_IMODE(info.st_mode) != 0o600
+            or info.st_size != expected_size):
+        raise InvalidGate(f"unsafe {label} result identity")
+
+
+def _read_validate_result(parent_fd: int, name: str, expected_inode: tuple[int, int],
+                          expected_data: bytes, expected_digest: str,
+                          payload: dict[str, Any], label: str) -> tuple[int, ...]:
+    fd = os.open(name, _required_open_flags(), dir_fd=parent_fd)
+    try:
+        before = os.fstat(fd)
+        _validate_result_info(before, expected_inode, len(expected_data), label)
+        named_before = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if _identity(named_before) != _identity(before):
+            raise InvalidGate(f"{label} result name/inode changed before read")
+        data = _read_exact_fd(fd, before.st_size)
+        digest = _sha256_bytes(data)
+        parsed = json.loads(data)
+        after = os.fstat(fd)
+        named_after = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if (_identity(after) != _identity(before)
+                or _identity(named_after) != _identity(before)):
+            raise InvalidGate(f"{label} result changed during readback")
+        if data != expected_data or digest != expected_digest or parsed != payload:
+            raise InvalidGate(f"{label} result content mismatch")
+        return _identity(before)
+    finally:
+        os.close(fd)
+
+
+def _rename_noreplace(parent_fd: int, source: str, destination: str) -> None:
+    libc = ctypes.CDLL(None, use_errno=True)
+    renameat2 = getattr(libc, "renameat2", None)
+    if renameat2 is None:
+        raise InvalidGate("platform lacks renameat2 no-replace publication")
+    renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p,
+                          ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameat2.restype = ctypes.c_int
+    result = renameat2(parent_fd, os.fsencode(source), parent_fd,
+                       os.fsencode(destination), 1)  # RENAME_NOREPLACE
+    if result != 0:
+        value = ctypes.get_errno()
+        raise OSError(value, os.strerror(value), destination)
+
+
+def _cleanup_result_entries(parent_fd: int, names: tuple[str, str],
+                            created_inode: tuple[int, int]) -> None:
+    # Remove only names that still designate the inode created here.  Link-count,
+    # size, mode and timestamp drift must not prevent removal.  A substituted
+    # symlink at an authorized name is unlinked without following it; unrelated
+    # regular files and external link targets are never chased or deleted.
+    for _ in range(4):
+        for name in names:
+            try:
+                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                continue
+            if (stat.S_ISREG(info.st_mode) and _file_inode(info) == created_inode
+                    or stat.S_ISLNK(info.st_mode)):
+                try:
+                    os.unlink(name, dir_fd=parent_fd)
+                except FileNotFoundError:
+                    pass
+        os.fsync(parent_fd)
+        remaining = []
+        for name in names:
+            try:
+                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                continue
+            if (stat.S_ISREG(info.st_mode) and _file_inode(info) == created_inode
+                    or stat.S_ISLNK(info.st_mode)):
+                remaining.append(name)
+        if not remaining:
+            return
+    raise InvalidGate("could not remove created result inode from authorized names")
 
 
 def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.name in ("", ".", "..") or path.parent / path.name != path:
-        raise InvalidGate("output path is not a direct child")
-    parent_fd = os.open(path.parent, _required_open_flags(directory=True))
-    fd = -1
-    created: tuple[int, ...] | None = None
+    absolute = _absolute_output(path)
+    data = json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                      allow_nan=False).encode() + b"\n"
+    digest = _sha256_bytes(data)
+    fds, names, identities = _open_output_directory_chain(absolute)
+    parent_fd = fds[-1]
+    temp_name = _private_temp_name()
+    final_name = absolute.name
+    write_fd = -1
+    created_inode: tuple[int, int] | None = None
     try:
-        parent_info = os.fstat(parent_fd)
-        _validate_directory(parent_info, os.fspath(path.parent))
-        if _directory_identity(os.lstat(path.parent)) != _directory_identity(parent_info):
-            raise InvalidGate("output parent identity changed during open")
-        flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
-        fd = os.open(path.name, flags, 0o600, dir_fd=parent_fd)
-        before = os.fstat(fd)
-        created = _stable_file_identity(before)
-        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
-                or before.st_uid != os.getuid()
-                or before.st_gid != os.getgid()
-                or stat.S_IMODE(before.st_mode) != 0o600 or before.st_size != 0):
-            raise InvalidGate("unsafe newly created result file")
-        data = json.dumps(payload, sort_keys=True, separators=(",", ":"),
-                          allow_nan=False).encode() + b"\n"
-        _write_all(fd, data)
-        os.fsync(fd)
-        after = os.fstat(fd)
-        if (_stable_file_identity(after) != created or after.st_size != len(data)):
-            raise InvalidGate("result file identity/size changed during write")
-        named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
-        if (_stable_file_identity(named) != created or named.st_size != len(data)):
-            raise InvalidGate("result path changed during write")
-        os.lseek(fd, 0, os.SEEK_SET)
-        readback = _read_exact_fd(fd, len(data))
-        if readback != data or json.loads(readback) != payload:
-            raise InvalidGate("result readback mismatch")
-        if _directory_identity(os.lstat(path.parent)) != _directory_identity(parent_info):
-            raise InvalidGate("output parent identity changed during write")
+        _revalidate_output_directory_chain(fds, names, identities)
+        _assert_final_absent(parent_fd, final_name)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
+        write_fd = os.open(temp_name, flags, 0o600, dir_fd=parent_fd)
+        initial = os.fstat(write_fd)
+        created_inode = _file_inode(initial)
+        _validate_result_info(initial, created_inode, 0, "new temporary")
+        named_initial = os.stat(temp_name, dir_fd=parent_fd, follow_symlinks=False)
+        if _identity(named_initial) != _identity(initial):
+            raise InvalidGate("temporary result name/inode changed after create")
+        _write_all(write_fd, data)
+        os.fsync(write_fd)
+        written = os.fstat(write_fd)
+        _validate_result_info(written, created_inode, len(data), "written temporary")
+        os.close(write_fd)
+        write_fd = -1
+
+        _read_validate_result(parent_fd, temp_name, created_inode, data, digest,
+                              payload, "temporary")
+        _revalidate_output_directory_chain(fds, names, identities)
+        _assert_final_absent(parent_fd, final_name)
+        # The last temp seal is adjacent to the atomic no-replace publication.
+        _read_validate_result(parent_fd, temp_name, created_inode, data, digest,
+                              payload, "pre-publication temporary")
+        _rename_noreplace(parent_fd, temp_name, final_name)
         os.fsync(parent_fd)
-        named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
-        if (_stable_file_identity(named) != created or named.st_size != len(data)):
-            raise InvalidGate("result path changed before durable return")
-    except Exception:
-        if created is not None:
+        _revalidate_output_directory_chain(fds, names, identities)
+
+        _read_validate_result(parent_fd, final_name, created_inode, data, digest,
+                              payload, "published")
+        _revalidate_output_directory_chain(fds, names, identities)
+        # Close/reopen the final file for the last content seal.  No writable file
+        # descriptor has survived publication.
+        final_identity = _read_validate_result(
+            parent_fd, final_name, created_inode, data, digest, payload, "final")
+        named_final = os.stat(final_name, dir_fd=parent_fd, follow_symlinks=False)
+        if _identity(named_final) != final_identity:
+            raise InvalidGate("final result binding changed after final reopen")
+        _revalidate_output_directory_chain(fds, names, identities)
+    except Exception as original:
+        if write_fd >= 0:
+            os.close(write_fd)
+            write_fd = -1
+        if created_inode is not None:
             try:
-                named = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
-                if _stable_file_identity(named) == created:
-                    os.unlink(path.name, dir_fd=parent_fd)
-                    os.fsync(parent_fd)
-            except FileNotFoundError:
-                pass
-            except OSError:
-                pass
+                _cleanup_result_entries(parent_fd, (temp_name, final_name), created_inode)
+            except Exception as cleanup:
+                raise InvalidGate(f"result publication and cleanup failed: {original}; {cleanup}") from cleanup
         raise
     finally:
-        if fd >= 0:
+        if write_fd >= 0:
+            os.close(write_fd)
+        for fd in reversed(fds):
             os.close(fd)
-        os.close(parent_fd)
 
 
 def main() -> int:

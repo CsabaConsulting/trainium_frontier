@@ -10,14 +10,16 @@
   "evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
   "failed_verifier_commit": "01d3cc04b3d55ed4d453fc1aff0e0eddad581682",
   "io_failed_verifier_commit": "0f64bb06b7d1e9a8afd572b3c72c92acb8a360ee",
+  "publication_failed_verifier_commit": "3fb4deb222152564d7bf5dc4028246edcfd30c7a",
   "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
   "implementation_head": "PENDING_INDEPENDENT_VERIFIER",
   "pins": {
     "analysis_sha256": "f8f8e068cf841bdd9673cf254bbeece02a47840993f98f82b36632cc8e1b14da",
     "failed_verifier_receipt_sha256": "11269947fe9be583671bd5b261d2b79dd651ec264b34a60d64522a7d80f8dcbb",
     "io_failed_verifier_receipt_sha256": "2e87b096bcfc53a4e363211705c146579169424f63173d416d7de5e6171c6814",
+    "publication_failed_verifier_receipt_sha256": "07ef740e0e074eba888db986f7f85cd77618f93d0807d30f169bedfd127fd6e0",
     "ownership_manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
-    "comparator_sha256": "35d1035d64af22a3ddcdeb94ef4dfe4179ca7f218feb3cb7951070ca20300623",
+    "comparator_sha256": "7f9826922b9f89326ba28839db66c06e4d66d72418e63dfbc3e603440030e235",
     "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
@@ -48,7 +50,12 @@
     "post_hash_parse_inode_and_parent_revalidation": true,
     "regular_single_link_owner_mode_size_constraints": true,
     "result_write_all_fsync_readback_and_directory_fsync": true,
-    "partial_success_artifact_forbidden": true
+    "partial_success_artifact_forbidden": true,
+    "atomic_private_temp_rename_noreplace": true,
+    "writable_descriptor_closed_before_publication": true,
+    "full_lexical_ancestor_dirfd_binding": true,
+    "final_readonly_reopen_hash_parse_and_inode_seal": true,
+    "inode_bound_failure_cleanup": true
   },
   "command_template": [
     "python",
@@ -58,5 +65,5 @@
     "--output",
     "PENDING_INDEPENDENT_VERIFIER_O_EXCL_OUTPUT"
   ],
-  "required_verdict": "A fresh independent verifier must review source-derived manifest identity and descriptor-bound I/O, run all mutation/race/short-write tests, and issue a superseding G0 evidence receipt. This request is not authority."
+  "required_verdict": "A fresh independent verifier must review source-derived manifest identity, descriptor-bound input I/O and atomic result publication, run all mutation/race/short-write tests, and issue a superseding G0 evidence receipt. This request is not authority."
 }
