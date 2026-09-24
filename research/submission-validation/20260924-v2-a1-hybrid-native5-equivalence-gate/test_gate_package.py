@@ -80,10 +80,13 @@ def collective(mode: str) -> dict:
         sequence.append({"index": len(sequence), "op": "all_reduce", "reduce_op": "AVG",
                          "shape": [1], "dtype": "torch.float32", "numel": 1})
         if mode == "hybrid":
+            stride = COMPARE.OWNERSHIP_SHARD_ELEMENTS
             sequence.append({"index": len(sequence), "op": "all_gather_into_tensor",
-                             "output_shape": [4], "input_shape": [1],
+                             "output_shape": [4 * stride], "input_shape": [stride],
                              "output_dtype": "torch.float32", "input_dtype": "torch.float32",
-                             "output_numel": 4, "input_numel": 1})
+                             "output_numel": 4 * stride, "input_numel": stride})
+        sequence.append({"index": len(sequence), "op": "all_reduce", "reduce_op": "MAX",
+                         "shape": [2], "dtype": "torch.int32", "numel": 2})
     raw = json.dumps(sequence, sort_keys=True, separators=(",", ":")).encode()
     return {"kind": "collectives", "count": len(sequence), "sequence": sequence,
             "sequence_sha256": hashlib.sha256(raw).hexdigest()}
@@ -102,9 +105,24 @@ def arm_records(arm: str, rank: int) -> list[dict]:
               {"index": 1, "kind": "muon", "parameter_names": [f"muon.{rank}"]},
               {"index": 2, "kind": "rmsprop",
                "parameter_names": sorted(COMPARE.TABLES)}]
+    counts = [27_265_796, 30_414_851, 30_412_805, 29_360_128]
+    entries = [{"index": index, "group": index, "position": 0,
+                "kind": "adamw" if index == 0 else "muon", "shape": [elements],
+                "elements": elements, "estimated_ms": float(index + 1),
+                "owner": index, "offset": 0}
+               for index, elements in enumerate(counts)]
+    replicated = [{"group": 2, "parameters": [
+        {"position": position, "shape": [524_288, 128], "elements": 67_108_864,
+         "dtype": "torch.bfloat16", "contiguous": True, "requires_grad": True,
+         "device_type": "privateuseone", "device_index": rank}
+        for position in range(2)]}]
     ownership = None if mode == "ordinary" else {
-        "entries": [{"kind": "adamw"}, {"kind": "muon"}],
-        "summary": {"replicated_rmsprop_groups": [{"group": 2}]},
+        "entries": entries,
+        "summary": {"elements_by_owner": counts,
+                    "estimated_ms_by_owner": [1.0, 2.0, 3.0, 4.0],
+                    "shard_elements": COMPARE.OWNERSHIP_SHARD_ELEMENTS,
+                    "total_padded_bytes": COMPARE.OWNERSHIP_SHARD_ELEMENTS * 4 * 4,
+                    "replicated_rmsprop_groups": replicated},
         "replicated_rmsprop_groups": [2],
     }
     records.append({"kind": "inventory", "groups": groups, "ownership": ownership,
@@ -281,6 +299,54 @@ class ComparatorTests(unittest.TestCase):
             paths = write_fixture(Path(tmp), mutate)
             with self.assertRaises(COMPARE.InvalidGate):
                 COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
+
+    def test_owner_all_gather_mutations_are_invalid(self):
+        def reseal(record):
+            for index, item in enumerate(record["sequence"]):
+                item["index"] = index
+            record["count"] = len(record["sequence"])
+            raw = json.dumps(record["sequence"], sort_keys=True,
+                             separators=(",", ":")).encode()
+            record["sequence_sha256"] = hashlib.sha256(raw).hexdigest()
+
+        def mutation(case):
+            def mutate(records):
+                for arm in ("G0", "G1"):
+                    for rank_records in records[arm]:
+                        record = next(r for r in rank_records if r["kind"] == "collectives")
+                        sequence = record["sequence"]
+                        gathers = [i for i, item in enumerate(sequence)
+                                   if item["op"] == "all_gather_into_tensor"]
+                        if case in ("stride", "inventory_extra"):
+                            inventory = next(r for r in rank_records if r["kind"] == "inventory")
+                            if case == "stride":
+                                inventory["ownership"]["summary"]["shard_elements"] += 128
+                            else:
+                                inventory["ownership"]["summary"]["unexpected"] = True
+                        elif case == "missing":
+                            sequence.pop(gathers[2])
+                        elif case == "extra":
+                            sequence.insert(gathers[2], copy.deepcopy(sequence[gathers[2]]))
+                        elif case == "order":
+                            item = sequence.pop(gathers[2])
+                            sequence.insert(gathers[2] - 1, item)
+                        else:
+                            item = sequence[gathers[2]]
+                            if case == "shape":
+                                item["input_shape"] = [COMPARE.OWNERSHIP_SHARD_ELEMENTS - 1]
+                            elif case == "dtype":
+                                item["input_dtype"] = "torch.bfloat16"
+                            elif case == "numel":
+                                item["output_numel"] -= 1
+                        reseal(record)
+            return mutate
+
+        for case in ("missing", "extra", "order", "shape", "dtype", "numel",
+                     "stride", "inventory_extra"):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
+                paths = write_fixture(Path(tmp), mutation(case))
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
 
     def test_output_is_exclusive(self):
         with tempfile.TemporaryDirectory() as tmp:

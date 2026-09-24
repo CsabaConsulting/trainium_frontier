@@ -24,6 +24,11 @@ LABELS = {
     "G1": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
     "G2": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
 }
+WORLD_SIZE = 4
+EXPECTED_STEPS = 5
+# Exact 35c9 dense ownership plan.  Replicated RMSProp tables are excluded from
+# this plan, so A1 must retain the already-frozen dense exchange stride.
+OWNERSHIP_SHARD_ELEMENTS = 30_414_976
 
 
 class InvalidGate(ValueError):
@@ -199,15 +204,124 @@ def _owned_union(ranks: list[list[dict[str, Any]]], update_index: int) -> list[d
     return sorted(by_name.values(), key=lambda item: item["name"])
 
 
-def _without_owner_exchange(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int) -> int:
+    inventory = _by(records, "inventory")[0]
+    if set(inventory) != {"kind", "groups", "ownership", "model_state"}:
+        raise InvalidGate(f"{arm} rank {rank}: ownership inventory schema mismatch")
+    ownership = inventory["ownership"]
+    if not isinstance(ownership, dict) or set(ownership) != {
+            "entries", "summary", "replicated_rmsprop_groups"}:
+        raise InvalidGate(f"{arm} rank {rank}: ownership record schema mismatch")
+    entries, summary = ownership["entries"], ownership["summary"]
+    if not isinstance(entries, list) or not isinstance(summary, dict) or set(summary) != {
+            "elements_by_owner", "estimated_ms_by_owner", "shard_elements",
+            "total_padded_bytes", "replicated_rmsprop_groups"}:
+        raise InvalidGate(f"{arm} rank {rank}: ownership summary schema mismatch")
+    stride = summary["shard_elements"]
+    counts, costs = summary["elements_by_owner"], summary["estimated_ms_by_owner"]
+    if (type(stride) is not int or stride != OWNERSHIP_SHARD_ELEMENTS
+            or type(counts) is not list or len(counts) != WORLD_SIZE
+            or any(type(value) is not int or value < 0 or value > stride for value in counts)
+            or stride != ((max(counts) + 127) // 128) * 128
+            or type(costs) is not list or len(costs) != WORLD_SIZE
+            or any(type(value) is not float or not math.isfinite(value) or value < 0 for value in costs)
+            or summary["total_padded_bytes"] != stride * WORLD_SIZE * 4):
+        raise InvalidGate(f"{arm} rank {rank}: frozen ownership summary mismatch")
+    entry_keys = {"index", "group", "position", "kind", "shape", "elements",
+                  "estimated_ms", "owner", "offset"}
+    calculated_counts = [0] * WORLD_SIZE
+    intervals = [[] for _ in range(WORLD_SIZE)]
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict) or set(entry) != entry_keys:
+            raise InvalidGate(f"{arm} rank {rank}: ownership entry schema mismatch")
+        shape = entry["shape"]
+        if (entry["index"] != index or type(entry["group"]) is not int
+                or entry["group"] < 0 or type(entry["position"]) is not int
+                or entry["position"] < 0 or entry["kind"] not in ("adamw", "muon")
+                or type(shape) is not list or not shape
+                or any(type(value) is not int or value < 1 for value in shape)
+                or type(entry["elements"]) is not int
+                or entry["elements"] != math.prod(shape)
+                or type(entry["estimated_ms"]) is not float
+                or not math.isfinite(entry["estimated_ms"]) or entry["estimated_ms"] < 0
+                or type(entry["owner"]) is not int or entry["owner"] not in range(WORLD_SIZE)
+                or type(entry["offset"]) is not int or entry["offset"] < 0
+                or entry["offset"] + entry["elements"] > stride):
+            raise InvalidGate(f"{arm} rank {rank}: malformed ownership entry")
+        calculated_counts[entry["owner"]] += entry["elements"]
+        intervals[entry["owner"]].append((entry["offset"], entry["offset"] + entry["elements"]))
+    if calculated_counts != counts or any(
+            any(left[1] > right[0] for left, right in zip(sorted(owner_intervals),
+                                                           sorted(owner_intervals)[1:]))
+            for owner_intervals in intervals):
+        raise InvalidGate(f"{arm} rank {rank}: ownership coverage mismatch")
+    replicated = summary["replicated_rmsprop_groups"]
+    parameter_keys = {"position", "shape", "elements", "dtype", "contiguous",
+                      "requires_grad", "device_type", "device_index"}
+    if (not isinstance(replicated, list) or len(replicated) != 1
+            or not isinstance(replicated[0], dict)
+            or set(replicated[0]) != {"group", "parameters"}
+            or type(replicated[0]["group"]) is not int
+            or not isinstance(replicated[0]["parameters"], list)
+            or len(replicated[0]["parameters"]) != len(TABLES)
+            or ownership["replicated_rmsprop_groups"] != [replicated[0]["group"]]):
+        raise InvalidGate(f"{arm} rank {rank}: replicated RMS ownership mismatch")
+    for position, parameter in enumerate(replicated[0]["parameters"]):
+        if (not isinstance(parameter, dict) or set(parameter) != parameter_keys
+                or parameter["position"] != position
+                or parameter["shape"] != [524_288, 128]
+                or parameter["elements"] != 67_108_864
+                or parameter["dtype"] != "torch.bfloat16"
+                or parameter["contiguous"] is not True
+                or parameter["requires_grad"] is not True
+                or type(parameter["device_type"]) is not str
+                or (parameter["device_index"] is not None
+                    and type(parameter["device_index"]) is not int)):
+            raise InvalidGate(f"{arm} rank {rank}: replicated RMS parameter schema mismatch")
+    return stride
+
+
+def _validated_without_owner_exchange(records: list[dict[str, Any]], ordinary: list[dict[str, Any]],
+                                      arm: str, rank: int) -> list[dict[str, Any]]:
+    stride = _ownership_shard_elements(records, arm, rank)
     sequence = _by(records, "collectives")[0]["sequence"]
+    if any(item.get("op") == "all_gather_into_tensor" for item in ordinary):
+        raise InvalidGate("ordinary collective sequence contains an owner exchange")
+    if len(ordinary) % EXPECTED_STEPS:
+        raise InvalidGate("ordinary collective sequence cannot be partitioned into five updates")
+    shared_per_step = len(ordinary) // EXPECTED_STEPS
+    if shared_per_step < 2:
+        raise InvalidGate("ordinary collective sequence is missing per-step work")
+    for step in range(EXPECTED_STEPS):
+        control = ordinary[(step + 1) * shared_per_step - 1]
+        if (set(control) != {"index", "op", "reduce_op", "shape", "dtype", "numel"}
+                or control["op"] != "all_reduce" or not control["reduce_op"].endswith("MAX")
+                or control["shape"] != [2] or control["dtype"] != "torch.int32"
+                or control["numel"] != 2):
+            raise InvalidGate("ordinary collective sequence lacks exact terminal step control")
     result = []
+    gather_count = 0
     for item in sequence:
-        if item["op"] == "all_gather_into_tensor":
+        if item.get("op") == "all_gather_into_tensor":
+            expected = {
+                "index": item.get("index"), "op": "all_gather_into_tensor",
+                "output_shape": [WORLD_SIZE * stride], "input_shape": [stride],
+                "output_dtype": "torch.float32", "input_dtype": "torch.float32",
+                "output_numel": WORLD_SIZE * stride, "input_numel": stride,
+            }
+            if item != expected or gather_count >= EXPECTED_STEPS:
+                raise InvalidGate(f"{arm} rank {rank}: malformed owner exchange")
+            # The owner exchange occurs after gradient normalization/update and immediately
+            # before the shared terminal loss/stop control all-reduce for this step.
+            if len(result) != (gather_count + 1) * shared_per_step - 1:
+                raise InvalidGate(f"{arm} rank {rank}: misplaced owner exchange")
+            gather_count += 1
             continue
         normalized = dict(item)
         normalized["index"] = len(result)
         result.append(normalized)
+    if gather_count != EXPECTED_STEPS or result != ordinary:
+        raise InvalidGate(f"{arm} rank {rank}: owner exchange sequence mismatch")
     return result
 
 
@@ -217,6 +331,15 @@ def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
     instrumentation_failures: list[str] = []
     rms_failures: list[str] = []
     integrated_failures: list[str] = []
+
+    ordinary_sequences = [_by(records, "collectives")[0]["sequence"]
+                          for records in loaded["G2"]]
+    for rank, sequence in enumerate(ordinary_sequences):
+        if any(item.get("op") == "all_gather_into_tensor" for item in sequence):
+            raise InvalidGate(f"G2 rank {rank}: unexpected owner exchange")
+    for arm in ("G0", "G1"):
+        for rank, records in enumerate(loaded[arm]):
+            _validated_without_owner_exchange(records, ordinary_sequences[rank], arm, rank)
 
     # Observation OFF versus ON must not change any shared record byte semantics.
     for rank in range(4):
@@ -253,7 +376,9 @@ def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
     # Detailed table path is exact between hybrid and ordinary for the same rank.
     for rank in range(4):
         g1, g2 = loaded["G1"][rank], loaded["G2"][rank]
-        _exact(_without_owner_exchange(g1), _without_owner_exchange(g2),
+        _exact(_validated_without_owner_exchange(
+                   g1, _by(g2, "collectives")[0]["sequence"], "G1", rank),
+               _by(g2, "collectives")[0]["sequence"],
                f"rank {rank}: non-owner collective sequence differs", rms_failures)
         for kind in ("gradients", "clip"):
             _exact(_by(g1, kind), _by(g2, kind),
