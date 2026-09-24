@@ -15,6 +15,14 @@ c5c A0 control. It records the newer human A1/trn21 and A2/trn22 parallel
 direction; attributing an incremental layer-1 gain still requires a
 same-host A1 result. The A0 r1 zero-step disk failure is not a control.
 
+After independent static review, this repair places the A2 flag list at the
+queue's literal `--no-ngram-ve` token position. It also allows the trusted
+non-science `NEURON_COMPETITION_R1_STEP_LOG` required by unchanged
+`prepare.py` for optimizer-boundary timing. A staged request must hash-bind
+that unique append-only path to the external observer; optional
+`NEURON_COMPETITION_R1_OUT_DIR` must match the CLI output directory.
+Unapproved `NEURON_COMPETITION_R1_*` science overrides remain excluded.
+
 The four BF16 tables imply roughly 1.5 GiB per rank for weights, dense
 gradients and RMSProp moments alone. The actual HBM peak, compile/cache and
 checkpoint/root-disk footprint remain unknown. The A0 r2 provisional

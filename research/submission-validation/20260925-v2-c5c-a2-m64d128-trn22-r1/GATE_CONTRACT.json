@@ -72,11 +72,34 @@
   },
   "environment_binding": {
     "clean_env_required": true,
-    "no_other_NEURON_COMPETITION_R1_variables": true,
+    "allowed_NEURON_COMPETITION_R1_variables": [
+      "NEURON_COMPETITION_R1_SEED",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS",
+      "NEURON_COMPETITION_R1_STEP_LOG",
+      "NEURON_COMPETITION_R1_OUT_DIR"
+    ],
+    "reject_all_other_NEURON_COMPETITION_R1_science_overrides": true,
+    "trusted_non_science_paths": {
+      "NEURON_COMPETITION_R1_STEP_LOG": {
+        "required_for_native_smoke_and_full_run": true,
+        "absolute_path": null,
+        "must_resolve_to_unique_label_step_file": true,
+        "append_only": true,
+        "must_match_external_boundary_observer": true,
+        "must_be_absent_before_launch": true,
+        "bound_by_final_request_sha256": null
+      },
+      "NEURON_COMPETITION_R1_OUT_DIR": {
+        "optional_if_out_dir_cli_is_present": true,
+        "absolute_path": null,
+        "if_present_must_resolve_to_cli_out_dir": true,
+        "bound_by_final_request_sha256": null
+      }
+    },
     "host_path_home_pythonpath_and_cache_paths": null,
     "complete_final_env_argv_sha256": null,
     "status": "PENDING_STAGED_HOST_BINDING_AND_INDEPENDENT_REVIEW",
-    "note": "The four science values above are exact. The later immutable one-shot request must capture the complete env -i argv, verified executable/PYTHONPATH and all six authenticated cache paths; no hidden shell export or cold-cache fallback is accepted."
+    "note": "The four science values above are exact. Unchanged prepare.py requires a trusted, unique NEURON_COMPETITION_R1_STEP_LOG for authenticated optimizer boundaries; the final request must bind that absolute path and the observer to the same file. Optional NEURON_COMPETITION_R1_OUT_DIR must agree with the CLI output path. The immutable one-shot request must capture the complete env -i argv, verified executable/PYTHONPATH and six authenticated cache paths; no unapproved science override, hidden shell export or cold-cache fallback is accepted."
   },
   "control_argv": [
     "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
@@ -85,14 +108,15 @@
     "--no-eval-public", "--matrix-lr", "0.015"
   ],
   "a2_argv": [
-    "--n-embd", "1024", "--no-qk-shift", "--compile-sdpa-direct",
-    "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32",
-    "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public",
-    "--matrix-lr", "0.015", "--ngram-ve", "--ngram-ve-layers", "1,-1",
+    "--n-embd", "1024", "--ngram-ve", "--ngram-ve-layers", "1,-1",
     "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128",
     "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
-    "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude"
+    "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude",
+    "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+    "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+    "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
   ],
+  "a2_argv_derivation": "Literal order-preserving splice of research/v2/queue.json base_command: replace the --no-ngram-ve token in place with A2 argv_delta.with; do not append or reorder it.",
   "table_expectation": {
     "keys": ["b1", "t1", "b5", "t5"],
     "rows_per_table": 524288,
@@ -175,7 +199,7 @@
     "Independent Verifier reviews the complete package, source/queue/prepare/tool hashes, exact flags, authority ordering and geometry; implementer self-check is not verification.",
     "Human expands and verifies the trn22 existing root EBS volume and guest filesystem; human explicitly acknowledges/resets the trn22 disk breaker with provenance after reviewing the A0 r1 incident.",
     "A fresh read-only host inventory proves capacity, disk headroom, idle process/device and lock state. A new conservative A2-specific projection includes compile/cache, temporary, checkpoint/log and unknown-growth reserve; neither the A0 10-GiB provisional gate nor the 1.5-GiB tensor estimate is a safe substitute.",
-    "Stage a unique clean checkout and exact c5c root train.py copy at a pinned commit; verify prepare.py and tools, environment, six cache path identities, absent g2/smoke/full outputs and unique labels without deleting existing artifacts.",
+    "Stage a unique clean checkout and exact c5c root train.py copy at a pinned commit; verify prepare.py and tools, environment, six cache path identities, absent g2/smoke/full outputs and unique labels without deleting existing artifacts. Bind the trusted non-science NEURON_COMPETITION_R1_STEP_LOG to the same unique absolute boundary file authenticated by the external observer; if NEURON_COMPETITION_R1_OUT_DIR is present, require it to resolve to the CLI output directory. Hash-bind both values in each final native request.",
     "Rebind the already-PASSed trn22 G1 evaluator calibration receipt and exact 20M/context1024 CLI; authenticate all effective environment values from a clean env -i launch.",
     "Run and independently review full-size two-step four-rank CPU G2/RMS trace under external containment on a memory-qualified idle machine with a capacity-verified temporary directory; require all four changed tables, two RMS calls and eight checks per rank, finite recomputation, untouched-row identity, rank equality, ownership summary and strict checkpoint load.",
     "Separately authorize and independently review a 30-step native full-chip smoke on the exact staged bytes/profile; prove compile, finite sequential boundaries, per-rank table/update agreement, memory/disk peak, strict model-only checkpoint load, causality and clean quiescence.",

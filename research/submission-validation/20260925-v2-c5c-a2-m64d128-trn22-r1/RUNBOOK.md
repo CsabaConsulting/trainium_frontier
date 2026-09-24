@@ -67,8 +67,7 @@ is approached. Do not infer cleanup, cache pruning, AWS or breaker authority.
 ## Exact effective science environment and argv
 
 The final stage must use a clean `env -i` and capture these **effective**
-science values exactly; no other `NEURON_COMPETITION_R1_*` variable may be
-present:
+science values exactly:
 
 ```text
 NEURON_LOGICAL_NC_CONFIG=2
@@ -78,18 +77,30 @@ NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS=1800
 ```
 
 The `--seed` and `--max-train-seconds` parser defaults read the last two
-values. The complete host environment still needs a stage-bound executable
-path, home, `PYTHONPATH` and six authenticated cache paths. Until those exact
-host bindings and their SHA-256 are recorded in a final immutable request,
-there is no runnable launch command. No `--seed`, `--max-train-seconds` or
-`--num-steps` override belongs in the full scored argv.
+values. For every native smoke or full run, unchanged `prepare.py` also
+requires the trusted, non-science
+`NEURON_COMPETITION_R1_STEP_LOG=<unique absolute boundary-file path>`.
+The stage must prove that the file is absent before launch, bind its path in
+the immutable request SHA-256, and make the external boundary observer
+authenticate that **same** path before any optimizer step. If the launcher
+also sets non-science `NEURON_COMPETITION_R1_OUT_DIR`, it must resolve to
+the same output directory as the `--out-dir` CLI argument and be hash-bound
+in that request. A clean environment rejects every other unapproved
+`NEURON_COMPETITION_R1_*` science override. The complete host environment
+still needs a stage-bound executable path, home, `PYTHONPATH` and six
+authenticated cache paths. Until those bindings and their final request
+hash are recorded, there is no runnable launch command. No `--seed`,
+`--max-train-seconds` or `--num-steps` override belongs in the full scored
+argv.
 
-The exact training argv array is in `GATE_CONTRACT.json`. Its rendered
+The exact training argv array is in `GATE_CONTRACT.json`: it splices the
+queue's A2 flags **at the original `--no-ngram-ve` position** without
+reordering the remaining dense flags. Its rendered
 full-run payload, after a clean checkout stages the c5c bytes at root
 `train.py`, is:
 
 ```text
-torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --ngram-ve --ngram-ve-layers 1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --out-dir out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full
+torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers 1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --out-dir out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full
 ```
 
 `fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full` and its distinct `-g2`
@@ -112,7 +123,8 @@ checkout/output/log/step paths before staging. The seed queue's
    bytes copied to root `train.py`; rehashes `prepare.py`, tools, proposal and
    stage; verifies the six existing warm-cache identities without cleanup;
    proves all proposed labels/output paths absent; and binds a new A2-specific
-   disk/HBM projection, exact complete `env -i` argv and the already-PASSed
+   disk/HBM projection, exact complete `env -i` argv (including the unique
+   trusted STEP_LOG path and any matching OUT_DIR), and the already-PASSed
    trn22 G1 receipt. G1 reproduced a retained historical checkpoint at
    `0.992968300659387` over 20,971,520 tokens/context 1024. That is
    evaluator calibration, not an A0 control or A2 score.
@@ -124,7 +136,7 @@ checkout/output/log/step paths before staging. The seed queue's
    argv, followed by the contract's `a2_argv`, is:
 
    ```text
-   python workflow/tools/preflight_dryrun.py --train-py submissions/research_v2/train.py --prepare-dir . --steps 2 --nproc 4 --micro-rows 2 --micro-tokens 256 --timeout 3600 --trace-rmsprop --out /dev/shm/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-g2.json -- --n-embd 1024 --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --ngram-ve --ngram-ve-layers 1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude
+   python workflow/tools/preflight_dryrun.py --train-py submissions/research_v2/train.py --prepare-dir . --steps 2 --nproc 4 --micro-rows 2 --micro-tokens 256 --timeout 3600 --trace-rmsprop --out /dev/shm/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-g2.json -- --n-embd 1024 --ngram-ve --ngram-ve-layers 1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
    ```
 
    Require exact c5c and unchanged `prepare.py` hashes, `prepare.stub=false`,
