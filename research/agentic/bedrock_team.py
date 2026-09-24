@@ -189,7 +189,7 @@ def ask(args) -> int:
 
     run_dir = AGENT_DIR / "runs"
     run_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     record = {
         "timestamp": stamp,
         "role": args.role,
@@ -200,8 +200,13 @@ def ask(args) -> int:
         "stop_reason": response.get("stopReason"),
         "answer": answer,
     }
-    destination = run_dir / f"{stamp}-{args.role}.json"
-    destination.write_text(json.dumps(record, indent=2) + "\n")
+    destination = run_dir / f"{stamp}-{args.role}-{os.getpid()}.json"
+    # Parallel panel members can share a role and finish in the same second.
+    # Exclusive creation makes an evidence collision fail closed instead of
+    # silently overwriting another model's result.
+    with destination.open("x") as stream:
+        json.dump(record, stream, indent=2)
+        stream.write("\n")
     print(f"\n[Saved locally: {destination.relative_to(ROOT)}]", file=sys.stderr)
     return 0
 
