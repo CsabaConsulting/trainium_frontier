@@ -13,7 +13,9 @@ Its 10-GiB prelaunch projection is provisional, not a proved maximum. Human EBS
 expansion and explicit trn22 breaker reset, then fresh exact-environment G2,
 staging, and one-shot authorization are still required. The trn21 G1
 [pending calibration request](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/request.pending.json)
-is also non-dispatchable pending independent review and host/storage checks.
+has [independent static PASS / dispatch HOLD](../agentic/verification/20260925-g1-trn21-pending-package-review.md):
+it is still non-dispatchable until host/storage and checkpoint/cache/environment
+checks, a finalized request, and separate one-shot authorization pass.
 S0's [independent source audit](../agentic/verification/20260925-s0-submission-static-recheck.md)
 found no proven rule violation but left the submission HOLD until native checks
 and two cold bare-command replays pass.

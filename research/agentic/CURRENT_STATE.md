@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:05 UTC
+Last reconciled: 2026-09-24 22:08 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -13,7 +13,9 @@ training or BPB result occurred. The trn22 c5c A0 r2 retry now has an
 not launch authorization. Its exact-env G2 and live gates must wait for human
 EBS expansion and an explicit trn22 breaker reset. The trn21 G1
 [pending request](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/request.pending.json)
-is not dispatchable. An independent [S0 static audit](verification/20260925-s0-submission-static-recheck.md)
+has [independent static PASS / dispatch HOLD](verification/20260925-g1-trn21-pending-package-review.md)
+but is not dispatchable until host/storage, checkpoint/cache/environment and
+one-shot authority gates pass. An independent [S0 static audit](verification/20260925-s0-submission-static-recheck.md)
 found no proven rule violation, but native checks and two cold bare-command
 replays remain before the human can safely upload it.
 
