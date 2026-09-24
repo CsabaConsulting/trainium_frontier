@@ -1,0 +1,91 @@
+{
+  "schema": "a1-consumed-staging-cleanup-independent-verification-v1",
+  "verdict": "FAIL",
+  "reviewed_implementation_commit": "e4f94585a988972d9428d0d665ea9fa3ba8aa035",
+  "superseded_commit_not_approved": "658d7408d9f7b3acf570c6868c787340034d7b1f",
+  "implementation_parent": "658d7408d9f7b3acf570c6868c787340034d7b1f",
+  "package_base": "83e533546fb8b53f5c8268d84f0ccd2b5c90e1a1",
+  "reviewed_origin_ref": "origin/implement/20260925-v2-a1-consumed-staging-cleanup-trn21",
+  "origin_ref_exact_at_review": true,
+  "host_access_performed": false,
+  "deletion_performed": false,
+  "authorization_or_materialization_performed": false,
+  "protected_code_edited": false,
+  "scope": {
+    "diff_from_package_base": "six new files only under research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/",
+    "delta_from_superseded_commit": [
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/cleanup_contract.py",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/test_cleanup_contract.py"
+    ],
+    "cleanup_contract_sha256": "245d0455350d1817872c509f0def8374430ccbcefc88d8989759ae8147713fae",
+    "test_cleanup_contract_sha256": "41ab69922f7e16c2d73125ccc9d203ccfb0e34ccb7093961e719b843036ace2c",
+    "pending_request_sha256": "bbe928f115792ce4dd588656f28c00374f48250eb4ebd23f7735f80738c48731",
+    "pending_authorization_sha256": "e9169d92c0305990b342e2288a32d65dbe8909f1a24a978de7c61b8d350ed653"
+  },
+  "protected_hashes": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "unchanged_from_package_base": true
+  },
+  "accepted_findings": [
+    "The exact target list contains only the consumed r1 checkout and bundle, consumed r3 checkout and bundle, and the consumed r2 bundle; the r2 checkout, its eight runtime artifacts, the G0 checkpoint, caches, logs, results, evidence, and other worktrees are outside the delete list.",
+    "The three bundle sizes and full SHA-256 values agree with the archived r1, r2, and r3 operator evidence.",
+    "The pending request keeps cleanup=false and every authority false; the pending authorization keeps executable=false, cleanup=false, human_authorization=false, and has no targets.",
+    "The e4f94585 delta correctly separates authorized_inventory_free_before from the fresh execution free_before and compares free_after with the execution-time sample.",
+    "The implementation has no SSH, training, cache cleanup, checkpoint pruning, AWS lifecycle, or submission path."
+  ],
+  "tests": [
+    {
+      "command": "python -m py_compile research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/cleanup_contract.py research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/test_cleanup_contract.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m unittest -v research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/test_cleanup_contract.py",
+      "result": "PASS: 16/16"
+    },
+    {
+      "command": "independent temporary-filesystem post-hash mutation and post-inventory insertion attacks",
+      "result": "FAIL: both destructive attacks returned status PASS and deleted the drifted or newly inserted bytes"
+    },
+    {
+      "command": "independent target-directory swap between identity stat and O_NOFOLLOW open",
+      "result": "FAIL: the unknown replacement tree was deleted and the authorized checkout inode survived under a different name"
+    },
+    {
+      "command": "independent two-target partial-failure exercise through main()",
+      "result": "FAIL_CLOSED rc=2 after target 1 was deleted, but no durable receipt was created"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B1",
+      "title": "Target path substitution can delete an unauthorised replacement",
+      "evidence": "_delete_verified checks the checkout path with stat, then opens the name without comparing the opened fd identity with the authorised inventory identity. A rename-and-replace between those operations caused the replacement tree to be recursively deleted, while the authorised checkout survived under its new name. The bundle stat-to-unlink sequence has the analogous gap.",
+      "required_correction": "Bind every destructive name operation to the inventoried inode through anchored dirfds and immediate no-follow identity checks. For directories, validate the opened fd dev/ino against the inventory and retain an exact parent name-to-inode seal through final unlink/rmdir; reject any rename/replacement rather than deleting it. Apply equivalent protection to bundle unlink and nested entries."
+    },
+    {
+      "id": "B2",
+      "title": "Post-revalidation content drift and new checkout members are deleted with PASS",
+      "evidence": "After the fresh locked inventory returned, changing an exact bundle in place preserved the identity fields used by _identity_key; execute deleted it and returned PASS. Inserting an unknown single-link regular file into an inventoried checkout after the scan was also accepted by _unlink_tree, deleted, and returned PASS.",
+      "required_correction": "Immediately before and throughout deletion, require the exact authenticated bundle bytes and exact recursive checkout membership/type/inode/content contract. Do not let the delete walker accept arbitrary new regular files. Any size, metadata, digest, member, or inode drift must stop before that drifted entry is unlinked. Add attacks at every validation-to-delete boundary."
+    },
+    {
+      "id": "B3",
+      "title": "A mid-sequence failure leaves partial deletion without durable evidence",
+      "evidence": "In a two-target exercise, target 1 was removed, target 2 was replaced and correctly rejected, main returned rc=2, and receipt_output did not exist. The in-memory deleted list is lost on the exception and stderr is the only record.",
+      "required_correction": "Reserve a durable O_EXCL execution journal or receipt before the first unlink, fsync each transition after every target, and finalize a truthful PASS or PARTIAL_FAILURE record. On failure, preserve exact deleted/not-deleted identities and protected/free-space postflight without overwriting prior evidence."
+    },
+    {
+      "id": "B4",
+      "title": "Checked-in adversarial coverage does not exercise the destructive race boundaries",
+      "evidence": "All 16 checked-in tests pass, but none reproduces target rename/replacement between stat/open/unlink, same-inode post-hash mutation, post-inventory regular-file insertion, or a durable partial-deletion failure receipt.",
+      "required_correction": "Add deterministic regression tests for each B1-B3 attack, including symlink, hardlink, nonregular, nested-entry, ancestor/path replacement, short/EINTR I/O, and failure at every ordered deletion boundary."
+    }
+  ],
+  "authorization_decision": {
+    "state_only_finalization_safe": false,
+    "operator_cleanup_safe": false,
+    "r4_staging_authorized": false,
+    "required_next_step": "Implement and independently reverify B1-B4. Keep the current pending request and authorization non-executable."
+  }
+}
