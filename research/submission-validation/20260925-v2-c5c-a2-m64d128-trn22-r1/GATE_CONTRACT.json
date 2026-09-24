@@ -1,0 +1,190 @@
+{
+  "schema": "pending-exact-source-a2-gates-v1",
+  "status": "CONDITIONAL_NON_DISPATCHABLE_PENDING_INDEPENDENT_REVIEW_AND_HOST_RECOVERY",
+  "prepared_by_role": "implementer",
+  "dispatch_authorized": false,
+  "leaderboard_submission_authorized": false,
+  "final_job_or_request_exists": false,
+  "independent_verifier_receipt": null,
+  "one_shot_authorization_receipt": null,
+  "operator_stage_receipt": null,
+  "operator_preflight_receipt": null,
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "proposal_path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/EXPERIMENT_PROPOSAL.json",
+  "source": {
+    "package_base_commit": "6c9796db40769c89f879e42ff487b41d18383c16",
+    "train_path": "submissions/research_v2/train.py",
+    "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_path": "prepare.py",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "queue_path": "research/v2/queue.json",
+    "queue_sha256": "1e9dcc4fd5f38e62829dc19460d2337662184ecfbd4d21d8a20f15993be9dd00",
+    "g2_tool_path": "workflow/tools/preflight_dryrun.py",
+    "g2_tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "decision_tool_path": "workflow/tools/decide.py",
+    "decision_tool_sha256": "a47bedd258697b0791f48dcac3098d9071b5aaf00a7664d9e39987b4052adc66",
+    "staged_root_train_sha256": null,
+    "staged_clean_commit": null,
+    "root_train_py_stage_required": true,
+    "model_source_edit_authorized": false
+  },
+  "authority_reconciliation": {
+    "newer_human_direction": "workflow/CONTROLLER_PROMPT.md, research/v2/CONTROLLER_BRIEF_2026-09-25.md and the top amendment in research/v2/TABLE_GATE_BRIEF_2026-09-25.md direct A2/trn22 in parallel with A1/trn21 after gates",
+    "older_a1_first_recommendation": "The September-24 research entries in research/agentic/CURRENT_STATE.md and research/agentic/DECISION_LOG.md, plus the historical lower paragraph of research/v2/TABLE_GATE_BRIEF_2026-09-25.md, describe an A1-first science sequence",
+    "interpretation_for_this_package": "A2 is a separate predeclared profile versus same-host c5c A0 under the newer human direction. An A1 result is not an absolute A2 full-run prerequisite, but no incremental layer-1 attribution is valid without a same-host A1 comparator. Independent Verifier and Supervisor must recheck this authority ordering before any request is released.",
+    "dispatch_inferred_from_priority": false
+  },
+  "g1_trn22": {
+    "status": "PASS_FOR_EVALUATOR_CALIBRATION_ONLY",
+    "receipt_path": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
+    "receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
+    "context": 1024,
+    "tokens": 20971520,
+    "reproduced_retained_checkpoint_bpb": 0.992968300659387,
+    "is_new_candidate_or_control_score": false,
+    "receipt_and_eval_settings_must_be_rebound_at_stage": true
+  },
+  "control": {
+    "required_valid_same_host_c5c_a0_label": null,
+    "pending_a0_retry_package": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2/GATE_CONTRACT.json",
+    "pending_a0_retry_label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+    "consumed_invalid_a0_label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+    "a0_r1_optimizer_boundaries": 0,
+    "a0_r1_public20m": null,
+    "required_same_host_a1_for_incremental_layer1_claim": null,
+    "a1_required_for_a2_vs_a0_screen": false
+  },
+  "topology_and_budget": {
+    "neuron_logical_nc_config": 2,
+    "nproc_per_node": 4,
+    "full_chip": true,
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "outer_guard_timeout_seconds": 3600,
+    "no_step_or_time_override_in_scored_argv": true
+  },
+  "exact_effective_science_environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+  },
+  "environment_binding": {
+    "clean_env_required": true,
+    "no_other_NEURON_COMPETITION_R1_variables": true,
+    "host_path_home_pythonpath_and_cache_paths": null,
+    "complete_final_env_argv_sha256": null,
+    "status": "PENDING_STAGED_HOST_BINDING_AND_INDEPENDENT_REVIEW",
+    "note": "The four science values above are exact. The later immutable one-shot request must capture the complete env -i argv, verified executable/PYTHONPATH and all six authenticated cache paths; no hidden shell export or cold-cache fallback is accepted."
+  },
+  "control_argv": [
+    "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+    "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+    "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+    "--no-eval-public", "--matrix-lr", "0.015"
+  ],
+  "a2_argv": [
+    "--n-embd", "1024", "--no-qk-shift", "--compile-sdpa-direct",
+    "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32",
+    "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public",
+    "--matrix-lr", "0.015", "--ngram-ve", "--ngram-ve-layers", "1,-1",
+    "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128",
+    "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
+    "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude"
+  ],
+  "table_expectation": {
+    "keys": ["b1", "t1", "b5", "t5"],
+    "rows_per_table": 524288,
+    "dimension": 128,
+    "dtype": "bfloat16",
+    "optimizer": "rmsprop",
+    "second_moment_dtype": "bfloat16",
+    "table_elements_total": 268435456,
+    "parameter_bytes_per_table": 134217728,
+    "parameter_bytes_per_rank": 536870912,
+    "dense_gradient_bytes_per_rank_estimate": 536870912,
+    "rmsprop_second_moment_bytes_per_rank_estimate": 536870912,
+    "simple_table_tensor_bytes_per_rank_estimate": 1610612736,
+    "measured_peak_hbm_bytes_per_rank": null,
+    "measured_peak_root_disk_bytes": null,
+    "note": "These are geometry-based tensor estimates, not a measured peak or disk projection. Temporary tensors, four-rank replication, the dense model, optimizer, compiler/cache and checkpoint footprints remain unbounded."
+  },
+  "g2": {
+    "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-g2",
+    "tool_argv_prefix": [
+      "python", "workflow/tools/preflight_dryrun.py", "--train-py",
+      "submissions/research_v2/train.py", "--prepare-dir", ".", "--steps", "2",
+      "--nproc", "4", "--micro-rows", "2", "--micro-tokens", "256",
+      "--timeout", "3600", "--trace-rmsprop", "--out",
+      "/dev/shm/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-g2.json", "--"
+    ],
+    "train_argv_ref": "a2_argv",
+    "nproc": 4,
+    "steps": 2,
+    "trace_rmsprop": true,
+    "real_prepare_import": true,
+    "synthetic_training_data": true,
+    "cpu_sliced_forward": [2, 256],
+    "qualified_ram_and_tmpdir_receipt": null,
+    "external_containment_and_quiescence_receipt": null,
+    "expected_table_keys": ["ngram_embeds.b1.weight", "ngram_embeds.t1.weight", "ngram_embeds.b5.weight", "ngram_embeds.t5.weight"],
+    "expected_rmsprop_group_calls_per_rank": 2,
+    "expected_table_update_checks_per_rank": 8,
+    "max_abs_err_over_lr": 0.03,
+    "receipt": null
+  },
+  "native_smoke": {
+    "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-smoke",
+    "source_command_argv_prefix": ["torchrun", "--standalone", "--nproc_per_node=4", "train.py"],
+    "train_argv_ref": "a2_argv",
+    "argv_extension": ["--num-steps", "30", "--out-dir", "out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-smoke"],
+    "expected_completed_steps": 30,
+    "scored": false,
+    "one_shot_authorization_receipt": null,
+    "receipt": null
+  },
+  "full": {
+    "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full",
+    "source_command_argv_prefix": ["torchrun", "--standalone", "--nproc_per_node=4", "train.py"],
+    "train_argv_ref": "a2_argv",
+    "argv_extension": ["--out-dir", "out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full"],
+    "requires_valid_same_host_control_label": null,
+    "fresh_eval_seq_len": 1024,
+    "fresh_eval_tokens": 20971520,
+    "final_immutable_request_sha256": null,
+    "one_shot_authorization_receipt": null,
+    "receipt": null
+  },
+  "disk_and_memory": {
+    "operational_root_floor_bytes": 6979321856,
+    "last_checked_trn22_free_bytes": 6448918528,
+    "a0_r1_pre_step_compile_growth_bytes": 1500942336,
+    "a0_r2_provisional_prelaunch_free_bytes": 10737418240,
+    "a0_projection_is_not_an_a2_bound": true,
+    "a2_required_prelaunch_free_bytes": null,
+    "a2_projected_compile_cache_checkpoint_and_log_growth_bytes": null,
+    "a2_peak_device_memory_bytes": null,
+    "human_ebs_expansion_and_guest_resize_required": true,
+    "human_trn22_breaker_acknowledgement_and_reset_required": true,
+    "fresh_read_only_capacity_and_conservative_a2_projection_required": true,
+    "no_volume_cleanup_or_cache_deletion_authorized": true,
+    "note": "Human decision packet requests both existing 200-GiB roots be expanded to 250 GiB. A2 is blocked until actual guest capacity and free space are remeasured, the exact-size table compile/checkpoint footprint is projected with reserve above the unchanged 6.5-GiB floor, and the Operator monitors root free space throughout any later authorized run."
+  },
+  "required_gates_before_any_full_run_authorization": [
+    "Independent Verifier reviews the complete package, source/queue/prepare/tool hashes, exact flags, authority ordering and geometry; implementer self-check is not verification.",
+    "Human expands and verifies the trn22 existing root EBS volume and guest filesystem; human explicitly acknowledges/resets the trn22 disk breaker with provenance after reviewing the A0 r1 incident.",
+    "A fresh read-only host inventory proves capacity, disk headroom, idle process/device and lock state. A new conservative A2-specific projection includes compile/cache, temporary, checkpoint/log and unknown-growth reserve; neither the A0 10-GiB provisional gate nor the 1.5-GiB tensor estimate is a safe substitute.",
+    "Stage a unique clean checkout and exact c5c root train.py copy at a pinned commit; verify prepare.py and tools, environment, six cache path identities, absent g2/smoke/full outputs and unique labels without deleting existing artifacts.",
+    "Rebind the already-PASSed trn22 G1 evaluator calibration receipt and exact 20M/context1024 CLI; authenticate all effective environment values from a clean env -i launch.",
+    "Run and independently review full-size two-step four-rank CPU G2/RMS trace under external containment on a memory-qualified idle machine with a capacity-verified temporary directory; require all four changed tables, two RMS calls and eight checks per rank, finite recomputation, untouched-row identity, rank equality, ownership summary and strict checkpoint load.",
+    "Separately authorize and independently review a 30-step native full-chip smoke on the exact staged bytes/profile; prove compile, finite sequential boundaries, per-rank table/update agreement, memory/disk peak, strict model-only checkpoint load, causality and clean quiescence.",
+    "Bind a valid archived trn22 c5c A0 full-budget same-host seed-42 control with clean postflight and fresh public-20M/context1024; the failed r1, pending r2 and historical 35c9/116188 runs cannot fill this field.",
+    "Supervisor reviews every receipt, verifies exact finalized env/argv/stage SHA and host projection, then issues a separate one-attempt full-run authorization. Operator alone may dispatch; any failed attempt consumes its label."
+  ],
+  "forbidden_actions": [
+    "No SSH, CPU G2 dispatch, native smoke, training, AWS/volume or guest-filesystem mutation, breaker reset, cache/checkpoint deletion, leaderboard submission or adoption under this package.",
+    "No model, prepare.py, tokenizer, evaluator, scoring, queue decision rule or launcher source edit.",
+    "No relabeling an m8/stub/different-source CPU or native receipt as an exact c5c/m64 A2 gate."
+  ]
+}
