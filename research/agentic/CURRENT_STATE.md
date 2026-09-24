@@ -66,6 +66,14 @@ This section supersedes earlier Track-A readiness and host-control statements be
   runnable arm: A1 awaits the hybrid-ownership repair gates; A2 shares that blocker; A3/A7 flags
   are absent; A4/A5/A6/A8/A9 are evidence-stopped; A10 is dependency-blocked. Unblocking and
   verifying A1 is the next useful Track-A action.
+- The next researched code-change lane after A1 is dense local-conv ordering. Exact `35c9...`
+  still snapshots Q/K/V before applying the trained causal-convolution residual, so same-block
+  serial attention does not see local-conv output. Moving the existing update before those
+  snapshots on the serial/non-sandwich path is one parameter-neutral, operator-count-neutral
+  causal change with related positive evidence, but it has never run on exact dense35c9+LR0.015.
+  It requires a new proposal, independent implementation/verification, equivalence and causality
+  gates, native NKI/eager equality, and same-host throughput/BPB comparison; it is not currently
+  hardware-authorized.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
