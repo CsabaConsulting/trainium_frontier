@@ -1,7 +1,27 @@
 # Active controller brief — 25 September 2026 IST
 
-Source: the user's 118-line attachment `3445e888-de75-4b3c-92eb-14b97e954096/Pasted text.txt`.
-This is a durable operational summary of that human request, not a new proposal or gate waiver.
+Source: the user's 118-line attachment `3445e888-de75-4b3c-92eb-14b97e954096/Pasted text.txt`,
+amended by the newer attachment `4c41dada-4d91-498e-84fa-d9a89625fcc2/Pasted text.txt`.
+This is a durable operational summary of those human requests, not a new proposal or gate waiver.
+
+## Newer first-place amendment (Sep 25, 02:45 IST)
+
+- The goal is first place, not merely top 10. The newer attachment supplies a leaderboard snapshot:
+  first `0.9464`, 10th `0.9824`, our best accepted official `1.0246`. These are **user-supplied
+  board values, not independently refreshed by this controller**. Best confirmed local public20M
+  remains `0.9918353324459732` (single) and `0.99195377346572045` (two-run mean); no new win.
+- A missing-shard hypothesis was prioritized for G1. It is already answered by the read-only
+  `research/v2/g1.json` inventory: `prepare.py setup` defaults to all five public train shards,
+  and **both hosts contain all five**, each with 415 row groups and 424,960 rows. This rules out
+  hosts having fewer shards than that default. It does **not** establish token count or the
+  private official runner's exact data inventory; do not download more data on this basis.
+- After table arms are unblocked, reserve up to one-third of safe host time for independently
+  verified, one-factor, same-host-controlled step-change mechanisms with an evidence-backed
+  proposed gain of at least `0.01` BPB. An expected gain is a proposal ranking, never a result.
+  Table gains from the old stack must be remeasured on the exact new dense stack before adopting.
+- Bedrock ideation every 3–4 hours should focus on such step-change mechanisms; shift freed
+  budget to independent verification and failure diagnosis. This is a policy, **not** evidence
+  of a deployed unattended Bedrock scheduler. Do not promote an unverified idea to a checked job.
 
 ## Selection and authority
 
