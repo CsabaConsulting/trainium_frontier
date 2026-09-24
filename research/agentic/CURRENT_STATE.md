@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:53 UTC
+Last reconciled: 2026-09-24 22:55 UTC
 
 ## Current handoff: post-resize staging and CPU preflight, no new score
 
@@ -13,7 +13,9 @@ is consumed; the A0 r2 science label remains unused. A separate reviewed G2
 retry with a unique isolated step-log path is being prepared. No Neuron run,
 checkpoint, BPB or new model verdict exists. On trn21, the G1 r1 stage remains
 HOLD after the absent pinned commit/fetch failure; an r2 package to clone the
-exact retained trained commit locally is under independent review. Both hosts
+exact retained trained commit locally has independent static PASS for staging
+only and a separate Operator is assigned that task. Evaluator dispatch remains
+HOLD pending live checks, finalized request review and one-shot authority. Both hosts
 still have launch authorization false and ready scored-job counts zero.
 The best confirmed public20M stays 0.9918353324 single/0.9919537735 mean.
 The storage-fixed section below supplies context and remains authoritative for
