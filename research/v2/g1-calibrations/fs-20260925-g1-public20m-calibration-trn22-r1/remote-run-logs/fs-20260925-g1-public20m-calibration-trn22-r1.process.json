@@ -1,0 +1,31 @@
+{
+  "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+  "guard_pid": 2950407,
+  "child_pid": 2950408,
+  "child_session": 2950408,
+  "started_at": "2026-09-24T20:53:19.785113+00:00",
+  "command": [
+    "timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1/prepare.py",
+    "eval-public",
+    "--train-py",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1/train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
+    "--device",
+    "neuron",
+    "--batch-size",
+    "1",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ]
+}

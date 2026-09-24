@@ -1,0 +1,93 @@
+{
+  "schema": "trainium-g1-public20m-calibration-operator-v1",
+  "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "verdict": "PASS_G1_TRN22_EVAL_CALIBRATION",
+  "scope": "Fresh-process public-20M evaluator calibration on a retained checkpoint. No training or new model result.",
+  "request": {
+    "path": "research/v2/g1-calibration-trn22-request.json",
+    "sha256": "2efe1b6404ab262e818ef607a4630e82d641800a03813bf0427c3ad82a4d35b6",
+    "dispatch_request_matches_current_request_json": true,
+    "dispatch_artifact_sha256": "a35ce0fbabcec5a680e2de8bebb83be2363f977088b7d17591867ae53090188b",
+    "staging_receipt_sha256": "14130a713176babf18e564d86a85e40b3f1602933689ed8ebbe579b52ff8b680"
+  },
+  "remote": {
+    "staging_root": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1",
+    "staging_git_head": "5f509ed5e727dfd864ef5216885e242cd8e70c17",
+    "source_dirty_at_launch": false,
+    "train_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "checkpoint_path": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
+    "checkpoint_bytes": 469831009,
+    "checkpoint_sha256": "1b1d1a3f0ec6b5580312b760f5fee4f702c3fe97c9ddd01ed811472736aadf1b",
+    "checkpoint_preserved": true
+  },
+  "execution": {
+    "guard_pid": 2950407,
+    "evaluator_pid": 2950409,
+    "guard_started_utc": "2026-09-24T20:53:19.785113+00:00",
+    "completed_utc": "2026-09-24T21:05:52.153212+00:00",
+    "preflight_passed": true,
+    "preflight_free_bytes": 8009932800,
+    "command_returncode": 0,
+    "guard_error": null,
+    "postflight_host_clean": true,
+    "postflight_failures": [],
+    "postflight_free_bytes": 8001118208,
+    "postflight_neuron_process_count": 0,
+    "postflight_fuser_returncode": 1,
+    "cleanup_actions": [],
+    "artifacts_deleted": [],
+    "caches_deleted": []
+  },
+  "evaluation": {
+    "device": "neuron",
+    "batch_size": 1,
+    "context_length": 1024,
+    "num_tokens": 20971520,
+    "num_bytes": 83462186,
+    "total_nats": 57444784.0,
+    "val_bpb": 0.992968300659387,
+    "recomputed_bpb_from_nats_bytes": 0.992968300659387,
+    "known_reference_bpb": 0.992968300659387,
+    "absolute_difference": 0.0,
+    "allowed_absolute_difference": 0.0002,
+    "eval_seconds": 735.1430530250072,
+    "eval_timeout_seconds": 1200,
+    "eval_over_timeout": false
+  },
+  "quiescence": {
+    "first_observed_utc": "2026-09-24T21:07:17Z",
+    "second_observed_utc": "2026-09-24T21:07:42Z",
+    "stable_seconds": 25,
+    "guard_timeout_evaluator_pids_absent_both_checks": true,
+    "neuron_fuser_returncode_both_checks": 1,
+    "log_sha256_both_checks": "05166d807e5eeaf65e1aa7a9ad5a668cc7b9863f46b6b644e37f436b2dc12a26",
+    "postflight_sha256_both_checks": "f5d2d516ad388691e098c247d55582345b1cda15794328799725d1be7377076f",
+    "checkpoint_sha256_both_checks": "1b1d1a3f0ec6b5580312b760f5fee4f702c3fe97c9ddd01ed811472736aadf1b",
+    "source_sha256_both_checks_match_request": true
+  },
+  "kernel_observation": {
+    "reset_request_utc": "2026-09-24T20:53:23+00:00",
+    "reset_completed_utc": "2026-09-24T20:53:30+00:00",
+    "context": "Evaluator PID 2950409 claimed cores 00-07 and attached at 20:53:22; TPB reset request completed by 20:53:30, followed by HBM scrub. No later reset or kernel error in the captured since-start log; device released at 21:05:46.",
+    "adjudication": "Controller classified this limited observation as Neuron attach initialization, not a safety stop. No broader hardware-health claim is made.",
+    "raw_evidence_path": "remote-run-logs/fs-20260925-g1-public20m-calibration-trn22-r1.postflight.json"
+  },
+  "artifact_integrity": {
+    "retrieval": "All six compact run files matched remote SHA-256 after retrieval; no checkpoint copy was made.",
+    "job_and_launch_sha256": "05dfdeb19a52f9ec57cdad3ecf4371cf419c647a0e3394448afd54988939b81a",
+    "preflight_sha256": "eacbd46065b7f9c9d4d841f778167cba692327459b5bf174507cad46d6ba5d4b",
+    "process_sha256": "3fb70f3d4ffd919cfa6639ad9a3feaf8ac446e726e1f80f9f4a076ffbe7e3994",
+    "log_sha256": "05166d807e5eeaf65e1aa7a9ad5a668cc7b9863f46b6b644e37f436b2dc12a26",
+    "postflight_sha256": "f5d2d516ad388691e098c247d55582345b1cda15794328799725d1be7377076f"
+  },
+  "constraints": {
+    "not_an_advancement_control": true,
+    "not_a_new_bpb_improvement": true,
+    "trn21_fresh_calibration": "not performed",
+    "host_json_eval_args_verified": "pending independent G1 review and controller update",
+    "a0_dispatch_authorized_by_this_receipt": false
+  }
+}
