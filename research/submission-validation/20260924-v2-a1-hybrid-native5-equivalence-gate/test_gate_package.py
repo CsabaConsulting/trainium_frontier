@@ -260,6 +260,28 @@ class ComparatorTests(unittest.TestCase):
             with self.assertRaises(COMPARE.InvalidGate):
                 COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
 
+    def test_wrong_owner_all_gather_contract_is_invalid(self):
+        """Five arbitrary gathers must not be normalized as the owner exchange."""
+        def mutate(records):
+            for arm in ("G0", "G1"):
+                for rank_records in records[arm]:
+                    record = next(r for r in rank_records if r["kind"] == "collectives")
+                    for item in record["sequence"]:
+                        if item["op"] == "all_gather_into_tensor":
+                            item.update({
+                                "output_shape": [28], "input_shape": [7],
+                                "output_dtype": "torch.float64",
+                                "input_dtype": "torch.float64",
+                                "output_numel": 28, "input_numel": 7,
+                            })
+                    raw = json.dumps(record["sequence"], sort_keys=True,
+                                     separators=(",", ":")).encode()
+                    record["sequence_sha256"] = hashlib.sha256(raw).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = write_fixture(Path(tmp), mutate)
+            with self.assertRaises(COMPARE.InvalidGate):
+                COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
+
     def test_output_is_exclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "out.json"
