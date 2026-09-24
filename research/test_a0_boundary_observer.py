@@ -35,17 +35,28 @@ def append_boundary(path: Path, value: int) -> None:
         os.fsync(handle.fileno())
 
 
+def fake_guard(root: Path):
+    logs = root / "research" / "run-logs"
+    logs.mkdir(parents=True)
+    script = root / "research" / "fresh_start_guard.py"
+    script.write_text("import time\ntime.sleep(30)\n")
+    guard = subprocess.Popen([sys.executable, str(script), str(root / "request.json")])
+    return guard, script, logs
+
+
 class ObserverTests(unittest.TestCase):
     def run_case(self, actions, timeout=3.0):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
-            process_path = root / "process.json"
-            boundary_path = root / "steps.log"
-            postflight_path = root / "postflight.json"
+            guard, guard_script, logs = fake_guard(root)
+            process_path = logs / f"{LABEL}.process.json"
+            boundary_path = logs / f"{LABEL}.steps.jsonl"
+            postflight_path = logs / f"{LABEL}.postflight.json"
             cmd = [
                 sys.executable, str(OBSERVER), "--label", LABEL,
                 "--process-json", str(process_path), "--boundary-file", str(boundary_path),
-                "--postflight-json", str(postflight_path), "--poll-seconds", "0.005",
+                "--postflight-json", str(postflight_path), "--guard-script", str(guard_script),
+                "--poll-seconds", "0.005",
                 "--timeout-seconds", str(timeout),
             ]
             observed = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -55,11 +66,11 @@ class ObserverTests(unittest.TestCase):
                 time.sleep(0.03)
                 durable_json(process_path, {
                     "label": LABEL,
-                    "guard_pid": os.getpid(),
+                    "guard_pid": guard.pid,
                     "child_pid": child.pid,
                     "child_session": child.pid,
                     "started_at": datetime.now(timezone.utc).isoformat(),
-                    "command": ["fake-direct-a0"],
+                    "command": ["env", f"NEURON_COMPETITION_R1_STEP_LOG={boundary_path}", "fake-direct-a0"],
                 })
                 time.sleep(0.03)
                 actions(boundary_path)
@@ -69,6 +80,7 @@ class ObserverTests(unittest.TestCase):
                 durable_json(postflight_path, {
                     "protocol_version": 2,
                     "label": LABEL,
+                    "remote": str(root),
                     "stage": "postflight",
                     "command_returncode": 0,
                     "guard_error": None,
@@ -85,6 +97,9 @@ class ObserverTests(unittest.TestCase):
                 if observed.poll() is None:
                     observed.terminate()
                     observed.wait(timeout=2)
+                if guard.poll() is None:
+                    guard.terminate()
+                    guard.wait(timeout=2)
             self.assertEqual(stderr, "")
             return observed.returncode, json.loads(stdout)
 
@@ -148,25 +163,30 @@ class ObserverTests(unittest.TestCase):
     def test_timeout_without_postflight_is_non_scored(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
+            guard, guard_script, logs = fake_guard(root)
             child = subprocess.Popen(
                 [sys.executable, "-c", "import time; time.sleep(30)"], start_new_session=True)
-            process_path = root / "process.json"
+            process_path = logs / f"{LABEL}.process.json"
+            boundary_path = logs / f"{LABEL}.steps.jsonl"
             durable_json(process_path, {
-                "label": LABEL, "guard_pid": os.getpid(), "child_pid": child.pid,
+                "label": LABEL, "guard_pid": guard.pid, "child_pid": child.pid,
                 "child_session": child.pid, "started_at": datetime.now(timezone.utc).isoformat(),
-                "command": ["fake-direct-a0"],
+                "command": ["env", f"NEURON_COMPETITION_R1_STEP_LOG={boundary_path}", "fake-direct-a0"],
             })
             try:
                 done = subprocess.run([
                     sys.executable, str(OBSERVER), "--label", LABEL,
                     "--process-json", str(process_path),
-                    "--boundary-file", str(root / "steps.log"),
-                    "--postflight-json", str(root / "postflight.json"),
+                    "--boundary-file", str(boundary_path),
+                    "--postflight-json", str(logs / f"{LABEL}.postflight.json"),
+                    "--guard-script", str(guard_script),
                     "--poll-seconds", "0.005", "--timeout-seconds", "0.1",
                 ], text=True, capture_output=True, timeout=2)
             finally:
                 child.terminate()
                 child.wait(timeout=2)
+                guard.terminate()
+                guard.wait(timeout=2)
             result = json.loads(done.stdout)
             self.assertEqual(done.returncode, 2)
             self.assertEqual(done.stderr, "")
