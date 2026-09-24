@@ -40,7 +40,7 @@ assert proposal["external_quality_reference"] == {
 
 assert request["state"] == "PENDING_INDEPENDENT_VERIFICATION_AND_OPERATOR_AUTHORIZATION"
 assert request["dispatch_authorized"] is False
-assert request["expected_commit"] == "01caeeba43268b61d769ab4453c1c1f14f1c28ca"
+assert request["expected_commit"] == "1ada1953271bccbb1fd2c35d2ac752df62b928a4"
 assert set(request["fingerprint_paths"]) == set(request["expected_sha256"])
 for relative, expected in request["expected_sha256"].items():
     assert core_sha(request["expected_commit"], relative) == expected, relative
