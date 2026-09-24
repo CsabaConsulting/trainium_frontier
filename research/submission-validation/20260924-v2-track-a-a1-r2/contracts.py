@@ -23,6 +23,12 @@ PREPARE_SHA = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
 RULES_SHA = "4e4d39d5ef9d4bd69bc2048821292ce74f2ea99b684a823f14f3b01de2b11316"
 BRANCH = "experiment/20260924-v2-a1-lastlayer-ngram64d128-trn21-r2"
 VERIFIED_R1_PARENT = "c873b603e767bd44177f64b12335aa85103d925b"
+R1_FAILURE_COMMIT = "65d70f5956ad2c68c37560604c8f322cbbecf338"
+R1_LABEL = "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1"
+R1_EVIDENCE_DIRECTORY = (
+    "research/submission-validation/20260924-v2-track-a-35c9-controls-a1/"
+    f"operator-evidence/{R1_LABEL}"
+)
 RETRY_ARM = "a1-trn21-r2"
 MIN_FREE_BYTES = 13 * 1024**3 // 2
 HARD_ABORT_BYTES = 5 * 1024**3
@@ -275,7 +281,7 @@ def validate_authorization(auth, request, arm, core):
         "max_train_seconds", "world_size", "lnc", "smoke_authorized", "screen_tokens",
         "screen_bytes", "checkpoint_prune_authorized", "cache_cleanup_authorized",
         "verified_core_commit", "request_path", "request_sha256", "request_content",
-        "control_evidence",
+        "control_evidence", "r1_failure_evidence",
     }
     if type(auth) is not dict or set(auth) != required or auth["schema"] != "track-a-authorization-v1":
         raise SystemExit("authorization schema mismatch")
@@ -298,9 +304,11 @@ def validate_authorization(auth, request, arm, core):
         if auth["state"] != "human_approved_pending_operator" or auth["control_evidence"] is not None:
             raise SystemExit("control authorization state mismatch")
     else:
-        if auth["state"] != "human_approved_control_bound_pending_operator":
-            raise SystemExit("A1 is not control-bound")
         validate_evidence_identity(auth["control_evidence"])
+        validate_r1_failure_evidence(FailureGitReader(auth["r1_failure_evidence"]),
+                                     auth["r1_failure_evidence"])
+        if auth["state"] != "human_approved_control_and_r1_failure_bound_pending_operator":
+            raise SystemExit("A1 retry is not independently verified and evidence-bound")
     return request_sha
 
 
@@ -351,6 +359,20 @@ def validate_evidence_identity(value):
             raise SystemExit(f"control evidence digest invalid: {key}")
 
 
+def validate_failure_identity(value):
+    digest_keys = {
+        "audit_sha256", "dispatch_sha256", "concrete_request_sha256", "runtime_job_sha256",
+        "launch_sha256", "log_sha256", "postflight_sha256", "preflight_sha256", "process_sha256",
+    }
+    required = {"archive_commit", "directory"} | digest_keys
+    if (type(value) is not dict or set(value) != required
+            or value["archive_commit"] != R1_FAILURE_COMMIT
+            or value["directory"] != R1_EVIDENCE_DIRECTORY):
+        raise SystemExit("r1 failure evidence identity mismatch")
+    if any(not valid_digest(value[key]) for key in digest_keys):
+        raise SystemExit("r1 failure evidence digest invalid")
+
+
 class GitReader:
     def __init__(self, identity):
         validate_evidence_identity(identity)
@@ -370,6 +392,162 @@ class GitReader:
         if mode not in {b"100644", b"100755"} or kind != b"blob" or observed.decode() != relative:
             raise SystemExit(f"control evidence is not a regular blob: {name}")
         return subprocess.check_output(["git", "show", f"{self.commit}:{relative}"], cwd=ROOT)
+
+
+class FailureGitReader:
+    def __init__(self, identity):
+        validate_failure_identity(identity)
+        self.commit = identity["archive_commit"]
+        self.directory = Path(identity["directory"])
+
+    def names(self):
+        prefix = str(self.directory) + "/"
+        raw = subprocess.check_output(
+            ["git", "ls-tree", "-r", "-z", "--name-only", self.commit, "--", str(self.directory)],
+            cwd=ROOT,
+        )
+        names = []
+        for record in raw.split(b"\0"):
+            if record:
+                path = record.decode()
+                if not path.startswith(prefix):
+                    raise SystemExit("r1 evidence path escaped directory")
+                names.append(path[len(prefix):])
+        return names
+
+    def read(self, name):
+        relative_name = Path(name)
+        if relative_name.is_absolute() or ".." in relative_name.parts:
+            raise SystemExit("r1 evidence path escape")
+        relative = str(self.directory / relative_name)
+        raw = subprocess.check_output(["git", "ls-tree", "-z", self.commit, "--", relative], cwd=ROOT)
+        records = [record for record in raw.split(b"\0") if record]
+        if len(records) != 1:
+            raise SystemExit(f"r1 evidence missing/ambiguous: {name}")
+        metadata, observed = records[0].split(b"\t", 1)
+        mode, kind, _object = metadata.split(b" ", 2)
+        if mode not in {b"100644", b"100755"} or kind != b"blob" or observed.decode() != relative:
+            raise SystemExit(f"r1 evidence is not a regular blob: {name}")
+        return subprocess.check_output(["git", "show", f"{self.commit}:{relative}"], cwd=ROOT)
+
+
+def validate_r1_failure_evidence(reader, identity_value):
+    """Authenticate the infrastructure-only r1 failure; never infer it from self-report alone."""
+    validate_failure_identity(identity_value)
+    label = R1_LABEL
+    files = {
+        "operator-failure-audit.json": "audit_sha256",
+        f"dispatch/{label}.dispatch.json": "dispatch_sha256",
+        f"dispatch/{label}.request.json": "concrete_request_sha256",
+        f"runtime/run-logs/{label}.job.json": "runtime_job_sha256",
+        f"runtime/run-logs/{label}.launch.json": "launch_sha256",
+        f"runtime/run-logs/{label}.log": "log_sha256",
+        f"runtime/run-logs/{label}.postflight.json": "postflight_sha256",
+        f"runtime/run-logs/{label}.preflight.json": "preflight_sha256",
+        f"runtime/run-logs/{label}.process.json": "process_sha256",
+    }
+    if set(reader.names()) != set(files):
+        raise SystemExit("r1 evidence tree contains missing or unexpected artifacts")
+    blobs = {name: reader.read(name) for name in files}
+    for name, key in files.items():
+        if digest(blobs[name]) != identity_value[key]:
+            raise SystemExit(f"r1 evidence pinned digest mismatch: {name}")
+    audit = json_object(blobs["operator-failure-audit.json"], "r1 failure audit")
+    concrete = json_object(blobs[f"dispatch/{label}.request.json"], "r1 concrete request")
+    runtime = json_object(blobs[f"runtime/run-logs/{label}.job.json"], "r1 runtime job")
+    launch = json_object(blobs[f"runtime/run-logs/{label}.launch.json"], "r1 launch")
+    dispatch = json_object(blobs[f"dispatch/{label}.dispatch.json"], "r1 dispatch")
+    postflight = json_object(blobs[f"runtime/run-logs/{label}.postflight.json"], "r1 postflight")
+    preflight = json_object(blobs[f"runtime/run-logs/{label}.preflight.json"], "r1 preflight")
+    process = json_object(blobs[f"runtime/run-logs/{label}.process.json"], "r1 process")
+    expected_audit_keys = {
+        "schema", "label", "host", "hostname", "finalization_head", "finalization_tree",
+        "source_sha256", "authorization_sha256", "template_request_sha256",
+        "concrete_request_sha256", "control_evidence", "staging", "dispatch", "failure",
+        "retrieval", "postflight", "audit_result",
+    }
+    if set(audit) != expected_audit_keys or audit["schema"] != "track-a-operator-failure-audit-v1":
+        raise SystemExit("r1 failure audit schema mismatch")
+    failure = audit["failure"]
+    expected_failure = {
+        "command_returncode": 1,
+        "stage": "job identity check before training",
+        "error": "git symbolic-ref --short HEAD returned exit status 128 because the staged checkout had detached HEAD",
+        "log_sha256": identity_value["log_sha256"],
+        "training_started": False,
+        "evaluation_started": False,
+        "output_directory_created": False,
+        "checkpoint_created": False,
+        "retry_performed": False,
+    }
+    if failure != expected_failure:
+        raise SystemExit("r1 was not the pinned fail-before-training outcome")
+    if (audit["label"] != label or audit["host"] != "trn21"
+            or audit["hostname"] != ARMS[RETRY_ARM]["hostname"]
+            or audit["finalization_head"] != VERIFIED_R1_PARENT
+            or audit["source_sha256"] != SOURCE_SHA
+            or audit["concrete_request_sha256"] != identity_value["concrete_request_sha256"]
+            or audit["dispatch"].get("runtime_job_sha256") != identity_value["runtime_job_sha256"]
+            or audit["staging"].get("checkout_was_detached") is not True
+            or audit["retrieval"] != {"remote_local_hash_maps_match": True, "runtime_file_count": 6}
+            or audit["postflight"].get("host_clean") is not True
+            or audit["postflight"].get("device_holders") is not False
+            or audit["postflight"].get("remaining_processes") != []
+            or audit["audit_result"] != "FAILED_GATE_PRESERVED"):
+        raise SystemExit("r1 failure audit identity/state mismatch")
+    if (digest(canonical_json(concrete)) != identity_value["concrete_request_sha256"]
+            or launch != runtime
+            or dispatch.get("request") != concrete or dispatch.get("returncode") != 0
+            or audit["dispatch"].get("launcher_returncode") != 0):
+        raise SystemExit("r1 request/runtime/dispatch binding mismatch")
+    if (concrete.get("label") != label or concrete.get("host") != "trn21"
+            or concrete.get("expected_hostname") != ARMS[RETRY_ARM]["hostname"]
+            or concrete.get("expected_commit") != VERIFIED_R1_PARENT
+            or concrete.get("finalization_head") != VERIFIED_R1_PARENT
+            or concrete.get("request_sha256") != audit["template_request_sha256"]
+            or concrete.get("authorization_sha256") != audit["authorization_sha256"]
+            or concrete.get("expected_sha256", {}).get(SOURCE_PATH) != SOURCE_SHA
+            or runtime.get("git_commit") != VERIFIED_R1_PARENT
+            or runtime.get("source_dirty") is not False
+            or runtime.get("hostname") != ARMS[RETRY_ARM]["hostname"]):
+        raise SystemExit("r1 runtime identity mismatch")
+    log = blobs[f"runtime/run-logs/{label}.log"].decode("utf-8", "strict")
+    if ("fatal: ref HEAD is not a symbolic ref" not in log
+            or "returned non-zero exit status 128" not in log
+            or "EXPERIMENT_POSTFLIGHT" not in log
+            or "returncode\": 1" not in log):
+        raise SystemExit("r1 log did not prove detached symbolic-ref failure")
+    if (postflight.get("protocol_version") != 2 or postflight.get("label") != label
+            or postflight.get("source_commit") != VERIFIED_R1_PARENT
+            or postflight.get("command_returncode") != 1 or postflight.get("guard_error") is not None
+            or postflight.get("interrupted_signals") != [] or postflight.get("failures") != []
+            or postflight.get("host_clean") is not True
+            or postflight.get("cleanup", {}).get("remaining") != []
+            or postflight.get("health", {}).get("relevant_processes") != []
+            or postflight.get("health", {}).get("neuron_process_count") != 0
+            or postflight.get("artifacts_preserved_on_remote") is not True):
+        raise SystemExit("r1 postflight was not clean and quiescent")
+    if (preflight.get("hostname") != ARMS[RETRY_ARM]["hostname"]
+            or preflight.get("disk", {}).get("free_bytes", 0) < MIN_FREE_BYTES):
+        raise SystemExit("r1 preflight identity mismatch")
+    old_package = "research/submission-validation/20260924-v2-track-a-35c9-controls-a1"
+    old_command = [
+        "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s",
+        "/home/ubuntu/workspace/native_venv/bin/python", f"{old_package}/track_a_job.py",
+        "--arm", "a1-trn21", "--authorization", f"{old_package}/a1-trn21-authorization.json",
+        "--request", f"{old_package}/a1-trn21-request.json", "--runtime-job",
+        f"research/run-logs/{label}.job.json",
+    ]
+    if (process.get("label") != label or process.get("command") != old_command
+            or any(type(process.get(key)) is not int or process[key] <= 0
+                   for key in ("guard_pid", "child_pid", "child_session"))):
+        raise SystemExit("r1 process identity mismatch")
+    return {
+        "archive_commit": identity_value["archive_commit"], "label": label,
+        "classification": "infrastructure_fail_before_training_detached_head",
+        "training_started": False, "evaluation_started": False, "checkpoint_created": False,
+        "host_clean": True, "quiescent": True,
+    }
 
 
 def validate_control_evidence(reader, identity_value):

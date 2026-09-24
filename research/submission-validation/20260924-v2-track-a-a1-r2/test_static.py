@@ -29,6 +29,37 @@ CONTROL_IDENTITY = {
     "result_sha256": "4020d2a9a82ca4e8c05bb158ae0881da2464e3ecad55c9dfef6c8847973645dc",
     "metrics_sha256": "c174d2807efdd401fe336b5bf835a7288acb15d987b630f907dc7bb609d9472b",
 }
+R1_FAILURE_IDENTITY = {
+    "archive_commit": "65d70f5956ad2c68c37560604c8f322cbbecf338",
+    "directory": "research/submission-validation/20260924-v2-track-a-35c9-controls-a1/operator-evidence/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1",
+    "audit_sha256": "825753a9c627d257af2573844af7c227274a33653420b299f888b600e20f50ee",
+    "dispatch_sha256": "0ed5f89cb0ec4a011ed6d1951e120ffa11e6fd5908263fb154a581d641f29f37",
+    "concrete_request_sha256": "b171e72e15cfd8b7f777fbc0b0e7f82640453307c4bb2814733d36ee0843c887",
+    "runtime_job_sha256": "6da04a89b8e3c665e5ef66ed30893012657971d3d6e60ff8a602b88570fcec38",
+    "launch_sha256": "6da04a89b8e3c665e5ef66ed30893012657971d3d6e60ff8a602b88570fcec38",
+    "log_sha256": "ad10343d34b54800acd107c960a7da8f798b10cb4ff9a69aca66d342131b93e2",
+    "postflight_sha256": "f637a87c237ec33a447063f87ba522ec47f6ec49bf11d1f8990549c9fe7a17b4",
+    "preflight_sha256": "7d1b5ed05d9b087a1e5cffb5a7fe78eb2c7da5b1182bad8352316e00b0783d84",
+    "process_sha256": "70c70feb5466cae0e4eca52067d56cce352e65f5c49f11fa276bd6a8fd0c5cd1",
+}
+
+
+class MutatedFailureReader:
+    def __init__(self, mutate_name=None, mutate=None, extra=None):
+        reader = c.FailureGitReader(R1_FAILURE_IDENTITY)
+        self.blobs = {name: reader.read(name) for name in reader.names()}
+        if mutate_name:
+            value = json.loads(self.blobs[mutate_name])
+            mutate(value)
+            self.blobs[mutate_name] = c.canonical_json(value)
+        if extra:
+            self.blobs[extra] = b"forbidden\n"
+
+    def names(self):
+        return list(self.blobs)
+
+    def read(self, name):
+        return self.blobs[name]
 
 
 def git(repo, *args):
@@ -66,13 +97,42 @@ class SourceIdentityTests(unittest.TestCase):
         self.assertEqual(result["checkpoint_sha256"],
                          "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535")
 
-    def test_proposal_records_r1_failure_as_pending_and_no_science_result(self):
+    def test_r1_failure_evidence_is_exact_fail_before_training(self):
+        result = c.validate_r1_failure_evidence(c.FailureGitReader(R1_FAILURE_IDENTITY),
+                                                R1_FAILURE_IDENTITY)
+        self.assertEqual(result["classification"], "infrastructure_fail_before_training_detached_head")
+        self.assertFalse(result["training_started"])
+        self.assertTrue(result["quiescent"])
+
+    def test_proposal_records_bound_r1_failure_and_no_science_result(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
-        self.assertEqual(proposal["r1_failure"]["evidence_identity"],
-                         "PENDING_AUTHENTICATED_R1_FAILURE_EVIDENCE_COMMIT")
+        self.assertEqual(proposal["r1_failure"]["evidence_identity"], R1_FAILURE_IDENTITY)
         self.assertIsNone(proposal["r1_failure"]["science_result"])
+        self.assertTrue(proposal["gates"]["r1_failure_evidence_bound"])
         self.assertFalse(proposal["staging_contract"]["detached_head_allowed"])
         self.assertEqual(proposal["candidate"]["files_allowed"], [])
+
+    def test_r1_failure_mutations_and_unexpected_output_reject(self):
+        cases = [
+            ("operator-failure-audit.json", lambda value: value["staging"].update(checkout_was_detached=False)),
+            ("operator-failure-audit.json", lambda value: value["failure"].update(training_started=True)),
+            (f"runtime/run-logs/{c.R1_LABEL}.postflight.json",
+             lambda value: value["cleanup"].update(remaining=[{"pid": 9}])),
+            (f"runtime/run-logs/{c.R1_LABEL}.postflight.json",
+             lambda value: value.update(command_returncode=0)),
+        ]
+        for name, mutation in cases:
+            with self.subTest(name=name), self.assertRaises(SystemExit):
+                c.validate_r1_failure_evidence(MutatedFailureReader(name, mutation), R1_FAILURE_IDENTITY)
+        with self.assertRaises(SystemExit):
+            c.validate_r1_failure_evidence(
+                MutatedFailureReader(extra=f"runtime/out/{c.R1_LABEL}/training.log"), R1_FAILURE_IDENTITY)
+
+    def test_r1_failure_external_digest_mutation_rejects(self):
+        identity = dict(R1_FAILURE_IDENTITY)
+        identity["log_sha256"] = "1" * 64
+        with self.assertRaises(SystemExit):
+            c.validate_r1_failure_evidence(c.FailureGitReader(identity), identity)
 
 
 class SymbolicStageTests(unittest.TestCase):
