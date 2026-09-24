@@ -57,7 +57,7 @@ EXPECTED_FIXED_SOURCES = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-comparator-r4-independent-verification.json": G0_PASS_RECEIPT_SHA256,
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_DRAFTING_CHECKLIST_ANALYSIS.md": "a530256c81a51ce5635e6c240eddffd03160955f02a57d5c88c0596b54a3be17",
-    "research/fresh_start_launch.py": "08d6e861f86c766bf75a80f11d7753cbd6f416027ba76ff99c908345fddd4ff2",
+    "research/fresh_start_launch.py": "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f",
     "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
     "research/fresh_start_host.py": "f5bc5034b4ac77e2af3234a9630ab8e4d0e3f1b24f7404ac22778d30016e6d16",
     "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
@@ -88,7 +88,9 @@ REQUIRED_RUNTIME_SOURCE_PATHS = {
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/adjudicate_g0_g1.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_TRANSPORT_RETRY_AMENDMENT.json",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
     "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
 }

@@ -107,6 +107,53 @@ def transport_argv(program: str, identity_file: Path) -> list[str]:
             "-o", "IdentitiesOnly=yes", "-i", str(identity_file)]
 
 
+def redact_identity_path(value: str, identity_file: Path) -> str:
+    """Keep controller-local identity locations out of durable transport output."""
+    return value.replace(str(identity_file), "[controller-identity]")
+
+
+def load_request_without_identity_alias(request_path: Path, identity_file: Path) -> dict:
+    """Read the JSON request without ever following a path to the identity inode."""
+    if os.path.abspath(os.fspath(request_path)) == os.path.abspath(os.fspath(identity_file)):
+        raise ValueError("request must not alias --identity-file")
+    identity = os.lstat(identity_file)
+    try:
+        fd = os.open(request_path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+    except OSError:
+        raise ValueError("request must be an available regular non-symlink file") from None
+    try:
+        before = os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError("request must be a regular file")
+        if (before.st_dev, before.st_ino) == (identity.st_dev, identity.st_ino):
+            raise ValueError("request must not alias --identity-file")
+        chunks = []
+        while True:
+            chunk = os.read(fd, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        after = os.fstat(fd)
+        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
+                after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns):
+            raise ValueError("request changed while being read")
+    finally:
+        os.close(fd)
+    try:
+        path_after = os.lstat(request_path)
+    except OSError:
+        raise ValueError("request path changed while being read") from None
+    if (path_after.st_dev, path_after.st_ino) != (before.st_dev, before.st_ino):
+        raise ValueError("request path changed while being read")
+    try:
+        request = json.loads(b"".join(chunks))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise ValueError("request is not valid JSON") from None
+    if not isinstance(request, dict):
+        raise ValueError("request must be a JSON object")
+    return request
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("request", type=Path)
@@ -114,7 +161,7 @@ def main():
                         help="absolute controller-local SSH identity path (metadata only)")
     args = parser.parse_args()
     identity_file = validate_identity_file(args.identity_file)
-    request = json.loads(args.request.read_text())
+    request = load_request_without_identity_alias(args.request, identity_file)
     assert request["host"] in HOSTS
     assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", request["label"])
     assert re.fullmatch(r"[0-9a-f]{40}", request["expected_commit"])
@@ -147,12 +194,15 @@ def main():
         payload.update(returncode=None, stdout="", stderr="", transport_status="OS_ERROR")
         receipt.write_text(json.dumps(payload, indent=2) + "\n")
         raise RuntimeError("SSH transport failed before remote execution") from None
-    payload.update(returncode=completed.returncode, stdout=completed.stdout, stderr=completed.stderr)
+    stdout = redact_identity_path(completed.stdout, identity_file)
+    stderr = redact_identity_path(completed.stderr, identity_file)
+    payload.update(returncode=completed.returncode, stdout=stdout, stderr=stderr)
     receipt.write_text(json.dumps(payload, indent=2) + "\n")
-    print(completed.stdout, end="")
-    if completed.stderr:
-        print(completed.stderr, end="")
-    completed.check_returncode()
+    print(stdout, end="")
+    if stderr:
+        print(stderr, end="")
+    if completed.returncode:
+        raise RuntimeError(f"SSH transport returned nonzero status {completed.returncode}")
 
 
 if __name__ == "__main__":

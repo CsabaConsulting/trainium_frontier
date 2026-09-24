@@ -16,7 +16,7 @@ analysis commit `2029ca66` / SHA-256 `c457bb70c161d1db5f048581cbfbe321acc260bd24
 are controlling. The r1 request, authorization, dispatch, checkout and bundle are historical and
 consumed; they must not be changed, reused or cleaned by this package.
 
-This package defines only a non-executable G1 r2 transport retry. It has a unique r2 label and
+`G1_R2_TRANSPORT_RETRY_AMENDMENT.json` defines only a non-executable G1 r2 transport retry. It has a unique r2 label and
 fresh remote, bundle, cache, output, report, child-log, runtime-job, dispatch and result paths. Its
 pending r2 authorization has every authority false, and `g1-r2-authorization.json` and the r2
 concrete request do not exist. G2, full A1, cleanup, pruning and submission remain locked.

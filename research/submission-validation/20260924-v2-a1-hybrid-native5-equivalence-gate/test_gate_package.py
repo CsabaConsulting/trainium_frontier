@@ -231,9 +231,10 @@ class SourceContractTests(unittest.TestCase):
         self.assertTrue(proposal["gates"]["independent_verification"])
         self.assertTrue(proposal["gates"]["comparator_correction_independent_verification"])
         self.assertFalse(proposal["gates"]["native_execution_authorized"])
-        self.assertTrue(proposal["gates"]["launched"])
+        self.assertFalse(proposal["gates"]["launched"])
         self.assertTrue(proposal["g0_comparator_correction"]["g1_execution_remains_locked"])
-        self.assertFalse(proposal["g1_draft"]["executable"])
+        self.assertFalse(proposal["g1_transport_retry_r2"]["executable"])
+        self.assertTrue(proposal["g1_transport_retry_r2"]["r1_failure"]["historical_consumed"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
         for relative, expected in proposal["immutable_sources"]["gate_sources"].items():
             self.assertEqual(sha(ROOT / relative), expected, relative)
@@ -318,14 +319,17 @@ class G0FinalizationTests(unittest.TestCase):
         pending = json.loads((HERE / "requests.pending.json").read_text())
         by_arm = {arm["arm"]: arm for arm in pending["arms"]}
         self.assertIn("G0_ARCHIVE_AUTHENTICATED", by_arm["G1"]["prerequisite"])
-        self.assertIn("AUTHORIZATION_STILL_PENDING", by_arm["G1"]["prerequisite"])
+        self.assertIn("AUTHORIZATION_PENDING", by_arm["G1"]["prerequisite"])
         self.assertIn("PENDING_AUTHENTICATED_G1", by_arm["G2"]["prerequisite"])
         historical_g0 = json.loads((HERE / "g0-authorization.json").read_text())
         self.assertTrue(historical_g0["executable"])
         self.assertFalse(historical_g0["g1_authorized"])
         self.assertFalse(historical_g0["g2_authorized"])
+        historical_g1 = json.loads((HERE / "g1-authorization.json").read_text())
+        self.assertTrue(historical_g1["executable"])
+        self.assertFalse(historical_g1["g2_authorized"])
         self.assertFalse(any((HERE / name).exists() for name in
-                             ("g1-authorization.json", "g2-authorization.json")))
+                             ("g1-r2-authorization.json", "g2-authorization.json")))
 
     def test_pending_authorization_is_not_executable(self):
         template = self.template()
@@ -359,6 +363,11 @@ class G0FinalizationTests(unittest.TestCase):
                 self.assertEqual(expected,
                                  "aa2d7c084ee17c5c639bd5ff7b6bc0cbf6e9575d5f802a056328eb4e387f5ca4")
                 self.assertNotEqual(actual, expected)
+            elif relative.endswith("fresh_start_launch.py"):
+                self.assertEqual(expected,
+                                 "872c29d6703be64e3bcfdae4deff99acb459eca804f5a7bb574ac6d788e4a80c")
+                self.assertEqual(actual,
+                                 "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f")
             else:
                 self.assertEqual(actual, expected, relative)
         self.assertEqual(template["verified_core_commit"],

@@ -147,6 +147,53 @@ class IdentityTransportTests(unittest.TestCase):
         self.assertNotIn(str(self.identity).encode(), durable)
         self.assertEqual(json.loads(durable)["transport_status"], "TIMEOUT")
 
+    def test_nonzero_redacts_identity_and_missing_key_never_calls_ssh(self):
+        controller = self.root / "nonzero-controller"
+        (controller / "research/run-logs").mkdir(parents=True)
+        request = self._request(controller)
+        failed = subprocess.CompletedProcess([], 255, stdout="", stderr=(
+            f"identity {self.identity} unavailable\n"))
+        with mock.patch.object(LAUNCH, "ROOT", controller), \
+                mock.patch.object(LAUNCH.subprocess, "run", return_value=failed), \
+                mock.patch.object(sys, "argv", ["fresh_start_launch.py", str(request),
+                                                 "--identity-file", str(self.identity)]):
+            with self.assertRaisesRegex(RuntimeError, "nonzero status 255") as raised:
+                LAUNCH.main()
+        self.assertNotIn(str(self.identity), str(raised.exception))
+        durable = (controller / "research/run-logs/fs-r2-local-test.dispatch.json").read_bytes()
+        self.assertNotIn(str(self.identity).encode(), durable)
+        self.assertIn(b"[controller-identity]", durable)
+        with mock.patch.object(LAUNCH.subprocess, "run") as run, \
+                mock.patch.object(sys, "argv", ["fresh_start_launch.py", str(request),
+                                                 "--identity-file", str(self.root / "missing")]):
+            with self.assertRaises(ValueError):
+                LAUNCH.main()
+            run.assert_not_called()
+
+    def test_request_cannot_alias_or_symlink_to_identity(self):
+        controller = self.root / "alias-controller"
+        (controller / "research/run-logs").mkdir(parents=True)
+        alias = controller / "request-alias.json"
+        alias.symlink_to(self.identity)
+        original_open = LAUNCH.os.open
+
+        def guarded_open(path, *args, **kwargs):
+            if Path(path) == self.identity:
+                raise AssertionError("identity inode opened")
+            return original_open(path, *args, **kwargs)
+
+        for request in (self.identity, alias):
+            with self.subTest(request=request), \
+                    mock.patch.object(LAUNCH.os, "open", side_effect=guarded_open), \
+                    mock.patch.object(LAUNCH.os, "read",
+                                      side_effect=AssertionError("identity bytes read")), \
+                    mock.patch.object(LAUNCH.subprocess, "run") as run, \
+                    mock.patch.object(sys, "argv", ["fresh_start_launch.py", str(request),
+                                                     "--identity-file", str(self.identity)]):
+                with self.assertRaises(ValueError):
+                    LAUNCH.main()
+                run.assert_not_called()
+
 
 class R2ContractTests(unittest.TestCase):
     @classmethod
@@ -179,6 +226,18 @@ class R2ContractTests(unittest.TestCase):
                          "e1550203a61c53cd7c73b0c543ced8a157312612")
         self.assertFalse(failure["training_started"])
         self.assertFalse(failure["retry_under_r1_identity_authorized"])
+
+    def test_amendment_is_transport_only_and_has_no_authority(self):
+        amendment = json.loads((HERE / "G1_R2_TRANSPORT_RETRY_AMENDMENT.json").read_text())
+        self.assertFalse(amendment["scientific_change"])
+        self.assertTrue(amendment["r1_failure"]["historical_consumed"])
+        self.assertFalse(amendment["r1_failure"]["training_started"])
+        self.assertEqual(amendment["label"], FINAL.G1_LABEL)
+        self.assertTrue(all(amendment[key] is False for key in (
+            "request_materialization_authorized", "host_access_authorized",
+            "native_execution_authorized", "g2_authorized", "full_a1_authorized",
+            "cleanup_authorized", "checkpoint_prune_authorized",
+            "cache_cleanup_authorized", "submission_authorized")))
 
     def test_all_r2_identities_are_unique_and_identity_is_not_request_data(self):
         encoded = json.dumps(self.template, sort_keys=True)
