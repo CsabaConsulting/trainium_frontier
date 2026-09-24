@@ -1,0 +1,110 @@
+{
+  "schema": "a1-native-five-g1-authorization-independent-verification-v1",
+  "verdict": "PASS",
+  "reviewed_authorization_commit": "149cc9124ff0b9306eff9747182079ab708fc4ed",
+  "reviewed_parent_verifier_pass": "7ee3be474d509e2a8b350b128ed02649702c86a2",
+  "reviewed_origin_branch": "origin/experiment/20260924-v2-a1-hybrid-native5-g1-finalization",
+  "review_role": "independent-verifier-state-only-g1-authorization",
+  "review_date": "2026-09-24",
+  "scope": {
+    "diff_is_exactly_one_new_file": true,
+    "new_file": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json",
+    "arm": "G1",
+    "host": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+    "native_execution_authorized": true,
+    "g1_authorized": true,
+    "g2_authorized": false,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "full_a1_authorized": false,
+    "submission_authorized": false
+  },
+  "identities": {
+    "request_bearing_head": "149cc9124ff0b9306eff9747182079ab708fc4ed",
+    "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
+    "request_template_sha256": "32f69599970589c440f1679c3497f836f552b3fe86ba5af8bb14b9bd916b909d",
+    "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-authorization.json",
+    "authorization_sha256": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+    "verified_core_commit": "994d302b0036c56aaab63797f0561797bc4cf431",
+    "g0_pass_receipt_commit": "8add2585d30b11ac2c50fb2701957657a1a6f30d",
+    "g0_pass_receipt_sha256": "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68",
+    "g0_replay_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+    "g0_replay_bytes": 326
+  },
+  "checks": {
+    "parent_is_exact_g1_draft_pass": true,
+    "origin_head_matches_reviewed_commit": true,
+    "symbolic_branch_head_and_clean_checkout_validation": true,
+    "authorization_schema_state_and_exact_field_set": true,
+    "authorization_regular_single_link_and_exact_sha256": true,
+    "request_template_exact_sha256": true,
+    "protected_finalization_hashes_verified": 8,
+    "source_and_g0_evidence_hashes_verified": 25,
+    "g0_prerequisite_replayed_exactly": true,
+    "host_label_paths_command_environment_resources_and_locks_exact": true,
+    "in_memory_concrete_request_contract_validated_without_writing": true,
+    "missing_changed_field_hash_path_host_arm_label_authority_and_downstream_mutations_rejected": 18,
+    "concrete_request_absent": true,
+    "runtime_job_absent": true,
+    "runtime_result_absent": true,
+    "g1_output_and_report_absent": true,
+    "host_access_performed": false,
+    "request_materialization_performed": false,
+    "launch_or_native_execution_performed": false,
+    "cleanup_or_prune_performed": false
+  },
+  "tests": [
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "raw_result": "FAILED_EXPECTED_STATE_TRANSITION_ASSERTION",
+      "tests_run": 60,
+      "tests_passed": 59,
+      "expected_state_transition_failures": 1,
+      "failure": "test_g1_g2_are_locked_and_have_no_authorization asserts that g1-authorization.json is absent; this reviewed state-only commit deliberately adds that exact G1-only file while G2 and every downstream authority remain false."
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
+      "raw_result": "FAILED_EXPECTED_STATE_TRANSITION_ASSERTION",
+      "tests_run": 10,
+      "tests_passed": 9,
+      "expected_state_transition_failures": 1,
+      "failure": "test_pending_authorization_cannot_materialize asserts that g1-authorization.json is absent; the finalized authorization is the sole intended state transition and no concrete request was materialized."
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py",
+      "result": "PASS",
+      "tests_run": 13
+    },
+    {
+      "command": "python -m py_compile research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+      "result": "PASS"
+    },
+    {
+      "command": "isolated in-memory validate_template, validate_authorization, exact checkout, concrete-builder contract, and mutation matrix",
+      "result": "PASS",
+      "mutations_rejected": 18
+    },
+    {
+      "command": "compare_gate_reports.py --validate-g0-only <immutable-g0-rank-report-dir> --output <fresh-temporary-output>",
+      "result": "PASS",
+      "output_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+      "output_bytes": 326
+    }
+  ],
+  "blockers": [],
+  "authority": {
+    "supervisor_may_materialize_single_exact_g1_request": true,
+    "materialization_must_use_reviewed_authorization_commit_not_this_receipt_descendant": true,
+    "materialization_requires_exact_request_bearing_head": "149cc9124ff0b9306eff9747182079ab708fc4ed",
+    "materialization_requires_exact_request_sha256": "32f69599970589c440f1679c3497f836f552b3fe86ba5af8bb14b9bd916b909d",
+    "materialization_requires_exact_authorization_sha256": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+    "this_receipt_authorizes_host_access_or_launch": false,
+    "this_receipt_authorizes_g2": false,
+    "this_receipt_authorizes_full_a1": false,
+    "this_receipt_authorizes_cleanup_or_prune": false,
+    "this_receipt_authorizes_submission": false,
+    "post_materialization_condition": "The resulting concrete request must be authenticated as the unique deterministic output of the three exact literals before any separate Operator decision."
+  }
+}
