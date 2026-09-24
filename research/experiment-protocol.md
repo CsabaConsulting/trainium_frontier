@@ -22,8 +22,11 @@ of work locally. Kernel failures require diagnosis, not blind repetition.
    never killed by a broad pattern or `pkill` command.
 4. Save `<label>.preflight.json`: no `/dev/neuron0` holders; `neuron-ls` reports no
    active Neuron processes; no remaining training/compiler workers; at least16GiB
-   `MemAvailable`,8GiB disk space and10,000 free inodes. These thresholds are
-   operational minimums, not sufficient capacity estimates for an arbitrary model.
+   `MemAvailable`, 6.5GiB disk space and10,000 free inodes for the verified dense
+   candidate (approximately 0.47GiB checkpoint). The controller and launcher must
+   hard-abort below5GiB; a proposal with a larger checkpoint or measured scratch
+   requirement must declare and enforce a higher operational floor. These thresholds
+   are operational minimums, not sufficient capacity estimates for an arbitrary model.
 5. Capture boot ID/uptime, SDK versions, complete explicit Neuron flags, memory,
    disk/inodes, cache sizes, a bounded `neuron-monitor` sample and available kernel
    messages. Record telemetry failures rather than inventing measurements. Review
