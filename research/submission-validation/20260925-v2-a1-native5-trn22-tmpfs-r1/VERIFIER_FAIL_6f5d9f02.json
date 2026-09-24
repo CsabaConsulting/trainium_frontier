@@ -1,0 +1,74 @@
+{
+  "schema": "a1-native-five-trn22-tmpfs-independent-verification-v4",
+  "verdict": "FAIL",
+  "reviewed_commit": "6f5d9f02d91623eb88bbdf055a4fd525183ae751",
+  "reviewed_branch": "implement/20260925-v2-a1-native5-trn22-tmpfs-r4",
+  "review_parent": "7856efa86669c7a0834ade8f3656ba5464fe48ac",
+  "prior_fail_receipt_sha256": "31651d1b71e08ebc1fc4c45e7881365133e34766575842de871114b4af7761da",
+  "verifier_branch": "verify/20260925-v2-a1-native5-trn22-tmpfs-r4-6f5d",
+  "date": "2026-09-25",
+  "role": "independent-verifier",
+  "scope": {
+    "host_access_performed": false,
+    "hardware_or_training_executed": false,
+    "request_materialized": false,
+    "authorization_or_finalization_changed": false,
+    "cleanup_or_prune_performed": false,
+    "implementation_files_edited": false
+  },
+  "ancestry_and_diff": {
+    "origin_head_exact": true,
+    "prior_fail_is_exact_parent": true,
+    "changed_paths": [
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/RUNBOOK.md",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/protected-hashes.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/storage_contract.py",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/test_trn22_tmpfs_package.py"
+    ],
+    "frozen_candidate_prepare_observer_gate_wrappers_launcher_guard_checkpoint_comparator_unchanged": true,
+    "protected_manifest_file_count": 24,
+    "protected_manifest_exact": true,
+    "protected_manifest_non_self_referential": true,
+    "secret_scan_clean": true
+  },
+  "tests": {
+    "py_compile": "PASS",
+    "json_parse": "PASS (8 package JSON files)",
+    "focused_default": "PASS: 41/41",
+    "focused_torch": "PASS: 41/41",
+    "ownership_torch": "PASS: 13/13",
+    "migration_native_gate_torch": "PASS: 60/60",
+    "aggregate": "PASS: 155/155",
+    "independent_terminal_attacks": "FAIL: 2 stale-evidence false-passes, 1 target-rebound rejection"
+  },
+  "verified_repairs": [
+    "The legacy absence fixture now derives both device and mount ID from its actual parent; all checked-in suites pass from the clean detached verifier worktree.",
+    "Root-backed and /dev/shm present/absent traversal, authenticated boundary selection, wrong device/mount, symlink, simulated nested bind, pre-boundary substitution, late mount-ID rebound and parent/name replacement checks remain fail closed.",
+    "The exact R3 first-reseal same-inode write and target-directory rebound attacks now reject.",
+    "Candidate, prepare.py, observer, gate wrappers, launcher, guard, checkpoint verifier and comparator remain byte frozen; pending authority is false and G1/G2 remain absent and locked."
+  ],
+  "release_blockers": [
+    {
+      "id": "R4-B1",
+      "severity": "SECURITY_AND_CORRECTNESS_BLOCKING",
+      "finding": "The added second recursive seal does not make the terminal operation joint. The second snapshot_tree_revalidate is followed only by _revalidate_chain, which checks the target's lexical ancestor directories but neither re-hashes regular files nor rewalks nested directory membership. Mutations at the second-seal return boundary therefore false-pass with stale receipts.",
+      "evidence": [
+        "Independent same-inode/same-size attack mutated artifact bytes AAAA to BBBB after the second snapshot_tree_revalidate returned. snapshot_path returned PASS with SHA-256 63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201 while the live file digest was 4a8d8134f29b0b7b60c126f5532bc9f5d9bb73037373cf6fb872d81f1dcefdfd.",
+        "Independent nested-membership attack inserted nested/late after the second snapshot_tree_revalidate returned. snapshot_path returned PASS whose entries omitted nested/late while the live authorized tree contained it.",
+        "A target-directory rename/replacement at that same boundary is rejected by the final chain check, proving the gap is specifically unsealed file content and nested membership rather than the lexical root name.",
+        "storage_contract.py:731-738 performs seal, chain, seal, chain; the trailing chain has no recursive content or nested-membership validation."
+      ],
+      "impact": "Root-cache and tmpfs output/cache evidence can still return PASS while exact content or nested membership at the authorized lexical tree differs from the receipt, defeating the unchanged-root-cache and exact artifact gates.",
+      "required_invariant": "The terminal publication boundary must jointly bind the pinned mount-aware lexical chain, current target-name identity, exact recursive membership and same-descriptor file bytes. There may be no trailing validation step that covers only names/ancestors while leaving content or nested membership unsealed through return.",
+      "minimal_repair": "Add deterministic attacks at the final (not first) recursive-seal return boundary for same-inode same-size writes and nested insert/delete/replace. Redesign the terminal seal/publication operation so those attacks reject and the returned receipt is derived from the final jointly authenticated state, rather than adding another alternating content-only or chain-only pass."
+    }
+  ],
+  "authorization": {
+    "separate_g0_finalizer_implementation_permitted": false,
+    "request_materialization_permitted": false,
+    "hardware_execution_permitted": false,
+    "g1_or_g2_permitted": false,
+    "cleanup_prune_submission_permitted": false
+  }
+}
