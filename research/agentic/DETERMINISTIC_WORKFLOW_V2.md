@@ -66,5 +66,7 @@ run authorization and cannot modify thresholds, queue order, or state.
 
 The source audit and dispositions are recorded in
 `research/agentic/imports/claude-workflow-d08ea46/AUDIT.md`. Only reviewed concepts were adapted.
+The latest read-only source tip audited is `752ea5e00d020e1f2e601ee633448bf5ea52f522`;
+recording that identity grants it no canonical authority.
 No foreign tool, evidence receipt, queue, ledger, candidate patch, or claimed result is trusted or
 copied into the canonical workflow.
