@@ -8,7 +8,8 @@ instance.
 
 1. Preserve and independently verify canonical root commit `e12d0dee`, whose `train.py` SHA-256 is
    `116188cf…`. Keep the already confirmed file immutable as the insurance candidate.
-2. Restore disk headroom only through Operator-owned, archived cleanup. Never lower the hard 5 GiB
+2. Restore disk headroom first through Operator-owned, archived cleanup. The final-week operational
+   gate is 6.5 GiB, retaining 1.5 GiB above the hard 5 GiB protocol floor; never lower the hard
    validator or delete an artifact whose proposal says pruning is unauthorized.
 3. Establish one current-base 20M control on each host. Existing LR0.015 results are useful trn21
    evidence, but do not replace a trn22 control.

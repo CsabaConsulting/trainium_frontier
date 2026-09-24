@@ -26,10 +26,12 @@ This section supersedes the older score, base, queue, and host statements below.
 - The old fixed queue based on `9173f626…` is retired for science decisions. It remains inert
   until the new base, controls, proposals, and independent receipts are installed. No old 640-stack
   proposal may be launched as a fallback.
-- At 09:04 UTC both `trn21` and `trn22` were idle with no Neuron/device or experiment-lock holder.
-  Disk was 6.8575 GiB and 6.9148 GiB free respectively. An Operator is checking only archived,
-  controller-owned cleanup targets; no unknown worktree, data, log, or unapproved checkpoint may
-  be removed. The protocol's approximately 5 GiB safety floor is unchanged.
+- At 09:07 UTC both hosts remained idle and unheld. The Operator reclaimed 614,690,816 allocated
+  bytes on `trn22` by deleting three exact, archived controller worktrees; it now has 7.4873 GiB
+  free. `trn21` remains untouched at 6.8574 GiB because its LR0.015 checkpoint explicitly forbids
+  pruning. The final-week operational gate is 6.5 GiB, still 1.5 GiB above the unchanged hard
+  approximately-5 GiB protocol floor. See
+  `operations/TRN2_FINAL_WEEK_GATE_CLEANUP_2026-09-24T090757Z.json`.
 - Final-week selection uses context-1024 public BPB. A 2,097,152-token fresh-process evaluation may
   screen an arm, but cannot establish a KEEP. Promotion requires a fresh 20,971,520-token evaluation;
   adoption requires two negative 20M deltas with mean at most `-0.0008` against current-base,
