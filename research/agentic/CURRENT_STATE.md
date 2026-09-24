@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 10:00 UTC
+Last reconciled: 2026-09-24 11:44 UTC
 
 ## Standing mission v2 — table-first first-place campaign
 
@@ -17,6 +17,19 @@ Track B2's CPU feasibility contract independently passed on branch
 hardware authorization: a native component probe must still strict-load an authenticated real
 `35c9...` checkpoint through control and candidate paths and prove complete key identity, exact
 four-table bytes, and exact predeclared-input logits before any sparse-update training run.
+
+The Track-A launcher repair independently passed 21/21 tests and hostile descendant-process
+fixtures. Its exact dual-host controls are verifier-finalized and pushed on
+`experiment/20260924-v2-track-a-35c9-controls-a1` at `65155c66`; A1 itself remains locked until an
+authenticated archived trn21 control is bound and re-reviewed. The exact `35c9...` source and
+evaluation files remain unchanged.
+
+The completed review-clean trn22 control produced an authentic observational 20M measurement of
+`0.992968300659387` at 3,631 steps, but it is `INVALID_CONTROL_FOR_ADVANCEMENT`: postflight free
+space was 5,928,337,408 bytes, below the 6.5-GiB operational floor. Its evidence is pushed at
+`68ecfeb1`, with Analyst verdict `59f4d8ab`. No trn22 candidate may compare against that run. A new
+unique control is required after separately authorized cleanup, and the observed footprint implies
+a conservative pre-staging floor of 8,833,482,752 bytes if the host must finish above 6.5 GiB.
 
 The previously launched Trn22 `116188cf...` current-base control remains valid submission-safety
 work and is allowed to finish; it is not mislabeled as a `35c9...` Track-A control. The old LR0125
