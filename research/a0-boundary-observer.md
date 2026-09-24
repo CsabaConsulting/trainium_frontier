@@ -4,11 +4,14 @@
 fresh-start guard. It does not launch, signal, stop, or write any runtime file. Start it before the
 guarded request and capture its sole stdout JSON outside the science checkout.
 
-Example shape (paths and label must come from the independently verified A0 request):
+Current contract and launch example: [A0_BOUNDARY_OBSERVER.md](v2/A0_BOUNDARY_OBSERVER.md).
+The exact `--guard-script` argument is required. This older example has been updated to include it.
+Paths and label must come from the independently verified A0 request:
 
 ```text
 python research/a0_boundary_observer.py \
   --label <exact-label> \
+  --guard-script <checkout>/research/fresh_start_guard.py \
   --process-json <checkout>/research/run-logs/<exact-label>.process.json \
   --boundary-file <exact-NEURON_COMPETITION_R1_STEP_LOG> \
   --postflight-json <checkout>/research/run-logs/<exact-label>.postflight.json
