@@ -39,6 +39,22 @@ seals. Failure cleanup removes only the created inode at the authorized temp/fin
 link/mode/size drift and unlinks substituted symlink names without following their targets. This
 local correction is also non-executable and pending independent verification.
 
+Independent verifier commit `42558bf6f8f7cfea69fc5a4db4491aa6eb6f3fa1` found two final
+publication boundaries: a same-size overwrite after the last directory callback, and an unrelated
+regular file published at the dedicated final name then retained by inode-conditional cleanup. The
+r4 ordering makes the absolute last pre-success filesystem action a fresh read-only/no-follow
+same-fd byte/hash/JSON/full-identity seal after the final anchored directory-chain validation. Its
+returned digest and identity are mandatory caller-verified receipt fields. Once initial final-name
+absence is proven, every later temp/final entry is race-created in this dedicated namespace; any
+failure unconditionally unlinks those names through the pinned parent dirfd without following a
+symlink or hardlink target, fsyncs, and verifies anchored absence.
+
+Threat boundary: no userspace routine can prevent the same UID from modifying a file after the last
+successful syscall and function return. This comparator minimizes that interval by doing no later
+filesystem callback, returns the exact sealed SHA-256 and full inode identity, and requires callers
+to verify that receipt. Durable evidence consumers must reauthenticate the archived result against
+that receipt; a bare path observed later is never authority.
+
 This Implementer correction is not self-verified. The non-executable request
 `g0-ownership-revalidation.pending.json` requires a fresh independent Verifier to reconstruct the
 manifest from the pinned source and flags, run the positive archive check and mutation suite, and

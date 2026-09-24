@@ -891,7 +891,7 @@ def _validate_result_info(info: os.stat_result, expected_inode: tuple[int, int],
 
 def _read_validate_result(parent_fd: int, name: str, expected_inode: tuple[int, int],
                           expected_data: bytes, expected_digest: str,
-                          payload: dict[str, Any], label: str) -> tuple[int, ...]:
+                          payload: dict[str, Any], label: str) -> dict[str, Any]:
     fd = os.open(name, _required_open_flags(), dir_fd=parent_fd)
     try:
         before = os.fstat(fd)
@@ -909,7 +909,7 @@ def _read_validate_result(parent_fd: int, name: str, expected_inode: tuple[int, 
             raise InvalidGate(f"{label} result changed during readback")
         if data != expected_data or digest != expected_digest or parsed != payload:
             raise InvalidGate(f"{label} result content mismatch")
-        return _identity(before)
+        return {"sha256": digest, "identity": _identity(before)}
     finally:
         os.close(fd)
 
@@ -929,40 +929,53 @@ def _rename_noreplace(parent_fd: int, source: str, destination: str) -> None:
         raise OSError(value, os.strerror(value), destination)
 
 
-def _cleanup_result_entries(parent_fd: int, names: tuple[str, str],
-                            created_inode: tuple[int, int]) -> None:
-    # Remove only names that still designate the inode created here.  Link-count,
-    # size, mode and timestamp drift must not prevent removal.  A substituted
-    # symlink at an authorized name is unlinked without following it; unrelated
-    # regular files and external link targets are never chased or deleted.
-    for _ in range(4):
-        for name in names:
-            try:
-                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-            except FileNotFoundError:
-                continue
-            if (stat.S_ISREG(info.st_mode) and _file_inode(info) == created_inode
-                    or stat.S_ISLNK(info.st_mode)):
-                try:
-                    os.unlink(name, dir_fd=parent_fd)
-                except FileNotFoundError:
-                    pass
+def _unlink_dedicated_name(parent_fd: int, name: str) -> None:
+    """Remove one dedicated output entry without following it or any target."""
+    try:
+        os.unlink(name, dir_fd=parent_fd)
+    except FileNotFoundError:
+        return
+    except IsADirectoryError:
+        # A race-created directory is still an entry in the dedicated output
+        # namespace.  rmdir never follows a symlink and fails closed if nonempty.
+        os.rmdir(name, dir_fd=parent_fd)
+
+
+def _cleanup_result_entries(parent_fd: int, names_to_remove: tuple[str, str],
+                            chain_fds: list[int], chain_names: list[str],
+                            chain_identities: list[tuple[int, ...]]) -> None:
+    # Once final-name absence has been established, every later entry at either
+    # dedicated name is race-created.  Remove the lexical names unconditionally;
+    # unlink/rmdir never follows symlink or hardlink targets.
+    for _ in range(8):
+        for name in names_to_remove:
+            _unlink_dedicated_name(parent_fd, name)
         os.fsync(parent_fd)
+        _revalidate_output_directory_chain(chain_fds, chain_names, chain_identities)
         remaining = []
-        for name in names:
+        for name in names_to_remove:
             try:
-                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+                os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
             except FileNotFoundError:
                 continue
-            if (stat.S_ISREG(info.st_mode) and _file_inode(info) == created_inode
-                    or stat.S_ISLNK(info.st_mode)):
-                remaining.append(name)
+            remaining.append(name)
         if not remaining:
-            return
-    raise InvalidGate("could not remove created result inode from authorized names")
+            # The final anchored absence check is intentionally after the last
+            # directory-chain callback so an injection at that boundary loops.
+            _revalidate_output_directory_chain(chain_fds, chain_names, chain_identities)
+            remaining_after_chain = []
+            for name in names_to_remove:
+                try:
+                    os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+                except FileNotFoundError:
+                    continue
+                remaining_after_chain.append(name)
+            if not remaining_after_chain:
+                return
+    raise InvalidGate("could not clear dedicated comparator output names")
 
 
-def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
+def _write_exclusive(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
     absolute = _absolute_output(path)
     data = json.dumps(payload, sort_keys=True, separators=(",", ":"),
                       allow_nan=False).encode() + b"\n"
@@ -973,9 +986,14 @@ def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
     final_name = absolute.name
     write_fd = -1
     created_inode: tuple[int, int] | None = None
+    dedicated_names_active = False
     try:
         _revalidate_output_directory_chain(fds, names, identities)
         _assert_final_absent(parent_fd, final_name)
+        # From this exact point onward the final name is a dedicated empty
+        # publication slot.  Any later entry at final/temp is race-created and
+        # is removed unconditionally on failure through this pinned parent fd.
+        dedicated_names_active = True
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
         write_fd = os.open(temp_name, flags, 0o600, dir_fd=parent_fd)
         initial = os.fstat(write_fd)
@@ -1007,19 +1025,23 @@ def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
         _revalidate_output_directory_chain(fds, names, identities)
         # Close/reopen the final file for the last content seal.  No writable file
         # descriptor has survived publication.
-        final_identity = _read_validate_result(
-            parent_fd, final_name, created_inode, data, digest, payload, "final")
-        named_final = os.stat(final_name, dir_fd=parent_fd, follow_symlinks=False)
-        if _identity(named_final) != final_identity:
-            raise InvalidGate("final result binding changed after final reopen")
+        _read_validate_result(
+            parent_fd, final_name, created_inode, data, digest, payload, "pre-final")
+        # Absolute last pre-success filesystem boundary: first anchor every
+        # lexical directory, then freshly open and seal the final entry.  No
+        # callback or filesystem operation follows except closing that read-only
+        # fd inside _read_validate_result and returning its digest/identity.
         _revalidate_output_directory_chain(fds, names, identities)
+        return _read_validate_result(
+            parent_fd, final_name, created_inode, data, digest, payload, "final")
     except Exception as original:
         if write_fd >= 0:
             os.close(write_fd)
             write_fd = -1
-        if created_inode is not None:
+        if dedicated_names_active:
             try:
-                _cleanup_result_entries(parent_fd, (temp_name, final_name), created_inode)
+                _cleanup_result_entries(
+                    parent_fd, (temp_name, final_name), fds, names, identities)
             except Exception as cleanup:
                 raise InvalidGate(f"result publication and cleanup failed: {original}; {cleanup}") from cleanup
         raise
@@ -1028,6 +1050,21 @@ def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
             os.close(write_fd)
         for fd in reversed(fds):
             os.close(fd)
+
+
+def _verify_publication_receipt(payload: dict[str, Any], receipt: dict[str, Any]) -> None:
+    """Bind caller success to the exact final seal returned by _write_exclusive."""
+    data = json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                      allow_nan=False).encode() + b"\n"
+    if not isinstance(receipt, dict) or set(receipt) != {"sha256", "identity"}:
+        raise InvalidGate("publication receipt schema mismatch")
+    identity = receipt["identity"]
+    if (receipt["sha256"] != _sha256_bytes(data)
+            or not isinstance(identity, tuple) or len(identity) != 9
+            or not stat.S_ISREG(identity[2]) or identity[3] != 1
+            or identity[4] != os.getuid() or identity[5] != os.getgid()
+            or stat.S_IMODE(identity[2]) != 0o600 or identity[6] != len(data)):
+        raise InvalidGate("publication receipt does not bind the requested result")
 
 
 def main() -> int:
@@ -1048,9 +1085,11 @@ def main() -> int:
     except Exception as exc:
         payload = {"schema": "a1-native-five-comparison-v1", "status": "INVALID",
                    "error": f"{type(exc).__name__}: {exc}"}
-        _write_exclusive(args.output, payload)
+        receipt = _write_exclusive(args.output, payload)
+        _verify_publication_receipt(payload, receipt)
         return 2
-    _write_exclusive(args.output, payload)
+    receipt = _write_exclusive(args.output, payload)
+    _verify_publication_receipt(payload, receipt)
     return 0 if payload["status"] == "PASS" else 1
 
 

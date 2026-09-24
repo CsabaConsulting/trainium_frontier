@@ -1192,13 +1192,17 @@ class ComparatorTests(unittest.TestCase):
     def test_output_is_exclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "out.json"
-            COMPARE._write_exclusive(output, {"status": "first"})
+            payload = {"status": "first"}
+            receipt = COMPARE._write_exclusive(output, payload)
+            COMPARE._verify_publication_receipt(payload, receipt)
+            self.assertEqual(receipt["sha256"], hashlib.sha256(output.read_bytes()).hexdigest())
             info = output.stat()
             self.assertEqual(stat.S_IMODE(info.st_mode), 0o600)
             self.assertEqual(info.st_nlink, 1)
             self.assertEqual(list(output.parent.glob(".a1-comparator-*.tmp")), [])
             with self.assertRaises(FileExistsError):
                 COMPARE._write_exclusive(output, {"status": "overwrite"})
+            self.assertEqual(json.loads(output.read_bytes()), payload)
 
     def test_result_write_retries_eintr_and_short_writes_and_fsyncs_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1288,6 +1292,94 @@ class ComparatorTests(unittest.TestCase):
                         COMPARE._write_exclusive(output, {"status": "PASS"})
                 self.assertFalse(output.exists())
                 self.assertFalse((root / temp_name).exists())
+
+    def test_overwrite_at_last_directory_boundary_is_caught_by_absolute_final_seal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "out.json"
+            original_chain = COMPARE._revalidate_output_directory_chain
+            calls = 0
+            attacked = False
+
+            def mutate_after_fifth_chain(*args, **kwargs):
+                nonlocal calls, attacked
+                result = original_chain(*args, **kwargs)
+                calls += 1
+                if calls == 5:
+                    attacked = True
+                    self.assertEqual(output.read_bytes(), b'{"status":"PASS"}\n')
+                    output.write_bytes(b'{"status":"FAIL"}\n')
+                return result
+
+            with mock.patch.object(COMPARE, "_revalidate_output_directory_chain",
+                                   side_effect=mutate_after_fifth_chain):
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE._write_exclusive(output, {"status": "PASS"})
+            self.assertTrue(attacked)
+            self.assertFalse(output.exists())
+
+    def test_regular_substitution_at_each_validation_boundary_is_removed(self):
+        original_validate = COMPARE._read_validate_result
+        for stage in range(1, 5):
+            with self.subTest(stage=stage), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                output = root / "out.json"
+                temp_name = ".fixed-publication.tmp"
+                displaced = root / f"displaced-created-inode-{stage}"
+                calls = 0
+                attacked = False
+
+                def substitute_after_validation(parent_fd, name, *args, **kwargs):
+                    nonlocal calls, attacked
+                    receipt = original_validate(parent_fd, name, *args, **kwargs)
+                    calls += 1
+                    if calls == stage:
+                        attacked = True
+                        target = root / name
+                        target.rename(displaced)
+                        target.write_bytes(b'{"status":"PASS"}\n')
+                        target.chmod(0o600)
+                    return receipt
+
+                with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                        mock.patch.object(COMPARE, "_read_validate_result",
+                                          side_effect=substitute_after_validation):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._write_exclusive(output, {"status": "PASS"})
+                self.assertTrue(attacked)
+                self.assertFalse(output.exists(), "authorized regular substitution survived")
+                self.assertFalse((root / temp_name).exists())
+                self.assertTrue(displaced.exists(), "cleanup chased displaced external inode")
+                self.assertEqual(json.loads(displaced.read_bytes()), {"status": "PASS"})
+
+    def test_regular_substitution_immediately_before_or_after_rename_is_removed(self):
+        original_rename = COMPARE._rename_noreplace
+        for boundary in ("before", "after"):
+            with self.subTest(boundary=boundary), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                output = root / "out.json"
+                temp_name = ".fixed-publication.tmp"
+                displaced = root / f"displaced-{boundary}"
+
+                def substitute(parent_fd, source, destination):
+                    if boundary == "before":
+                        (root / source).rename(displaced)
+                        (root / source).write_bytes(b'{"status":"PASS"}\n')
+                        (root / source).chmod(0o600)
+                        original_rename(parent_fd, source, destination)
+                    else:
+                        original_rename(parent_fd, source, destination)
+                        output.rename(displaced)
+                        output.write_bytes(b'{"status":"PASS"}\n')
+                        output.chmod(0o600)
+
+                with mock.patch.object(COMPARE, "_private_temp_name", return_value=temp_name), \
+                        mock.patch.object(COMPARE, "_rename_noreplace", side_effect=substitute):
+                    with self.assertRaises(COMPARE.InvalidGate):
+                        COMPARE._write_exclusive(output, {"status": "PASS"})
+                self.assertFalse(output.exists())
+                self.assertFalse((root / temp_name).exists())
+                self.assertTrue(displaced.exists())
 
     def test_parent_rename_during_directory_fsync_is_rejected_and_cleaned(self):
         with tempfile.TemporaryDirectory() as tmp:
