@@ -20,6 +20,16 @@ HOST_DIRECTORY = Path('/home/ubuntu/.cache/trainium_freshstart')
 HOST_LOCK = HOST_DIRECTORY / 'device0.lock'
 HOST_STATE = HOST_DIRECTORY / 'device0-last-postflight.json'
 MARKER = 'TRAINIUM_FRESH_START_RUN_ID'
+MIN_OPERATIONAL_FREE_BYTES = 13 * 1024**3 // 2
+HARD_ABORT_FREE_BYTES = 5 * 1024**3
+
+
+def disk_policy(free_bytes):
+    if type(free_bytes) is not int or free_bytes < HARD_ABORT_FREE_BYTES:
+        return 'hard_abort'
+    if free_bytes < MIN_OPERATIONAL_FREE_BYTES:
+        return 'blocked'
+    return 'allowed'
 
 
 def utc_now():
@@ -207,8 +217,11 @@ def health_failures(record, exclude_pids=()):
         failures.append('neuron-ls failed or reports a live Neuron process')
     if record['memory_bytes']['MemAvailable'] < 16 * 1024**3:
         failures.append('less than16GiB host memory available')
-    if record['disk']['free_bytes'] < 8 * 1024**3:
-        failures.append('less than8GiB disk space available')
+    disposition = disk_policy(record['disk']['free_bytes'])
+    if disposition == 'hard_abort':
+        failures.append('hard abort: less than5GiB disk space available')
+    elif disposition == 'blocked':
+        failures.append('less than6.5GiB operational disk space available')
     if record['disk']['free_inodes'] < 10000:
         failures.append('less than10000 free filesystem inodes')
     pending = [p for p in record['relevant_processes']

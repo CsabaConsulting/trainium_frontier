@@ -1,0 +1,128 @@
+{
+  "proposal_id": "20260924-v2-track-a-35c9-controls-a1",
+  "status": "human-approved-pending-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "On the immutable 35c9 dense base at matrix LR 0.015, the last-layer 64x128 BF16 bigram+trigram value-embedding subsystem improves same-host trn21 fresh 2M public BPB by at least 0.001 and therefore merits an other-host full20M replicate.",
+  "single_causal_change": "Replace --no-ngram-ve with the complete A1 subsystem configuration: --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude.",
+  "mechanism_class": "capacity",
+  "evidence": [
+    "submissions/dense6x1024_public0992851/train.py at c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "submissions/dense6x1024_public0992851/provenance.json",
+    "research/run-logs/fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1.summary.json",
+    "research/submission-validation/20260924-v2-track-a-35c9-controls-a1/contracts.py"
+  ],
+  "duplicate_search_terms": [
+    "ngram-ve-layers=-1",
+    "ngram table mult 64 dim 128",
+    "last-layer ngram value embedding",
+    "A1 Track A"
+  ],
+  "immutable_source": {
+    "introduction_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "path": "submissions/dense6x1024_public0992851/train.py",
+    "sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "rules_path": "README.md",
+    "rules_sha256": "4e4d39d5ef9d4bd69bc2048821292ce74f2ea99b684a823f14f3b01de2b11316",
+    "modified": false
+  },
+  "control": {
+    "git_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "run_label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "A1 compares only with this fresh same-host trn21 control; cross-host throughput claims are forbidden."
+  },
+  "controls": [
+    {
+      "arm": "control-trn21",
+      "run_label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+      "host": "trn21",
+      "hostname": "ip-172-31-34-85",
+      "public_val_bpb": null,
+      "steps": null
+    },
+    {
+      "arm": "control-trn22",
+      "run_label": "fs-20260924-v2-35c9-lr015-control-trn22-r1",
+      "host": "trn22",
+      "hostname": "ip-172-31-32-253",
+      "public_val_bpb": null,
+      "steps": null
+    }
+  ],
+  "control_launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+  "candidate": {
+    "branch": "experiment/20260924-v2-track-a-35c9-controls-a1",
+    "files_allowed": [],
+    "expected_diff": "No train.py change. A1 is expressed entirely by the explicit launch flag subsystem configuration against immutable 35c9 bytes.",
+    "run_label": "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1",
+    "host": "trn21",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "smoke_authorized": false,
+    "same_host_control_required": "fs-20260924-v2-35c9-lr015-control-trn21-r1"
+  },
+  "screening": {
+    "fresh_process": true,
+    "seq_len": 1024,
+    "num_tokens": 2097152,
+    "num_bytes": 8418678,
+    "timeout_seconds": 1200,
+    "controls_establish_host_baselines": true,
+    "a1_nomination_threshold": "same-host control BPB - A1 BPB >= 0.001",
+    "a1_nomination_outcome": "NOMINATE_OTHER_HOST_FULL20M_REPLICATE",
+    "selection_authority": "The A1 2M screen may nominate or discard only. It can never KEEP or adopt A1 by itself."
+  },
+  "disk_and_artifact_policy": {
+    "operational_launch_floor_bytes": 6979321856,
+    "hard_abort_floor_bytes": 5368709120,
+    "one_run_per_host": true,
+    "fresh_job_owned_compile_caches": true,
+    "automatic_cache_cleanup_authorized": false,
+    "checkpoint_prune_authorized": false,
+    "control_checkpoint_retention": "Retain both control checkpoints for fresh 20M and finalist analysis.",
+    "a1_checkpoint_retention": "Retain A1 checkpoint through evidence archival and, if nominated, through the other-host full20M replicate decision.",
+    "retrieval": "Retrieve and hash every preflight/job/process/postflight log, training/eval log, finite receipt, cache observation, result, archive, manifest, completion receipt, and checkpoint identity before any later lifecycle action."
+  },
+  "authorization_model": {
+    "core": "Immutable science source identities, proposal, driver, launcher adapter, contracts, and tests are frozen in a core commit.",
+    "finalization": "Only the three request/auth pairs may differ after the core. Control requests may be externally verified immediately; A1 authorization remains invalid until exact archived trn21 control Git-blob digests are bound.",
+    "runtime": "The adapter derives the externally verified finalization HEAD, writes an O_EXCL concrete standard-launcher request, and the job revalidates Git/worktree/request/runtime/source/evidence identities before work.",
+    "evidence": "A1 accepts only exact-schema regular Git blobs from an authorization-pinned archive commit; symlink/tree-mode, digest, member, tar, metric, checkpoint, host, or label mismatches fail closed."
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true,
+    "independent_verification": false,
+    "controls_launched": false,
+    "a1_control_archive_bound": false,
+    "a1_launched": false,
+    "submission_authorized": false
+  },
+  "success_criteria": {
+    "quality": "A1 nomination only when its exact fresh2M BPB is at least 0.001 below authenticated same-host trn21 control; confirmation is an other-host full20M replicate.",
+    "throughput": "Diagnostic only and same-host only; no cross-host rate claim.",
+    "correctness": "Exact 35c9/prepare bytes, exact arm argv, seed42, LNC2/world4, full1800, no smoke, finite weights-only checkpoint, exact fresh2M token/byte counts, sealed evidence, and no budget/causality/dirty-tree failure."
+  },
+  "abort_conditions": [
+    "Any train.py or prepare.py byte differs from its pinned identity",
+    "Any command, environment, request, runtime job, protected source, or evidence fingerprint differs",
+    "A host is not clean/idle, already owns a run, or has less than 6.5 GiB free; less than 5 GiB is a hard abort",
+    "A1 lacks the exact authenticated archived same-host trn21 control",
+    "Any smoke, shortened run, automatic cache cleanup, checkpoint prune, direct KEEP/adopt, or submission is requested",
+    "Crash, NaN, timeout, over-budget result, missing/nonfinite checkpoint, causality failure, dirty tree, or artifact mutation",
+    "Fresh2M reports counts other than 2,097,152 tokens and 8,418,678 bytes",
+    "Independent verification is absent"
+  ],
+  "human_approved_by": "human Track A mission v2 instruction dated 2026-09-24",
+  "verdict": null
+}
