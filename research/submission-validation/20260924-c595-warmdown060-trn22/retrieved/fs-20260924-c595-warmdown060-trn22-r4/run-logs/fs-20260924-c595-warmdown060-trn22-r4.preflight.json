@@ -1,0 +1,163 @@
+{
+  "protocol_version": 2,
+  "started_at": "2026-09-24T00:44:20.558469+00:00",
+  "completed_at": "2026-09-24T00:44:23.733472+00:00",
+  "hostname": "ip-172-31-32-253",
+  "kernel_release": "6.17.0-1019-aws",
+  "boot_id": "bf52dfdd-1dba-485a-9ee6-e5a27fb41ba6",
+  "uptime_seconds": 824722.94,
+  "sdk": {
+    "argv": [
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-c",
+      "import importlib.metadata as m,json; print(json.dumps({p:m.version(p) for p in [\"torch\",\"torch-neuronx\",\"neuronx-cc\",\"nki\"]}))"
+    ],
+    "returncode": 0,
+    "stdout": "{\"torch\": \"2.11.0+cpu\", \"torch-neuronx\": \"2.11.3.0.0+unknown.dev\", \"neuronx-cc\": \"2.26.6360.0+6f180f47\", \"nki\": \"0.5.0+28631259367.ga768afa6\"}\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.051821691915392876
+  },
+  "memory_bytes": {
+    "MemTotal": 133975023616,
+    "MemFree": 86800449536,
+    "MemAvailable": 131548553216,
+    "Cached": 43345465344,
+    "SwapTotal": 0,
+    "SwapFree": 0
+  },
+  "disk": {
+    "total_bytes": 206900281344,
+    "used_bytes": 197627625472,
+    "free_bytes": 9255878656,
+    "free_inodes": 25106579
+  },
+  "device_holders": {
+    "argv": [
+      "fuser",
+      "/dev/neuron0"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.0041675419779494405
+  },
+  "neuron_ls": {
+    "argv": [
+      "/opt/aws/neuron/bin/neuron-ls",
+      "--json-output"
+    ],
+    "returncode": 0,
+    "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.0515871939714998
+  },
+  "neuron_monitor": {
+    "argv": [
+      "timeout",
+      "--kill-after=1s",
+      "3s",
+      "/opt/aws/neuron/bin/neuron-monitor"
+    ],
+    "returncode": 124,
+    "stdout": "{\"neuron_runtime_data\":[],\"system_data\":{\"memory_info\":{\"period\":0.001425535,\"memory_total_bytes\":133975023616,\"memory_used_bytes\":47199604736,\"swap_total_bytes\":0,\"swap_used_bytes\":0,\"error\":\"\"},\"neuron_hw_counters\":{\"period\":0.001471551,\"neuron_devices\":[{\"neuron_device_index\":0,\"mem_ecc_corrected\":0,\"mem_ecc_uncorrected\":0,\"sram_ecc_uncorrected\":0,\"sram_ecc_corrected\":0}],\"error\":\"\"},\"vcpu_usage\":{\"period\":0.001455244,\"average_usage\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":100,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"usage_data\":{\"0\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"1\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"10\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"11\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"2\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":100,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"3\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"4\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"5\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"6\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"7\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"8\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"9\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0}},\"context_switch_count\":104,\"error\":\"\"}},\"instance_info\":{\"instance_name\":\"\",\"instance_id\":\"i-0673e54d9d66e6a1e\",\"instance_type\":\"trn2.3xlarge\",\"instance_availability_zone\":\"ap-southeast-4c\",\"instance_availability_zone_id\":\"apse4-az3\",\"instance_region\":\"ap-southeast-4\",\"ami_id\":\"ami-0d5703e99c1589f8d\",\"subnet_id\":\"subnet-0fe22a789fe3a6e7d\",\"error\":\"\"},\"neuron_hardware_info\":{\"neuron_device_type\":\"trainium2\",\"neuroncore_version\":\"v3d\",\"neuron_device_count\":1,\"neuron_device_memory_size\":103079215104,\"neuroncore_per_device_count\":4,\"logical_neuroncore_config\":2,\"error\":\"\"}}\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 3.0140656739240512
+  },
+  "kernel_log": {
+    "argv": [
+      "journalctl",
+      "-k",
+      "--no-pager",
+      "-n",
+      "200",
+      "-o",
+      "short-iso",
+      "--since",
+      "2026-09-24T00:21:59.224515+00:00"
+    ],
+    "returncode": 0,
+    "stdout": "2026-09-24T00:23:22+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2802459, slot=0\n2026-09-24T00:23:22+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2802459, slot=0\n2026-09-24T00:31:55+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2802913, slot=0\n2026-09-24T00:31:55+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2802913, slot=0\n2026-09-24T00:39:00+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2803954, slot=0\n2026-09-24T00:39:00+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2803954, slot=0\n2026-09-24T00:39:05+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804101, slot=0\n2026-09-24T00:39:05+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804101, slot=0\n2026-09-24T00:39:40+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804225, slot=0\n2026-09-24T00:39:40+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804225, slot=0\n2026-09-24T00:41:14+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804312, slot=0\n2026-09-24T00:41:14+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804312, slot=0\n2026-09-24T00:43:53+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804627, slot=0\n2026-09-24T00:43:53+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804627, slot=0\n2026-09-24T00:44:20+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804763, slot=0\n2026-09-24T00:44:20+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804763, slot=0\n2026-09-24T00:44:20+00:00 ip-172-31-32-253 kernel: neuron:npid_attach: neuron:npid_attach: pid=2804779, slot=0\n2026-09-24T00:44:23+00:00 ip-172-31-32-253 kernel: neuron:npid_detach: neuron:npid_detach: pid=2804779, slot=0\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.004741630982607603,
+    "relevant_error_lines": []
+  },
+  "relevant_processes": [
+    {
+      "pid": 2804710,
+      "ppid": 2804709,
+      "process_group": 2804710,
+      "session": 2804710,
+      "state": "R",
+      "start_ticks": 82471931,
+      "rss_bytes": 19611648,
+      "argv": [
+        "python3",
+        "-c",
+        "\nimport datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, stat, subprocess, sys\nm = json.load(sys.stdin)\nr = pathlib.Path(m['remote'])\nassert r.is_dir(), 'checkout missing'\n\n# This boundary deliberately uses only the standard library.  No Python bytes\n# from the checkout are imported until the complete, non-sparse materialization\n# and every required byte have been authenticated against the request.\nruntime_closure = [\n    'research/fresh_start_launch.py',\n    'research/fresh_start_sync.py',\n    'research/fresh_start_guard.py',\n    'research/fresh_start_host.py',\n    'research/fresh_start_backup.py',\n]\nexpected = m.get('expected_sha256')\nassert isinstance(expected, dict), 'expected_sha256 missing'\nrequired = list(dict.fromkeys(runtime_closure + m.get('fingerprint_paths', [])))\nassert all(path in expected for path in required), 'required checkout hash missing'\n\ndef git(*args, check=True):\n    return subprocess.run(['git', *args], cwd=r, text=True, capture_output=True, check=check)\n\ncommit = git('rev-parse', 'HEAD').stdout.strip()\nassert commit == m['expected_commit'], 'unexpected source commit: ' + commit\nsparse = git('config', '--bool', 'core.sparseCheckout', check=False)\nassert sparse.returncode in (0, 1), 'cannot read sparse checkout config'\nassert sparse.returncode == 1 or sparse.stdout.strip() == 'false', 'sparse checkout enabled'\ngit_path = pathlib.Path(git('rev-parse', '--git-path', 'info/sparse-checkout').stdout.strip())\nif not git_path.is_absolute():\n    git_path = r / git_path\nassert not git_path.exists(), 'sparse checkout specification exists'\nassert not git('diff', '--name-only', 'HEAD', '--').stdout.strip(), 'tracked checkout differs from HEAD'\nassert not git('ls-files', '--deleted').stdout.strip(), 'tracked checkout is incompletely materialized'\n\ndef authenticated_regular(relative):\n    rel = pathlib.PurePosixPath(relative)\n    assert relative == str(rel) and not rel.is_absolute() and '..' not in rel.parts, 'unsafe checkout path'\n    current = r\n    for index, part in enumerate(rel.parts):\n        current = current / part\n        mode = current.lstat().st_mode\n        assert not stat.S_ISLNK(mode), 'checkout path is symlink: ' + relative\n        if index + 1 < len(rel.parts):\n            assert stat.S_ISDIR(mode), 'checkout parent is not directory: ' + relative\n        else:\n            assert stat.S_ISREG(mode), 'checkout path is not regular: ' + relative\n    tracked = git('ls-files', '--error-unmatch', '--', relative, check=False)\n    assert tracked.returncode == 0 and tracked.stdout.strip() == relative, 'required path is not tracked: ' + relative\n    with current.open('rb') as source:\n        actual = hashlib.sha256(source.read()).hexdigest()\n    assert actual == expected[relative], 'checkout hash mismatch: ' + relative\n    return actual\n\nvalidated_sha256 = {path: authenticated_regular(path) for path in required}\n# CHECKOUT_AUTHENTICATION_BOUNDARY -- tests execute through this exact line only.\nsys.path.insert(0, str(r / 'research'))\nfrom fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight\nHOST_DIRECTORY.mkdir(parents=True, exist_ok=True)\nhost_lock = HOST_LOCK.open('a')\nfcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)\n# preflight first cleans only descendants of the previously completed marked\n# job, then checks all device holders. An early fuser assertion would prevent\n# that authorized cleanup if a stale owned descendant still held the device.\nfree = shutil.disk_usage(r).free\nassert free >= 8 * 1024**3, 'less than 8 GiB free'\nsource_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',\n                'research/fresh_start_host.py', 'research/fresh_start_guard.py',\n                'research/fresh_start_launch.py', 'research/fresh_start_backup.py']\ndirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)\nnew = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)\nassert not dirty.strip() and not new.strip(), 'experiment source is not committed'\nfdir = r / 'research/run-logs'\nmanifest = fdir / (m['label'] + '.launch.json')\nlog = fdir / (m['label'] + '.log')\nassert not manifest.exists() and not log.exists(), 'label already exists'\nif m.get('runner_owns_manifest'):\n    log = fdir / (m['label'] + '.driver.log')\nassert not log.exists(), 'driver label already exists'\npre = preflight(r, m['label'])\npaths = ['train.py', 'prepare.py', 'research/run_experiment.py',\n         'research/fresh_start_host.py', 'research/fresh_start_guard.py',\n         'research/fresh_start_backup.py'] + m.get('fingerprint_paths', [])\nm.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),\n         hostname=socket.gethostname(), git_commit=commit, source_dirty=False,\n         preflight_free_bytes=free,\n         source_sha256={p: (validated_sha256[p] if p in validated_sha256 else\n                            hashlib.sha256((r / p).read_bytes()).hexdigest())\n                        for p in dict.fromkeys(paths)})\nenv = os.environ.copy()\nfor key in ('NEURON_RT_VISIBLE_CORES', 'NEURON_RT_NUM_CORES'):\n    env.pop(key, None)\nenv.update(m['environment'])\nif not m.get('runner_owns_manifest'):\n    with manifest.open('x') as f:\n        json.dump(m, f, indent=2)\njob = fdir / (m['label'] + '.job.json')\nwith job.open('x') as f:\n    json.dump(m, f, indent=2)\nwith log.open('x') as f:\n    p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),\n                          str(job), '--lock-fd', str(host_lock.fileno())],\n                         cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,\n                         start_new_session=True, pass_fds=(host_lock.fileno(),))\nprint(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,\n                     hostname=m['hostname'], log=str(log), started_at=m['started_at'],\n                     protocol_version=2, preflight_passed=pre['passed'])))\n"
+      ],
+      "cwd": "/home/ubuntu",
+      "known_read_only_backup": false
+    }
+  ],
+  "cache_sizes": {
+    "/tmp/neff_cache": {
+      "argv": [
+        "du",
+        "-sk",
+        "/tmp/neff_cache"
+      ],
+      "returncode": 0,
+      "stdout": "9617396\t/tmp/neff_cache\n",
+      "stderr": "",
+      "timed_out": false,
+      "seconds": 0.03804842696990818
+    }
+  },
+  "cache_policy": "reuse shared immutable compilation caches; no purge or OS cache drop",
+  "neuron_devices": [
+    {
+      "instance_type": "trn2.3xlarge",
+      "instance_id": "i-0673e54d9d66e6a1e",
+      "neuron_device": 0,
+      "bdf": "0000:33:00.0",
+      "cpu_affinity": "0-11",
+      "numa_node": "0",
+      "connected_to": null,
+      "nc_count": 4,
+      "logical_neuroncore_config": 2,
+      "memory_size": 103079215104,
+      "neuroncore_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "neuron_processes": []
+    }
+  ],
+  "neuron_process_count": 0,
+  "label": "fs-20260924-c595-warmdown060-trn22-r4",
+  "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4",
+  "stage": "preflight",
+  "previous_postflight": {
+    "label": "fs-20260924-c595-warmdown060-trn22-r3",
+    "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3",
+    "postflight": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3/research/run-logs/fs-20260924-c595-warmdown060-trn22-r3.postflight.json",
+    "host_clean": false,
+    "completed_at": "2026-09-24T00:21:59.224515+00:00"
+  },
+  "cleanup": {
+    "actions": [],
+    "remaining": [],
+    "artifacts_deleted": [],
+    "caches_deleted": [],
+    "driver_modified": false
+  },
+  "failures": [],
+  "passed": true
+}

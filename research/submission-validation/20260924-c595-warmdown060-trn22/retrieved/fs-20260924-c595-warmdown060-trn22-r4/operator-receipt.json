@@ -1,0 +1,80 @@
+{
+  "schema": "operator-completed-run-receipt-v1",
+  "label": "fs-20260924-c595-warmdown060-trn22-r4",
+  "host": {
+    "name": "trn22",
+    "hostname": "ip-172-31-32-253",
+    "preflight_passed": true,
+    "preflight_free_bytes": 9255878656,
+    "postflight_command_returncode": 0,
+    "postflight_host_clean": false,
+    "postflight_failures": [
+      "less than8GiB disk space available"
+    ],
+    "postflight_free_bytes": 7425024000,
+    "postflight_neuron_process_count": 0,
+    "postflight_device_holders": 0,
+    "postflight_relevant_process_count": 0
+  },
+  "fingerprints": {
+    "finalization_head": "8dead6599d6004fd4a8ac9749202124d1bdb8fd3",
+    "core_commit": "5bdd0562d71e210a58751abaaa936d504427d075",
+    "template_sha256": "8cf9151bd0c03f8e3a1f0740ffdee315a8f5f77b03c947b607c9cb907bb97fe9",
+    "concrete_request_sha256": "abc6389805a1560fb38dd9bec4722a3ae19ea3f9958f51772365c74e7a96d0e6",
+    "authorization_sha256": "e703095d1fc3cf6481270a58fa31e16c8992f3fd1e14ea4feef9228b7b7b9214",
+    "runtime_job_sha256": "bc8166f0960c6391f8b70c6a9b021ae38ceaa76cfdf3540b92e8c0f72906d3c6",
+    "candidate_sha256": "52cf99df3e241ab8399c104b7ad4b717571e0987781b6b835303a8500baff38c"
+  },
+  "launch": {
+    "guard_pid": 2804816,
+    "child_pid": 2804817,
+    "started_at": "2026-09-24T00:44:23.737401+00:00",
+    "completed_at": "2026-09-24T01:40:35.943734+00:00",
+    "preflight_passed": true,
+    "command_returncode": 0
+  },
+  "training": {
+    "returncode": 0,
+    "wall_seconds": 2625.5016305649187,
+    "startup_allowance_observed": 835.4148397129029,
+    "charged_through_process_exit_seconds": 1790.0867908520158,
+    "charged_through_process_exit_within_budget": true,
+    "training_seconds_logged": 1784.6,
+    "budget_seconds": 1800,
+    "final_step_index": 3638,
+    "step_count": 3639,
+    "total_tokens_millions_logged": 477.0,
+    "seed": 42
+  },
+  "checkpoint": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4/out/fs-20260924-c595-warmdown060-trn22-r4/train/out/final.pt",
+    "bytes": 469831009,
+    "sha256": "3b03690f5bc418d8e2bc84ef76e174085224953069e122c19f8c0adaefa0d4f7",
+    "finite": true,
+    "tensor_count": 62,
+    "weights_only": true,
+    "preserved_remote": true
+  },
+  "evaluation": {
+    "returncode": 0,
+    "num_tokens": 20971520,
+    "num_bytes": 83462186,
+    "total_nats": 57493604.0,
+    "val_bpb": 0.9938121842822794,
+    "eval_seconds": 720.281569852028,
+    "eval_timeout": 1200,
+    "eval_over_timeout": false
+  },
+  "retrieval": {
+    "manifest_sha256": "c101e856ba7c84c2e71ba53b09475a5d9e7c0228213baf17638cebdb25807f69",
+    "completion_sha256": "3204f378ffb90b32f35f6145f2d7b78d964a7ed70503966f4d03ac99302240cb",
+    "manifest_member_failures": [],
+    "ready_to_retrieve": true
+  },
+  "operator_actions": {
+    "cleanup_performed": false,
+    "checkpoint_pruned": false,
+    "retry_performed": false,
+    "submission_performed": false
+  }
+}

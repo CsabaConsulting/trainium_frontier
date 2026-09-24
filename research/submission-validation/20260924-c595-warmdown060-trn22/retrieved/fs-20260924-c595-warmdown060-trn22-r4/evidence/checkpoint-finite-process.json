@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-c",
+    "import json,sys,torch\nvalue=torch.load(sys.argv[1],map_location='cpu',weights_only=True); stack=[value]; count=0\nwhile stack:\n item=stack.pop()\n if isinstance(item,dict): stack.extend(item.values())\n elif isinstance(item,(list,tuple)): stack.extend(item)\n elif isinstance(item,torch.Tensor):\n  count+=1\n  if (item.is_floating_point() or item.is_complex()) and not torch.isfinite(item).all().item(): raise SystemExit('nonfinite')\nprint(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor_count':count},sort_keys=True))\n",
+    "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4/out/fs-20260924-c595-warmdown060-trn22-r4/train/out/final.pt"
+  ],
+  "descendants_after_parent_exit": false,
+  "duration_seconds": 2.710094125010073,
+  "label": "fs-20260924-c595-warmdown060-trn22-r4",
+  "log_bytes": 690,
+  "log_sha256": "10c268b837b59605b84a29d58de057c384b8780a1a8681405827fb522c4f0e00",
+  "name": "checkpoint-finite",
+  "process_group_quiescent": true,
+  "returncode": 0,
+  "schema": "c595-warmdown060-process-v1",
+  "timed_out": false,
+  "timeout_seconds": 600
+}
