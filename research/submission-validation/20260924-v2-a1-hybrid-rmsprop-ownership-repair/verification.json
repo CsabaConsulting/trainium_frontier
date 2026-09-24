@@ -1,33 +1,34 @@
 {
-  "reviewed_commit": "ea3547aca41531801ab9ae85194ffe2eacca59aa",
-  "reviewed_parent": "fc931eb4540e71b38360ccfdbe3fed87ca2743ee",
-  "role": "independent_verifier_iteration_4",
-  "status": "FAIL",
-  "summary": "The simplified unsupported-resume design, production model-only checkpoint path and legacy no-RMS v1 path pass, but the hybrid API gate can be bypassed by drift in its unbound derived group list.",
+  "reviewed_commit": "ec93e1564f567132a993cbbb59defae1ce4c8af3",
+  "reviewed_parent": "8431f38a2641fcebbdc1f35fe09fc9c89ad9d7b8",
+  "role": "independent_verifier_iteration_5",
+  "status": "PASS",
+  "summary": "The hybrid unsupported-resume gate is bound to the frozen plan identity; cached-list drift cannot bypass save/load or reach raw methods, and all scoped regressions pass.",
   "checks": {
-    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r4.cWmHvz",
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r5.MgZVdG",
+    "origin_aligned_reviewed_commit": true,
     "py_compile_passed": true,
-    "supplied_tests_passed": 12,
-    "verifier_adversarial_tests_added": 1,
-    "candidate_sha256": "431f70a75589182f9e8627abc000801503c3f2acf13bf95b21d06cffd5dcf711",
+    "supplied_tests_passed": 13,
+    "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "base_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
     "diff_check_passed": true,
     "candidate_scope_confined_to_ownership_adapter": true,
-    "schema_v3_removed_from_candidate": true,
-    "production_final_checkpoint_model_only": true,
-    "no_rms_v1_schema_and_roundtrip_passed": true,
+    "hybrid_cached_list_clear_reverse_append_pop_fail_before_raw": true,
+    "authenticated_rms_summary_drift_fails_before_collective": true,
+    "no_rms_v1_schema_and_roundtrip_unchanged": true,
+    "schema_v3_unreachable_and_removed": true,
+    "production_compile_five_step_and_final_save_model_only": true,
     "world1_fake_world4_rms_math_and_update_adamw_false_passed": true,
     "live_step_plan_summary_group_and_identity_gates_passed": true,
+    "model_load_eval_and_prepare_protected": true,
     "new_or_finalized_authorization_or_request_present": false
   },
-  "blockers": [
-    {
-      "id": "R4-B1",
-      "finding": "state_dict/load_state_dict decide whether the optimizer is hybrid from mutable replicated_rmsprop_groups, but _validate_live_plan does not bind that list. Clearing it allows a hybrid adapter to invoke raw_state_dict and emit v1, or invoke raw_load_state_dict with a v1-shaped payload.",
-      "required_correction": "Base the unsupported hybrid API gate on the immutable authenticated replicated-RMSProp schema (or bind the derived list in the live identity) so drift cannot turn the gate off. Both APIs must retain the exact unsupported error and invoke no raw method for every hybrid instance."
-    }
+  "residual_conditions": [
+    "This PASS authorizes preparation only of a separate exact native-five-step package; it does not authorize hardware execution.",
+    "The package must preserve the proposal command, unique label, protected hashes, model-only final.pt contract, fresh-start lifecycle, and explicit human/operator authorization.",
+    "Hybrid optimizer serialization/resume remains deliberately unsupported; any interruption requires a new unique-label run from step zero."
   ],
   "hardware_authorized": false,
-  "native_five_step_package_may_be_prepared": false
+  "native_five_step_package_may_be_prepared": true
 }
