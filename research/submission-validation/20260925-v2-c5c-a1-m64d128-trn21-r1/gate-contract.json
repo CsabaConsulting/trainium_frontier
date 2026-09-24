@@ -1,0 +1,50 @@
+{
+  "schema": "pending-exact-source-a1-gates-v1",
+  "status": "PENDING_INDEPENDENT_VERIFICATION_AND_HOST_RECOVERY",
+  "dispatch_authorized": false,
+  "leaderboard_submission_authorized": false,
+  "host": "trn21",
+  "replicate_host_after_nomination": "trn22",
+  "source_tree_commit": "e61793861dffd7e4b361089c0f7bc7bd142a857e",
+  "source_path": "submissions/research_v2/train.py",
+  "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "fingerprints": {
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "workflow/tools/preflight_dryrun.py": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "research/v2/queue.json": "1e9dcc4fd5f38e62829dc19460d2337662184ecfbd4d21d8a20f15993be9dd00"
+  },
+  "topology": {"neuron_logical_nc_config": 2, "nproc_per_node": 4, "seed": 42, "max_train_seconds": 1800},
+  "table_expectation": {"keys": ["b5", "t5"], "rows_per_table": 524288, "dim": 128, "dtype": "bfloat16", "optimizer": "rmsprop", "table_parameters_total": 134217728},
+  "control_argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"],
+  "a1_argv": ["--n-embd", "1024", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015", "--ngram-ve", "--ngram-ve-layers=-1", "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128", "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop", "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude"],
+  "g2": {
+    "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-g2",
+    "steps": 2,
+    "nproc": 4,
+    "trace_rmsprop": true,
+    "stub_prepare": false,
+    "expected_table_keys": ["ngram_embeds.b5.weight", "ngram_embeds.t5.weight"],
+    "expected_rmsprop_calls_per_rank": 2,
+    "expected_table_checks_per_rank": 4,
+    "max_abs_err_over_lr": 0.03,
+    "receipt": null
+  },
+  "native_smoke": {
+    "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-smoke",
+    "argv_extension": ["--num-steps", "30"],
+    "steps": 30,
+    "scored": false,
+    "receipt": null
+  },
+  "full": {
+    "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+    "argv_extension": [],
+    "requires_valid_same_host_control_label": null,
+    "fresh_eval_seq_len": 1024,
+    "fresh_eval_tokens": 20971520,
+    "receipt": null
+  },
+  "disk": {"minimum_floor_bytes": 6979321856, "projected_table_run_headroom_bytes": null, "projection_status": "UNKNOWN; derive conservatively after human EBS expansion and measured compile/cache/checkpoint footprint; do not lower floor"},
+  "blockers_at_package_time": ["trn21 below disk floor", "trn22 below disk floor and breaker tripped", "no valid same-host c5c A0 trn21 public20M control", "no exact c5c m64/dim128 A1 G2 or native smoke receipt"],
+  "forbidden": ["no AWS mutation", "no breaker reset", "no deletion", "no training dispatch from this package", "no evaluator/prepare/train.py edits", "no submission"]
+}

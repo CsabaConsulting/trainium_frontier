@@ -1,0 +1,95 @@
+{
+  "proposal_id": "20260925-v2-c5c-a1-m64d128-trn21-r1",
+  "status": "human-directed-pending-independent-verification-and-host-recovery",
+  "owner_role": "researcher (inherited from human-approved workflow queue; transcribed by implementer)",
+  "hypothesis": "Two hashed value-embedding tables on the last VE layer improve fresh public-20M BPB over an exact c5c no-table control on the same host within the 1800-second full-chip budget.",
+  "single_causal_change": "Replace --no-ngram-ve with the queue's A1 last-layer bigram+trigram, mult64, dim128, BF16 RMSProp table profile; all other c5c control flags and source bytes remain identical.",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": -0.005,
+  "predicted_bpb_interval": [-0.013, 0.003],
+  "candidate_shortlist": [
+    {
+      "idea": "A1: last-layer bigram+trigram tables, mult64/dim128",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.005,
+      "why_ranked": "Existing queue A1; tests whether local n-gram memory transfers to dense c5c with only two full-size tables. Prediction is not a measured result."
+    },
+    {
+      "idea": "A2: two VE layers with bigram+trigram tables",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.008,
+      "why_ranked": "Higher capacity and cost; not the single-factor A1 gate and requires its own exact-size evidence."
+    },
+    {
+      "idea": "D1: epoch-value diagnostic",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Explains repeated-data effects but does not itself establish a table benefit."
+    },
+    {
+      "idea": "B2: touched-row sparse update",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Blocked until exact table semantics and native training work; previous source candidate was rejected."
+    }
+  ],
+  "selection_rationale": "A1 is the smallest full-size table arm in the approved queue and a prerequisite for scaling tables; perform correctness gates before spending a full run.",
+  "p_improve": 0.6,
+  "estimated_host_hours": 2.0,
+  "ev_bpb_per_host_hour": 0.0015,
+  "trainium_feasibility": "The six-layer, width-1024, world-4/LNC2 source selects last VE layer 5. A1 creates b5 and t5, each 524288 x 128 BF16 entries (128 MiB each), plus replicated gradients and RMSProp second moments. Ownership must continue for AdamW/Muon while RMSProp is replicated. Native compilation, HBM, full-step throughput and disk footprint are unverified; neither host is launch-ready at package time.",
+  "cheapest_falsifier": "After host recovery, exact c5c four-rank CPU/G2 two-step --trace-rmsprop at mult64/dim128. Reject on wrong table count, missing RMSProp calls, divergent ranks, nonfinite traces, bad update recomputation or strict-load failure before any Neuron job.",
+  "prior_result_refs": [
+    "research/agentic/DECISION_LOG.md: A1 r2 failed before step 1 on exact 35c9; no scientific BPB verdict",
+    "workflow/evidence/g2-a1m8-impl1.json: reduced m8 synthetic/stub evidence only",
+    "research/agentic/DECISION_LOG.md: repaired 9191 source passed CPU review for a separate native-five-step package; not exact c5c/m64 proof",
+    "research/v2/STATUS.md: c5c A0 trn22 failed at disk floor before step 1; no advancement control"
+  ],
+  "evidence": [
+    "workflow/CONTROLLER_PROMPT.md: table-first direction and Phase-1 constraints",
+    "research/v2/queue.json: A1 flags, -0.005 prediction, interval and trn21 screen host",
+    "submissions/research_v2/train.py SHA256 c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "research/agentic/verification/20260925-upstream-s0-research-v2-static-verifier.md: IMPL-1 source audit and full-size A2 G2 requirements"
+  ],
+  "duplicate_search_terms": ["A1", "last-layer", "ngram-ve-layers=-1", "ngram table", "RMSProp", "m64d128"],
+  "duplicate_search_files": ["research/v2/ledger.jsonl", "research/experiment-log.jsonl", "research/agentic/DECISION_LOG.md", "research/trn2-experiment-results.md"],
+  "duplicate_finding": "No completed exact c5c/m64/dim128 A1 score exists. Prior A1 r2 failed before step 1; m8 and different-source native work do not answer this hypothesis.",
+  "control": {
+    "git_commit": null,
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "run_label": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "trn21 same-host, same c5c bytes/seed/data/compiler flags; valid fresh public-20M context-1024 control required before full A1 dispatch"
+  },
+  "candidate": {
+    "branch": "experiment/20260925-v2-c5c-a1-exact-g2-package",
+    "files_allowed": ["no model edits; proposal, runbook, pending gate contract and static test only"],
+    "expected_diff": "No change to train.py, prepare.py, evaluator, tokenizer, data, launcher or decide.py. Only argv changes from the approved c5c A0 control.",
+    "run_label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "Fresh-process public-20M/context1024 delta against same-host valid c5c control <= -0.0006 nominates for a cross-host replicate. Two-host adoption requires both deltas negative, mean <= -0.0010, disagreement <= 0.0015, and human acknowledgement. A delta <= -0.010 or score < 0.975 triggers HOLD and an independent cold replay/audit.",
+    "throughput": "Record completed steps, training seconds, steady-state ms/step and tok/s; if steps differ by >10% from the same-host control, mark CONFOUNDED rather than a quality verdict.",
+    "correctness": "Exact c5c G2 trace PASS, independent native 30-step smoke PASS, full-chip LNC2/world4 seed42, finite 1800-second result, strict model-only checkpoint load, pure causal/batch-independent eval, clean source/host/postflight, and retrieved log plus fresh public-20M evaluation."
+  },
+  "abort_conditions": [
+    "Either host disk/breaker remains blocked; trn21 has no valid same-host c5c A0 control or host-specific G1 receipt",
+    "Exact c5c/m64/dim128 A1 G2 receipt and independent verification are missing or fail",
+    "Native 30-step smoke fails, omits step/table evidence, or is not fully quiescent",
+    "Pre-run free space is below the unchanged 6.5-GiB floor plus a newly measured conservative table/cache/checkpoint allowance",
+    "Any crash, NaN, causality error, budget violation, dirty source tree, missing checkpoint or descendant/device holder"
+  ],
+  "human_approved_by": "Human-approved table-first priority in workflow/CONTROLLER_PROMPT.md; this is NOT breaker reset, AWS action, or dispatch authority",
+  "verdict": null
+}
