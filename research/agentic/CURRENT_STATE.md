@@ -1,21 +1,24 @@
 # Current state
 
-Last reconciled: 2026-09-24 23:00 UTC
+Last reconciled: 2026-09-24 23:05 UTC
 
 ## Current handoff: post-resize staging and CPU preflight, no new score
 
 The trn22 c5c A0 r2 source-staging check passed on a new clean checkout, with
 58,452,987,904 B free after its four-rank CPU probe. That exact-environment G2
 [failed for infrastructure only](../v2/g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/operator-stage-hold.json):
-rank 0 could not append to the future science step log because its parent did
-not exist in the clean checkout. It reached zero training steps. The G2 label
-is consumed; the A0 r2 science label remains unused. A separate reviewed G2
-retry with a unique isolated step-log path is being prepared. No Neuron run,
+rank 0 could not append to the future science step log after synthetic step 0
+because its parent did not exist in the clean checkout. There were no native
+training steps. The G2 label is consumed; the A0 r2 science label remains unused.
+The separate r3 CPU-only retry [passed independent safety review](verification/20260925-trn22-c5c-a0-r2-g2-r3-static-safety-review.md)
+and a distinct Operator is assigned the fresh host checks and CPU probe.
+No Neuron run,
 checkpoint, BPB or new model verdict exists. On trn21, the G1 r1 stage remains
 HOLD after the absent pinned commit/fetch failure; an r2 package to clone the
-exact retained trained commit locally has independent static PASS for staging
-only and a separate Operator is assigned that task. Evaluator dispatch remains
-HOLD pending live checks, finalized request review and one-shot authority. Both hosts
+exact retained trained commit locally has independent static PASS and
+[Operator staging passed](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-stage-receipt.json).
+Evaluator dispatch remains HOLD pending independent stage review, fresh live
+checks and one-shot authority. Both hosts
 still have launch authorization false and ready scored-job counts zero.
 The best confirmed public20M stays 0.9918353324 single/0.9919537735 mean.
 An independent review of the conditional A2 native-smoke package
