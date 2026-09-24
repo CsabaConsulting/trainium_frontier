@@ -392,6 +392,32 @@ class WorldOneEquivalence(unittest.TestCase):
         self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls,
                           DIST.collective_calls), before_calls)
 
+    def test_hybrid_resume_gate_cannot_be_bypassed_by_derived_list_drift(self):
+        for operation in ("state", "load"):
+            with self.subTest(operation=operation):
+                parameters, optimizer = make_toy(self.initial)
+                adapter = OwnedOptimizer(optimizer)
+                set_grads(parameters, 0)
+                adapter.step()
+                adapter.replicated_rmsprop_groups.clear()
+                raw_calls = []
+                adapter.raw_state_dict = lambda: (raw_calls.append("state") or
+                                                  {"state": {}, "param_groups": []})
+                adapter.raw_load_state_dict = lambda _payload: raw_calls.append("load")
+                payload = {
+                    "schema": "fresh-start-owned-optimizer-v1",
+                    "rank": adapter.rank,
+                    "world_size": adapter.world_size,
+                    "entries": clone_value(adapter.entries),
+                    "pad_singleton_muon": adapter.pad_singleton_muon,
+                    "adamw_math_mode": None,
+                    "optimizer": {"state": {}, "param_groups": []},
+                }
+                call = adapter.state_dict if operation == "state" else lambda: adapter.load_state_dict(payload)
+                with self.assertRaisesRegex(ValueError, f"^{HYBRID_OPTIMIZER_RESUME_ERROR}$"):
+                    call()
+                self.assertEqual(raw_calls, [])
+
     def test_no_rms_owned_optimizer_v1_roundtrip_is_unchanged(self):
         def build(values):
             parameters = [torch.nn.Parameter(value.clone()) for value in values]

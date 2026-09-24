@@ -1,38 +1,31 @@
 {
-  "reviewed_commit": "257b84bc6cce077d93c05f746e7bd6bdf899ed7a",
-  "reviewed_parent": "a350e2d2e99f36b8ce70d7c37181de0beba95409",
-  "role": "independent_verifier_iteration_3",
+  "reviewed_commit": "ea3547aca41531801ab9ae85194ffe2eacca59aa",
+  "reviewed_parent": "fc931eb4540e71b38360ccfdbe3fed87ca2743ee",
+  "role": "independent_verifier_iteration_4",
   "status": "FAIL",
-  "summary": "The iteration-2 state-field and summary blockers are corrected and all supplied tests pass, but counter/state consistency, empty initialized rank-sparse state, and post-load rollback remain fail-closed blockers.",
+  "summary": "The simplified unsupported-resume design, production model-only checkpoint path and legacy no-RMS v1 path pass, but the hybrid API gate can be bypassed by drift in its unbound derived group list.",
   "checks": {
-    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r3.VQmmKC",
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r4.cWmHvz",
     "py_compile_passed": true,
-    "supplied_tests_passed": 15,
-    "verifier_adversarial_tests_added": 4,
-    "candidate_sha256": "ba50528d0d08f1630cc84010187c1830f9ef8ba47da8f96d19a60403414cae7b",
+    "supplied_tests_passed": 12,
+    "verifier_adversarial_tests_added": 1,
+    "candidate_sha256": "431f70a75589182f9e8627abc000801503c3f2acf13bf95b21d06cffd5dcf711",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "base_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
     "diff_check_passed": true,
     "candidate_scope_confined_to_ownership_adapter": true,
-    "prior_kind_order_tensor_state_and_complete_summary_attacks_passed": true,
-    "world1_save_resume_fake_world4_rms_math_and_padded_muon_passed": true,
+    "schema_v3_removed_from_candidate": true,
+    "production_final_checkpoint_model_only": true,
+    "no_rms_v1_schema_and_roundtrip_passed": true,
+    "world1_fake_world4_rms_math_and_update_adamw_false_passed": true,
+    "live_step_plan_summary_group_and_identity_gates_passed": true,
     "new_or_finalized_authorization_or_request_present": false
   },
   "blockers": [
     {
-      "id": "R3-B1",
-      "finding": "Counter and state semantics are not related: replicated_rmsprop_calls can exceed optimizer_calls times the RMSProp-group count, a per-parameter step can exceed optimizer_calls, and nonfinite state tensors pass the pre-load schema gate and reach the raw loader.",
-      "required_correction": "Validate counter bounds/divisibility, per-parameter step bounds and finiteness for every state tensor before raw_load_state_dict and before emitting state_dict."
-    },
-    {
-      "id": "R3-B2",
-      "finding": "An initialized rank with zero locally materialized state is rejected because initialized requires a nonempty state_manifest. This is a legitimate world-size/rank-sparse outcome when the rank owns no updated group and update_adamw is false.",
-      "required_correction": "Allow an explicitly initialized empty manifest while retaining the phase/counter and exact empty-state bindings; pristine must remain distinct."
-    },
-    {
-      "id": "R3-B3",
-      "finding": "The deliberate map-location design validates device only after raw_load_state_dict. If that post-load check fails, the live optimizer state remains mutated. A raw-loader exception after partial mutation likewise has no rollback.",
-      "required_correction": "Snapshot or transactionally stage optimizer state and param-group values, then restore them on any raw-load or post-load validation failure. Counters, scalar cache, parameters and collectives must remain unchanged on rejection."
+      "id": "R4-B1",
+      "finding": "state_dict/load_state_dict decide whether the optimizer is hybrid from mutable replicated_rmsprop_groups, but _validate_live_plan does not bind that list. Clearing it allows a hybrid adapter to invoke raw_state_dict and emit v1, or invoke raw_load_state_dict with a v1-shaped payload.",
+      "required_correction": "Base the unsupported hybrid API gate on the immutable authenticated replicated-RMSProp schema (or bind the derived list in the live identity) so drift cannot turn the gate off. Both APIs must retain the exact unsupported error and invoke no raw method for every hybrid instance."
     }
   ],
   "hardware_authorized": false,
