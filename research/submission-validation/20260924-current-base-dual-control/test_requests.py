@@ -12,7 +12,8 @@ for host,hostname in (("trn21","ip-172-31-34-85"),("trn22","ip-172-31-32-253")):
  assert request["command"][request["command"].index("--arm")+1]==host
  assert request["environment"]["NEURON_LOGICAL_NC_CONFIG"]=="2" and request["environment"]["NEURON_CC_FLAGS"]=="--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
  contract=request["command"][request["command"].index("--request-contract-sha256")+1]
- auth=json.loads((HERE/f"{host}-authorization.json").read_text());assert auth["request_contract_sha256"]==contract==driver.request_contract(request)
+ auth_path=HERE/f"{host}-authorization.json";auth=json.loads(auth_path.read_text());assert auth["request_contract_sha256"]==contract==driver.request_contract(request)
+ assert request["command"][request["command"].index("--authorization-sha256")+1]==hashlib.sha256(auth_path.read_bytes()).hexdigest()
  # This is the exact mutation performed by fresh_start_launch.REMOTE_SCRIPT before it writes .job.json.
  runtime=copy.deepcopy(request);runtime.update(started_at="2026-09-24T00:00:00+00:00",hostname=hostname,git_commit=request["expected_commit"],source_dirty=False,preflight_free_bytes=9*1024**3,source_sha256=dict(request["expected_sha256"]))
  assert len(driver.verify_runtime(runtime,host,request["label"],request["expected_commit"],contract))==64
