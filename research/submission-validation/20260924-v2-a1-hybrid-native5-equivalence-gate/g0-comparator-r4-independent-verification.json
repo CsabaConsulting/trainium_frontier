@@ -1,0 +1,68 @@
+{
+  "schema": "a1-native-five-g0-comparator-independent-verification-v1",
+  "verdict": "PASS",
+  "reviewed_commit": "994d302b0036c56aaab63797f0561797bc4cf431",
+  "reviewed_parent": "4a32f9b3",
+  "review_scope": "Local evidence-comparator correction only; no SSH, AWS, Trainium execution, training, submission, or later-run authorization.",
+  "changed_paths": [
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-ownership-revalidation.pending.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py"
+  ],
+  "protected_sha256": {
+    "production_candidate": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "ownership_manifest": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "observer": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "model_checker": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "corrected_comparator": "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c"
+  },
+  "checks": {
+    "target_diff_check": "PASS: exactly the six listed harness/documentation/test paths changed; train.py, prepare.py, gate sources, model checker, and manifest are byte-identical to the parent.",
+    "diff_check": "PASS",
+    "py_compile": "PASS",
+    "package_suite": "PASS: 60 tests",
+    "ownership_suite": "PASS: 13 tests",
+    "publication_positive": "PASS: returned SHA-256 and full identity equal the freshly read 0600 single-link result.",
+    "publication_failure": "PASS: injected authenticated write failure propagated and left neither a final result nor a temporary entry.",
+    "g1_g2_lock": "PASS: requests.pending.json remains executable=false; G1 requires authenticated G0 identity and a separate request; G2 requires authenticated G1 evidence and a separate request."
+  },
+  "archived_g0_replay": {
+    "evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "status": "PASS",
+    "result_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+    "result_bytes": 326,
+    "manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "owned_entry_count": 66,
+    "elements_by_owner": [27405059, 30540035, 30408963, 29362179],
+    "shard_elements": 30540160,
+    "total_padded_elements": 122160640,
+    "owner_exchanges_per_rank": 5,
+    "conclusion": "The immutable archived G0 reports are valid under the corrected exact A1 comparator contract."
+  },
+  "commands": [
+    "uv run --python /home/poojith-devan/.local/bin/python3.12 --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+    "uv run --python /home/poojith-devan/.local/bin/python3.12 --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py",
+    "python -m py_compile research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+    "python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py --validate-g0-only <immutable-native-gate-directory> --output <fresh-private-directory>/replay.json",
+    "git diff --check 4a32f9b3..994d302b"
+  ],
+  "authority_boundary": {
+    "supervisor_may_draft_separate_g1_request": true,
+    "g1_execution_authorized": false,
+    "g2_execution_authorized": false,
+    "native_execution_authorized": false,
+    "submission_authorized": false,
+    "required_next_gate": "Any G1 draft must remain non-executable and receive its own exact request, source, evidence, host, path, environment, and authorization review before an Operator action."
+  },
+  "limitations": [
+    "This receipt validates the local corrected comparator and the already archived G0 reports only.",
+    "It does not establish G0/G1 observation non-perturbation, RMS repair equivalence, or integrated ownership equivalence; those require separately authorized G1/G2 evidence.",
+    "The comparator documents the unavoidable same-UID post-return mutation boundary; durable consumers must reauthenticate stored result bytes against the returned receipt."
+  ]
+}
