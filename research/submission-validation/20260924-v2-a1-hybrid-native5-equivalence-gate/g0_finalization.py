@@ -17,6 +17,7 @@ from pathlib import Path
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import time
@@ -60,6 +61,11 @@ EXPECTED_PATHS = {
     "child_log": "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.child.log",
     "runtime_result": "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.runtime-result.json",
 }
+MATERIALIZATION_ROOT = Path("/tmp")
+MATERIALIZATION_OUTPUT = MATERIALIZATION_ROOT / (
+    "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json"
+)
+COMPILE_CACHE_ROOT = Path("/home/ubuntu")
 EXPECTED_ENVIRONMENT = {
     "HOME": "/home/ubuntu", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
     "LOGNAME": "ubuntu",
@@ -77,27 +83,209 @@ class ContractError(RuntimeError):
     pass
 
 
-def _sha(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1 << 20), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _regular(path: Path) -> None:
-    if path.is_symlink() or not path.is_file():
-        raise ContractError(f"not a regular non-symlink file: {path}")
-    stat = path.stat()
-    if stat.st_nlink != 1:
-        raise ContractError(f"file has unexpected hard links: {path}")
-
-
-def _load(path: Path) -> dict:
-    _regular(path)
+def _relative_parts(trusted_root: Path, path: Path) -> tuple[Path, Path, tuple[str, ...]]:
+    """Return a lexical path below an explicit root without following any component."""
+    root = Path(os.path.abspath(os.fspath(trusted_root)))
+    target = Path(os.path.abspath(os.fspath(path)))
     try:
-        value = json.loads(path.read_text())
-    except (OSError, ValueError) as exc:
+        common = Path(os.path.commonpath((os.fspath(root), os.fspath(target))))
+    except ValueError as exc:
+        raise ContractError(f"path is outside trusted root {root}: {path}") from exc
+    if common != root:
+        raise ContractError(f"path escapes trusted root {root}: {path}")
+    relative = target.relative_to(root)
+    parts = relative.parts
+    if any(part in {"", ".", ".."} or "/" in part for part in parts):
+        raise ContractError(f"invalid lexical path below {root}: {path}")
+    return root, target, parts
+
+
+def _identity(value: os.stat_result) -> tuple[int, int, int, int, int, int]:
+    return (
+        value.st_dev, value.st_ino, value.st_mode, value.st_nlink,
+        value.st_size, value.st_mtime_ns,
+    )
+
+
+def _validate_chain(trusted_root: Path, path: Path, terminal: str) -> os.stat_result | None:
+    """lstat every existing component and enforce the requested terminal state.
+
+    ``terminal`` is one of ``absent``, ``file``, ``directory`` or ``existing``. Missing
+    ancestors are permitted only for an absent terminal subsequently created with dirfd/openat.
+    """
+    if terminal not in {"absent", "file", "directory", "existing"}:
+        raise ContractError(f"invalid terminal-state request: {terminal}")
+    root, target, parts = _relative_parts(trusted_root, path)
+    try:
+        root_stat = os.lstat(root)
+    except OSError as exc:
+        raise ContractError(f"trusted root is unavailable: {root}: {exc}") from exc
+    if stat.S_ISLNK(root_stat.st_mode) or not stat.S_ISDIR(root_stat.st_mode):
+        raise ContractError(f"trusted root is not a real directory: {root}")
+    if not parts:
+        if terminal != "directory":
+            raise ContractError(f"terminal aliases trusted root: {target}")
+        return root_stat
+
+    current = root
+    missing = False
+    terminal_stat: os.stat_result | None = None
+    for index, part in enumerate(parts):
+        current = current / part
+        final = index == len(parts) - 1
+        if missing:
+            continue
+        try:
+            observed = os.lstat(current)
+        except FileNotFoundError:
+            missing = True
+            continue
+        except OSError as exc:
+            raise ContractError(f"cannot lstat path component {current}: {exc}") from exc
+        if stat.S_ISLNK(observed.st_mode):
+            raise ContractError(f"symlink path component rejected: {current}")
+        if not final:
+            if not stat.S_ISDIR(observed.st_mode):
+                raise ContractError(f"non-directory path ancestor rejected: {current}")
+        else:
+            terminal_stat = observed
+
+    if terminal == "absent":
+        if terminal_stat is not None:
+            raise ContractError(f"terminal path was not absent: {target}")
+        return None
+    if terminal_stat is None:
+        raise ContractError(f"required terminal path is missing: {target}")
+    if terminal in {"file", "existing"} and stat.S_ISREG(terminal_stat.st_mode):
+        if terminal_stat.st_nlink != 1:
+            raise ContractError(f"file has unexpected hard links: {target}")
+    elif terminal == "file":
+        raise ContractError(f"terminal is not a regular file: {target}")
+    elif terminal == "existing" and not stat.S_ISDIR(terminal_stat.st_mode):
+        raise ContractError(f"terminal is neither a regular file nor directory: {target}")
+    elif terminal == "directory" and not stat.S_ISDIR(terminal_stat.st_mode):
+        raise ContractError(f"terminal is not a directory: {target}")
+    return terminal_stat
+
+
+def _open_directory_chain(trusted_root: Path, directory: Path, *, create: bool) -> int:
+    root, target, parts = _relative_parts(trusted_root, directory)
+    root_stat = _validate_chain(root, root, "directory")
+    flags = os.O_RDONLY | os.O_DIRECTORY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    try:
+        fd = os.open(root, flags)
+    except OSError as exc:
+        raise ContractError(f"cannot open trusted root {root}: {exc}") from exc
+    try:
+        opened_root = os.fstat(fd)
+        if not stat.S_ISDIR(opened_root.st_mode):
+            raise ContractError(f"opened trusted root is not a directory: {root}")
+        if root_stat is None or (opened_root.st_dev, opened_root.st_ino) != (
+            root_stat.st_dev, root_stat.st_ino,
+        ):
+            raise ContractError(f"trusted root identity changed while opening: {root}")
+        walked = root
+        for part in parts:
+            walked = walked / part
+            try:
+                next_fd = os.open(part, flags, dir_fd=fd)
+            except FileNotFoundError:
+                if not create:
+                    raise ContractError(f"required directory is missing: {target}")
+                try:
+                    os.mkdir(part, 0o700, dir_fd=fd)
+                    next_fd = os.open(part, flags, dir_fd=fd)
+                except OSError as exc:
+                    raise ContractError(f"cannot safely create directory {walked}: {exc}") from exc
+            except OSError as exc:
+                raise ContractError(f"cannot safely open directory {walked}: {exc}") from exc
+            os.close(fd)
+            fd = next_fd
+            if not stat.S_ISDIR(os.fstat(fd).st_mode):
+                raise ContractError(f"opened path component is not a directory: {walked}")
+        return fd
+    except Exception:
+        os.close(fd)
+        raise
+
+
+def _open_file_no_follow(trusted_root: Path, path: Path) -> tuple[int, os.stat_result]:
+    root, target, parts = _relative_parts(trusted_root, path)
+    if not parts:
+        raise ContractError(f"file path aliases trusted root: {target}")
+    _validate_chain(root, target, "file")
+    parent_fd = _open_directory_chain(root, target.parent, create=False)
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    try:
+        fd = os.open(parts[-1], flags, dir_fd=parent_fd)
+    except OSError as exc:
+        os.close(parent_fd)
+        raise ContractError(f"cannot safely open file {target}: {exc}") from exc
+    os.close(parent_fd)
+    observed = os.fstat(fd)
+    if not stat.S_ISREG(observed.st_mode) or observed.st_nlink != 1:
+        os.close(fd)
+        raise ContractError(f"opened file is not regular single-link: {target}")
+    return fd, observed
+
+
+def _assert_file_identity(
+    trusted_root: Path, path: Path, expected: tuple[int, int, int, int, int, int]
+) -> None:
+    fd, observed = _open_file_no_follow(trusted_root, path)
+    try:
+        if _identity(observed) != expected:
+            raise ContractError(f"file identity changed during validation: {path}")
+    finally:
+        os.close(fd)
+
+
+def _read_file_no_follow(trusted_root: Path, path: Path) -> tuple[bytes, tuple[int, int, int, int, int, int]]:
+    fd, before = _open_file_no_follow(trusted_root, path)
+    chunks: list[bytes] = []
+    try:
+        while True:
+            chunk = os.read(fd, 1 << 20)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        after = os.fstat(fd)
+        if _identity(after) != _identity(before):
+            raise ContractError(f"file changed while being read: {path}")
+    finally:
+        os.close(fd)
+    identity = _identity(before)
+    _assert_file_identity(trusted_root, path, identity)
+    return b"".join(chunks), identity
+
+
+def _sha_with_identity(
+    path: Path, trusted_root: Path = ROOT
+) -> tuple[str, tuple[int, int, int, int, int, int]]:
+    data, identity = _read_file_no_follow(trusted_root, path)
+    digest = hashlib.sha256(data).hexdigest()
+    # The lexical chain and inode are checked once more after hashing, not merely after reading.
+    _assert_file_identity(trusted_root, path, identity)
+    return digest, identity
+
+
+def _sha(path: Path, trusted_root: Path = ROOT) -> str:
+    return _sha_with_identity(path, trusted_root)[0]
+
+
+def _regular(path: Path, trusted_root: Path = ROOT) -> None:
+    _validate_chain(trusted_root, path, "file")
+
+
+def _load(path: Path, trusted_root: Path = ROOT) -> dict:
+    data, _ = _read_file_no_follow(trusted_root, path)
+    try:
+        value = json.loads(data)
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ContractError(f"invalid JSON {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise ContractError(f"JSON root is not an object: {path}")
@@ -313,18 +501,80 @@ def build_concrete_request(
     }
 
 
-def _write_exclusive(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def _safe_mkdir(trusted_root: Path, path: Path) -> None:
+    root, target, parts = _relative_parts(trusted_root, path)
+    if not parts:
+        raise ContractError(f"directory terminal aliases trusted root: {target}")
+    _validate_chain(root, target, "absent")
+    parent_fd = _open_directory_chain(root, target.parent, create=True)
+    try:
+        os.mkdir(parts[-1], 0o700, dir_fd=parent_fd)
+    except OSError as exc:
+        raise ContractError(f"cannot safely create exclusive directory {target}: {exc}") from exc
+    finally:
+        os.close(parent_fd)
+    _validate_chain(root, target, "directory")
+
+
+def _directory_identity(
+    trusted_root: Path, path: Path,
+) -> tuple[int, int, int, int, int, int]:
+    _validate_chain(trusted_root, path, "directory")
+    fd = _open_directory_chain(trusted_root, path, create=False)
+    try:
+        observed = os.fstat(fd)
+        if not stat.S_ISDIR(observed.st_mode):
+            raise ContractError(f"opened terminal is not a directory: {path}")
+        identity = _identity(observed)
+    finally:
+        os.close(fd)
+    _validate_chain(trusted_root, path, "directory")
+    return identity
+
+
+def _assert_directory_identity(
+    trusted_root: Path, path: Path, expected: tuple[int, int, int, int, int, int],
+) -> None:
+    if _directory_identity(trusted_root, path) != expected:
+        raise ContractError(f"directory identity changed during validation: {path}")
+
+
+def _open_exclusive(trusted_root: Path, path: Path) -> int:
+    root, target, parts = _relative_parts(trusted_root, path)
+    if not parts:
+        raise ContractError(f"file terminal aliases trusted root: {target}")
+    _validate_chain(root, target, "absent")
+    parent_fd = _open_directory_chain(root, target.parent, create=True)
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
-    fd = os.open(path, flags, 0o600)
+    try:
+        fd = os.open(parts[-1], flags, 0o600, dir_fd=parent_fd)
+    except OSError as exc:
+        raise ContractError(f"cannot safely create exclusive file {target}: {exc}") from exc
+    finally:
+        os.close(parent_fd)
+    opened = os.fstat(fd)
+    if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1:
+        os.close(fd)
+        raise ContractError(f"new file is not regular single-link: {target}")
+    return fd
+
+
+def _write_exclusive(trusted_root: Path, path: Path, payload: dict) -> None:
+    fd = _open_exclusive(trusted_root, path)
     try:
         data = json.dumps(payload, sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
-        os.write(fd, data)
+        view = memoryview(data)
+        while view:
+            written = os.write(fd, view)
+            if written <= 0:
+                raise ContractError(f"short write while creating {path}")
+            view = view[written:]
         os.fsync(fd)
     finally:
         os.close(fd)
+    _validate_chain(trusted_root, path, "file")
 
 
 def materialize(args: argparse.Namespace) -> int:
@@ -333,8 +583,13 @@ def materialize(args: argparse.Namespace) -> int:
         raise ContractError("request-template path differs from fixed contract")
     if args.authorization != pending_template["authorization_path"]:
         raise ContractError("authorization path differs from fixed contract")
-    template_path = (ROOT / args.request_template).resolve()
-    auth_path = (ROOT / args.authorization).resolve()
+    template_path = ROOT / args.request_template
+    auth_path = ROOT / args.authorization
+    _relative_parts(ROOT, template_path)
+    _relative_parts(ROOT, auth_path)
+    if args.output != MATERIALIZATION_OUTPUT:
+        raise ContractError(f"materialization output differs from exact fixed path: {args.output}")
+    _validate_chain(MATERIALIZATION_ROOT, args.output, "absent")
     template = _load(template_path)
     validate_template(template)
     if _sha(template_path) != args.request_sha256:
@@ -350,9 +605,13 @@ def materialize(args: argparse.Namespace) -> int:
         template, head=args.authorized_head, request_sha=args.request_sha256,
         authorization_sha=args.authorization_sha256, authorization_path=args.authorization,
     )
-    _write_exclusive(args.output, concrete)
+    # Revalidate all consumed authority immediately before the only write.
+    if _sha(template_path) != args.request_sha256 or _sha(auth_path) != args.authorization_sha256:
+        raise ContractError("materialization authority changed before output creation")
+    _validate_chain(MATERIALIZATION_ROOT, args.output, "absent")
+    _write_exclusive(MATERIALIZATION_ROOT, args.output, concrete)
     print(json.dumps({"status": "MATERIALIZED_NOT_LAUNCHED", "output": str(args.output),
-                      "sha256": _sha(args.output)}, sort_keys=True))
+                      "sha256": _sha(args.output, MATERIALIZATION_ROOT)}, sort_keys=True))
     return 0
 
 
@@ -390,21 +649,84 @@ def _quiesce_group(pgid: int, term_s: int, kill_s: int) -> list[dict]:
     return actions
 
 
-def _artifact_snapshot(paths: list[Path]) -> dict:
+def _directory_files_no_follow(trusted_root: Path, directory: Path) -> list[Path]:
+    """Enumerate a directory through pinned dirfds, rejecting every non-regular leaf."""
+    root, target, _ = _relative_parts(trusted_root, directory)
+    _validate_chain(root, target, "directory")
+    start_fd = _open_directory_chain(root, target, create=False)
+    files: list[Path] = []
+
+    def walk(fd: int, lexical: Path) -> None:
+        try:
+            entries = sorted(os.scandir(fd), key=lambda entry: entry.name)
+        except OSError as exc:
+            raise ContractError(f"cannot safely enumerate artifact directory {lexical}: {exc}") from exc
+        for entry in entries:
+            child = lexical / entry.name
+            try:
+                observed = entry.stat(follow_symlinks=False)
+            except OSError as exc:
+                raise ContractError(f"cannot lstat artifact {child}: {exc}") from exc
+            if stat.S_ISLNK(observed.st_mode):
+                raise ContractError(f"artifact symlink rejected: {child}")
+            if stat.S_ISDIR(observed.st_mode):
+                flags = os.O_RDONLY | os.O_DIRECTORY
+                if hasattr(os, "O_NOFOLLOW"):
+                    flags |= os.O_NOFOLLOW
+                try:
+                    child_fd = os.open(entry.name, flags, dir_fd=fd)
+                except OSError as exc:
+                    raise ContractError(f"cannot safely open artifact directory {child}: {exc}") from exc
+                try:
+                    walk(child_fd, child)
+                finally:
+                    os.close(child_fd)
+            elif stat.S_ISREG(observed.st_mode) and observed.st_nlink == 1:
+                files.append(child)
+            else:
+                raise ContractError(f"artifact is not a regular single-link file: {child}")
+
+    try:
+        walk(start_fd, target)
+    finally:
+        os.close(start_fd)
+    _validate_chain(root, target, "directory")
+    return files
+
+
+def _artifact_snapshot(
+    paths: list[Path], trusted_root: Path = ROOT,
+) -> tuple[dict[str, dict], dict[Path, tuple[int, int, int, int, int, int]]]:
     rows: dict[str, dict] = {}
-    for root in paths:
-        if root.is_symlink() or not root.exists():
-            raise ContractError(f"required artifact path missing or symlinked: {root}")
-        files = [root] if root.is_file() else sorted(path for path in root.rglob("*") if path.is_file())
+    identities: dict[Path, tuple[int, int, int, int, int, int]] = {}
+    for artifact_root in paths:
+        root_stat = _validate_chain(trusted_root, artifact_root, "existing")
+        if root_stat is not None and stat.S_ISREG(root_stat.st_mode):
+            files = [artifact_root]
+        else:
+            # Retry as a directory; the file validation above can fail only on its type.
+            files = _directory_files_no_follow(trusted_root, artifact_root)
         if not files:
-            raise ContractError(f"required artifact path is empty: {root}")
+            raise ContractError(f"required artifact path is empty: {artifact_root}")
         for path in files:
-            _regular(path)
-            stat = path.stat()
-            rows[str(path.relative_to(ROOT))] = {
-                "bytes": stat.st_size, "sha256": _sha(path), "mtime_ns": stat.st_mtime_ns,
+            digest, identity = _sha_with_identity(path, trusted_root)
+            rows[str(path.relative_to(trusted_root))] = {
+                "bytes": identity[4], "sha256": digest, "mtime_ns": identity[5],
             }
-    return rows
+            identities[path] = identity
+        # This explicitly rechecks each lexical root after all hashes below it are complete.
+        terminal = "file" if len(files) == 1 and files[0] == artifact_root else "directory"
+        _validate_chain(trusted_root, artifact_root, terminal)
+    _revalidate_snapshot(trusted_root, identities)
+    return rows, identities
+
+
+def _revalidate_snapshot(
+    trusted_root: Path,
+    identities: dict[Path, tuple[int, int, int, int, int, int]],
+) -> None:
+    for path, identity in identities.items():
+        _assert_file_identity(trusted_root, path, identity)
 
 
 def _validate_runtime_job(runtime: dict, concrete: dict, template: dict, auth: dict) -> None:
@@ -424,6 +746,17 @@ def _validate_runtime_job(runtime: dict, concrete: dict, template: dict, auth: d
     for path, expected in auth["protected_finalization_sha256"].items():
         if observed.get(path) != expected:
             raise ContractError(f"launcher-observed finalization mismatch: {path}")
+
+
+def _revalidate_authority(
+    template_path: Path, auth_path: Path, template: dict, auth: dict,
+    request_sha: str, authorization_sha: str,
+) -> None:
+    if _sha(template_path) != request_sha:
+        raise ContractError("request template changed during runtime validation")
+    if _sha(auth_path) != authorization_sha:
+        raise ContractError("authorization changed during runtime validation")
+    validate_authorization(auth, template, request_sha)
 
 
 def run(args: argparse.Namespace) -> int:
@@ -451,35 +784,40 @@ def run(args: argparse.Namespace) -> int:
         template, head=args.authorized_head, request_sha=args.request_sha256,
         authorization_sha=args.authorization_sha256, authorization_path=args.authorization,
     )
-    runtime = _load(ROOT / args.runtime_job)
+    runtime_path = ROOT / args.runtime_job
+    runtime = _load(runtime_path)
     _validate_runtime_job(runtime, concrete, template, auth)
+    runtime_job_sha, runtime_job_identity = _sha_with_identity(runtime_path)
     if os.environ.get("TRAINIUM_FRESH_START_RUN_ID") != template["label"]:
         raise ContractError("fresh-start ownership marker missing or changed")
 
     paths = {key: Path(value) for key, value in template["paths"].items()}
+    rooted = {key: ROOT / paths[key] for key in ("output", "report", "child_log", "runtime_result")}
     for key in ("output", "report", "child_log", "runtime_result"):
-        if (ROOT / paths[key]).exists() or (ROOT / paths[key]).is_symlink():
-            raise ContractError(f"G0 {key} path was not initially absent")
+        _validate_chain(ROOT, rooted[key], "absent")
     cache = Path(template["paths"]["compile_cache"])
-    if cache.exists() or cache.is_symlink():
-        raise ContractError("G0 compile cache path was not initially absent")
+    _validate_chain(COMPILE_CACHE_ROOT, cache, "absent")
     free = shutil.disk_usage(ROOT).free
     if free < template["hard_abort_bytes"]:
         raise ContractError("hard abort: less than 5 GiB free")
     if free < template["min_free_bytes"]:
         raise ContractError("launch blocked: less than 6.5 GiB free")
-    cache.mkdir(mode=0o700)
+    _safe_mkdir(COMPILE_CACHE_ROOT, cache)
+    _safe_mkdir(ROOT, rooted["output"])
+    _safe_mkdir(ROOT, rooted["report"])
+    directory_identities = {
+        cache: _directory_identity(COMPILE_CACHE_ROOT, cache),
+        rooted["output"]: _directory_identity(ROOT, rooted["output"]),
+        rooted["report"]: _directory_identity(ROOT, rooted["report"]),
+    }
 
     child_command = [
         "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone", "--nproc_per_node=4",
         template["source"], *template["train_argv"],
     ]
-    log_path = ROOT / paths["child_log"]
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    log_fd = os.open(log_path, flags, 0o600)
+    log_path = rooted["child_log"]
+    log_fd = _open_exclusive(ROOT, log_path)
+    log_identity = _identity(os.fstat(log_fd))
     started = time.monotonic()
     process = None
     timed_out = False
@@ -497,6 +835,17 @@ def run(args: argparse.Namespace) -> int:
     signal.signal(signal.SIGINT, forward)
     actions: list[dict] = []
     try:
+        # Final no-follow gate immediately before Popen. Nothing below may silently recreate paths.
+        _revalidate_authority(
+            template_path, auth_path, template, auth,
+            args.request_sha256, args.authorization_sha256,
+        )
+        _assert_file_identity(ROOT, runtime_path, runtime_job_identity)
+        _assert_file_identity(ROOT, log_path, log_identity)
+        _assert_directory_identity(COMPILE_CACHE_ROOT, cache, directory_identities[cache])
+        _assert_directory_identity(ROOT, rooted["output"], directory_identities[rooted["output"]])
+        _assert_directory_identity(ROOT, rooted["report"], directory_identities[rooted["report"]])
+        _validate_chain(ROOT, rooted["runtime_result"], "absent")
         process = subprocess.Popen(
             child_command, cwd=ROOT, env=dict(template["child_environment"]),
             stdout=log_fd, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -523,19 +872,23 @@ def run(args: argparse.Namespace) -> int:
     artifact_paths = [log_path]
     if success:
         artifact_paths.extend([
-            ROOT / paths["output"] / "final.pt", ROOT / paths["report"],
+            rooted["output"] / "final.pt", rooted["report"],
         ])
-    artifacts = _artifact_snapshot(artifact_paths)
-    report_files = sorted((ROOT / paths["report"]).glob("rank-*.jsonl")) if success else []
+    artifacts, artifact_identities = _artifact_snapshot(artifact_paths)
+    report_files = _directory_files_no_follow(ROOT, rooted["report"]) if success else []
     if success and len(report_files) != 4:
         raise ContractError("G0 did not emit exactly four rank reports")
+    if success and {path.name for path in report_files} != {
+        "rank-0.jsonl", "rank-1.jsonl", "rank-2.jsonl", "rank-3.jsonl"
+    }:
+        raise ContractError("G0 rank-report names are not exact")
     result = {
         "schema": "a1-native-five-g0-runtime-result-v1", "arm": "G0",
         "status": "PASS" if success else "FAILED", "complete": success,
         "label": template["label"], "host": "trn21", "authorized_head": args.authorized_head,
         "request_sha256": args.request_sha256,
         "authorization_sha256": args.authorization_sha256,
-        "runtime_job_sha256": _sha(ROOT / args.runtime_job), "command": child_command,
+        "runtime_job_sha256": runtime_job_sha, "command": child_command,
         "environment": template["child_environment"], "returncode": returncode,
         "timed_out": timed_out, "interrupted_signals": interrupted,
         "duration_seconds": time.monotonic() - started, "process_group_actions": actions,
@@ -543,7 +896,18 @@ def run(args: argparse.Namespace) -> int:
         "compile_cache": {"path": str(cache), "preserved": True},
         "checkpoint_pruned": False, "cache_cleaned": False,
     }
-    _write_exclusive(ROOT / paths["runtime_result"], result)
+    # No artifact or authority may change between hashing and the top-level result write.
+    _revalidate_snapshot(ROOT, artifact_identities)
+    _revalidate_authority(
+        template_path, auth_path, template, auth,
+        args.request_sha256, args.authorization_sha256,
+    )
+    _assert_file_identity(ROOT, runtime_path, runtime_job_identity)
+    _assert_directory_identity(COMPILE_CACHE_ROOT, cache, directory_identities[cache])
+    _assert_directory_identity(ROOT, rooted["output"], directory_identities[rooted["output"]])
+    _assert_directory_identity(ROOT, rooted["report"], directory_identities[rooted["report"]])
+    _validate_chain(ROOT, rooted["runtime_result"], "absent")
+    _write_exclusive(ROOT, rooted["runtime_result"], result)
     return 0 if success else 2
 
 

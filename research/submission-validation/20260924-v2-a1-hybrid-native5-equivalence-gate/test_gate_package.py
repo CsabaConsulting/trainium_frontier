@@ -353,6 +353,87 @@ class G0FinalizationTests(unittest.TestCase):
         ):
             self.assertIn(required, source)
 
+    def test_safe_root_positive_create_hash_snapshot_and_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "trusted"
+            root.mkdir()
+            output = root / "out" / "label"
+            report = root / "research" / "run-logs" / "label" / "native-gate"
+            result = root / "research" / "run-logs" / "label.runtime-result.json"
+            G0_FINALIZATION._safe_mkdir(root, output)
+            G0_FINALIZATION._safe_mkdir(root, report)
+            rank = report / "rank-0.jsonl"
+            G0_FINALIZATION._write_exclusive(root, rank, {"kind": "complete"})
+            rows, identities = G0_FINALIZATION._artifact_snapshot([rank, report], root)
+            self.assertEqual(set(rows), {
+                "research/run-logs/label/native-gate/rank-0.jsonl",
+            })
+            G0_FINALIZATION._revalidate_snapshot(root, identities)
+            G0_FINALIZATION._write_exclusive(root, result, {"complete": True})
+            self.assertEqual(G0_FINALIZATION._load(result, root), {"complete": True})
+
+    def test_verifier_report_parent_symlink_attack_is_rejected(self):
+        label = "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "trusted"
+            outside = Path(tmp) / "outside"
+            (root / "research" / "run-logs").mkdir(parents=True)
+            outside.mkdir()
+            (root / "research" / "run-logs" / label).symlink_to(
+                outside, target_is_directory=True,
+            )
+            report = root / "research" / "run-logs" / label / "native-gate"
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._validate_chain(root, report, "absent")
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._artifact_snapshot([report], root)
+            self.assertEqual(list(outside.iterdir()), [])
+
+    def test_output_cache_and_materialization_parent_aliases_are_rejected(self):
+        for name in ("output", "cache", "materialization"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "trusted"
+                outside = Path(tmp) / "outside"
+                root.mkdir()
+                outside.mkdir()
+                (root / name).symlink_to(outside, target_is_directory=True)
+                target = root / name / "fixed-terminal"
+                with self.assertRaises(G0_FINALIZATION.ContractError):
+                    G0_FINALIZATION._safe_mkdir(root, target)
+                with self.assertRaises(G0_FINALIZATION.ContractError):
+                    G0_FINALIZATION._write_exclusive(root, target, {"attack": True})
+                self.assertEqual(list(outside.iterdir()), [])
+
+    def test_path_escape_non_directory_ancestor_and_hardlink_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "trusted"
+            root.mkdir()
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._validate_chain(root, root / ".." / "escape", "absent")
+            (root / "not-a-directory").write_text("x")
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._validate_chain(
+                    root, root / "not-a-directory" / "terminal", "absent",
+                )
+            original = root / "authority.json"
+            alias = root / "authority-hardlink.json"
+            original.write_text("{}\n")
+            os.link(original, alias)
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._load(original, root)
+
+    def test_post_hash_identity_revalidation_rejects_replacement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "trusted"
+            root.mkdir()
+            artifact = root / "artifact.json"
+            G0_FINALIZATION._write_exclusive(root, artifact, {"version": 1})
+            _, identity = G0_FINALIZATION._sha_with_identity(artifact, root)
+            artifact.unlink()
+            artifact.write_text('{"version": 1}\n')
+            with self.assertRaises(G0_FINALIZATION.ContractError):
+                G0_FINALIZATION._assert_file_identity(root, artifact, identity)
+
 
 class ComparatorTests(unittest.TestCase):
     def test_exact_fixture_passes(self):
