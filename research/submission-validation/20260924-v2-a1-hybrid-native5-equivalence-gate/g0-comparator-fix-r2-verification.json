@@ -1,0 +1,157 @@
+{
+  "schema": "a1-native-five-g0-comparator-fix-r2-verification-v1",
+  "verdict": "FAIL",
+  "review_date": "2026-09-24",
+  "role": "independent-verifier",
+  "reviewed_implementation": {
+    "branch": "implement/20260924-v2-a1-native5-g0-comparator-fix-r2",
+    "commit": "8f9b69030ec24da7e8e76d5f6e6567ec051fd02a",
+    "parent": "f8670808b1f81c0b11ead49c6a8776df93c4b762",
+    "origin_contains_exact_commit": true,
+    "clean_detached_review_worktree": true
+  },
+  "prior_fail": {
+    "commit": "0f64bb06b7d1e9a8afd572b3c72c92acb8a360ee",
+    "receipt_sha256": "2e87b096bcfc53a4e363211705c146579169424f63173d416d7de5e6171c6814",
+    "b1_single_descriptor_input_capture": "RESOLVED",
+    "b2_short_write_and_basic_readback": "PARTIALLY_RESOLVED",
+    "notes": "The r2 implementation branch intentionally descends from the reviewed implementation f8670808 rather than from the verifier receipt. Proposal, request and runbook bytes explicitly pin the prior FAIL commit and receipt hash."
+  },
+  "historical_inputs": {
+    "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+    "immutable_evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "accepted_gate_commit": "7528ca8dd9d9915097929217c2a2b0d9cfc17107",
+    "historical_g0_authorization_consumed": true,
+    "historical_g0_relaunchable": false
+  },
+  "reviewed_hashes": {
+    "ownership_manifest": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "comparator": "35d1035d64af22a3ddcdeb94ef4dfe4179ca7f218feb3cb7951070ca20300623",
+    "candidate": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "observer": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "model_checker": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "immutable_rank_reports": {
+      "rank-0.jsonl": "8aa51461a8cfba1efd1467d97d3ff4788728870b1809b93c2f27c8c8a1054064",
+      "rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
+      "rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
+      "rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee"
+    }
+  },
+  "scope_audit": {
+    "implementation_changed_files": [
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-ownership-revalidation.pending.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/requests.pending.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py"
+    ],
+    "diff_check_passed": true,
+    "ownership_manifest_unchanged": true,
+    "candidate_prepare_observer_gates_model_checker_unchanged": true,
+    "g1_locked": true,
+    "g2_locked": true,
+    "native_execution_authorized": false,
+    "training_authorized": false
+  },
+  "independent_positive_reconstruction": {
+    "status": "PASS",
+    "owned_entry_count": 66,
+    "owned_dtype": "torch.float32",
+    "elements_by_owner": [
+      27405059,
+      30540035,
+      30408963,
+      29362179
+    ],
+    "estimated_ms_by_owner": [
+      12.991316601116363,
+      12.99464796558983,
+      12.984647965589831,
+      12.988706969361804
+    ],
+    "owned_elements": 117716236,
+    "shard_elements": 30540160,
+    "total_padded_elements": 122160640,
+    "total_padded_bytes": 488642560,
+    "replicated_rmsprop_tables_excluded": true,
+    "exact_owner_exchanges_per_rank": 5,
+    "immutable_g0_cli_result": "PASS"
+  },
+  "input_capture_audit": {
+    "status": "PASS",
+    "single_fd_no_follow_hash_and_parse": true,
+    "same_captured_bytes_hashed_and_parsed": true,
+    "preopen_symlink_hardlink_nonregular_rejected": true,
+    "post_open_and_post_hash_name_or_inode_swap_rejected": true,
+    "append_truncate_overwrite_rename_rejected": true,
+    "short_and_eintr_reads_handled": true,
+    "manifest_every_source_and_every_rank_report_covered": true,
+    "directory_and_file_owner_group_mode_link_size_constraints_enforced": true
+  },
+  "tests": [
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "result": "PASS: 50 tests"
+    },
+    {
+      "command": "python -m py_compile research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python compare_gate_reports.py --validate-g0-only <immutable-native-gate-dir> --output <fresh-output>",
+      "result": "PASS: exact 66-entry immutable G0 ownership result; output mode 0600, one link, 326 bytes"
+    },
+    {
+      "command": "independent source-algorithm reconstruction",
+      "result": "PASS: exact entry order, names, shapes, elements, dtype, cost, owner, offset, exclusions, counts, stride, padding and five gathers/rank"
+    },
+    {
+      "command": "independent post-readback same-size result mutation",
+      "result": "FAIL: _write_exclusive returned success after the requested {status: PASS} bytes were overwritten through the still-open fd with same-length {status: FAIL} bytes immediately after readback"
+    },
+    {
+      "command": "independent output-parent rename during directory fsync",
+      "result": "FAIL: _write_exclusive returned success although the lexical output path was absent; the PASS result existed only under the renamed old parent"
+    },
+    {
+      "command": "independent output ancestor-symlink alias",
+      "result": "FAIL: recursive parent creation and direct-parent open followed an ancestor symlink and wrote the result outside the lexical output tree"
+    },
+    {
+      "command": "independent post-write hardlink injection",
+      "result": "FAIL-CLEANUP: identity validation raised, but cleanup left the complete PASS artifact at the intended output path because nlink drift prevented unlink"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "R2-B1",
+      "severity": "blocking",
+      "finding": "Result content is not sealed after readback. _write_exclusive validates the read bytes, but its later checks compare only dev/ino/mode/nlink/uid/gid and size. They omit mtime/ctime and do not rehash/re-read. A same-size in-place overwrite immediately after readback survived every later check and the function returned success with different persisted JSON.",
+      "required_correction": "After readback, retain and compare full descriptor identity including size, mtime_ns and ctime_ns; perform an adjacent final content digest/readback and descriptor/name identity seal after all potentially blocking operations. Add deterministic same-size mutation after readback and between each later check."
+    },
+    {
+      "id": "R2-B2",
+      "severity": "blocking",
+      "finding": "The result parent/path is not jointly sealed through durable return. A parent rename at directory fsync returned success while the lexical result disappeared. Recursive mkdir and opening only the final parent component also accepts an ancestor symlink and writes outside the lexical tree.",
+      "required_correction": "Declare a trusted output root, reject lexical escape and symlink/non-directory ancestors, open the complete directory chain with dirfd/O_DIRECTORY/O_NOFOLLOW, retain every parent descriptor, and revalidate the full root-to-parent name/inode chain after directory fsync immediately before successful return. Add parent/ancestor rename, replacement and symlink attacks at every boundary."
+    },
+    {
+      "id": "R2-B3",
+      "severity": "blocking",
+      "finding": "Failure cleanup requires the complete original stable identity, including nlink. A hardlink injected after the write correctly caused validation to fail, but cleanup skipped unlink because nlink changed and left a complete PASS artifact at the intended result path.",
+      "required_correction": "On failure, remove the intended name when its no-follow dev/ino/type still identify the created file even if mutable mode/link/size/timestamps drifted, fsync the authenticated parent, and verify the intended name is absent. Add hardlink, chmod, truncate and append cleanup regressions."
+    }
+  ],
+  "adjudication": {
+    "r2_re_adjudicates_immutable_g0_pass": false,
+    "reason": "The exact G0 ownership result and all authenticated inputs are correct, but a successful comparator invocation still does not bind the durable result bytes and lexical result path to the validated payload.",
+    "supervisor_may_prepare_distinct_g1_authorization_request": false,
+    "g1_execution_authorized": false,
+    "g2_execution_authorized": false,
+    "required_next_step": "Correct R2-B1 through R2-B3 without changing the frozen manifest or protected science files, then obtain a fresh independent immutable-G0 PASS before preparing G1."
+  }
+}
