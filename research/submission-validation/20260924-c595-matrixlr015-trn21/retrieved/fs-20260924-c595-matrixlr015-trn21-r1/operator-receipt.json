@@ -1,0 +1,81 @@
+{
+  "schema": "operator-completed-run-receipt-v1",
+  "label": "fs-20260924-c595-matrixlr015-trn21-r1",
+  "host": {
+    "name": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "preflight_passed": true,
+    "preflight_free_bytes": 9202122752,
+    "postflight_command_returncode": 0,
+    "postflight_host_clean": false,
+    "postflight_failures": [
+      "less than8GiB disk space available"
+    ],
+    "postflight_free_bytes": 7370366976,
+    "postflight_neuron_process_count": 0,
+    "postflight_device_holders": 0,
+    "postflight_relevant_process_count": 0
+  },
+  "fingerprints": {
+    "child_head": "107ac347818bf691258ca827b3861d92daf3ef89",
+    "core_commit": "0fe265404e8a27b60f304ae4dfa8bc90df9de881",
+    "request_sha256": "4cdcb24c0ed7933f8f700dbcd60dfcfa51a49834c2c0ec520d54bd3aa1c2f916",
+    "authorized_job_sha256": "2b514d1f86bad9ddc2ce6f250936a07f5ca9464b0f7bad452e1b9bf71d3586b7",
+    "runtime_job_sha256": "df56b1bbad619b91b1cdcfd67bc02b7022db9df3b40619c9254c213d80093352",
+    "candidate_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "base_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
+  },
+  "launch": {
+    "guard_pid": 2684252,
+    "child_pid": 2684253,
+    "started_at": "2026-09-24T00:44:22.544127+00:00",
+    "completed_at": "2026-09-24T01:40:48.835445+00:00",
+    "preflight_passed": true,
+    "command_returncode": 0
+  },
+  "training": {
+    "returncode": 0,
+    "wall_seconds": 2628.9101259559393,
+    "startup_allowance_observed": 838.5824605739908,
+    "charged_through_process_exit_seconds": 1790.3276653819485,
+    "charged_through_process_exit_within_budget": true,
+    "training_seconds_logged": 1784.7,
+    "budget_seconds": 1800,
+    "final_step_index": 3634,
+    "step_count": 3635,
+    "total_tokens_millions_logged": 476.4,
+    "seed": 42
+  },
+  "checkpoint": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_trn21_r1/out/fs-20260924-c595-matrixlr015-trn21-r1-work/train/out/final.pt",
+    "bytes": 469831009,
+    "sha256": "503dbfda2ec0fe90fdaee44f07551d1c0520b575e6ab23d1a52444f3d1365e88",
+    "finite": true,
+    "tensor_count": 62,
+    "weights_only": true,
+    "preserved_remote": true
+  },
+  "evaluation": {
+    "returncode": 0,
+    "num_tokens": 20971520,
+    "num_bytes": 83462186,
+    "total_nats": 57392944.0,
+    "val_bpb": 0.9920722144854677,
+    "eval_seconds": 728.390746884048,
+    "eval_timeout": 1200,
+    "eval_over_timeout": false
+  },
+  "retrieval": {
+    "manifest_sha256": "083f058932644e97dd03569037f356fd044cd47daa916430e60b7fd439012c31",
+    "completion_sha256": "dfe7c7af3e9fa326a0886b4e75dbdfa44773f84b1a1200cc372769587d14b214",
+    "archive_sha256": "499021d40eaed330bdac8729c0c655102f8e1c752a3c080ca5243e1aa1b7c019",
+    "manifest_member_failures": [],
+    "ready_to_retrieve": true
+  },
+  "operator_actions": {
+    "cleanup_performed": false,
+    "checkpoint_pruned": false,
+    "retry_performed": false,
+    "submission_performed": false
+  }
+}
