@@ -1,6 +1,39 @@
 # Current state
 
-Last reconciled: 2026-09-23 17:40 UTC
+Last reconciled: 2026-09-24 09:10 UTC
+
+## Final-week override — LR 0.015 adopted, canonicalization in progress
+
+This section supersedes the older score, base, queue, and host statements below.
+
+- The best confirmed public-development candidate is the review-clean dense6x1024 file with
+  `MATRIX_LR = 0.015`, SHA-256
+  `116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d`.
+  Two seed-42, full-budget, fresh-process 20,971,520-token evaluations on `trn21` measured
+  `0.9920722144854677` at 3,635 steps and `0.9918353324459732` at 3,654 steps. Their arithmetic
+  mean is `0.99195377346572045`; both beat the prior public best `0.9928513116311253`.
+- The evidence for both runs is now imported into this canonical controller checkout under
+  `research/submission-validation/20260924-c595-matrixlr015-trn21/`. The confirmation Operator
+  receipt records a clean seed-42 run, 1,800-second budget compliance, 20M token/83,462,186-byte
+  evaluation, finite checkpoint, and exact candidate hash.
+- A canonical root candidate was implemented from reviewed parent `4ed89f36` as commit
+  `e12d0deedea806128c1999f4b0a6340b967a7e64`. It changes only root `train.py` and has the exact
+  candidate hash above. Independent verification is still required before the controller may pin
+  or run it.
+- `TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS` is 900. The two LR 0.015 runs observed approximately
+  839 and 831 seconds of startup, so cold-compile margin is only 61–69 seconds. Compile-cache
+  reuse may accelerate research, but official-cold behavior must remain a separate gate.
+- The old fixed queue based on `9173f626…` is retired for science decisions. It remains inert
+  until the new base, controls, proposals, and independent receipts are installed. No old 640-stack
+  proposal may be launched as a fallback.
+- At 09:04 UTC both `trn21` and `trn22` were idle with no Neuron/device or experiment-lock holder.
+  Disk was 6.8575 GiB and 6.9148 GiB free respectively. An Operator is checking only archived,
+  controller-owned cleanup targets; no unknown worktree, data, log, or unapproved checkpoint may
+  be removed. The protocol's approximately 5 GiB safety floor is unchanged.
+- Final-week selection uses context-1024 public BPB. A 2,097,152-token fresh-process evaluation may
+  screen an arm, but cannot establish a KEEP. Promotion requires a fresh 20,971,520-token evaluation;
+  adoption requires two negative 20M deltas with mean at most `-0.0008` against current-base,
+  same-host controls. Submission and instance lifecycle actions remain human-only.
 
 ## Human-authorized fixed-queue override — pending independent verification
 
