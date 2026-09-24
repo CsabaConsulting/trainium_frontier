@@ -42,6 +42,9 @@ This section supersedes earlier Track-A readiness and host-control statements be
   prior dense negative. `t39-hgate-900s` ran about 25% slower per step, completed about 19.8% fewer
   steps, and lost roughly `+0.0135` BPB against paired controls. Exact `35c9...` has no fused NKI
   implementation to change that wall-clock tradeoff, and the flag bundles two explanatory factors.
+- Track-A A8's embedding-LR 0.45 sub-arm was stopped as a closed axis. The exact prior
+  `t04-embedlr-045-900s` change from 0.30 to 0.45 measured only `-0.000057` BPB, below noise; the
+  durable study concluded that 0.30 is a flat optimum. No full run was repeated.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
