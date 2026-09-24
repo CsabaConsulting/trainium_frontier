@@ -1,0 +1,55 @@
+{
+  "reviewed_commit": "3799c05d07b65d119c0fc0674f2597dea9a9ed8a",
+  "reviewed_parent": "2ccd4a6aaacba67c08ef9ef22c3ce59e7cea2d47",
+  "role": "independent_verifier_g0_path_hardening_r2",
+  "status": "FAIL",
+  "summary": "The prior ancestor-symlink alias is closed and the new safe-root/openat logic rejects the requested path attacks, but successful runtime finalization is impossible because mutable directory metadata is pinned before child artifacts are created. Exclusive output sealing also fails to bind the final pathname to the inode that was written.",
+  "checks": {
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-native5-g0-r2.7EvH0P",
+    "reviewed_commit_exact": true,
+    "reviewed_parent_is_prior_fail": true,
+    "py_compile_passed": true,
+    "complete_gate_tests_passed": 26,
+    "accepted_optimizer_regression_tests_passed": 13,
+    "prior_report_parent_symlink_rejected": true,
+    "output_cache_materialization_ancestor_symlinks_rejected": true,
+    "path_escape_rejected": true,
+    "non_directory_ancestor_rejected": true,
+    "hardlinked_file_rejected": true,
+    "recursive_artifact_symlink_and_hardlink_rejected": true,
+    "artifact_post_hash_replacement_rejected": true,
+    "dirfd_openat_nofollow_o_excl_present": true,
+    "legitimate_post_child_directory_growth_accepted": false,
+    "exclusive_output_inode_replacement_rejected": false,
+    "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate_source_sha256": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate_source_sha256": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "package_verification_sha256": "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf",
+    "g0_finalization_sha256": "b413c691a40af8ac255ad00d61ab4841cf1d45c7c2ce302a9f94c3df82f2f97d",
+    "g0_request_template_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+    "protected_science_or_launcher_files_changed": false
+  },
+  "blockers": [
+    {
+      "id": "B1_MUTABLE_DIRECTORY_IDENTITY_FALSE_REJECT",
+      "evidence": "_directory_identity returns the common six-field _identity tuple including st_size and st_mtime_ns. run() captures identities for the initially empty compile cache, output and report directories, then after the child creates compiler files, final.pt and rank JSONL calls _assert_directory_identity against those original tuples. Creating one benign final.pt changed only the same directory's size/mtime and was rejected as 'directory identity changed during validation'.",
+      "impact": "Every successful native child necessarily mutates at least output and report directory metadata, so run() cannot write a PASS runtime result even when every scientific and lifecycle gate succeeds.",
+      "required_fix": "Use a stable directory identity limited to the no-follow lexical chain plus terminal device/inode/type and justified link semantics; permit expected child content mutations. Preserve the pre-Popen empty/fresh gate, and after quiescence validate exact artifact allowlists and file identities. Add an end-to-end positive simulation that creates final.pt, four exact reports and cache entries, then reaches an exclusively sealed result."
+    },
+    {
+      "id": "B2_EXCLUSIVE_WRITE_PATHNAME_NOT_INODE_BOUND",
+      "evidence": "_write_exclusive captures no returned identity. After fsync it closes the created fd and calls only _validate_chain(..., 'file'), which accepts any regular single-link replacement. Injecting unlink plus a new attacker file immediately before that terminal validation made _write_exclusive return successfully with attacker bytes at the requested path.",
+      "impact": "The supposedly immutable materialized request or runtime-result receipt can be substituted after O_EXCL creation without detection; materialize will hash the replacement rather than the bytes it wrote.",
+      "required_fix": "Capture the created file's fstat identity, compare the lexical pathname to that exact inode after close, and bind the returned digest/identity to the serialized bytes. Materialization and runtime-result callers must retain and revalidate that identity through their final success boundary. Add deterministic post-close replacement attacks for both outputs."
+    }
+  ],
+  "authorization_conditions": [
+    "Do not finalize or materialize G0 while B1 or B2 remains unresolved.",
+    "Re-review must rerun all 26 existing tests, optimizer regressions, the full safe-root attack matrix, a realistic positive artifact-producing lifecycle, and deterministic post-write replacement attacks.",
+    "G1/G2, cleanup, pruning, full A1, hardware execution and submission remain unauthorized."
+  ],
+  "hardware_authorized": false,
+  "g0_request_may_be_finalized": false
+}
