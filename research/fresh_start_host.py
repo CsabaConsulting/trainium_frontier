@@ -20,6 +20,11 @@ HOST_DIRECTORY = Path('/home/ubuntu/.cache/trainium_freshstart')
 HOST_LOCK = HOST_DIRECTORY / 'device0.lock'
 HOST_STATE = HOST_DIRECTORY / 'device0-last-postflight.json'
 MARKER = 'TRAINIUM_FRESH_START_RUN_ID'
+MIN_OPERATIONAL_FREE_BYTES = 13 * 1024**3 // 2  # human-approved final-week 6.5 GiB floor
+
+
+def sufficient_free_space(free_bytes, minimum=MIN_OPERATIONAL_FREE_BYTES):
+    return type(free_bytes) is int and free_bytes >= minimum
 
 
 def utc_now():
@@ -207,8 +212,8 @@ def health_failures(record, exclude_pids=()):
         failures.append('neuron-ls failed or reports a live Neuron process')
     if record['memory_bytes']['MemAvailable'] < 16 * 1024**3:
         failures.append('less than16GiB host memory available')
-    if record['disk']['free_bytes'] < 8 * 1024**3:
-        failures.append('less than8GiB disk space available')
+    if not sufficient_free_space(record['disk']['free_bytes']):
+        failures.append('less than6.5GiB operational disk space available')
     if record['disk']['free_inodes'] < 10000:
         failures.append('less than10000 free filesystem inodes')
     pending = [p for p in record['relevant_processes']

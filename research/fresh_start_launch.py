@@ -24,7 +24,7 @@ m = json.load(sys.stdin)
 r = pathlib.Path(m['remote'])
 assert r.is_dir(), 'checkout missing'
 sys.path.insert(0, str(r / 'research'))
-from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight
+from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, MIN_OPERATIONAL_FREE_BYTES, preflight, sufficient_free_space
 HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
 host_lock = HOST_LOCK.open('a')
 fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -32,7 +32,8 @@ fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 # job, then checks all device holders. An early fuser assertion would prevent
 # that authorized cleanup if a stale owned descendant still held the device.
 free = shutil.disk_usage(r).free
-assert free >= 8 * 1024**3, 'less than 8 GiB free'
+assert m.get('min_free_bytes') == MIN_OPERATIONAL_FREE_BYTES, 'request operational floor mismatch'
+assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
 source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
                 'research/fresh_start_host.py', 'research/fresh_start_guard.py',
                 'research/fresh_start_launch.py', 'research/fresh_start_backup.py']
@@ -93,6 +94,8 @@ def main():
     assert isinstance(request["environment"], dict)
     assert request["environment"].get("NEURON_LOGICAL_NC_CONFIG") in ("1", "2")
     assert "--optlevel=1" in request["environment"].get("NEURON_CC_FLAGS", "")
+    from fresh_start_host import MIN_OPERATIONAL_FREE_BYTES
+    assert request.get("min_free_bytes") == MIN_OPERATIONAL_FREE_BYTES
     receipt = ROOT / "research/run-logs" / (request["label"] + ".dispatch.json")
     with receipt.open("x") as output:
         # Preserve the intended action locally even if the remote host disappears.

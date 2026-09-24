@@ -8,6 +8,7 @@ ARMS={"trn21":{"hostname":"ip-172-31-34-85","label":"fs-20260924-current-base-co
 BASE_SHA=TRAIN_SHA="116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d"
 LAUNCH_SHA="b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd"
 PREPARE_SHA="5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+MIN_FREE_BYTES=13*1024**3//2
 CONTROL=Decimal("0.993231940827686"); KEEP=Decimal("0.0015"); REPLICATE=Decimal("0.0025")
 METRIC_KEYS={"val_bpb","num_tokens","num_bytes","total_nats","eval_seconds","eval_timeout","eval_over_timeout"}
 FINITE_KEYS={"schema","finite","weights_only","map_location","tensor_count","checkpoint_sha256","checkpoint_bytes"}
@@ -19,7 +20,7 @@ WARNING_FIRST=re.compile(r"^\[W\d+ \d{2}:\d{2}:\d{2}\.\d+ OperatorEntry\.cpp:208
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def request_contract(data):
  """Digest exact operator intent without creating a commit/request self-reference."""
- base={k:data[k] for k in ("schema","host","expected_hostname","remote","origin","label","purpose","fingerprint_paths","environment","command","runner_owns_manifest","non_overwrite")}
+ base={k:data[k] for k in ("schema","host","expected_hostname","remote","origin","label","purpose","min_free_bytes","fingerprint_paths","environment","command","runner_owns_manifest","non_overwrite")}
  command=list(base["command"])
  for flag in ("--core-commit","--authorization-sha256","--request-contract-sha256"):
   try: command[command.index(flag)+1]="<"+flag[2:].upper().replace("-","_")+">"
@@ -27,10 +28,11 @@ def request_contract(data):
  base["command"]=command
  return hashlib.sha256(json.dumps(base,sort_keys=True,separators=(",",":")).encode()).hexdigest()
 def verify_runtime(data,host,label,core,contract):
- required={"schema","host","expected_hostname","remote","expected_commit","origin","label","purpose","fingerprint_paths","expected_sha256","environment","command","runner_owns_manifest","non_overwrite"}
+ required={"schema","host","expected_hostname","remote","expected_commit","origin","label","purpose","min_free_bytes","fingerprint_paths","expected_sha256","environment","command","runner_owns_manifest","non_overwrite"}
  if set(data)!=required|RUNTIME_ADDITIONS: raise SystemExit("runtime job schema mismatch")
  if data["host"]!=host or data["label"]!=label or data["expected_commit"]!=core or data["git_commit"]!=core: raise SystemExit("runtime job identity mismatch")
  if data["hostname"]!=ARMS[host]["hostname"] or data["expected_hostname"]!=ARMS[host]["hostname"] or data["source_dirty"] is not False: raise SystemExit("runtime host/dirty mismatch")
+ if data["min_free_bytes"]!=MIN_FREE_BYTES or data["preflight_free_bytes"]<MIN_FREE_BYTES: raise SystemExit("runtime operational floor mismatch")
  command=data["command"]
  for flag,want in (("--arm",host),("--core-commit",core),("--request-contract-sha256",contract)):
   if command.count(flag)!=1 or command[command.index(flag)+1]!=want: raise SystemExit("runtime argv binding mismatch")
@@ -105,7 +107,7 @@ def main():
  ap=argparse.ArgumentParser(); ap.add_argument("--arm",choices=ARMS,required=True); ap.add_argument("--authorization-sha256",required=True); ap.add_argument("--sandbox-root",type=pathlib.Path,required=True); ap.add_argument("--core-commit",required=True); ap.add_argument("--request-contract-sha256",required=True); args=ap.parse_args()
  host=args.arm;hostname=ARMS[host]["hostname"];label=ARMS[host]["label"]
  auth_path=HERE/(host+"-authorization.json"); auth=json.loads(auth_path.read_text())
- exact={"schema":"current-base-control-authorization-v1","arm":host,"host":host,"expected_hostname":hostname,"label":label,"package":PACKAGE_REL,"train_sha256":TRAIN_SHA,"single_causal_change":"none","seed":42,"max_train_seconds":1800,"smoke_authorized":False,"checkpoint_prune_authorized":False,"request_contract_sha256":args.request_contract_sha256,"state":"human_approved_pending_operator"}
+ exact={"schema":"current-base-control-authorization-v1","arm":host,"host":host,"expected_hostname":hostname,"label":label,"package":PACKAGE_REL,"train_sha256":TRAIN_SHA,"single_causal_change":"none","seed":42,"max_train_seconds":1800,"min_free_bytes":MIN_FREE_BYTES,"smoke_authorized":False,"checkpoint_prune_authorized":False,"request_contract_sha256":args.request_contract_sha256,"state":"human_approved_pending_operator"}
  if sha(auth_path)!=args.authorization_sha256 or auth!=exact: raise SystemExit("authorization mismatch")
  if socket.gethostname()!=hostname or subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()!=args.core_commit: raise SystemExit("host/core mismatch")
  evidence=ROOT/"out"/label; work=ROOT/"out"/(label+"-work")
@@ -152,7 +154,7 @@ def main():
  post_sha,post_bytes=a.nofollow_sha(checkpoint)
  if (post_sha,post_bytes)!=(before_sha,before_bytes): raise SystemExit("checkpoint changed after archive")
  members=a.inspect_artifacts(BASE_ARTIFACTS); manifest={"schema":"current-base-control-artifact-manifest-v1","label":label,"members":members}; a.durable_json(evidence/"artifact-manifest.json",manifest); manifest_sha=revalidate_manifest(a,manifest,members)
- completion={"schema":"current-base-control-completion-v1","label":label,"host":host,"hostname":hostname,"core_commit":args.core_commit,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"request_contract_sha256":args.request_contract_sha256,"runtime_job_sha256":runtime_job_sha,"artifact_manifest_sha256":manifest_sha,"artifact_members":members,"checkpoint_path":str(checkpoint),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,"checkpoint_post_sha256":post_sha,"checkpoint_post_bytes":post_bytes,"checkpoint_preserved":True,"archive_sha256":hashlib.sha256(archive).hexdigest(),"archive_bytes":len(archive),"prune_authorized":False,"cache_cleanup_authorized":False,"ready_to_retrieve":True}
+ completion={"schema":"current-base-control-completion-v1","label":label,"host":host,"hostname":hostname,"core_commit":args.core_commit,"min_free_bytes":MIN_FREE_BYTES,"preflight_free_bytes":runtime_data["preflight_free_bytes"],"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"request_contract_sha256":args.request_contract_sha256,"runtime_job_sha256":runtime_job_sha,"artifact_manifest_sha256":manifest_sha,"artifact_members":members,"checkpoint_path":str(checkpoint),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,"checkpoint_post_sha256":post_sha,"checkpoint_post_bytes":post_bytes,"checkpoint_preserved":True,"archive_sha256":hashlib.sha256(archive).hexdigest(),"archive_bytes":len(archive),"prune_authorized":False,"cache_cleanup_authorized":False,"ready_to_retrieve":True}
  a.durable_json(evidence/"ready-to-retrieve.json",completion); completion_bytes=a.artifact_bytes("ready-to-retrieve.json"); completion_sha=hashlib.sha256(completion_bytes).hexdigest()
  if json.loads(completion_bytes)!=completion or a.inspect_artifacts(BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"})["ready-to-retrieve.json"]["sha256"]!=completion_sha: raise SystemExit("completion revalidation failed")
  print(json.dumps({"result":result,"artifact_manifest_sha256":manifest_sha,"completion_receipt_sha256":completion_sha,"ready_to_retrieve":True},sort_keys=True))
