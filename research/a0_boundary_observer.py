@@ -62,6 +62,14 @@ def proc(pid):
     return {"state": fields[0], "session": int(fields[3]), "start_ticks": int(fields[19])}
 
 
+def proc_argv(pid):
+    try:
+        data = Path(f"/proc/{pid}/cmdline").read_bytes()
+    except OSError:
+        return None
+    return [os.fsdecode(part) for part in data.rstrip(b"\0").split(b"\0")] if data else None
+
+
 def add(reasons, value):
     if value not in reasons:
         reasons.append(value)
@@ -73,6 +81,7 @@ def observe(a):
     bad, boundaries = [], []
     process_blob = process_inode = identity = launch_utc = None
     step_blob, step_inode, parsed_bytes, stream_bad = b"", None, 0, False
+    step_baseline_seen = False
     child_terminal = post = None
 
     while post is None and time.monotonic_ns() < deadline:
@@ -105,6 +114,11 @@ def observe(a):
                         raise ValueError("live guard/child unavailable")
                     if child["session"] != value["child_session"]:
                         raise ValueError("live child session mismatch")
+                    guard_argv = proc_argv(value["guard_pid"])
+                    if guard_argv is None or len(guard_argv) < 3 or guard_argv[1] != str(a.guard_script):
+                        raise ValueError("live guard script mismatch")
+                    if f"NEURON_COMPETITION_R1_STEP_LOG={a.boundary_file}" not in command:
+                        raise ValueError("manifest step-log path mismatch")
                 except ValueError as exc:
                     add(bad, f"process_identity_invalid:{exc}")
                 else:
@@ -128,6 +142,10 @@ def observe(a):
                 live = proc(identity[f"{role}_pid"])
                 if live is not None and live["start_ticks"] != identity[f"{role}_start_ticks"]:
                     add(bad, f"{role}_pid_reused")
+                if role == "guard" and live is not None:
+                    guard_argv = proc_argv(identity["guard_pid"])
+                    if guard_argv is None or len(guard_argv) < 3 or guard_argv[1] != str(a.guard_script):
+                        add(bad, "guard_command_changed")
                 if role == "guard" and live is None:
                     guard_missing = True
                 if role == "child" and child_terminal is None and (live is None or live["state"] == "Z"):
@@ -138,10 +156,15 @@ def observe(a):
             blob, inode = read_file(a.boundary_file)
         except FileNotFoundError:
             blob = None
+            step_baseline_seen = True
         except (OSError, ValueError) as exc:
             add(bad, f"boundary_file_invalid:{exc}")
             blob = None
         if blob is not None:
+            step_mono, step_utc = now()
+            if not step_baseline_seen and blob:
+                add(bad, "boundary_preexisted_observer")
+            step_baseline_seen = True
             if identity is None and blob:
                 add(bad, "boundary_observed_before_process_identity")
             if step_inode is None:
@@ -171,8 +194,8 @@ def observe(a):
                     if value != len(boundaries):
                         add(bad, "boundary_gap_or_duplicate")
                     boundaries.append({"ordinal": len(boundaries) + 1, "value": value,
-                                       "first_observed_monotonic_ns": mono,
-                                       "first_observed_utc": utc.isoformat()})
+                                       "first_observed_monotonic_ns": step_mono,
+                                       "first_observed_utc": step_utc.isoformat()})
                 parsed_bytes += end
             step_blob = blob
 
@@ -197,6 +220,7 @@ def observe(a):
                     "postflight_guard_error": value.get("guard_error") is None,
                     "postflight_host_not_clean": value.get("host_clean") is True and value.get("failures") == [],
                     "postflight_cleanup_incomplete": isinstance(value.get("cleanup"), dict) and value["cleanup"].get("remaining") == [],
+                    "postflight_remote_mismatch": value.get("remote") == str(a.process_json.parent.parent.parent),
                 }
                 for reason, passed in checks.items():
                     if not passed:
@@ -245,7 +269,7 @@ def observe(a):
         "observer": {"started_monotonic_ns": start_mono, "started_utc": start_utc.isoformat(),
                      "poll_seconds": a.poll_seconds, "timeout_seconds": a.timeout_seconds},
         "paths": {"process_json": str(a.process_json), "boundary_file": str(a.boundary_file),
-                  "postflight_json": str(a.postflight_json)},
+                  "postflight_json": str(a.postflight_json), "guard_script": str(a.guard_script)},
         "process_identity": identity, "boundaries": boundaries, "timing": timing,
         "child_terminal": child_terminal, "postflight": post, "invalid_reasons": bad,
     }
@@ -257,6 +281,7 @@ def main():
     parser.add_argument("--process-json", required=True, type=Path)
     parser.add_argument("--boundary-file", required=True, type=Path)
     parser.add_argument("--postflight-json", required=True, type=Path)
+    parser.add_argument("--guard-script", required=True, type=Path)
     parser.add_argument("--poll-seconds", type=float, default=0.02)
     parser.add_argument("--timeout-seconds", type=float, default=4800.0)
     a = parser.parse_args()
@@ -264,6 +289,20 @@ def main():
         parser.error("label must be a canonical fs-* request label")
     if a.poll_seconds <= 0 or a.timeout_seconds <= 0:
         parser.error("positive poll/timeout values are required")
+    for name in ("process_json", "boundary_file", "postflight_json", "guard_script"):
+        if not getattr(a, name).is_absolute():
+            parser.error(f"{name} must be an absolute path")
+    expected = {
+        "process_json": f"{a.label}.process.json",
+        "boundary_file": f"{a.label}.steps.jsonl",
+        "postflight_json": f"{a.label}.postflight.json",
+    }
+    if any(getattr(a, name).name != filename for name, filename in expected.items()):
+        parser.error("receipt paths must match the label")
+    if len({a.process_json.parent, a.boundary_file.parent, a.postflight_json.parent}) != 1:
+        parser.error("receipt paths must share a run-log directory")
+    if not a.guard_script.is_file():
+        parser.error("guard script does not exist")
     result = observe(a)
     print(json.dumps(result, sort_keys=True, separators=(",", ":")), flush=True)
     return 0 if result["scored_timing_proof"] else 2
