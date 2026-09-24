@@ -1,0 +1,107 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_PENDING_OPERATOR_PREFLIGHT",
+  "submission_approved": false,
+  "supersedes": {
+    "receipt": "research/agentic/verification/20260924-current-base-dual-control-authorization-reverify.json",
+    "receipt_commit": "232ad8922b57f1a42c8cfbad2819c2b775e04b30",
+    "reason": "The proposal and controlling protocol now explicitly authorize the 6.5 GiB dense-candidate operational floor while preserving a 5 GiB hard-abort lower bound."
+  },
+  "audited_final_commit": "fb1727673381797b96201e0ef05173e41cbf8c88",
+  "runtime_binding_core": "c025d216c2c07210449651099a982fe5656169fd",
+  "verified_base": "8a587d5983830444394e921240dabaf909ac0482",
+  "protected_hashes": {
+    "train_py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "package_train_py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "disk_floor_contract": {
+    "proposal_operational_floor_gib": 6.5,
+    "proposal_hard_abort_floor_gib": 5.0,
+    "exact_operational_floor_bytes": 6979321856,
+    "shared_host_constant": "13 * 1024**3 // 2",
+    "exact_boundary_accepted": true,
+    "one_byte_below_rejected": true,
+    "below_5_gib_rejected_by_stricter_6_5_gib_gate": true,
+    "post_staging_recheck_precedes_preflight_and_launch": true,
+    "protocol_and_proposal_explicitly_authorize_dense_floor": true,
+    "larger_checkpoint_requires_higher_declared_floor": true
+  },
+  "arms": {
+    "trn21": {
+      "hostname": "ip-172-31-34-85",
+      "label": "fs-20260924-current-base-control-trn21-r1",
+      "request_contract_sha256": "a5ede7049f36330cdb46ef7ad285de9272f95f6d704a02a4a9575d10c6cddcb2",
+      "authorization_sha256": "5772ab97e83bc78b552d8f2cd5786634b819e5fe4067e072ece1e63c66fd6e00",
+      "request_sha256": "0379b78fd35a675b1737df0be888c8d3eeed77be64307fc0f47e31760ee715bf",
+      "job_sha256": "697ea53ab7e81cf61e8320c73eae14bb32f8cf2011f1e593f4faf9693e20407e"
+    },
+    "trn22": {
+      "hostname": "ip-172-31-32-253",
+      "label": "fs-20260924-current-base-control-trn22-r1",
+      "request_contract_sha256": "10431842524ad54445e3b74f1ef6ee4842f67b41c147b43fffc18e6b65e35b0d",
+      "authorization_sha256": "dc42a0943f65d0a733cb046b86a8057b633dd379db9abb1bfe5cdbd25cf3a181",
+      "request_sha256": "14520c79c0356f5360bec8b0623571d4837d9bdaf026eb60f536a6dcdfd58c57",
+      "job_sha256": "86952ba4833c402146a8b1daa1b827e4b43705e96200f32a9f9dea63f1666d7e"
+    }
+  },
+  "runtime_and_artifact_audit": {
+    "exact_standard_launcher_runtime_schema_accepted": true,
+    "request_job_authorization_contract_and_core_bound": true,
+    "all_expected_fingerprints_match_runtime_core_objects": true,
+    "runtime_identity_commit_hostname_clean_state_and_source_hash_mutations_rejected": true,
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "smoke": false,
+    "world_size": 4,
+    "lnc": 2,
+    "compiler_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "primary_eval_tokens": 2097152,
+    "primary_eval_bytes": "positive actual value recorded",
+    "full_eval_tokens": 20971520,
+    "full_eval_bytes": 83462186,
+    "finite_weights_only_checkpoint_required": true,
+    "checkpoint_immutable_across_evaluations_and_archive": true,
+    "sealed_archive_manifest_and_completion_required": true,
+    "completion_binds_floor_observed_free_bytes_contract_runtime_and_artifacts": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "submission_authorized": false
+  },
+  "checks_run": [
+    "clean final/direct-core topology and protected-byte audit: PASS",
+    "operational-floor boundary/protocol/proposal suite: PASS",
+    "current-base dual-control static gates: PASS",
+    "dual-host immutable request suite: PASS without dispatch",
+    "Python compile checks: PASS",
+    "authorization-file SHA versus command argument: PASS for both hosts",
+    "request bytes versus immutable job SHA: PASS for both hosts",
+    "request contract versus authorization and command: PASS for both hosts",
+    "every expected fingerprint versus runtime-core Git object: PASS",
+    "independent standard-launcher runtime reconstruction: PASS for both hosts",
+    "independent trust and floor mutation matrix: all attacks rejected",
+    "scientific, finite-checkpoint, archive, manifest and completion audit: PASS"
+  ],
+  "constraints": [
+    "This receipt is verification of readiness, not launch authorization or submission approval.",
+    "The Operator must independently pass the exact fresh host-lock, idle-device, 16 GiB MemAvailable, 6.5 GiB free-disk, inode and clean-source preflight on each host.",
+    "The disk check must occur after the immutable checkout is staged and before preflight or workload launch; any observed value below 6979321856 bytes aborts.",
+    "Only one job may run per host; these controls may overlap only because they target distinct hosts.",
+    "The launcher inherits ambient variables beyond the explicit request environment; do not inject hostile LD_PRELOAD, XLA, TORCH or equivalent variables.",
+    "Remote completion is not durable local evidence until requests, runtime jobs, pre/postflight, logs, metrics, archive, manifest, completion and checkpoint receipts are retrieved and hash-verified.",
+    "Any crash, NaN, timeout, budget failure, dirty source, pre/postflight failure, count mismatch, checkpoint mutation or artifact mismatch invalidates that host control.",
+    "No pruning, cache cleanup, retry, leaderboard submission or causal win claim is authorized."
+  ],
+  "actions_not_taken": [
+    "source modification",
+    "SSH",
+    "hardware launch",
+    "push",
+    "checkpoint pruning",
+    "cache cleanup",
+    "leaderboard submission",
+    "submission approval"
+  ]
+}
