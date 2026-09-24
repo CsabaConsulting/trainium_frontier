@@ -1,8 +1,9 @@
 # Warm c5c A0 control — pending runbook
 
-This package prepares one warm trn22 A0 control. It does not authorize dispatch. The Operator must
-not use `request-template.json` directly: its non-hex `expected_commit`, empty hash map, pending
-state, and `dispatch_authorized=false` are intentional fail-closed sentinels.
+This package prepares one warm trn22 A0 control. It does not authorize dispatch. The request is
+bound to the immutable science-core commit and its exact fingerprint map, but its pending state and
+`dispatch_authorized=false` are intentional fail-closed policy sentinels. Independent verification
+and a separate Operator authorization decision are required before use.
 
 ## Immutable science contract
 
@@ -19,9 +20,9 @@ state, and `dispatch_authorized=false` are intentional fail-closed sentinels.
 
 1. Obtain durable PASS receipts for retained-checkpoint G1 calibration and the exact four c5c G2
    probes/comparisons. A missing or non-PASS receipt stops this package.
-2. An independent Verifier reviews this commit and produces a separate finalized request bound to
-   the reviewed core commit and the exact fingerprint map. The finalized request changes only the
-   four pending fields; it must not alter command, environment, label, paths, floors, or policies.
+2. An independent Verifier checks the request's core commit and every fingerprint. Any later
+   authorization record must bind this request's exact SHA256 and must not alter command,
+   environment, label, paths, floors, or policies.
 3. Stage the reviewed core into the unique absent checkout
    `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1`. Do not edit or reuse any
    retained checkout. Verify clean HEAD, origin, all hashes, hostname, unique path/label absence,

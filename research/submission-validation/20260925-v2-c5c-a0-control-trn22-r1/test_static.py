@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[3]
 PKG = Path(__file__).resolve().parent
@@ -14,6 +15,11 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def core_sha(commit, relative):
+    data = subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=ROOT)
+    return hashlib.sha256(data).hexdigest()
+
+
 proposal = json.loads((PKG / "EXPERIMENT_PROPOSAL.json").read_text())
 request = json.loads((PKG / "request-template.json").read_text())
 
@@ -24,10 +30,12 @@ assert proposal["candidate"]["run_label"] == LABEL
 assert proposal["gates"]["human_run_approval"] is True
 assert proposal["verdict"] is None
 
-assert request["state"] == "PENDING_INDEPENDENT_VERIFICATION"
+assert request["state"] == "PENDING_INDEPENDENT_VERIFICATION_AND_OPERATOR_AUTHORIZATION"
 assert request["dispatch_authorized"] is False
-assert request["expected_commit"] == "PENDING_VERIFIED_CORE_COMMIT"
-assert request["expected_sha256"] == {}
+assert request["expected_commit"] == "01caeeba43268b61d769ab4453c1c1f14f1c28ca"
+assert set(request["fingerprint_paths"]) == set(request["expected_sha256"])
+for relative, expected in request["expected_sha256"].items():
+    assert core_sha(request["expected_commit"], relative) == expected, relative
 assert request["host"] == "trn22" and request["expected_hostname"] == "ip-172-31-32-253"
 assert request["label"] == LABEL
 assert request["remote"] == "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1"
