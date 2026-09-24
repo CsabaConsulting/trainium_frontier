@@ -18,7 +18,7 @@
     "introduction_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
     "path": "submissions/dense6x1024_public0992851/train.py",
     "sha256_before": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
-    "sha256_after_implementation": "ba50528d0d08f1630cc84010187c1830f9ef8ba47da8f96d19a60403414cae7b",
+    "sha256_after_implementation": "431f70a75589182f9e8627abc000801503c3f2acf13bf95b21d06cffd5dcf711",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "candidate_change_scope": "make_plan and OwnedOptimizer inline ownership adapter only"
   },
@@ -48,14 +48,14 @@
     {
       "stage": "local_static_cpu_fake_world",
       "authorization": "human implementation authorization only",
-      "required": "partition/unknown/BF16 gates; world1 ordinary-vs-hybrid multi-step and state resume exactness; fake-world4 replicated RMSProp parameter/state hashes; update_adamw=false"
+      "required": "partition/unknown/BF16 gates; world1 ordinary-vs-hybrid multi-step exactness; hybrid optimizer serialization/resume fails before raw methods; unchanged no-RMS v1 roundtrip; fake-world4 replicated RMSProp parameter/state hashes; update_adamw=false; model-only final checkpoint"
     },
     {
       "stage": "native_5_step_gate",
       "label": "fs-20260924-v2-a1-hybrid-rmsprop-native5-trn21-r1",
       "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5 --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
       "authorization": "pending independent verification and a distinct finalized request",
-      "pass": "five completed finite-loss steps, finite checkpoint/state, exact hybrid ownership receipt, clean quiescent lifecycle"
+      "pass": "five completed finite-loss steps, finite model-only checkpoint with no optimizer key or serialization call, exact hybrid ownership receipt, clean quiescent lifecycle"
     },
     {
       "stage": "full_a1",
@@ -71,6 +71,7 @@
     "operational_launch_floor_bytes": 6979321856,
     "hard_abort_floor_bytes": 5368709120,
     "one_run_per_host": true,
+    "hybrid_optimizer_resume": "unsupported; exact error is 'optimizer state serialization/resume is unsupported with replicated RMSProp ownership; abort and restart from zero'; any interruption requires a new fresh run from step zero",
     "checkpoint_prune_authorized": false,
     "cache_cleanup_authorized": false,
     "requests_created": false
@@ -90,6 +91,7 @@
     "Any RMSProp hyperparameter, state, precision, arithmetic or update cadence difference",
     "Unknown optimizer kind accepted or BF16 AdamW/Muon owner-planned",
     "Any rank disagreement, nonfinite value, checkpoint mismatch or process-group survivor",
+    "Any attempt to serialize or resume hybrid optimizer state instead of aborting and restarting from zero",
     "Native gate attempted before independent verification and distinct authorization",
     "Full A1 attempted before archived native-5 PASS and separate authorization"
   ],

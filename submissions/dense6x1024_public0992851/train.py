@@ -4503,8 +4503,7 @@ def _owned_entries_identity(entries):
     keys = ('index', 'group', 'position', 'kind', 'shape', 'elements', 'estimated_ms', 'owner', 'offset')
     return [tuple((key, tuple(entry[key]) if key == 'shape' else entry[key]) for key in keys) for entry in entries]
 
-def _owned_state_tensor_schema(shape, elements, dtype, device, contiguous):
-    return dict(type='tensor', shape=list(shape), elements=elements, dtype=str(dtype), contiguous=contiguous, device_type=device.type, device_index=device.index)
+HYBRID_OPTIMIZER_RESUME_ERROR = 'optimizer state serialization/resume is unsupported with replicated RMSProp ownership; abort and restart from zero'
 
 class OwnedOptimizer:
 
@@ -4553,51 +4552,11 @@ class OwnedOptimizer:
                 self.send_views.append(self.send.narrow(0, entry['offset'], entry['elements']).view_as(p))
         self.raw_state_dict = optimizer.state_dict
         self.raw_load_state_dict = optimizer.load_state_dict
-        initial_state = self.raw_state_dict()
-        self.checkpoint_parameter_order = tuple(tuple(group['params']) for group in initial_state['param_groups'])
         self.owned_group_identity = _owned_live_identity(self.groups)
         self.exchange_parameter_ids = tuple(id(p) for p in self.parameters)
         self.owned_parameter_ids = tuple(id(p) for p in self.owned)
-        self.checkpoint_state_schema = self._build_checkpoint_state_schema()
         self.calls = 0
         self.replicated_rmsprop_calls = 0
-
-    def _build_checkpoint_state_schema(self):
-        parameter_references = {}
-        for source, references in zip(self.optimizer.param_groups, self.checkpoint_parameter_order):
-            if len(source['params']) != len(references):
-                raise ValueError('optimizer checkpoint ownership/schema mismatch')
-            parameter_references.update((id(parameter), reference) for parameter, reference in zip(source['params'], references))
-        schema = []
-        for group_index, (source, owned) in enumerate(zip(self.optimizer.param_groups, self.groups)):
-            source_positions = {id(parameter): position for position, parameter in enumerate(source['params'])}
-            kind = source['kind']
-            if kind == 'adamw':
-                for parameter in owned['params']:
-                    tensor = _owned_state_tensor_schema(parameter.shape, parameter.numel(), parameter.dtype, parameter.device, parameter.is_contiguous())
-                    fields = dict(step=dict(type='int', minimum=1), exp_avg=tensor, exp_avg_sq=tensor)
-                    schema.append(dict(parameter=parameter_references[id(parameter)], group=group_index, position=source_positions[id(parameter)], kind=kind, fields=fields))
-            elif kind == 'rmsprop':
-                for position, parameter in enumerate(source['params']):
-                    tensor = _owned_state_tensor_schema(parameter.shape, parameter.numel(), parameter.dtype, parameter.device, parameter.is_contiguous())
-                    fields = dict(step=dict(type='int', minimum=1), exp_avg_sq=tensor)
-                    schema.append(dict(parameter=parameter_references[id(parameter)], group=group_index, position=position, kind=kind, fields=fields))
-            elif kind == 'muon' and owned['params']:
-                parameter = owned['params'][0]
-                count = len(owned['params'])
-                shape = parameter.shape
-                transposed = source.get('transposed', False)
-                lshape = (shape[-1], shape[-2]) if transposed else shape
-                red_dim = -1 if lshape[-2] >= lshape[-1] else -2
-                if transposed:
-                    red_dim = -2 if red_dim == -1 else -1
-                momentum = _owned_state_tensor_schema((count, *shape), count * parameter.numel(), parameter.dtype, parameter.device, True)
-                second_shape = (count, shape[-2], 1) if red_dim == -1 else (count, 1, shape[-1])
-                second_elements = count * (shape[-2] if red_dim == -1 else shape[-1])
-                second = _owned_state_tensor_schema(second_shape, second_elements, torch.float32, parameter.device, True)
-                fields = dict(momentum_buffer=momentum, second_momentum_buffer=second)
-                schema.append(dict(parameter=parameter_references[id(parameter)], group=group_index, position=source_positions[id(parameter)], kind=kind, fields=fields))
-        return schema
 
     def _validate_live_plan(self):
         if (_owned_group_schema(self.optimizer.param_groups) != self.group_schema
@@ -4608,41 +4567,6 @@ class OwnedOptimizer:
                 or tuple(id(p) for p in self.parameters) != self.exchange_parameter_ids
                 or tuple(id(p) for p in self.owned) != self.owned_parameter_ids):
             raise ValueError('optimizer kind changed after planning or ordered parameter/entry plan drifted')
-
-    def _validate_checkpoint_groups(self, state, state_phase, state_manifest, validate_device=False):
-        if type(state) is not dict or type(state.get('state')) is not dict or type(state.get('param_groups')) is not list or len(state['param_groups']) != len(self.group_schema):
-            raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        if (state_phase not in ('pristine', 'initialized') or type(state_manifest) is not list
-                or any(type(item) is not int for item in state_manifest) or state_manifest != sorted(state_manifest)
-                or len(state_manifest) != len(set(state_manifest))):
-            raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        for index, (group, schema, parameter_order) in enumerate(zip(state['param_groups'], self.group_schema, self.checkpoint_parameter_order)):
-            if (type(group) is not dict or group.get('kind') != schema['kind']
-                    or tuple(group.get('params', ())) != parameter_order or schema['group'] != index):
-                raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        expected = {item['parameter']: item for item in self.checkpoint_state_schema}
-        if state_phase == 'pristine':
-            if state['state'] or state_manifest:
-                raise ValueError('optimizer checkpoint ownership/schema mismatch')
-            return
-        if not state_manifest or not set(state_manifest).issubset(expected) or set(state['state']) != set(state_manifest) or any(type(item) is not int for item in state['state']):
-            raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        for parameter in state_manifest:
-            parameter_schema = expected[parameter]
-            fields = state['state'][parameter]
-            field_schema = parameter_schema['fields']
-            if type(fields) is not dict or set(fields) != set(field_schema):
-                raise ValueError('optimizer checkpoint ownership/schema mismatch')
-            for name, schema in field_schema.items():
-                value = fields[name]
-                if schema['type'] == 'int':
-                    if type(value) is not int or value < schema['minimum']:
-                        raise ValueError('optimizer checkpoint ownership/schema mismatch')
-                elif (not isinstance(value, torch.Tensor) or list(value.shape) != schema['shape']
-                        or value.numel() != schema['elements'] or str(value.dtype) != schema['dtype']
-                        or value.is_contiguous() != schema['contiguous']
-                        or (validate_device and (value.device.type != schema['device_type'] or value.device.index != schema['device_index']))):
-                    raise ValueError('optimizer checkpoint ownership/schema mismatch')
 
     @torch.no_grad()
     def step(self, update_adamw=True):
@@ -4671,27 +4595,20 @@ class OwnedOptimizer:
         self.calls += 1
 
     def state_dict(self):
+        if self.replicated_rmsprop_groups:
+            raise ValueError(HYBRID_OPTIMIZER_RESUME_ERROR)
         self._validate_live_plan()
         state = self.raw_state_dict()
         state['state'] = {key: {name: value for name, value in fields.items() if name not in ('stacked_params', 'stacked_grads')} for key, fields in state['state'].items()}
-        state_phase = 'pristine' if self.calls == 0 else 'initialized'
-        if state_phase == 'pristine' and self.replicated_rmsprop_calls != 0:
-            raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        state_manifest = sorted(state['state'])
-        self._validate_checkpoint_groups(state, state_phase, state_manifest, validate_device=True)
-        return dict(schema='fresh-start-owned-optimizer-v3', rank=self.rank, world_size=self.world_size, entries=json.loads(json.dumps(self.entries)), group_schema=json.loads(json.dumps(self.group_schema)), ownership_summary=json.loads(json.dumps(self.summary_schema)), replicated_rmsprop_groups=json.loads(json.dumps(self.replicated_rmsprop_schema)), state_phase=state_phase, state_schema=json.loads(json.dumps(self.checkpoint_state_schema)), state_manifest=state_manifest, optimizer_calls=self.calls, replicated_rmsprop_calls=self.replicated_rmsprop_calls, pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
+        return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
 
     def load_state_dict(self, payload):
+        if self.replicated_rmsprop_groups:
+            raise ValueError(HYBRID_OPTIMIZER_RESUME_ERROR)
         self._validate_live_plan()
-        if type(payload) is not dict or set(payload) != {'schema', 'rank', 'world_size', 'entries', 'group_schema', 'ownership_summary', 'replicated_rmsprop_groups', 'state_phase', 'state_schema', 'state_manifest', 'optimizer_calls', 'replicated_rmsprop_calls', 'pad_singleton_muon', 'adamw_math_mode', 'optimizer'} or payload.get('schema') != 'fresh-start-owned-optimizer-v3' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or type(payload.get('optimizer_calls')) is not int or type(payload.get('replicated_rmsprop_calls')) is not int or payload['optimizer_calls'] < 0 or payload['replicated_rmsprop_calls'] < 0 or ((payload.get('state_phase') == 'pristine') != (payload['optimizer_calls'] == 0 and payload['replicated_rmsprop_calls'] == 0)) or (payload.get('state_phase') == 'initialized' and payload['optimizer_calls'] < 1) or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries) or (payload.get('group_schema') != self.group_schema) or (payload.get('ownership_summary') != self.summary_schema) or (payload.get('replicated_rmsprop_groups') != self.replicated_rmsprop_schema) or (payload.get('state_schema') != self.checkpoint_state_schema):
+        if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries):
             raise ValueError('optimizer checkpoint ownership/schema mismatch')
-        self._validate_checkpoint_groups(payload.get('optimizer'), payload.get('state_phase'), payload.get('state_manifest'))
         self.raw_load_state_dict(payload['optimizer'])
-        restored = self.raw_state_dict()
-        restored['state'] = {key: {name: value for name, value in fields.items() if name not in ('stacked_params', 'stacked_grads')} for key, fields in restored['state'].items()}
-        self._validate_checkpoint_groups(restored, payload['state_phase'], payload['state_manifest'], validate_device=True)
-        self.calls = payload['optimizer_calls']
-        self.replicated_rmsprop_calls = payload['replicated_rmsprop_calls']
         self.optimizer._scalar_cache.clear()
 
 def _submission_optimizer_install(optimizer, train_module, pad_singleton_muon=False):

@@ -6,8 +6,14 @@ A1 r2 request. That request pins the old `35c9…` train bytes and must fail aga
 
 The only candidate edit is inside `make_plan` / `OwnedOptimizer` in
 `submissions/dense6x1024_public0992851/train.py`. Candidate SHA256 is
-`ba50528d0d08f1630cc84010187c1830f9ef8ba47da8f96d19a60403414cae7b`; unchanged `prepare.py` is
+`431f70a75589182f9e8627abc000801503c3f2acf13bf95b21d06cffd5dcf711`; unchanged `prepare.py` is
 `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb`.
+
+Hybrid mid-run optimizer serialization and resume are deliberately unsupported. Both operations
+fail before the raw optimizer methods with the exact error `optimizer state serialization/resume
+is unsupported with replicated RMSProp ownership; abort and restart from zero`. An interruption
+therefore aborts the run and requires a new unique-label run from step zero. Production `final.pt`
+is model-only and contains no optimizer key; the strict model load/evaluation path is unchanged.
 
 Before any native action, an independent Verifier must review this commit and finalize a new exact
 symbolic-branch request using the existing fresh-start launcher/guard protections: clean and
@@ -21,7 +27,8 @@ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n
 ```
 
 It requires the unique label `fs-20260924-v2-a1-hybrid-rmsprop-native5-trn21-r1`. A PASS requires
-five completed finite-loss steps, a finite checkpoint and optimizer state, an ownership receipt
+five completed finite-loss steps, a finite model-only checkpoint with no optimizer serialization,
+an ownership receipt
 showing RMSProp absent from owner entries and updated on every rank, exact rank agreement, and a
 clean quiescent postflight. Failure evidence must be archived; retries require a new label.
 
