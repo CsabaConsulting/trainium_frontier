@@ -4,7 +4,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[3];HERE=pathlib.Path(__file__).res
 spec=importlib.util.spec_from_file_location("control_job",HERE/"control_job.py");driver=importlib.util.module_from_spec(spec);spec.loader.exec_module(driver)
 for host,hostname in (("trn21","ip-172-31-34-85"),("trn22","ip-172-31-32-253")):
  path=HERE/f"{host}-request.json";request=json.loads(path.read_text());job=json.loads((HERE/f"{host}-job.json").read_text())
- assert request["host"]==host and request["expected_hostname"]==hostname and request["expected_commit"]=="0cd4811430bd8b22a9c1359175b73f26ffec0bd8"
+ assert request["host"]==host and request["expected_hostname"]==hostname and request["expected_commit"]=="c025d216c2c07210449651099a982fe5656169fd"
  assert request["min_free_bytes"]==13*1024**3//2
  assert set(request["fingerprint_paths"])==set(request["expected_sha256"])
  for item,want in request["expected_sha256"].items():
