@@ -49,6 +49,10 @@ This section supersedes earlier Track-A readiness and host-control statements be
   positive evidence, and width scaling makes dense1024 at 0.60 only about 5.4% more aggressive
   than the old dense640 0.45 null point in effective optimizer LR. Matrix LR 0.015 provides no
   mechanism for moving this closed embedding optimum upward.
+- A8 warmdown ratio 0.90 was stopped as an exact prior duplicate. The one-factor
+  `t04-warmdown-90-900s` run was `+0.000254` BPB worse than its same-code control mean; ratio 0.60
+  was also weakly negative, bracketing the 0.75 default. The durable schedule study closed this
+  axis, so no 1,800-second repeat was launched.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
