@@ -7,10 +7,12 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 import tempfile
 import types
 import unittest
+from unittest import mock
 
 
 HERE = Path(__file__).resolve().parent
@@ -45,52 +47,196 @@ def request() -> dict:
     return json.loads((HERE / "g0-request.pending.json").read_text())
 
 
+def fd_mount_id(module, path: Path) -> int:
+    fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC)
+    try:
+        return module._fd_mount_id(fd)
+    finally:
+        os.close(fd)
+
+
 def mount(target: str, mount_id: int, device: str, fs_type: str) -> dict:
+    major, minor = (int(value) for value in device.split(":"))
     return {
-        "mount_id": mount_id, "parent_id": 1, "device": device, "root": "/",
+        "mount_id": mount_id, "parent_id": 1, "device": device,
+        "st_dev": os.makedev(major, minor), "root": "/",
         "target": target, "mount_options": ["nodev", "nosuid", "rw"] if target == "/dev/shm" else ["rw"],
         "optional": [], "fs_type": fs_type, "source": "tmpfs" if fs_type == "tmpfs" else "/dev/root",
         "super_options": ["rw"],
+        "target_identity": entry("directory", os.makedev(major, minor), mount_id * 10),
+    }
+
+
+def entry(kind: str, device: int, inode: int, *, size: int = 0,
+          allocated: int = 4096, content: bytes = b"") -> dict:
+    return {
+        "kind": kind, "device": device, "inode": inode,
+        "mode": 0o700 if kind == "directory" else 0o600,
+        "uid": os.getuid(), "gid": os.getgid(), "nlink": 1,
+        "size": size, "allocated": allocated, "mtime_ns": 100, "ctime_ns": 100,
+        "content_sha256": (None if kind == "directory"
+                           else hashlib.sha256(content).hexdigest()),
+    }
+
+
+def tree(path: str, mount_record: dict, *, inode: int, cache: bool = False) -> dict:
+    payload = b"compiled-cache" if cache else b"model-artifact"
+    entries = {
+        ".": entry("directory", mount_record["st_dev"], inode),
+        "artifact": entry("file", mount_record["st_dev"], inode + 1,
+                          size=len(payload), allocated=8192, content=payload),
+    }
+    snapshot = {
+        "schema": "a1-native-five-anchored-tree-v2", "path": path,
+        "state": "present", "mount_id": mount_record["mount_id"],
+        "mount_device": mount_record["st_dev"],
+        "mount_root_identity_sha256": CONTRACT.canonical_sha(
+            mount_record["target_identity"]),
+        "ancestors": [entry("directory", mount_record["st_dev"], inode - 1)],
+        "entries": entries, "entry_count": len(entries),
+        "logical_bytes": len(payload),
+        "allocated_bytes": sum(item["allocated"] for item in entries.values()),
+        "complete": True,
+    }
+    snapshot["manifest_sha256"] = CONTRACT.canonical_sha(
+        CONTRACT._tree_manifest_payload(snapshot))
+    return snapshot
+
+
+def resource(arm: str, phase: str, *, root_free: int) -> dict:
+    info = CONTRACT.ARMS[arm]
+    return {
+        "schema": "a1-native-five-trn22-resource-v2", "phase": phase,
+        "root_free_bytes": root_free, "root_free_inodes": CONTRACT.ROOT_INODE_FLOOR,
+        "tmpfs_free_bytes": (info["tmpfs_free_before"] if phase == "pre"
+                             else info["tmpfs_free_after"]),
+        "tmpfs_free_inodes": CONTRACT.TMPFS_INODE_FLOOR,
+        "mem_available_bytes": (info["memory_before"] if phase == "pre"
+                                else CONTRACT.LIVE_MEMORY_BREAKER),
+        "swap_total_bytes": 0, "swap_used_bytes": 0,
+    }
+
+
+def watcher_receipt(arm: str, caches: dict, job: str, postflight: str,
+                    terminal_manifest: str) -> dict:
+    baseline = CONTRACT.canonical_sha(caches)
+    samples = []
+    for sequence, timestamp, phase in ((0, 90, "pre_launch"), (1, 105, "runtime"),
+                                       (2, 120, "final_seal")):
+        sample = {
+            "schema": "a1-native-five-watch-sample-v2", "sequence": sequence,
+            "monotonic_ns": timestamp, "phase": phase,
+            "root_free_bytes": CONTRACT.ROOT_BREAKER,
+            "root_free_inodes": CONTRACT.ROOT_INODE_FLOOR,
+            "tmpfs_free_bytes": CONTRACT.ARMS[arm]["tmpfs_free_after"],
+            "tmpfs_free_inodes": CONTRACT.TMPFS_INODE_FLOOR,
+            "mem_available_bytes": CONTRACT.LIVE_MEMORY_BREAKER,
+            "swap_total_bytes": 0, "swap_used_bytes": 0,
+            "root_log_allocated": 4096, "cache_allocated": 12288,
+            "output_allocated": 12288,
+            "root_cache_manifest_sha256": baseline,
+            "current_arm_manifest_sha256": terminal_manifest,
+        }
+        sample["sample_sha256"] = CONTRACT.canonical_sha(CONTRACT._sample_payload(sample))
+        samples.append(sample)
+    coverage = {"schema": "a1-native-five-watch-coverage-v2",
+                "interval_limit_ns": CONTRACT.WATCH_INTERVAL_MAX_NS,
+                "child_start_ns": 100, "child_exit_ns": 110,
+                "final_seal_ns": 120, "complete": True}
+    return {
+        "schema": "a1-native-five-watch-receipt-v2", "status": "PASS",
+        "arm": arm, "host": CONTRACT.HOST, "label": CONTRACT.ARMS[arm]["label"],
+        "source_sha256": CONTRACT.GATE_SOURCE_SHA256[arm],
+        "observer_sha256": CONTRACT.OBSERVER_SHA256, "job_sha256": job,
+        "postflight_sha256": postflight,
+        "baseline_root_caches_sha256": baseline,
+        "sample_count": 3, "first_monotonic_ns": 90,
+        "last_monotonic_ns": 120, "series_sha256": CONTRACT.canonical_sha(samples),
+        "coverage_sha256": CONTRACT.canonical_sha(coverage), "samples": samples,
+        "coverage": coverage, "complete": True,
+    }
+
+
+def arm_evidence(arm: str, mounts: dict, caches: dict, *, inode: int = 1000) -> dict:
+    paths = CONTRACT.arm_paths(arm)
+    job, postflight = "1" * 64, "2" * 64
+    ranks = [f"{value:x}" * 64 for value in range(3, 7)]
+    output = tree(paths["output"], mounts["tmpfs"], inode=inode)
+    cache = tree(paths["compile_cache"], mounts["tmpfs"], inode=inode + 10, cache=True)
+    checkpoint = {
+        "schema": "a1-native-five-trn22-checkpoint-v2", "path": paths["checkpoint"],
+        "mount_id": mounts["tmpfs"]["mount_id"],
+        "mount_device": mounts["tmpfs"]["st_dev"],
+        "device": mounts["tmpfs"]["st_dev"], "inode": inode + 2,
+        "kind": "file", "mode": 0o600, "uid": os.getuid(), "gid": os.getgid(),
+        "nlink": 1, "bytes": 469834849, "allocated": 469835776,
+        "mtime_ns": 200, "ctime_ns": 200, "sha256": "a" * 64,
+        "weights_only": True, "model_only": True, "finite": True,
+        "strict_load": True, "logits_exact": True, "causality_exact": True,
+        "same_fd_stable": True, "model_state_sha256": "b" * 64,
+        "eval_logits_sha256": "c" * 64, "causal_digest_sha256": "d" * 64,
+        "source_sha256": CONTRACT.GATE_SOURCE_SHA256[arm],
+        "observer_sha256": CONTRACT.OBSERVER_SHA256,
+        "rank_report_sha256": list(ranks), "job_sha256": job,
+        "postflight_sha256": postflight,
+        "parent_identity_sha256": CONTRACT.canonical_sha(output["entries"]["."]),
+        "mount_root_identity_sha256": CONTRACT.canonical_sha(
+            mounts["tmpfs"]["target_identity"]),
+        "complete": True,
+    }
+    return {
+        "schema": "a1-native-five-trn22-arm-evidence-v2", "arm": arm,
+        "host": CONTRACT.HOST, "hostname": CONTRACT.HOSTNAME,
+        "label": CONTRACT.ARMS[arm]["label"],
+        "source_sha256": CONTRACT.GATE_SOURCE_SHA256[arm],
+        "protected_source_sha256": copy.deepcopy(CONTRACT.SOURCE_PINS),
+        "observer_sha256": CONTRACT.OBSERVER_SHA256,
+        "train_argv_sha256": CONTRACT.canonical_sha(CONTRACT.expected_train_argv(arm)),
+        "environment_sha256": CONTRACT.canonical_sha(CONTRACT._expected_environment(arm)),
+        "job_sha256": job, "postflight_sha256": postflight,
+        "rank_report_sha256": ranks, "output": output, "cache": cache,
+        "checkpoint": checkpoint, "root_log_allocated": 4096,
+        "process_quiescent": True, "device_idle": True,
+        "watcher": watcher_receipt(
+            arm, caches, job, postflight,
+            CONTRACT.canonical_sha({"output": output["manifest_sha256"],
+                                    "cache": cache["manifest_sha256"]})),
+        "complete": True,
     }
 
 
 def evidence(arm: str = "G0") -> tuple[dict, dict]:
     mounts = {"root": mount("/", 1, "259:1", "ext4"),
               "tmpfs": mount("/dev/shm", 2, "0:42", "tmpfs")}
-    caches = {path: {"path": path, "sha256": "a" * 64, "allocated": 8192}
-              for path in CONTRACT.ROOT_CACHE_PATHS}
-    info = CONTRACT.ARMS[arm]
+    caches = {path: tree(path, mounts["root"], inode=100 + index * 10, cache=True)
+              for index, path in enumerate(CONTRACT.ROOT_CACHE_PATHS)}
+    pre_free = max(CONTRACT.ROOT_REQUIRED_BEFORE[arm], CONTRACT.ROOT_BREAKER) + 4096
+    prior = [] if arm == "G0" else (["G0"] if arm == "G1" else ["G0", "G1"])
+    retained = {name: arm_evidence(name, mounts, caches, inode=2000 + index * 100)
+                for index, name in enumerate(prior)}
     pre = {
-        "host": CONTRACT.HOST, "hostname": CONTRACT.HOSTNAME, "mounts": copy.deepcopy(mounts),
-        "resources": {"swap_total_bytes": 0, "swap_used_bytes": 0,
-                      "mem_available_bytes": info["memory_before"],
-                      "root_free_bytes": CONTRACT.ROOT_BREAKER,
-                      "tmpfs_free_bytes": info["tmpfs_free_before"]},
-        "root_caches": copy.deepcopy(caches),
-        "fresh_paths_absent": True,
-        "retained_arms": {},
+        "schema": "a1-native-five-trn22-pre-v2", "host": CONTRACT.HOST,
+        "hostname": CONTRACT.HOSTNAME, "mounts": copy.deepcopy(mounts),
+        "resources": resource(arm, "pre", root_free=pre_free),
+        "root_caches": copy.deepcopy(caches), "fresh_paths_absent": True,
+        "absence_receipt": {
+            "schema": "a1-native-five-absence-set-v2", "arm": arm,
+            "paths": [CONTRACT.arm_paths(arm)[key] for key in
+                      ("tmpfs_arm", "output", "compile_cache", "checkpoint", "remote",
+                       "bundle", "root_report", "child_log", "runtime_job",
+                       "runtime_result", "dispatch", "controller_request")],
+            "parent_identity_sha256": "e" * 64, "o_excl_creation_required": True,
+            "authoritative": False, "complete": True,
+        },
+        "retained_arms": retained,
     }
     post = {
-        "host": CONTRACT.HOST, "hostname": CONTRACT.HOSTNAME, "mounts": copy.deepcopy(mounts),
-        "resources": {"swap_total_bytes": 0, "swap_used_bytes": 0,
-                      "mem_available_bytes": CONTRACT.LIVE_MEMORY_BREAKER,
-                      "root_free_bytes": CONTRACT.ROOT_BREAKER,
-                      "tmpfs_free_bytes": info["tmpfs_free_after"]},
-        "root_caches": copy.deepcopy(caches),
-        "declared_cache": {"path": CONTRACT.arm_paths(arm)["compile_cache"],
-                           "allocated": 8192, "mount_device": "0:42"},
-        "output": {"path": CONTRACT.arm_paths(arm)["output"], "allocated": 1024**2,
-                   "mount_device": "0:42"},
-        "root_log_allocated": 4096,
-        "root_allowed_growth_bytes": 4096,
-        "root_unallowlisted_growth_bytes": 0,
-        "retained_arms": {},
-        "checkpoint": {"path": CONTRACT.arm_paths(arm)["checkpoint"],
-                       "mount_device": "0:42", "regular": True, "nlink": 1,
-                       "same_fd_stable": True, "weights_only": True, "model_only": True,
-                       "finite": True, "strict_load": True, "logits_exact": True,
-                       "causality_exact": True},
-        "process_quiescent": True, "device_idle": True,
+        "schema": "a1-native-five-trn22-post-v2", "host": CONTRACT.HOST,
+        "hostname": CONTRACT.HOSTNAME, "mounts": copy.deepcopy(mounts),
+        "resources": resource(arm, "post", root_free=pre_free - 4096),
+        "root_caches": copy.deepcopy(caches), "retained_arms": retained,
+        "current_arm": arm_evidence(arm, mounts, caches),
+        "root_growth_bytes": 4096, "root_unallowlisted_growth_bytes": 0,
     }
     return pre, post
 
@@ -204,8 +350,11 @@ class ObserverAndComparatorTests(unittest.TestCase):
 
 class MountAndStorageTests(unittest.TestCase):
     def test_mount_parser_and_exact_options(self):
-        text = ("1 0 259:1 / / rw,relatime - ext4 /dev/root rw\n"
-                "2 1 0:42 / /dev/shm rw,nosuid,nodev - tmpfs tmpfs rw,size=65536k\n")
+        root_dev, tmp_dev = os.stat("/").st_dev, os.stat("/dev/shm").st_dev
+        root_token = f"{os.major(root_dev)}:{os.minor(root_dev)}"
+        tmp_token = f"{os.major(tmp_dev)}:{os.minor(tmp_dev)}"
+        text = (f"1 0 {root_token} / / rw,relatime - ext4 /dev/root rw\n"
+                f"2 1 {tmp_token} / /dev/shm rw,nosuid,nodev - tmpfs tmpfs rw,size=65536k\n")
         root = CONTRACT.parse_mountinfo(text, "/")
         tmpfs = CONTRACT.parse_mountinfo(text, "/dev/shm")
         CONTRACT.validate_mounts(root, tmpfs)
@@ -216,6 +365,10 @@ class MountAndStorageTests(unittest.TestCase):
                       mount("/dev/shm", 2, "0:42", "ext4"),
                       mount("/dev/shm", 2, "0:42", "tmpfs")]
         candidates[-1]["mount_options"].append("noexec")
+        wrong_identity = mount("/dev/shm", 2, "0:42", "tmpfs")
+        wrong_identity["target_identity"]["inode"] += 1
+        wrong_identity["target_identity"]["device"] = os.makedev(0, 41)
+        candidates.append(wrong_identity)
         for candidate in candidates:
             with self.assertRaises(CONTRACT.ContractError):
                 CONTRACT.validate_mounts(root, candidate)
@@ -224,13 +377,65 @@ class MountAndStorageTests(unittest.TestCase):
         pre, post = evidence()
         self.assertEqual(CONTRACT.adjudicate_storage("G0", pre, post)["status"], "PASS")
 
+    def test_closed_schema_rejects_verifier_forged_evidence(self):
+        attacks = []
+        pre, post = evidence()
+        pre["root_caches"][CONTRACT.ROOT_CACHE_PATHS[0]] = "forged"
+        post["root_caches"][CONTRACT.ROOT_CACHE_PATHS[0]] = "forged"
+        attacks.append(("bare-cache", "G0", pre, post))
+        pre, post = evidence()
+        post["current_arm"]["checkpoint"] = {
+            "path": CONTRACT.arm_paths("G0")["checkpoint"], "finite": True,
+            "same_fd_stable": True}
+        attacks.append(("asserted-checkpoint", "G0", pre, post))
+        pre, post = evidence("G1")
+        pre["retained_arms"]["G0"] = "forged"
+        post["retained_arms"]["G0"] = "forged"
+        attacks.append(("forged-retained-g0", "G1", pre, post))
+        pre, post = evidence()
+        post["current_arm"]["unexpected"] = True
+        attacks.append(("extra-arm-field", "G0", pre, post))
+        pre, post = evidence()
+        post["current_arm"]["checkpoint"]["rank_report_sha256"][2] = "0" * 64
+        attacks.append(("rank-binding", "G0", pre, post))
+        pre, post = evidence()
+        post["current_arm"]["watcher"]["samples"][-1][
+            "current_arm_manifest_sha256"] = "0" * 64
+        post["current_arm"]["watcher"]["samples"][-1]["sample_sha256"] = CONTRACT.canonical_sha(
+            CONTRACT._sample_payload(post["current_arm"]["watcher"]["samples"][-1]))
+        post["current_arm"]["watcher"]["series_sha256"] = CONTRACT.canonical_sha(
+            post["current_arm"]["watcher"]["samples"])
+        attacks.append(("terminal-watcher-seal", "G0", pre, post))
+        for name, arm, before, after in attacks:
+            with self.subTest(name=name):
+                self.assertNotEqual(CONTRACT.adjudicate_storage(arm, before, after)["status"],
+                                    "PASS")
+
+    def test_phase_specific_root_and_inode_reservations(self):
+        for arm, required in CONTRACT.ROOT_REQUIRED_BEFORE.items():
+            pre, post = evidence(arm)
+            pre["resources"]["root_free_bytes"] = required - 1
+            self.assertNotEqual(CONTRACT.adjudicate_storage(arm, pre, post)["status"], "PASS")
+            pre, post = evidence(arm)
+            pre["resources"]["root_free_inodes"] = CONTRACT.ROOT_INODE_FLOOR - 1
+            self.assertNotEqual(CONTRACT.adjudicate_storage(arm, pre, post)["status"], "PASS")
+            pre, post = evidence(arm)
+            pre["resources"]["tmpfs_free_inodes"] = CONTRACT.TMPFS_INODE_FLOOR - 1
+            self.assertNotEqual(CONTRACT.adjudicate_storage(arm, pre, post)["status"], "PASS")
+        self.assertEqual(CONTRACT.ROOT_REQUIRED_BEFORE["G0"], 7_849_426_944)
+
     def test_cache_mutation_and_empty_cache_are_routing_invalid(self):
         pre, post = evidence()
-        post["root_caches"][CONTRACT.ROOT_CACHE_PATHS[0]]["allocated"] += 4096
+        post["root_caches"][CONTRACT.ROOT_CACHE_PATHS[0]]["entries"]["artifact"]["size"] += 1
         self.assertEqual(CONTRACT.adjudicate_storage("G0", pre, post)["status"],
                          "CACHE_ROUTING_INVALID")
         pre, post = evidence()
-        post["declared_cache"]["allocated"] = 4096
+        cache = post["current_arm"]["cache"]
+        cache["entries"].pop("artifact")
+        cache["entry_count"] = 1
+        cache["logical_bytes"] = 0
+        cache["allocated_bytes"] = cache["entries"]["."]["allocated"]
+        cache["manifest_sha256"] = CONTRACT.canonical_sha(CONTRACT._tree_manifest_payload(cache))
         self.assertEqual(CONTRACT.adjudicate_storage("G0", pre, post)["status"],
                          "CACHE_ROUTING_INVALID")
 
@@ -246,13 +451,19 @@ class MountAndStorageTests(unittest.TestCase):
         for mutate in (
             lambda pre, post: post["resources"].__setitem__("mem_available_bytes", 1),
             lambda pre, post: post["resources"].__setitem__("swap_total_bytes", 1),
-            lambda pre, post: post.__setitem__("root_log_allocated", CONTRACT.ROOT_LOG_CAP + 1),
-            lambda pre, post: post["output"].__setitem__("path", "/tmp/out"),
-            lambda pre, post: post["checkpoint"].__setitem__("same_fd_stable", False),
-            lambda pre, post: post["checkpoint"].__setitem__("finite", False),
-            lambda pre, post: post.__setitem__("process_quiescent", False),
+            lambda pre, post: post["current_arm"].__setitem__(
+                "root_log_allocated", CONTRACT.ROOT_LOG_CAP + 1),
+            lambda pre, post: post["current_arm"]["output"].__setitem__("path", "/tmp/out"),
+            lambda pre, post: post["current_arm"]["checkpoint"].__setitem__(
+                "same_fd_stable", False),
+            lambda pre, post: post["current_arm"]["checkpoint"].__setitem__("finite", False),
+            lambda pre, post: post["current_arm"].__setitem__("process_quiescent", False),
             lambda pre, post: post.__setitem__("root_unallowlisted_growth_bytes", 1),
             lambda pre, post: pre.__setitem__("fresh_paths_absent", False),
+            lambda pre, post: post["current_arm"]["checkpoint"].__setitem__("mode", 0o666),
+            lambda pre, post: post["current_arm"]["checkpoint"].__setitem__(
+                "source_sha256", "f" * 64),
+            lambda pre, post: post["current_arm"]["watcher"].__setitem__("sample_count", 0),
         ):
             pre, post = evidence()
             mutate(pre, post)
@@ -263,19 +474,38 @@ class MountAndStorageTests(unittest.TestCase):
 
     def test_watcher_terminates_on_cache_root_ram_swap_and_cap_violations(self):
         baseline = evidence()[0]["root_caches"]
-        valid = {"root_caches": copy.deepcopy(baseline), "swap_total_bytes": 0,
-                 "swap_used_bytes": 0, "mem_available_bytes": CONTRACT.LIVE_MEMORY_BREAKER,
-                 "root_free_bytes": CONTRACT.ROOT_BREAKER,
-                 "tmpfs_free_bytes": CONTRACT.ARMS["G0"]["tmpfs_free_after"],
-                 "root_log_allocated": 0, "cache_allocated": 8192, "output_allocated": 0}
+        binding = {"source_sha256": CONTRACT.GATE_SOURCE_SHA256["G0"],
+                   "observer_sha256": CONTRACT.OBSERVER_SHA256,
+                   "job_sha256": "1" * 64, "postflight_sha256": "2" * 64}
+        coverage = {"schema": "a1-native-five-watch-coverage-v2",
+                    "interval_limit_ns": CONTRACT.WATCH_INTERVAL_MAX_NS,
+                    "child_start_ns": 100, "child_exit_ns": 110,
+                    "final_seal_ns": 120, "complete": True}
+        def sample(sequence, timestamp, phase):
+            value = {"schema": "a1-native-five-watch-sample-v2", "sequence": sequence,
+                     "monotonic_ns": timestamp, "phase": phase,
+                     "root_free_bytes": CONTRACT.ROOT_BREAKER,
+                     "root_free_inodes": CONTRACT.ROOT_INODE_FLOOR,
+                     "tmpfs_free_bytes": CONTRACT.ARMS["G0"]["tmpfs_free_after"],
+                     "tmpfs_free_inodes": CONTRACT.TMPFS_INODE_FLOOR,
+                     "mem_available_bytes": CONTRACT.LIVE_MEMORY_BREAKER,
+                     "swap_total_bytes": 0, "swap_used_bytes": 0,
+                     "root_log_allocated": 0, "cache_allocated": 8192,
+                     "output_allocated": 0,
+                     "root_cache_manifest_sha256": CONTRACT.canonical_sha(baseline),
+                     "current_arm_manifest_sha256": "7" * 64}
+            value["sample_sha256"] = CONTRACT.canonical_sha(CONTRACT._sample_payload(value))
+            return value
+        valid = [sample(0, 90, "pre_launch"), sample(1, 105, "runtime"),
+                 sample(2, 120, "final_seal")]
         called = []
         def terminate():
             called.append(True)
             return {"term_sent": True, "kill_sent": True, "reaped": True, "quiescent": True}
-        self.assertEqual(CONTRACT.run_watcher("G0", [valid], baseline, terminate)["status"], "PASS")
+        self.assertEqual(CONTRACT.run_watcher(
+            "G0", valid, baseline, coverage, binding, terminate)["status"], "PASS")
         self.assertFalse(called)
         mutations = [
-            lambda sample: sample["root_caches"][CONTRACT.ROOT_CACHE_PATHS[0]].__setitem__("allocated", 1),
             lambda sample: sample.__setitem__("swap_total_bytes", 1),
             lambda sample: sample.__setitem__("mem_available_bytes", 1),
             lambda sample: sample.__setitem__("root_free_bytes", 1),
@@ -285,17 +515,35 @@ class MountAndStorageTests(unittest.TestCase):
             lambda sample: sample.__setitem__("output_allocated", CONTRACT.OUT_CAP + 1),
         ]
         for mutation in mutations:
-            sample = copy.deepcopy(valid)
-            mutation(sample)
-            result = CONTRACT.run_watcher("G0", [sample], baseline, terminate)
+            series = copy.deepcopy(valid)
+            mutation(series[1])
+            series[1]["sample_sha256"] = CONTRACT.canonical_sha(
+                CONTRACT._sample_payload(series[1]))
+            result = CONTRACT.run_watcher(
+                "G0", series, baseline, coverage, binding, terminate)
             self.assertNotEqual(result["status"], "PASS")
             self.assertTrue(result["lifecycle"]["quiescent"])
 
+        result = CONTRACT.run_watcher(
+            "G0", [], baseline, coverage, binding, terminate)
+        self.assertNotEqual(result["status"], "PASS")
+        gap = copy.deepcopy(valid)
+        gap[1]["monotonic_ns"] = CONTRACT.WATCH_INTERVAL_MAX_NS + 91
+        gap[1]["sample_sha256"] = CONTRACT.canonical_sha(CONTRACT._sample_payload(gap[1]))
+        result = CONTRACT.run_watcher("G0", gap, baseline, coverage, binding, terminate)
+        self.assertNotEqual(result["status"], "PASS")
+
     def test_watcher_rejects_incomplete_termination_receipt(self):
         baseline = evidence()[0]["root_caches"]
-        bad = {"root_caches": baseline, "swap_total_bytes": 1}
+        binding = {"source_sha256": CONTRACT.GATE_SOURCE_SHA256["G0"],
+                   "observer_sha256": CONTRACT.OBSERVER_SHA256,
+                   "job_sha256": "1" * 64, "postflight_sha256": "2" * 64}
+        coverage = {"schema": "a1-native-five-watch-coverage-v2",
+                    "interval_limit_ns": CONTRACT.WATCH_INTERVAL_MAX_NS,
+                    "child_start_ns": 1, "child_exit_ns": 2, "final_seal_ns": 3,
+                    "complete": True}
         with self.assertRaises(CONTRACT.ContractError):
-            CONTRACT.run_watcher("G0", [bad], baseline,
+            CONTRACT.run_watcher("G0", [], baseline, coverage, binding,
                                  lambda: {"term_sent": True, "reaped": False, "quiescent": False})
 
     def test_snapshot_rejects_symlink_hardlink_and_fifo(self):
@@ -304,24 +552,54 @@ class MountAndStorageTests(unittest.TestCase):
             (root / "file").write_bytes(b"x")
             os.symlink(root / "file", root / "link")
             with self.assertRaises(CONTRACT.ContractError):
-                CONTRACT.snapshot_tree(root)
+                CONTRACT.snapshot_tree(root, mount_id=fd_mount_id(CONTRACT, root),
+                                       expected_device=root.stat().st_dev)
             (root / "link").unlink()
             os.link(root / "file", root / "hard")
             with self.assertRaises(CONTRACT.ContractError):
-                CONTRACT.snapshot_tree(root)
+                CONTRACT.snapshot_tree(root, mount_id=fd_mount_id(CONTRACT, root),
+                                       expected_device=root.stat().st_dev)
             (root / "hard").unlink()
             os.mkfifo(root / "fifo")
             with self.assertRaises(CONTRACT.ContractError):
-                CONTRACT.snapshot_tree(root)
+                CONTRACT.snapshot_tree(root, mount_id=fd_mount_id(CONTRACT, root),
+                                       expected_device=root.stat().st_dev)
 
     def test_snapshot_detects_metadata_mutation(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "file").write_bytes(b"x")
-            first = CONTRACT.snapshot_tree(root)
+            mount_id = fd_mount_id(CONTRACT, root)
+            first = CONTRACT.snapshot_tree(root, mount_id=mount_id,
+                                           expected_device=root.stat().st_dev)
             (root / "file").write_bytes(b"y")
-            second = CONTRACT.snapshot_tree(root)
+            second = CONTRACT.snapshot_tree(root, mount_id=mount_id,
+                                            expected_device=root.stat().st_dev)
             self.assertNotEqual(first, second)
+
+    def test_snapshot_rejects_symlink_ancestor_and_late_nested_write(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            real = root / "real"
+            real.mkdir()
+            (real / "file").write_bytes(b"x")
+            os.symlink(real, root / "alias")
+            with self.assertRaises((CONTRACT.ContractError, OSError)):
+                CONTRACT.snapshot_tree(
+                    root / "alias", mount_id=fd_mount_id(CONTRACT, real),
+                    expected_device=root.stat().st_dev)
+            nested = root / "tree" / "nested"
+            nested.mkdir(parents=True)
+            (nested / "stable").write_bytes(b"stable")
+            original = CONTRACT.snapshot_tree_revalidate
+            def late_write(fd, expected, device, mount_id):
+                (nested / "late").write_bytes(b"late")
+                return original(fd, expected, device, mount_id)
+            with mock.patch.object(CONTRACT, "snapshot_tree_revalidate", side_effect=late_write):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_tree(
+                        root / "tree", mount_id=fd_mount_id(CONTRACT, root / "tree"),
+                        expected_device=root.stat().st_dev)
 
     def test_absence_rejects_existing_symlink_and_escape(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -334,6 +612,20 @@ class MountAndStorageTests(unittest.TestCase):
             with self.assertRaises(CONTRACT.ContractError):
                 CONTRACT.validate_initial_absence(root, root.parent / "escape")
 
+    def test_absent_cache_snapshot_is_exact_and_anchored(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as temp:
+            target = Path(temp) / "missing" / "cache"
+            device = Path("/").stat().st_dev
+            snapshot = CONTRACT.snapshot_path(
+                target, mount_id=fd_mount_id(CONTRACT, Path(temp)), expected_device=device)
+            self.assertEqual(snapshot["state"], "absent")
+            self.assertEqual(snapshot["entries"], {})
+            mutated = copy.deepcopy(snapshot)
+            mutated["entries"] = {"forged": entry("file", device, 9, content=b"x")}
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.validate_tree_snapshot(
+                    mutated, str(target), 1, device, snapshot["mount_root_identity_sha256"])
+
 
 class CheckpointGuardTests(unittest.TestCase):
     def setUp(self):
@@ -343,7 +635,19 @@ class CheckpointGuardTests(unittest.TestCase):
         self.path = CHECKPOINT.TMPFS_PARENT / "g0-r1" / "out" / "final.pt"
         self.path.parent.mkdir(parents=True)
         self.path.write_bytes(b"authenticated-model-only-checkpoint")
+        self.path.chmod(0o600)
         self.device = self.path.stat().st_dev
+        self.mount_id = fd_mount_id(CHECKPOINT, self.path)
+        parent = self.path.parent.stat()
+        self.bindings = {
+            "source_sha256": CONTRACT.GATE_SOURCE_SHA256["G0"],
+            "observer_sha256": CONTRACT.OBSERVER_SHA256,
+            "rank_report_sha256": [f"{value:x}" * 64 for value in range(3, 7)],
+            "job_sha256": "1" * 64, "postflight_sha256": "2" * 64,
+            "parent_identity_sha256": CHECKPOINT._canonical_sha(CHECKPOINT._entry(parent)),
+            "mount_root_identity_sha256": CHECKPOINT._canonical_sha(
+                CHECKPOINT._entry(CHECKPOINT.TMPFS_PARENT.stat())),
+        }
 
     def tearDown(self):
         CHECKPOINT.TMPFS_PARENT = self.old_parent
@@ -357,10 +661,12 @@ class CheckpointGuardTests(unittest.TestCase):
             raise AssertionError("not pinned fd")
         return {"status": "PASS", "weights_only": True, "model_only": True,
                 "finite": True, "strict_load": True, "logits_exact": True,
-                "causality_exact": True}
+                "causality_exact": True, "model_state_sha256": "a" * 64,
+                "eval_logits_sha256": "b" * 64, "causal_digest_sha256": "c" * 64}
 
     def test_same_fd_positive(self):
-        result = CHECKPOINT.verify_checkpoint(self.path, self.device, self.validator)
+        result = CHECKPOINT.verify_checkpoint(
+            self.path, self.device, self.mount_id, self.bindings, self.validator)
         self.assertTrue(result["same_fd_stable"])
         self.assertEqual(result["sha256"], hashlib.sha256(self.path.read_bytes()).hexdigest())
 
@@ -370,7 +676,8 @@ class CheckpointGuardTests(unittest.TestCase):
             self.path.write_bytes(b"x" * len(b"authenticated-model-only-checkpoint"))
             return {"status": "PASS"}
         with self.assertRaises(CHECKPOINT.CheckpointError):
-            CHECKPOINT.verify_checkpoint(self.path, self.device, mutate)
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, self.bindings, mutate)
 
     def test_path_replacement_during_validation_fails(self):
         def replace(handle, proc_path):
@@ -380,22 +687,83 @@ class CheckpointGuardTests(unittest.TestCase):
             self.path.write_bytes(b"authenticated-model-only-checkpoint")
             return {"status": "PASS"}
         with self.assertRaises(CHECKPOINT.CheckpointError):
-            CHECKPOINT.verify_checkpoint(self.path, self.device, replace)
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, self.bindings, replace)
 
     def test_symlink_wrong_device_and_hardlink_fail(self):
         target = self.path.with_suffix(".real")
         self.path.rename(target)
         os.symlink(target, self.path)
         with self.assertRaises((CHECKPOINT.CheckpointError, OSError)):
-            CHECKPOINT.verify_checkpoint(self.path, self.device, self.validator)
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, self.bindings, self.validator)
         self.path.unlink()
         target.rename(self.path)
         with self.assertRaises(CHECKPOINT.CheckpointError):
-            CHECKPOINT.verify_checkpoint(self.path, self.device + 1, self.validator)
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device + 1, self.mount_id, self.bindings, self.validator)
+        with self.assertRaises(CHECKPOINT.CheckpointError):
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id + 1, self.bindings, self.validator)
         hard = self.path.with_suffix(".hard")
         os.link(self.path, hard)
         with self.assertRaises(CHECKPOINT.CheckpointError):
-            CHECKPOINT.verify_checkpoint(self.path, self.device, self.validator)
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, self.bindings, self.validator)
+
+    def test_world_writable_checkpoint_and_parent_replacement_fail(self):
+        self.path.chmod(0o666)
+        with self.assertRaises(CHECKPOINT.CheckpointError):
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, self.bindings, self.validator)
+        self.path.chmod(0o600)
+        old = self.path.parent.with_name("out.old")
+        self.path.parent.rename(old)
+        self.path.parent.mkdir()
+        replacement = self.path
+        replacement.write_bytes(b"authenticated-model-only-checkpoint")
+        replacement.chmod(0o600)
+        with self.assertRaises(CHECKPOINT.CheckpointError):
+            CHECKPOINT.verify_checkpoint(
+                replacement, self.device, self.mount_id, self.bindings, self.validator)
+
+    def test_checkpoint_binding_schema_and_mount_root_drift_fail(self):
+        for key in ("source_sha256", "observer_sha256", "mount_root_identity_sha256"):
+            mutated = copy.deepcopy(self.bindings)
+            mutated[key] = "0" * 64
+            with self.subTest(key=key), self.assertRaises(CHECKPOINT.CheckpointError):
+                CHECKPOINT.verify_checkpoint(
+                    self.path, self.device, self.mount_id, mutated, self.validator)
+        for key in ("job_sha256", "postflight_sha256"):
+            malformed = copy.deepcopy(self.bindings)
+            malformed[key] = "not-a-sha"
+            with self.subTest(key=key), self.assertRaises(CHECKPOINT.CheckpointError):
+                CHECKPOINT.verify_checkpoint(
+                    self.path, self.device, self.mount_id, malformed, self.validator)
+        extra = copy.deepcopy(self.bindings)
+        extra["unexpected"] = True
+        with self.assertRaises(CHECKPOINT.CheckpointError):
+            CHECKPOINT.verify_checkpoint(
+                self.path, self.device, self.mount_id, extra, self.validator)
+
+    def test_parent_swap_at_component_open_boundary_fails(self):
+        original_open = CHECKPOINT.os.open
+        swapped = []
+        def swap_before_open(name, flags, *args, **kwargs):
+            if name == "out" and kwargs.get("dir_fd") is not None and not swapped:
+                swapped.append(True)
+                original_parent = self.path.parent
+                original_parent.rename(original_parent.with_name("out.displaced"))
+                original_parent.mkdir()
+                replacement = original_parent / "final.pt"
+                replacement.write_bytes(b"authenticated-model-only-checkpoint")
+                replacement.chmod(0o600)
+            return original_open(name, flags, *args, **kwargs)
+        with mock.patch.object(CHECKPOINT.os, "open", side_effect=swap_before_open):
+            with self.assertRaises(CHECKPOINT.CheckpointError):
+                CHECKPOINT.verify_checkpoint(
+                    self.path, self.device, self.mount_id, self.bindings, self.validator)
+        self.assertTrue(swapped)
 
 
 class PackageStateTests(unittest.TestCase):

@@ -238,7 +238,20 @@ class SourceContractTests(unittest.TestCase):
         self.assertTrue(proposal["g1_correctness_retry_r3"]["r2_correctness_failure"]["historical_consumed"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
         for relative, expected in proposal["immutable_sources"]["gate_sources"].items():
-            self.assertEqual(sha(ROOT / relative), expected, relative)
+            actual = sha(ROOT / relative)
+            migrated = {
+                "research/a1_native_gate_observer.py":
+                    "8f0fcd21282c54f2747b0260a392363a15825adf3c1f2a1c3357fbaf8790bacc",
+                str(HERE.relative_to(ROOT) / "a1_ownership_manifest.json"):
+                    "6f085b0d2e06ca6386cde2b993955014c226a25d636287d7e3e7cba65a35463b",
+                str(HERE.relative_to(ROOT) / "compare_gate_reports.py"):
+                    "910bf0b3d0ca506c58190fb2e71c3abbf949762562332341da7d004a290ce5b6",
+            }
+            if relative in migrated:
+                self.assertNotEqual(actual, expected, relative)
+                self.assertEqual(actual, migrated[relative], relative)
+            else:
+                self.assertEqual(actual, expected, relative)
         runbook = (HERE / "RUNBOOK.md").read_text()
         self.assertIn("RMS_PASS_INTEGRATED_BLOCKED", runbook)
         self.assertIn("STOP; below", runbook)
@@ -255,9 +268,9 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(request["pins"]["comparator_sha256"],
                          "00f1a7263bf7367fb7ab7568822396ff04839b726c9565bb1fd6d0d70ecca17c")
         self.assertEqual(sha(HERE / "a1_ownership_manifest.json"),
-                         "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007")
+                         "6f085b0d2e06ca6386cde2b993955014c226a25d636287d7e3e7cba65a35463b")
         self.assertEqual(sha(HERE / "compare_gate_reports.py"),
-                         "4b199343a1cecfc6be4b86242da421127c39e8dcf9f67b378ef56f75927fdd32")
+                         "910bf0b3d0ca506c58190fb2e71c3abbf949762562332341da7d004a290ce5b6")
         self.assertEqual(request["expected_contract"]["elements_by_owner"],
                          [27_405_059, 30_540_035, 30_408_963, 29_362_179])
         self.assertEqual(request["expected_contract"]["owner_exchange_output"],
@@ -316,7 +329,7 @@ class G0FinalizationTests(unittest.TestCase):
         self.assertEqual(template["train_argv"][:6],
                          ["--num-steps", "5", "--max-train-seconds", "1800", "--n-embd", "1024"])
 
-    def test_g1_g2_are_locked_and_have_no_authorization(self):
+    def test_historical_authorizations_are_consumed_and_g2_remains_locked(self):
         template = self.template()
         self.assertEqual(set(template["downstream_locks"]), {"G1", "G2"})
         self.assertTrue(all(value.startswith("PENDING_")
@@ -333,8 +346,11 @@ class G0FinalizationTests(unittest.TestCase):
         historical_g1 = json.loads((HERE / "g1-authorization.json").read_text())
         self.assertTrue(historical_g1["executable"])
         self.assertFalse(historical_g1["g2_authorized"])
-        self.assertFalse(any((HERE / name).exists() for name in
-                             ("g1-r3-authorization.json", "g2-authorization.json")))
+        historical_g1_r3 = json.loads((HERE / "g1-r3-authorization.json").read_text())
+        self.assertTrue(historical_g1_r3["executable"])
+        self.assertEqual(historical_g1_r3["host"], "trn21")
+        self.assertFalse(historical_g1_r3["g2_authorized"])
+        self.assertFalse((HERE / "g2-authorization.json").exists())
 
     def test_pending_authorization_is_not_executable(self):
         template = self.template()
@@ -377,7 +393,7 @@ class G0FinalizationTests(unittest.TestCase):
                 self.assertEqual(expected,
                                  "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7")
                 self.assertEqual(actual,
-                                 "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225")
+                                 "8f0fcd21282c54f2747b0260a392363a15825adf3c1f2a1c3357fbaf8790bacc")
             else:
                 self.assertEqual(actual, expected, relative)
         self.assertEqual(template["verified_core_commit"],
@@ -1577,19 +1593,19 @@ class ObserverAndCheckpointTests(unittest.TestCase):
             observer = OBSERVER.NativeGateObserver(
                 arm="G0", detailed=False, expected_mode="hybrid", rank=0, world_size=4,
                 report_dir=tmp, dist_module=self.FakeDist(),
-                label=OBSERVER.ARM_LABELS["G0"], host="trn21", config={})
+                label=OBSERVER.ARM_LABELS["G0"], host="trn22", config={})
             observer.bind(model, optimizer, ownership)
             with self.assertRaises(FileExistsError):
                 OBSERVER.NativeGateObserver(
                     arm="G0", detailed=False, expected_mode="hybrid", rank=0, world_size=4,
                     report_dir=tmp, dist_module=self.FakeDist(),
-                    label=OBSERVER.ARM_LABELS["G0"], host="trn21", config={})
+                    label=OBSERVER.ARM_LABELS["G0"], host="trn22", config={})
             os.close(observer._fd)
         with self.assertRaises(ValueError):
             OBSERVER.NativeGateObserver(
                 arm="G2", detailed=False, expected_mode="ordinary", rank=0, world_size=4,
                 report_dir=tempfile.mkdtemp(), dist_module=self.FakeDist(),
-                label=OBSERVER.ARM_LABELS["G2"], host="trn21", config={})
+                label=OBSERVER.ARM_LABELS["G2"], host="trn22", config={})
 
     def test_model_checkpoint_schema_rejects_optimizer(self):
         with tempfile.TemporaryDirectory() as tmp:

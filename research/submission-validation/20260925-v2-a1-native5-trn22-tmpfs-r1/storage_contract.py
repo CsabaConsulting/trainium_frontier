@@ -10,12 +10,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
+import re
 import stat
 from typing import Any
 
 
-SCHEMA = "a1-native-five-trn22-tmpfs-request-v1"
+SCHEMA = "a1-native-five-trn22-tmpfs-request-v2"
 HOST = "trn22"
 HOSTNAME = "ip-172-31-32-253"
 TMPFS_PARENT = "/dev/shm/trainium_native5_20260925_trn22"
@@ -29,6 +30,14 @@ CACHE_CAP = 12 * 1024**3
 ARM_CAP = 13 * 1024**3
 TMPFS_FINAL_FLOOR = 16 * 1024**3
 LIVE_MEMORY_BREAKER = 32 * 1024**3
+ROOT_INODE_FLOOR = 10_000
+TMPFS_INODE_FLOOR = 10_000
+WATCH_INTERVAL_MAX_NS = 15_000_000_000
+ROOT_REQUIRED_BEFORE = {
+    "G0": 7_849_426_944,
+    "G1": 7_648_870_400,
+    "G2": 7_448_313_856,
+}
 ROOT_CACHE_PATHS = (
     "/tmp/neff_cache",
     "/tmp/neuron_cache",
@@ -84,6 +93,12 @@ SOURCE_PINS = {
         "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f",
     "research/fresh_start_guard.py":
         "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+}
+OBSERVER_SHA256 = "8f0fcd21282c54f2747b0260a392363a15825adf3c1f2a1c3357fbaf8790bacc"
+GATE_SOURCE_SHA256 = {
+    "G0": SOURCE_PINS["research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py"],
+    "G1": SOURCE_PINS["research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py"],
+    "G2": SOURCE_PINS["research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py"],
 }
 
 
@@ -188,6 +203,9 @@ def validate_request(request: dict[str, Any], arm: str) -> None:
         "tmpfs_free_after": info["tmpfs_free_after"],
         "tmpfs_final_floor": TMPFS_FINAL_FLOOR,
         "memory_before": info["memory_before"], "live_memory_breaker": LIVE_MEMORY_BREAKER,
+        "root_free_required_before": ROOT_REQUIRED_BEFORE[arm],
+        "root_inode_floor": ROOT_INODE_FLOOR, "tmpfs_inode_floor": TMPFS_INODE_FLOOR,
+        "watch_interval_max_ns": WATCH_INTERVAL_MAX_NS,
         "root_cache_paths": list(ROOT_CACHE_PATHS),
     }
     _require(request["storage"] == expected_storage, "storage thresholds mismatch")
@@ -220,21 +238,97 @@ def parse_mountinfo(text: str, target: str) -> dict[str, Any]:
         if len(fields) < 6 or len(post) < 3:
             raise ContractError("malformed mountinfo fields")
         if fields[4] == target:
+            major, minor = (int(part) for part in fields[2].split(":"))
+            target_info = os.stat(target, follow_symlinks=False)
             matches.append({
                 "mount_id": int(fields[0]), "parent_id": int(fields[1]),
-                "device": fields[2], "root": fields[3], "target": fields[4],
+                "device": fields[2], "st_dev": os.makedev(major, minor),
+                "root": fields[3], "target": fields[4],
                 "mount_options": sorted(fields[5].split(",")), "optional": fields[6:],
                 "fs_type": post[0], "source": post[1],
                 "super_options": sorted(post[2].split(",")),
+                "target_identity": _entry(target_info, "directory"),
             })
     _require(len(matches) == 1, f"expected one mount record for {target}")
     return matches[0]
 
 
+SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+MOUNT_KEYS = {"mount_id", "parent_id", "device", "st_dev", "root", "target",
+              "mount_options", "optional", "fs_type", "source", "super_options",
+              "target_identity"}
+RESOURCE_KEYS = {"schema", "phase", "root_free_bytes", "root_free_inodes",
+                 "tmpfs_free_bytes", "tmpfs_free_inodes", "mem_available_bytes",
+                 "swap_total_bytes", "swap_used_bytes"}
+ENTRY_KEYS = {"kind", "device", "inode", "mode", "uid", "gid", "nlink",
+              "size", "allocated", "mtime_ns", "ctime_ns", "content_sha256"}
+TREE_KEYS = {"schema", "path", "state", "mount_id", "mount_device",
+             "mount_root_identity_sha256", "ancestors", "entries", "entry_count",
+             "logical_bytes", "allocated_bytes", "manifest_sha256", "complete"}
+CHECKPOINT_KEYS = {"schema", "path", "mount_id", "mount_device", "device", "inode",
+                   "kind", "mode", "uid", "gid", "nlink", "bytes", "allocated",
+                   "mtime_ns", "ctime_ns", "sha256", "weights_only", "model_only",
+                   "finite", "strict_load", "logits_exact", "causality_exact",
+                   "same_fd_stable", "model_state_sha256", "eval_logits_sha256",
+                   "causal_digest_sha256", "source_sha256", "observer_sha256",
+                   "rank_report_sha256", "job_sha256", "postflight_sha256",
+                   "parent_identity_sha256", "mount_root_identity_sha256", "complete"}
+ARM_EVIDENCE_KEYS = {"schema", "arm", "host", "hostname", "label", "source_sha256",
+                     "protected_source_sha256", "observer_sha256", "train_argv_sha256",
+                     "environment_sha256",
+                     "job_sha256", "postflight_sha256", "rank_report_sha256", "output",
+                     "cache", "checkpoint", "root_log_allocated", "process_quiescent",
+                     "device_idle", "watcher", "complete"}
+WATCH_SAMPLE_KEYS = {"schema", "sequence", "monotonic_ns", "phase", "root_free_bytes",
+                     "root_free_inodes", "tmpfs_free_bytes", "tmpfs_free_inodes",
+                     "mem_available_bytes", "swap_total_bytes", "swap_used_bytes",
+                     "root_log_allocated", "cache_allocated", "output_allocated",
+                     "root_cache_manifest_sha256", "current_arm_manifest_sha256",
+                     "sample_sha256"}
+WATCH_COVERAGE_KEYS = {"schema", "interval_limit_ns", "child_start_ns", "child_exit_ns",
+                       "final_seal_ns", "complete"}
+WATCH_RECEIPT_KEYS = {"schema", "status", "arm", "host", "label", "source_sha256",
+                      "observer_sha256", "job_sha256", "postflight_sha256",
+                      "baseline_root_caches_sha256", "sample_count",
+                      "first_monotonic_ns", "last_monotonic_ns", "series_sha256",
+                      "coverage_sha256", "samples", "coverage", "complete"}
+
+
+def _exact_dict(value: Any, keys: set[str], label: str) -> dict[str, Any]:
+    _require(type(value) is dict and set(value) == keys, f"{label} exact schema mismatch")
+    return value
+
+
+def _sha(value: Any) -> bool:
+    return type(value) is str and SHA_RE.fullmatch(value) is not None
+
+
+def canonical_sha(value: Any) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
+                                 allow_nan=False).encode()).hexdigest()
+
+
+def _validate_mount_record(record: Any, target: str) -> dict[str, Any]:
+    record = _exact_dict(record, MOUNT_KEYS, f"mount {target}")
+    for key in ("mount_id", "parent_id", "st_dev"):
+        _require(type(record[key]) is int and record[key] >= 0, f"mount {key} type")
+    for key in ("device", "root", "target", "fs_type", "source"):
+        _require(type(record[key]) is str and record[key], f"mount {key} type")
+    for key in ("mount_options", "optional", "super_options"):
+        _require(type(record[key]) is list and all(type(item) is str for item in record[key]),
+                 f"mount {key} type")
+    _require(record["target"] == target, "mount target mismatch")
+    identity = _validate_entry(record["target_identity"], f"mount {target} target")
+    _require(identity["kind"] == "directory" and identity["device"] == record["st_dev"],
+             "mount target identity/device mismatch")
+    return record
+
+
 def validate_mounts(root: dict[str, Any], tmpfs: dict[str, Any]) -> None:
-    _require(root["target"] == "/" and tmpfs["target"] == "/dev/shm", "mount target mismatch")
-    _require(root["mount_id"] != tmpfs["mount_id"] and root["device"] != tmpfs["device"],
-             "root and tmpfs must be distinct")
+    root = _validate_mount_record(root, "/")
+    tmpfs = _validate_mount_record(tmpfs, "/dev/shm")
+    _require(root["mount_id"] != tmpfs["mount_id"] and root["st_dev"] != tmpfs["st_dev"]
+             and root["device"] != tmpfs["device"], "root and tmpfs must be distinct")
     _require(tmpfs["fs_type"] == "tmpfs", "/dev/shm is not tmpfs")
     options = set(tmpfs["mount_options"]) | set(tmpfs["super_options"])
     _require({"rw", "nosuid", "nodev"} <= options and "noexec" not in options,
@@ -242,125 +336,409 @@ def validate_mounts(root: dict[str, Any], tmpfs: dict[str, Any]) -> None:
 
 
 def validate_resources(arm: str, sample: dict[str, Any], *, phase: str) -> None:
-    info = ARMS[arm]
-    _require(sample.get("swap_total_bytes") == 0 and sample.get("swap_used_bytes") == 0,
+    sample = _exact_dict(sample, RESOURCE_KEYS, "resource sample")
+    _require(phase in {"pre", "post"} and sample["phase"] == phase, "resource phase mismatch")
+    for key in RESOURCE_KEYS - {"schema", "phase"}:
+        _require(type(sample[key]) is int and sample[key] >= 0, f"resource {key} type")
+    _require(sample["schema"] == "a1-native-five-trn22-resource-v2", "resource schema version")
+    _require(sample["swap_total_bytes"] == 0 and sample["swap_used_bytes"] == 0,
              "swap is configured or active")
-    memory_floor = info["memory_before"] if phase == "pre" else LIVE_MEMORY_BREAKER
-    _require(type(sample.get("mem_available_bytes")) is int
-             and sample["mem_available_bytes"] >= memory_floor, "memory floor failed")
-    _require(type(sample.get("root_free_bytes")) is int
-             and sample["root_free_bytes"] >= ROOT_BREAKER, "root breaker failed")
-    tmp_floor = info["tmpfs_free_before"] if phase == "pre" else info["tmpfs_free_after"]
-    _require(type(sample.get("tmpfs_free_bytes")) is int
-             and sample["tmpfs_free_bytes"] >= tmp_floor, "tmpfs floor failed")
+    memory_floor = ARMS[arm]["memory_before"] if phase == "pre" else LIVE_MEMORY_BREAKER
+    root_floor = ROOT_REQUIRED_BEFORE[arm] if phase == "pre" else ROOT_BREAKER
+    tmp_floor = ARMS[arm]["tmpfs_free_before"] if phase == "pre" else ARMS[arm]["tmpfs_free_after"]
+    _require(sample["mem_available_bytes"] >= memory_floor, "memory floor failed")
+    _require(sample["root_free_bytes"] >= root_floor, "reserved root floor failed")
+    _require(sample["tmpfs_free_bytes"] >= tmp_floor, "tmpfs floor failed")
+    _require(sample["root_free_inodes"] >= ROOT_INODE_FLOOR, "root inode floor failed")
+    _require(sample["tmpfs_free_inodes"] >= TMPFS_INODE_FLOOR, "tmpfs inode floor failed")
 
 
-def validate_live_sample(arm: str, sample: dict[str, Any],
-                         baseline_root_caches: dict[str, Any]) -> None:
-    """Validate one bounded watcher sample while the owned group is live."""
-    _require(sample.get("root_caches") == baseline_root_caches,
-             "root cache snapshot changed during live run")
-    _require(sorted(sample.get("root_caches", {})) == sorted(ROOT_CACHE_PATHS),
-             "live root cache enumeration incomplete")
-    _require(sample.get("swap_total_bytes") == 0 and sample.get("swap_used_bytes") == 0,
-             "swap appeared during live run")
-    _require(type(sample.get("mem_available_bytes")) is int
-             and sample["mem_available_bytes"] >= LIVE_MEMORY_BREAKER,
-             "live memory breaker failed")
-    _require(type(sample.get("root_free_bytes")) is int
-             and sample["root_free_bytes"] >= ROOT_BREAKER, "live root breaker failed")
-    _require(type(sample.get("tmpfs_free_bytes")) is int
-             and sample["tmpfs_free_bytes"] >= ARMS[arm]["tmpfs_free_after"],
-             "live tmpfs floor failed")
-    _require(type(sample.get("root_log_allocated")) is int
-             and sample["root_log_allocated"] <= ROOT_LOG_CAP, "live root log cap failed")
-    _require(type(sample.get("cache_allocated")) is int
-             and sample["cache_allocated"] <= CACHE_CAP, "live cache cap failed")
-    _require(type(sample.get("output_allocated")) is int
-             and sample["output_allocated"] <= OUT_CAP, "live output cap failed")
+def _entry(info: os.stat_result, kind: str,
+           content_sha256: str | None = None) -> dict[str, Any]:
+    return {"kind": kind, "device": info.st_dev, "inode": info.st_ino,
+            "mode": stat.S_IMODE(info.st_mode), "uid": info.st_uid, "gid": info.st_gid,
+            "nlink": info.st_nlink, "size": info.st_size, "allocated": info.st_blocks * 512,
+            "mtime_ns": info.st_mtime_ns, "ctime_ns": info.st_ctime_ns,
+            "content_sha256": content_sha256}
 
 
-def run_watcher(arm: str, samples: list[dict[str, Any]],
-                baseline_root_caches: dict[str, Any], terminate) -> dict[str, Any]:
-    """Deterministically exercise watcher policy; runtime supplies sampling cadence.
-
-    On the first violation the caller-provided reviewed process-group terminator is
-    invoked and must prove TERM/KILL/reap quiescence.  This function never launches.
-    """
-    for index, sample in enumerate(samples):
-        try:
-            validate_live_sample(arm, sample, baseline_root_caches)
-        except ContractError as exc:
-            lifecycle = terminate()
-            _require(isinstance(lifecycle, dict)
-                     and lifecycle.get("term_sent") is True
-                     and lifecycle.get("reaped") is True
-                     and lifecycle.get("quiescent") is True,
-                     "bounded termination did not prove quiescence")
-            message = str(exc)
-            status = ("CACHE_ROUTING_INVALID" if "cache" in message
-                      else "RUNTIME_STORAGE_INVALID")
-            return {"status": status, "failed_sample": index, "error": message,
-                    "lifecycle": lifecycle}
-    return {"status": "PASS", "sample_count": len(samples)}
+def _identity_tuple(info: os.stat_result) -> tuple[int, ...]:
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_uid,
+            info.st_gid, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
-def _entry(info: os.stat_result, kind: str) -> dict[str, Any]:
-    return {
-        "kind": kind, "device": info.st_dev, "inode": info.st_ino,
-        "mode": stat.S_IMODE(info.st_mode), "uid": info.st_uid, "gid": info.st_gid,
-        "nlink": info.st_nlink, "size": info.st_size, "allocated": info.st_blocks * 512,
-        "mtime_ns": info.st_mtime_ns, "ctime_ns": info.st_ctime_ns,
-    }
+def _dir_flags() -> int:
+    required = ("O_CLOEXEC", "O_NOFOLLOW", "O_DIRECTORY")
+    _require(all(hasattr(os, item) for item in required), "platform lacks anchored directory flags")
+    return os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_DIRECTORY
 
 
-def snapshot_tree(path: Path) -> dict[str, Any]:
-    """Capture anchored no-follow recursive metadata without reading cache bytes."""
-    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_DIRECTORY
-    root_fd = os.open(path, flags)
+def _file_flags() -> int:
+    _require(hasattr(os, "O_CLOEXEC") and hasattr(os, "O_NOFOLLOW"),
+             "platform lacks no-follow file flags")
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW
+    if hasattr(os, "O_NONBLOCK"):
+        flags |= os.O_NONBLOCK
+    return flags
+
+
+def _fd_mount_id(fd: int) -> int:
+    info_fd = os.open(f"/proc/self/fdinfo/{fd}", os.O_RDONLY | os.O_CLOEXEC)
+    try:
+        payload = bytearray()
+        while True:
+            try:
+                chunk = os.read(info_fd, 4096)
+            except InterruptedError:
+                continue
+            if not chunk:
+                break
+            payload.extend(chunk)
+            _require(len(payload) <= 64 * 1024, "fdinfo unexpectedly large")
+    finally:
+        os.close(info_fd)
+    values = [line.split(b":", 1)[1].strip() for line in bytes(payload).splitlines()
+              if line.startswith(b"mnt_id:")]
+    _require(len(values) == 1 and values[0].isdigit(), "fd mount id unavailable")
+    return int(values[0])
+
+
+def _open_dir_chain(path: Path) -> tuple[list[int], list[str], list[tuple[int, ...]]]:
+    absolute = Path(os.path.abspath(path))
+    _require(absolute.is_absolute(), "anchored path must be absolute")
+    fds: list[int] = []
+    names: list[str] = []
+    identities: list[tuple[int, ...]] = []
+    try:
+        root_fd = os.open("/", _dir_flags())
+        fds.append(root_fd)
+        identities.append(_identity_tuple(os.fstat(root_fd)))
+        parent_fd = root_fd
+        for component in absolute.parts[1:]:
+            _require(component not in ("", ".", "..") and "/" not in component,
+                     "unsafe anchored component")
+            child_fd = os.open(component, _dir_flags(), dir_fd=parent_fd)
+            opened = os.fstat(child_fd)
+            named = os.stat(component, dir_fd=parent_fd, follow_symlinks=False)
+            _require(_identity_tuple(opened) == _identity_tuple(named),
+                     "ancestor name/inode changed during open")
+            fds.append(child_fd)
+            names.append(component)
+            identities.append(_identity_tuple(opened))
+            parent_fd = child_fd
+        return fds, names, identities
+    except Exception:
+        for fd in reversed(fds):
+            os.close(fd)
+        raise
+
+
+def _revalidate_chain(fds: list[int], names: list[str],
+                      identities: list[tuple[int, ...]]) -> None:
+    _require(_identity_tuple(os.fstat(fds[0])) == identities[0], "root identity changed")
+    for index, name in enumerate(names):
+        opened = os.fstat(fds[index + 1])
+        named = os.stat(name, dir_fd=fds[index], follow_symlinks=False)
+        _require(_identity_tuple(opened) == identities[index + 1]
+                 and _identity_tuple(named) == identities[index + 1],
+                 "anchored ancestor changed")
+
+
+def _tree_manifest_payload(snapshot: dict[str, Any]) -> dict[str, Any]:
+    return {key: snapshot[key] for key in
+            ("schema", "path", "state", "mount_id", "mount_device",
+             "mount_root_identity_sha256", "ancestors", "entries", "entry_count",
+             "logical_bytes", "allocated_bytes", "complete")}
+
+
+def _validate_entry(value: Any, label: str) -> dict[str, Any]:
+    value = _exact_dict(value, ENTRY_KEYS, label)
+    _require(value["kind"] in {"directory", "file"}, f"{label} kind")
+    for key in ENTRY_KEYS - {"kind", "content_sha256"}:
+        _require(type(value[key]) is int and value[key] >= 0, f"{label} {key} type")
+    _require(value["nlink"] >= 1, f"{label} link count")
+    if value["kind"] == "file":
+        _require(value["nlink"] == 1, f"{label} file hardlink")
+        _require(_sha(value["content_sha256"]), f"{label} content digest")
+    else:
+        _require(value["content_sha256"] is None, f"{label} directory content digest")
+    return value
+
+
+def validate_tree_snapshot(snapshot: Any, expected_path: str, mount_id: int,
+                           mount_device: int,
+                           mount_root_identity_sha256: str) -> dict[str, Any]:
+    snapshot = _exact_dict(snapshot, TREE_KEYS, "tree snapshot")
+    _require(snapshot["schema"] == "a1-native-five-anchored-tree-v2"
+             and snapshot["state"] in {"present", "absent"} and snapshot["complete"] is True,
+             "tree snapshot state/version mismatch")
+    _require(snapshot["path"] == expected_path and snapshot["mount_id"] == mount_id
+             and snapshot["mount_device"] == mount_device, "tree snapshot path/mount mismatch")
+    _require(_sha(mount_root_identity_sha256)
+             and snapshot["mount_root_identity_sha256"] == mount_root_identity_sha256,
+             "tree mount-root identity mismatch")
+    _require(type(snapshot["ancestors"]) is list and snapshot["ancestors"],
+             "tree ancestor chain missing")
+    for index, entry in enumerate(snapshot["ancestors"]):
+        _validate_entry(entry, f"ancestor {index}")
+        _require(entry["kind"] == "directory", "ancestor is not a directory")
+    if snapshot["state"] == "absent":
+        _require(snapshot["entries"] == {} and snapshot["entry_count"] == 0
+                 and snapshot["logical_bytes"] == 0 and snapshot["allocated_bytes"] == 0,
+                 "absent tree contains entries or bytes")
+        _require(_sha(snapshot["manifest_sha256"])
+                 and snapshot["manifest_sha256"]
+                 == canonical_sha(_tree_manifest_payload(snapshot)),
+                 "absent tree manifest digest mismatch")
+        return snapshot
+    _require(type(snapshot["entries"]) is dict and "." in snapshot["entries"],
+             "tree entries missing root")
+    for relative, entry in snapshot["entries"].items():
+        _require(type(relative) is str and relative
+                 and (relative == "." or (not relative.startswith("/")
+                                          and ".." not in relative.split("/"))),
+                 "unsafe tree entry path")
+        _validate_entry(entry, f"tree entry {relative}")
+        _require(entry["device"] == mount_device, "tree entry device mismatch")
+    _require(snapshot["entries"]["."]["kind"] == "directory", "tree root kind mismatch")
+    _require(type(snapshot["entry_count"]) is int
+             and snapshot["entry_count"] == len(snapshot["entries"]), "tree count mismatch")
+    logical = sum(item["size"] for item in snapshot["entries"].values()
+                  if item["kind"] == "file")
+    allocated = sum(item["allocated"] for item in snapshot["entries"].values())
+    _require(snapshot["logical_bytes"] == logical and snapshot["allocated_bytes"] == allocated,
+             "tree byte accounting mismatch")
+    _require(_sha(snapshot["manifest_sha256"])
+             and snapshot["manifest_sha256"] == canonical_sha(_tree_manifest_payload(snapshot)),
+             "tree manifest digest mismatch")
+    return snapshot
+
+
+def snapshot_path(path: Path, *, mount_id: int, expected_device: int) -> dict[str, Any]:
+    """Snapshot a present tree or prove the exact target absent through dirfds."""
+    absolute = Path(os.path.abspath(path))
+    fds: list[int] = []
+    names: list[str] = []
+    identities: list[tuple[int, ...]] = []
+    try:
+        root_fd = os.open("/", _dir_flags())
+        fds.append(root_fd)
+        root_info = os.fstat(root_fd)
+        identities.append(_identity_tuple(root_info))
+        _require(root_info.st_dev == expected_device and _fd_mount_id(root_fd) == mount_id,
+                 "snapshot root mount/device mismatch")
+        parent_fd = root_fd
+        for component in absolute.parts[1:]:
+            _require(component not in ("", ".", "..") and "/" not in component,
+                     "unsafe snapshot component")
+            try:
+                child = os.open(component, _dir_flags(), dir_fd=parent_fd)
+            except FileNotFoundError:
+                _revalidate_chain(fds, names, identities)
+                result = {
+                    "schema": "a1-native-five-anchored-tree-v2",
+                    "path": os.fspath(absolute), "state": "absent",
+                    "mount_id": mount_id, "mount_device": expected_device,
+                    "mount_root_identity_sha256": canonical_sha(
+                        next(_entry(os.fstat(fd), "directory") for fd in fds
+                             if os.fstat(fd).st_dev == expected_device)),
+                    "ancestors": [_entry(os.fstat(fd), "directory") for fd in fds],
+                    "entries": {}, "entry_count": 0, "logical_bytes": 0,
+                    "allocated_bytes": 0, "complete": True,
+                }
+                result["manifest_sha256"] = canonical_sha(_tree_manifest_payload(result))
+                _revalidate_chain(fds, names, identities)
+                return validate_tree_snapshot(
+                    result, os.fspath(absolute), mount_id, expected_device,
+                    result["mount_root_identity_sha256"])
+            except OSError as exc:
+                raise ContractError("snapshot ancestor is not a stable directory") from exc
+            opened = os.fstat(child)
+            named = os.stat(component, dir_fd=parent_fd, follow_symlinks=False)
+            _require(_identity_tuple(opened) == _identity_tuple(named)
+                     and opened.st_dev == expected_device and _fd_mount_id(child) == mount_id,
+                     "snapshot ancestor identity/device changed")
+            fds.append(child)
+            names.append(component)
+            identities.append(_identity_tuple(opened))
+            parent_fd = child
+        _revalidate_chain(fds, names, identities)
+    finally:
+        for fd in reversed(fds):
+            os.close(fd)
+    return snapshot_tree(absolute, mount_id=mount_id, expected_device=expected_device)
+
+
+def snapshot_tree(path: Path, *, mount_id: int, expected_device: int) -> dict[str, Any]:
+    """Capture a bottom-up resealed no-follow tree through pinned ancestor dirfds."""
+    fds, names, chain_identities = _open_dir_chain(path)
+    root_fd = fds[-1]
     root_info = os.fstat(root_fd)
-    _require(stat.S_ISDIR(root_info.st_mode), "snapshot root is not a directory")
-    entries: dict[str, dict[str, Any]] = {".": _entry(root_info, "directory")}
+    try:
+        _require(root_info.st_dev == expected_device, "snapshot root device mismatch")
+        _require(_fd_mount_id(root_fd) == mount_id, "snapshot root mount-id mismatch")
+        entries: dict[str, dict[str, Any]] = {".": _entry(root_info, "directory")}
+
+        def walk(fd: int, prefix: str, parent_fd: int | None,
+                 own_name: str | None, initial: os.stat_result) -> None:
+            names_before = sorted(os.listdir(fd))
+            for name in names_before:
+                _require(name not in (".", "..") and "/" not in name, "unsafe tree member")
+                named = os.stat(name, dir_fd=fd, follow_symlinks=False)
+                relative = f"{prefix}/{name}" if prefix else name
+                if stat.S_ISDIR(named.st_mode):
+                    child = os.open(name, _dir_flags(), dir_fd=fd)
+                    try:
+                        opened = os.fstat(child)
+                        _require(_identity_tuple(opened) == _identity_tuple(named),
+                                 "nested directory changed during open")
+                        _require(opened.st_dev == expected_device, "nested mount/device changed")
+                        _require(_fd_mount_id(child) == mount_id, "nested mount-id changed")
+                        entries[relative] = _entry(opened, "directory")
+                        walk(child, relative, fd, name, opened)
+                        _require(_identity_tuple(os.stat(name, dir_fd=fd, follow_symlinks=False))
+                                 == _identity_tuple(opened), "nested directory rebound")
+                    finally:
+                        os.close(child)
+                elif stat.S_ISREG(named.st_mode):
+                    child = os.open(name, _file_flags(), dir_fd=fd)
+                    try:
+                        opened = os.fstat(child)
+                        _require(_identity_tuple(opened) == _identity_tuple(named),
+                                 "nested file changed during open")
+                        _require(opened.st_dev == expected_device and opened.st_nlink == 1,
+                                 "nested file device/link mismatch")
+                        _require(_fd_mount_id(child) == mount_id, "nested file mount-id changed")
+                        digest = hashlib.sha256()
+                        remaining = opened.st_size
+                        while remaining:
+                            try:
+                                chunk = os.read(child, min(1024 * 1024, remaining))
+                            except InterruptedError:
+                                continue
+                            _require(bool(chunk), "nested file truncated during snapshot")
+                            digest.update(chunk)
+                            remaining -= len(chunk)
+                        _require(not os.read(child, 1), "nested file appended during snapshot")
+                        entries[relative] = _entry(opened, "file", digest.hexdigest())
+                        _require(_identity_tuple(os.fstat(child)) == _identity_tuple(opened),
+                                 "nested file changed during snapshot")
+                        _require(_identity_tuple(os.stat(name, dir_fd=fd, follow_symlinks=False))
+                                 == _identity_tuple(opened), "nested file rebound")
+                    finally:
+                        os.close(child)
+                else:
+                    raise ContractError("tree contains non-file/non-directory entry")
+            _require(sorted(os.listdir(fd)) == names_before, "nested membership changed")
+            _require(_identity_tuple(os.fstat(fd)) == _identity_tuple(initial),
+                     "nested directory metadata changed")
+            if parent_fd is not None and own_name is not None:
+                _require(_identity_tuple(os.stat(own_name, dir_fd=parent_fd,
+                                                follow_symlinks=False)) == _identity_tuple(initial),
+                         "nested directory name changed")
+
+        walk(root_fd, "", fds[-2] if len(fds) > 1 else None,
+             names[-1] if names else None, root_info)
+        _revalidate_chain(fds, names, chain_identities)
+        snapshot = {
+            "schema": "a1-native-five-anchored-tree-v2",
+            "path": os.path.abspath(os.fspath(path)),
+            "state": "present", "mount_id": mount_id, "mount_device": expected_device,
+            "mount_root_identity_sha256": canonical_sha(
+                next(_entry(os.fstat(fd), "directory") for fd in fds
+                     if os.fstat(fd).st_dev == expected_device)),
+            "ancestors": [_entry(os.fstat(fd), "directory") for fd in fds],
+            "entries": entries, "entry_count": len(entries),
+            "logical_bytes": sum(item["size"] for item in entries.values()
+                                 if item["kind"] == "file"),
+            "allocated_bytes": sum(item["allocated"] for item in entries.values()),
+            "complete": True,
+        }
+        snapshot["manifest_sha256"] = canonical_sha(_tree_manifest_payload(snapshot))
+        _revalidate_chain(fds, names, chain_identities)
+        # A complete second no-follow walk is the final tree operation.  It
+        # catches late nested membership, metadata, and same-size byte writes
+        # that happened after the first bottom-up capture.
+        resealed = snapshot_tree_revalidate(root_fd, entries, expected_device, mount_id)
+        _require(resealed == entries, "tree changed before final seal")
+        return validate_tree_snapshot(
+            snapshot, snapshot["path"], mount_id, expected_device,
+            snapshot["mount_root_identity_sha256"])
+    finally:
+        for fd in reversed(fds):
+            os.close(fd)
+
+
+def snapshot_tree_revalidate(root_fd: int, expected: dict[str, dict[str, Any]],
+                             expected_device: int,
+                             expected_mount_id: int) -> dict[str, dict[str, Any]]:
+    """Rewalk an already pinned root and return its exact sealed manifest."""
+    observed: dict[str, dict[str, Any]] = {}
 
     def walk(fd: int, prefix: str) -> None:
+        here = os.fstat(fd)
+        _require(here.st_dev == expected_device and _fd_mount_id(fd) == expected_mount_id,
+                 "reseal directory mount changed")
+        relative_root = prefix or "."
+        observed[relative_root] = _entry(here, "directory")
         for name in sorted(os.listdir(fd)):
-            _require(name not in (".", "..") and "/" not in name, "unsafe tree member")
-            info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            _require(name not in (".", "..") and "/" not in name,
+                     "unsafe reseal member")
             relative = f"{prefix}/{name}" if prefix else name
-            if stat.S_ISDIR(info.st_mode):
-                child = os.open(name, flags, dir_fd=fd)
+            named = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            if stat.S_ISDIR(named.st_mode):
+                child = os.open(name, _dir_flags(), dir_fd=fd)
                 try:
                     opened = os.fstat(child)
-                    _require((opened.st_dev, opened.st_ino) == (info.st_dev, info.st_ino),
-                             "directory changed while opening")
-                    entries[relative] = _entry(opened, "directory")
+                    _require(_identity_tuple(opened) == _identity_tuple(named)
+                             and opened.st_dev == expected_device
+                             and _fd_mount_id(child) == expected_mount_id,
+                             "reseal directory rebound")
                     walk(child, relative)
+                    _require(_identity_tuple(os.fstat(child)) == _identity_tuple(opened)
+                             and _identity_tuple(os.stat(
+                                 name, dir_fd=fd, follow_symlinks=False))
+                             == _identity_tuple(opened), "reseal directory changed")
                 finally:
                     os.close(child)
-            elif stat.S_ISREG(info.st_mode):
-                _require(info.st_nlink == 1, "cache member has multiple links")
-                entries[relative] = _entry(info, "file")
+            elif stat.S_ISREG(named.st_mode):
+                child = os.open(name, _file_flags(), dir_fd=fd)
+                try:
+                    opened = os.fstat(child)
+                    _require(_identity_tuple(opened) == _identity_tuple(named)
+                             and opened.st_dev == expected_device and opened.st_nlink == 1
+                             and _fd_mount_id(child) == expected_mount_id,
+                             "reseal file rebound")
+                    digest = hashlib.sha256()
+                    remaining = opened.st_size
+                    while remaining:
+                        try:
+                            chunk = os.read(child, min(1024 * 1024, remaining))
+                        except InterruptedError:
+                            continue
+                        _require(bool(chunk), "reseal file truncated")
+                        digest.update(chunk)
+                        remaining -= len(chunk)
+                    _require(not os.read(child, 1), "reseal file appended")
+                    observed[relative] = _entry(opened, "file", digest.hexdigest())
+                    _require(_identity_tuple(os.fstat(child)) == _identity_tuple(opened)
+                             and _identity_tuple(os.stat(
+                                 name, dir_fd=fd, follow_symlinks=False))
+                             == _identity_tuple(opened), "reseal file changed")
+                finally:
+                    os.close(child)
             else:
-                raise ContractError("cache tree contains non-file/non-directory entry")
+                raise ContractError("reseal found non-file/non-directory entry")
+        _require(_identity_tuple(os.fstat(fd)) == _identity_tuple(here),
+                 "reseal directory metadata changed")
 
-    try:
-        walk(root_fd, "")
-        final = os.fstat(root_fd)
-        _require((root_info.st_dev, root_info.st_ino, root_info.st_mtime_ns,
-                  root_info.st_ctime_ns) == (final.st_dev, final.st_ino,
-                                             final.st_mtime_ns, final.st_ctime_ns),
-                 "cache root changed during snapshot")
-    finally:
-        os.close(root_fd)
-    canonical = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode()
-    return {
-        "path": os.fspath(path), "entries": entries,
-        "allocated": sum(item["allocated"] for item in entries.values()),
-        "sha256": hashlib.sha256(canonical).hexdigest(),
-    }
+    walk(root_fd, "")
+    _require(set(observed) == set(expected), "reseal membership changed")
+    return observed
 
 
-def validate_initial_absence(trusted_root: Path, target: Path) -> None:
+def validate_initial_absence(trusted_root: Path, target: Path) -> dict[str, Any]:
+    """Produce a preflight-only absence receipt; later O_EXCL creation is mandatory."""
     root = Path(os.path.abspath(trusted_root))
     absolute = Path(os.path.abspath(target))
     try:
@@ -369,83 +747,338 @@ def validate_initial_absence(trusted_root: Path, target: Path) -> None:
         raise ContractError("path escapes trusted root") from exc
     _require(relative.parts and all(part not in ("", ".", "..") for part in relative.parts),
              "unsafe relative path")
-    cursor = root
-    root_info = os.lstat(cursor)
-    _require(stat.S_ISDIR(root_info.st_mode) and not stat.S_ISLNK(root_info.st_mode),
-             "trusted root is not a real directory")
-    for part in relative.parts:
-        cursor /= part
+    fds, names, identities = _open_dir_chain(root)
+    try:
+        parent_fd = fds[-1]
+        existing_parts: list[str] = []
+        for index, part in enumerate(relative.parts):
+            try:
+                child = os.open(part, _dir_flags(), dir_fd=parent_fd)
+            except FileNotFoundError:
+                _revalidate_chain(fds, names, identities)
+                receipt = {"schema": "a1-native-five-absence-preflight-v2",
+                           "trusted_root": os.fspath(root), "target": os.fspath(absolute),
+                           "existing_parts": existing_parts, "first_absent": part,
+                           "parent_identity_sha256": canonical_sha(identities),
+                           "o_excl_creation_required": True, "authoritative": False}
+                return receipt
+            except OSError as exc:
+                raise ContractError("absence ancestor is not a stable directory") from exc
+            opened = os.fstat(child)
+            named = os.stat(part, dir_fd=parent_fd, follow_symlinks=False)
+            if not stat.S_ISDIR(opened.st_mode) or _identity_tuple(opened) != _identity_tuple(named):
+                os.close(child)
+                raise ContractError("absence ancestor changed or is not a directory")
+            fds.append(child)
+            names.append(part)
+            identities.append(_identity_tuple(opened))
+            existing_parts.append(part)
+            parent_fd = child
+        raise ContractError("authorized fresh path already exists")
+    finally:
+        for fd in reversed(fds):
+            os.close(fd)
+
+
+def _validate_root_caches(caches: Any, mounts: dict[str, Any]) -> dict[str, Any]:
+    _require(type(caches) is dict and set(caches) == set(ROOT_CACHE_PATHS),
+             "root cache enumeration incomplete")
+    root = mounts["root"]
+    for path, snapshot in caches.items():
         try:
-            info = os.lstat(cursor)
-        except FileNotFoundError:
-            return
-        _require(not stat.S_ISLNK(info.st_mode), "path has symlink component")
-    raise ContractError("authorized fresh path already exists")
+            validate_tree_snapshot(snapshot, path, root["mount_id"], root["st_dev"],
+                                   canonical_sha(root["target_identity"]))
+        except ContractError as exc:
+            raise ContractError(f"root cache snapshot invalid: {exc}") from exc
+    return caches
+
+
+def _sample_payload(sample: dict[str, Any]) -> dict[str, Any]:
+    return {key: sample[key] for key in WATCH_SAMPLE_KEYS - {"sample_sha256"}}
+
+
+def validate_live_sample(arm: str, sample: Any, baseline_cache_digest: str) -> None:
+    sample = _exact_dict(sample, WATCH_SAMPLE_KEYS, "watch sample")
+    _require(sample["schema"] == "a1-native-five-watch-sample-v2", "watch schema")
+    _require(type(sample["sequence"]) is int and sample["sequence"] >= 0, "watch sequence")
+    _require(type(sample["monotonic_ns"]) is int and sample["monotonic_ns"] >= 0,
+             "watch timestamp")
+    _require(sample["phase"] in {"pre_launch", "runtime", "final_seal"}, "watch phase")
+    for key in WATCH_SAMPLE_KEYS - {"schema", "phase", "sample_sha256",
+                                    "root_cache_manifest_sha256", "current_arm_manifest_sha256"}:
+        _require(type(sample[key]) is int and sample[key] >= 0, f"watch {key} type")
+    _require(sample["root_cache_manifest_sha256"] == baseline_cache_digest,
+             "root cache snapshot changed during live run")
+    _require(_sha(sample["current_arm_manifest_sha256"]), "watch arm digest malformed")
+    _require(sample["sample_sha256"] == canonical_sha(_sample_payload(sample)),
+             "watch sample digest mismatch")
+    _require(sample["swap_total_bytes"] == 0 and sample["swap_used_bytes"] == 0,
+             "swap appeared during live run")
+    _require(sample["mem_available_bytes"] >= LIVE_MEMORY_BREAKER, "live memory breaker failed")
+    _require(sample["root_free_bytes"] >= ROOT_BREAKER, "live root breaker failed")
+    _require(sample["root_free_inodes"] >= ROOT_INODE_FLOOR, "live root inode floor failed")
+    _require(sample["tmpfs_free_bytes"] >= ARMS[arm]["tmpfs_free_after"],
+             "live tmpfs floor failed")
+    _require(sample["tmpfs_free_inodes"] >= TMPFS_INODE_FLOOR, "live tmpfs inode floor failed")
+    _require(sample["root_log_allocated"] <= ROOT_LOG_CAP, "live root log cap failed")
+    _require(sample["cache_allocated"] <= CACHE_CAP and sample["output_allocated"] <= OUT_CAP
+             and sample["cache_allocated"] + sample["output_allocated"] <= ARM_CAP,
+             "live arm allocation cap failed")
+
+
+def _validate_coverage(coverage: Any, samples: list[dict[str, Any]]) -> str:
+    coverage = _exact_dict(coverage, WATCH_COVERAGE_KEYS, "watch coverage")
+    _require(coverage["schema"] == "a1-native-five-watch-coverage-v2"
+             and coverage["complete"] is True, "watch coverage state")
+    for key in ("interval_limit_ns", "child_start_ns", "child_exit_ns", "final_seal_ns"):
+        _require(type(coverage[key]) is int and coverage[key] >= 0, f"coverage {key} type")
+    _require(coverage["interval_limit_ns"] == WATCH_INTERVAL_MAX_NS, "watch interval mismatch")
+    _require(coverage["child_start_ns"] <= coverage["child_exit_ns"]
+             <= coverage["final_seal_ns"], "watch lifecycle order")
+    _require(len(samples) >= 3, "watcher requires nonzero pre/runtime/final samples")
+    _require(samples[0]["phase"] == "pre_launch"
+             and samples[0]["monotonic_ns"] <= coverage["child_start_ns"],
+             "watcher did not start before runtime")
+    _require(samples[-1]["phase"] == "final_seal"
+             and samples[-1]["monotonic_ns"] >= coverage["final_seal_ns"],
+             "watcher did not cover final seal")
+    _require(any(sample["phase"] == "runtime"
+                 and coverage["child_start_ns"] <= sample["monotonic_ns"]
+                 <= coverage["child_exit_ns"] for sample in samples),
+             "watcher has no authenticated runtime sample")
+    for before, after in zip(samples, samples[1:]):
+        _require(after["sequence"] == before["sequence"] + 1, "watch sequence gap")
+        _require(0 < after["monotonic_ns"] - before["monotonic_ns"]
+                 <= WATCH_INTERVAL_MAX_NS, "watch cadence gap")
+    return canonical_sha(coverage)
+
+
+def run_watcher(arm: str, samples: list[dict[str, Any]], baseline_root_caches: dict[str, Any],
+                coverage: dict[str, Any], binding: dict[str, Any], terminate) -> dict[str, Any]:
+    try:
+        _require(type(binding) is dict and set(binding) == {
+            "source_sha256", "observer_sha256", "job_sha256", "postflight_sha256"},
+            "watcher binding schema mismatch")
+        _require(binding["source_sha256"] == GATE_SOURCE_SHA256[arm]
+                 and binding["observer_sha256"] == OBSERVER_SHA256
+                 and _sha(binding["job_sha256"]) and _sha(binding["postflight_sha256"]),
+                 "watcher binding mismatch")
+        _require(type(samples) is list and samples, "zero watcher samples are invalid")
+        baseline_digest = canonical_sha(baseline_root_caches)
+        for sample in samples:
+            validate_live_sample(arm, sample, baseline_digest)
+        coverage_sha = _validate_coverage(coverage, samples)
+    except ContractError as exc:
+        lifecycle = terminate()
+        _require(type(lifecycle) is dict and lifecycle == {
+            "term_sent": True, "kill_sent": True, "reaped": True, "quiescent": True},
+            "bounded termination did not prove exact quiescence")
+        status = "CACHE_ROUTING_INVALID" if "cache" in str(exc) else "RUNTIME_STORAGE_INVALID"
+        return {"status": status, "error": str(exc), "lifecycle": lifecycle}
+    return {"schema": "a1-native-five-watch-receipt-v2", "status": "PASS",
+            "arm": arm, "host": HOST, "label": ARMS[arm]["label"],
+            "source_sha256": binding["source_sha256"],
+            "observer_sha256": binding["observer_sha256"],
+            "job_sha256": binding["job_sha256"],
+            "postflight_sha256": binding["postflight_sha256"],
+            "baseline_root_caches_sha256": baseline_digest,
+            "sample_count": len(samples), "first_monotonic_ns": samples[0]["monotonic_ns"],
+            "last_monotonic_ns": samples[-1]["monotonic_ns"],
+            "series_sha256": canonical_sha(samples), "coverage_sha256": coverage_sha,
+            "samples": samples, "coverage": coverage, "complete": True}
+
+
+def _validate_watcher_receipt(receipt: Any, arm: str, binding: dict[str, Any],
+                              baseline_root_caches_sha256: str,
+                              final_arm_manifest_sha256: str) -> dict[str, Any]:
+    receipt = _exact_dict(receipt, WATCH_RECEIPT_KEYS, "watcher receipt")
+    _require(receipt["schema"] == "a1-native-five-watch-receipt-v2"
+             and receipt["status"] == "PASS" and receipt["complete"] is True,
+             "watcher receipt status")
+    _require((receipt["arm"], receipt["host"], receipt["label"])
+             == (arm, HOST, ARMS[arm]["label"]), "watcher identity mismatch")
+    _require(receipt["source_sha256"] == GATE_SOURCE_SHA256[arm]
+             and receipt["observer_sha256"] == OBSERVER_SHA256
+             and receipt["job_sha256"] == binding["job_sha256"]
+             and receipt["postflight_sha256"] == binding["postflight_sha256"],
+             "watcher evidence binding mismatch")
+    _require(receipt["baseline_root_caches_sha256"] == baseline_root_caches_sha256,
+             "watcher baseline cache binding mismatch")
+    _require(type(receipt["samples"]) is list
+             and len(receipt["samples"]) == receipt["sample_count"],
+             "watcher sample series missing")
+    for sample in receipt["samples"]:
+        validate_live_sample(arm, sample, baseline_root_caches_sha256)
+    coverage_sha = _validate_coverage(receipt["coverage"], receipt["samples"])
+    _require(type(receipt["sample_count"]) is int and receipt["sample_count"] >= 3,
+             "watcher receipt zero/short series")
+    for key in ("first_monotonic_ns", "last_monotonic_ns"):
+        _require(type(receipt[key]) is int and receipt[key] >= 0, f"watch receipt {key}")
+    for key in ("series_sha256", "coverage_sha256", "baseline_root_caches_sha256"):
+        _require(_sha(receipt[key]), f"watch receipt {key}")
+    _require(receipt["series_sha256"] == canonical_sha(receipt["samples"])
+             and receipt["coverage_sha256"] == coverage_sha,
+             "watcher series/coverage digest mismatch")
+    _require(receipt["samples"][-1]["current_arm_manifest_sha256"]
+             == final_arm_manifest_sha256, "watcher terminal arm seal mismatch")
+    return receipt
+
+
+def _expected_environment(arm: str) -> dict[str, str]:
+    return {**COMMON_ENVIRONMENT, "NEURON_COMPILE_CACHE_DIR": arm_paths(arm)["compile_cache"],
+            "TRAINIUM_FRESH_START_RUN_ID": ARMS[arm]["label"]}
+
+
+def _validate_checkpoint(receipt: Any, arm: str, mount: dict[str, Any],
+                         binding: dict[str, Any]) -> dict[str, Any]:
+    receipt = _exact_dict(receipt, CHECKPOINT_KEYS, "checkpoint receipt")
+    _require(receipt["schema"] == "a1-native-five-trn22-checkpoint-v2"
+             and receipt["complete"] is True, "checkpoint schema/state")
+    _require(receipt["path"] == arm_paths(arm)["checkpoint"], "checkpoint path mismatch")
+    _require(receipt["mount_id"] == mount["mount_id"]
+             and receipt["mount_device"] == mount["st_dev"]
+             and receipt["device"] == mount["st_dev"], "checkpoint mount/device mismatch")
+    for key in ("inode", "uid", "gid", "bytes", "allocated", "mtime_ns", "ctime_ns"):
+        _require(type(receipt[key]) is int and receipt[key] >= 0, f"checkpoint {key} type")
+    _require(receipt["kind"] == "file" and receipt["mode"] == 0o600
+             and receipt["uid"] == os.getuid() and receipt["gid"] == os.getgid()
+             and receipt["nlink"] == 1 and receipt["bytes"] > 0,
+             "checkpoint exact file identity failed")
+    for key in ("weights_only", "model_only", "finite", "strict_load", "logits_exact",
+                "causality_exact", "same_fd_stable"):
+        _require(receipt[key] is True, f"checkpoint {key} failed")
+    for key in ("sha256", "model_state_sha256", "eval_logits_sha256",
+                "causal_digest_sha256", "source_sha256", "observer_sha256",
+                "job_sha256", "postflight_sha256"):
+        _require(_sha(receipt[key]), f"checkpoint {key} malformed")
+    _require(type(receipt["rank_report_sha256"]) is list
+             and len(receipt["rank_report_sha256"]) == 4
+             and all(_sha(item) for item in receipt["rank_report_sha256"]),
+             "checkpoint rank report binding malformed")
+    _require(receipt["source_sha256"] == GATE_SOURCE_SHA256[arm]
+             and receipt["observer_sha256"] == OBSERVER_SHA256,
+             "checkpoint source binding mismatch")
+    _require(receipt["job_sha256"] == binding["job_sha256"]
+             and receipt["postflight_sha256"] == binding["postflight_sha256"]
+             and receipt["rank_report_sha256"] == binding["rank_report_sha256"],
+             "checkpoint evidence binding mismatch")
+    parent_identity = canonical_sha(binding["output"]["entries"]["."])
+    _require(receipt["parent_identity_sha256"] == parent_identity,
+             "checkpoint parent identity binding mismatch")
+    _require(receipt["mount_root_identity_sha256"]
+             == canonical_sha(mount["target_identity"]),
+             "checkpoint mount-root identity binding mismatch")
+    return receipt
+
+
+def validate_arm_evidence(evidence: Any, arm: str, mount: dict[str, Any],
+                          baseline_root_caches_sha256: str) -> dict[str, Any]:
+    evidence = _exact_dict(evidence, ARM_EVIDENCE_KEYS, f"{arm} evidence")
+    _require(evidence["schema"] == "a1-native-five-trn22-arm-evidence-v2"
+             and evidence["complete"] is True, "arm evidence version/state")
+    _require((evidence["arm"], evidence["host"], evidence["hostname"], evidence["label"])
+             == (arm, HOST, HOSTNAME, ARMS[arm]["label"]), "arm identity mismatch")
+    _require(evidence["source_sha256"] == GATE_SOURCE_SHA256[arm]
+             and evidence["observer_sha256"] == OBSERVER_SHA256, "arm source mismatch")
+    _require(evidence["protected_source_sha256"] == SOURCE_PINS,
+             "arm protected source map mismatch")
+    _require(evidence["train_argv_sha256"] == canonical_sha(expected_train_argv(arm))
+             and evidence["environment_sha256"] == canonical_sha(_expected_environment(arm)),
+             "arm argv/environment binding mismatch")
+    for key in ("job_sha256", "postflight_sha256"):
+        _require(_sha(evidence[key]), f"arm {key} malformed")
+    _require(type(evidence["rank_report_sha256"]) is list
+             and len(evidence["rank_report_sha256"]) == 4
+             and all(_sha(item) for item in evidence["rank_report_sha256"]),
+             "arm rank reports malformed")
+    output = validate_tree_snapshot(evidence["output"], arm_paths(arm)["output"],
+                                    mount["mount_id"], mount["st_dev"],
+                                    canonical_sha(mount["target_identity"]))
+    try:
+        cache = validate_tree_snapshot(evidence["cache"], arm_paths(arm)["compile_cache"],
+                                       mount["mount_id"], mount["st_dev"],
+                                       canonical_sha(mount["target_identity"]))
+    except ContractError as exc:
+        raise ContractError(f"declared tmpfs cache snapshot invalid: {exc}") from exc
+    _require(0 < output["allocated_bytes"] <= OUT_CAP, "output cap failed")
+    _require(4096 < cache["allocated_bytes"] <= CACHE_CAP,
+             "declared tmpfs cache use is not positively proved")
+    _require(output["allocated_bytes"] + cache["allocated_bytes"] <= ARM_CAP,
+             "combined arm allocation cap failed")
+    _validate_checkpoint(evidence["checkpoint"], arm, mount, evidence)
+    final_arm_manifest = canonical_sha({"output": output["manifest_sha256"],
+                                        "cache": cache["manifest_sha256"]})
+    _validate_watcher_receipt(evidence["watcher"], arm, evidence,
+                              baseline_root_caches_sha256, final_arm_manifest)
+    _require(type(evidence["root_log_allocated"]) is int
+             and 0 <= evidence["root_log_allocated"] <= ROOT_LOG_CAP, "root log cap failed")
+    _require(evidence["process_quiescent"] is True and evidence["device_idle"] is True,
+             "process/device is not quiescent")
+    return evidence
+
+
+def _validate_absence_receipt(receipt: Any, arm: str) -> None:
+    keys = {"schema", "arm", "paths", "parent_identity_sha256", "o_excl_creation_required",
+            "authoritative", "complete"}
+    receipt = _exact_dict(receipt, keys, "absence receipt")
+    expected = [arm_paths(arm)[key] for key in ("tmpfs_arm", "output", "compile_cache",
+                                                "checkpoint", "remote", "bundle",
+                                                "root_report", "child_log", "runtime_job",
+                                                "runtime_result", "dispatch", "controller_request")]
+    _require(receipt["schema"] == "a1-native-five-absence-set-v2" and receipt["arm"] == arm
+             and receipt["paths"] == expected and _sha(receipt["parent_identity_sha256"])
+             and receipt["o_excl_creation_required"] is True
+             and receipt["authoritative"] is False and receipt["complete"] is True,
+             "absence receipt mismatch")
 
 
 def adjudicate_storage(arm: str, pre: dict[str, Any], post: dict[str, Any]) -> dict[str, Any]:
-    """Return a machine verdict; any cache ambiguity is CACHE_ROUTING_INVALID."""
     try:
-        _require(pre.get("host") == HOST and post.get("host") == HOST, "host mismatch")
-        _require(pre.get("hostname") == HOSTNAME and post.get("hostname") == HOSTNAME,
-                 "hostname mismatch")
-        _require(pre.get("mounts") == post.get("mounts"), "mount identity changed")
-        validate_mounts(post["mounts"]["root"], post["mounts"]["tmpfs"])
+        pre_keys = {"schema", "host", "hostname", "mounts", "resources",
+                    "fresh_paths_absent", "absence_receipt", "root_caches", "retained_arms"}
+        post_keys = {"schema", "host", "hostname", "mounts", "resources", "root_caches",
+                     "retained_arms", "current_arm", "root_growth_bytes",
+                     "root_unallowlisted_growth_bytes"}
+        pre = _exact_dict(pre, pre_keys, "pre evidence")
+        post = _exact_dict(post, post_keys, "post evidence")
+        _require(pre["schema"] == "a1-native-five-trn22-pre-v2"
+                 and post["schema"] == "a1-native-five-trn22-post-v2", "evidence version")
+        _require((pre["host"], pre["hostname"], post["host"], post["hostname"])
+                 == (HOST, HOSTNAME, HOST, HOSTNAME), "host identity mismatch")
+        _require(type(pre["mounts"]) is dict and set(pre["mounts"]) == {"root", "tmpfs"}
+                 and pre["mounts"] == post["mounts"], "mount evidence mismatch")
+        validate_mounts(pre["mounts"]["root"], pre["mounts"]["tmpfs"])
         validate_resources(arm, pre["resources"], phase="pre")
         validate_resources(arm, post["resources"], phase="post")
-        _require(pre.get("fresh_paths_absent") is True, "fresh arm paths were not absent")
-        expected_prior = [] if arm == "G0" else (["G0"] if arm == "G1" else ["G0", "G1"])
-        _require(sorted(pre.get("retained_arms", {})) == expected_prior,
-                 "retained prior-arm inventory missing")
-        _require(pre.get("retained_arms", {}) == post.get("retained_arms", {}),
-                 "retained prior arm changed")
-        _require(pre.get("root_caches") == post.get("root_caches"),
-                 "root cache snapshot changed")
-        _require(sorted(post.get("root_caches", {})) == sorted(ROOT_CACHE_PATHS),
-                 "root cache enumeration incomplete")
-        cache = post.get("declared_cache", {})
-        output = post.get("output", {})
-        _require(cache.get("path") == arm_paths(arm)["compile_cache"], "cache path mismatch")
-        _require(type(cache.get("allocated")) is int and 4096 < cache["allocated"] <= CACHE_CAP,
-                 "declared tmpfs cache use is not positively proved")
-        _require(cache.get("mount_device") == post["mounts"]["tmpfs"]["device"],
-                 "cache is not on tmpfs")
-        _require(output.get("path") == arm_paths(arm)["output"], "output path mismatch")
-        _require(type(output.get("allocated")) is int and 0 < output["allocated"] <= OUT_CAP,
-                 "output cap failed")
-        _require(output.get("mount_device") == post["mounts"]["tmpfs"]["device"],
-                 "output is not on tmpfs")
-        _require(type(post.get("root_log_allocated")) is int
-                 and post["root_log_allocated"] <= ROOT_LOG_CAP, "root log cap failed")
-        _require(type(post.get("root_allowed_growth_bytes")) is int
-                 and 0 <= post["root_allowed_growth_bytes"] <= ROOT_LOG_CAP,
-                 "root allowlisted growth cap failed")
-        _require(post.get("root_unallowlisted_growth_bytes") == 0,
+        _require(pre["fresh_paths_absent"] is True, "fresh paths not absent")
+        _validate_absence_receipt(pre["absence_receipt"], arm)
+        pre_caches = _validate_root_caches(pre["root_caches"], pre["mounts"])
+        post_caches = _validate_root_caches(post["root_caches"], post["mounts"])
+        _require(pre_caches == post_caches, "root cache snapshot changed")
+        prior = [] if arm == "G0" else (["G0"] if arm == "G1" else ["G0", "G1"])
+        _require(type(pre["retained_arms"]) is dict and sorted(pre["retained_arms"]) == prior
+                 and pre["retained_arms"] == post["retained_arms"],
+                 "retained arm set/identity mismatch")
+        for retained in prior:
+            validate_arm_evidence(pre["retained_arms"][retained], retained,
+                                  pre["mounts"]["tmpfs"], canonical_sha(pre_caches))
+        current = validate_arm_evidence(post["current_arm"], arm, post["mounts"]["tmpfs"],
+                                        canonical_sha(pre_caches))
+        delta = max(0, pre["resources"]["root_free_bytes"]
+                    - post["resources"]["root_free_bytes"])
+        _require(type(post["root_growth_bytes"]) is int
+                 and post["root_growth_bytes"] == delta
+                 and delta == current["root_log_allocated"] and delta <= ROOT_LOG_CAP,
+                 "exact root growth breaker failed")
+        _require(post["root_unallowlisted_growth_bytes"] == 0,
                  "unallowlisted root growth detected")
-        _require(pre["resources"]["root_free_bytes"] - post["resources"]["root_free_bytes"]
-                 <= ROOT_LOG_CAP, "net root growth cap failed")
-        checkpoint = post.get("checkpoint", {})
-        _require(checkpoint.get("path") == arm_paths(arm)["checkpoint"], "checkpoint path mismatch")
-        _require(checkpoint.get("mount_device") == post["mounts"]["tmpfs"]["device"],
-                 "checkpoint is not on tmpfs")
-        _require(checkpoint.get("regular") is True and checkpoint.get("nlink") == 1,
-                 "checkpoint identity failed")
-        _require(checkpoint.get("same_fd_stable") is True
-                 and checkpoint.get("weights_only") is True
-                 and checkpoint.get("model_only") is True
-                 and checkpoint.get("finite") is True
-                 and checkpoint.get("strict_load") is True
-                 and checkpoint.get("logits_exact") is True
-                 and checkpoint.get("causality_exact") is True,
-                 "checkpoint scientific verification failed")
-        _require(post.get("process_quiescent") is True and post.get("device_idle") is True,
-                 "process/device is not quiescent")
-        return {"schema": "a1-native-five-trn22-storage-verdict-v1", "arm": arm,
-                "status": "PASS", "g1_unlocked": arm == "G0", "cleanup_authorized": False}
-    except (ContractError, KeyError, TypeError) as exc:
+        return {"schema": "a1-native-five-trn22-storage-verdict-v2", "arm": arm,
+                "status": "PASS", "downstream_unlocked": arm in {"G0", "G1"},
+                "cleanup_authorized": False}
+    except (ContractError, KeyError, TypeError, ValueError) as exc:
         message = str(exc)
-        cache_terms = ("cache", "declared tmpfs", "root cache")
-        status = "CACHE_ROUTING_INVALID" if any(term in message for term in cache_terms) else "INVALID"
-        return {"schema": "a1-native-five-trn22-storage-verdict-v1", "arm": arm,
+        status = ("CACHE_ROUTING_INVALID" if any(term in message for term in
+                  ("cache", "declared tmpfs", "root cache")) else "INVALID")
+        return {"schema": "a1-native-five-trn22-storage-verdict-v2", "arm": arm,
                 "status": status, "error": f"{type(exc).__name__}: {exc}",
-                "g1_unlocked": False, "cleanup_authorized": False}
+                "downstream_unlocked": False, "cleanup_authorized": False}
