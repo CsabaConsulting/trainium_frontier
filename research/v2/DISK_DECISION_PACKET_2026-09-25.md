@@ -61,6 +61,16 @@ Both extant LR0.015 checkpoints on trn21 are retained:
 
 The JSON receipt contains the unabbreviated absolute checkpoint paths.
 
+Even reclaiming all approximately 1.50 GB attributed to the failed A0 compile would
+only restore trn22 to about 7.95 GB free. The failed attempt had already consumed
+1,500,942,336 bytes **before step 1**; merely reproducing that partial compile while
+staying above the 6.5-GiB floor requires at least 8,480,264,192 bytes at dispatch.
+That is a lower bound, not enough for a full run or checkpoint. The separately
+measured historical full-dense footprint is 1,854,160,896 bytes. A new-label retry
+package is being prepared with a provisional, more conservative **at least 10 GiB
+free** predispatch gate and continuous disk monitoring. Cleanup alone cannot justify
+relaunching the same shape; volume expansion remains the practical dependency.
+
 ## Human action: +50 GiB per host
 
 Recommended: snapshot the existing volumes, then modify each exact volume from 200 to
