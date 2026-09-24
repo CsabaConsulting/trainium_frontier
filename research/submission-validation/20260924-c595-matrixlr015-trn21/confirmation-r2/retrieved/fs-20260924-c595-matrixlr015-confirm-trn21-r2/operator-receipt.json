@@ -1,0 +1,145 @@
+{
+  "schema": "c595-matrixlr015-confirmation-operator-receipt-v1",
+  "role": "operator",
+  "label": "fs-20260924-c595-matrixlr015-confirm-trn21-r2",
+  "host": "trn21",
+  "hostname": "ip-172-31-34-85",
+  "controller": {
+    "child_commit": "b36b4072af1935748f09a71c092354512fba0cfc",
+    "origin_commit_before_launch": "b36b4072af1935748f09a71c092354512fba0cfc",
+    "clean_immutable_checkout": true,
+    "request_sha256": "6d55fcfae6d60b26af54c99125e26ba72ab4259ff61004999a809d4717447dd1",
+    "job_sha256": "0c18378f774ff64c0d6a69c9132f538d17ea05c7a3994c3925eb1a8e721904ba",
+    "dispatch_sha256": "b7b288eafa24678f4ccbb7073f939aa1df849cb20f5f63ca9e5cdd9db79d5b34"
+  },
+  "staging": {
+    "core_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+    "core_tree": "f8e3cda8f85bae65d00e6aba7e2e29cd6198b379",
+    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2",
+    "complete_non_sparse_clean_checkout": true,
+    "bundle_path": "/home/ubuntu/c595-matrixlr015-confirm-head-b36b4072-trn21-r2.bundle",
+    "bundle_bytes": 52740834,
+    "bundle_sha256": "2d6e4aa70a8b5c5eadcefa95d00fe83b0de1750adfad3d8bc0f111ad76405708",
+    "post_stage_free_bytes": 9197584384,
+    "post_stage_8gib_gate": true
+  },
+  "identity": {
+    "candidate_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "runtime_job_sha256": "c7209dbfb199e4e8c5c457a4e52af7d55882c5f1ae5a08ce34cf830e57d63bbc",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "smoke": false
+  },
+  "launch": {
+    "requested_at_utc": "2026-09-24T06:55:48.612821+00:00",
+    "started_at_utc": "2026-09-24T06:55:58.482006+00:00",
+    "guard_pid": 2722741,
+    "guard_child_pid": 2722742,
+    "launcher_returncode": 0,
+    "preflight_passed": true,
+    "preflight_free_bytes": 9197555712,
+    "outer_timeout_seconds": 4200,
+    "environment": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+    }
+  },
+  "training": {
+    "returncode": 0,
+    "step_count": 3654,
+    "training_seconds": 1784.9,
+    "startup_allowance_observed_seconds": 831.1791044629645,
+    "charged_through_process_exit_seconds": 1790.1910255410476,
+    "charged_through_process_exit_within_budget": true,
+    "over_budget": false,
+    "total_tokens_millions_logged": 478.9,
+    "world_size": 4,
+    "logical_neuroncore_config": 2
+  },
+  "finite_gate": {
+    "passed": true,
+    "weights_only": true,
+    "tensor_count": 62,
+    "map_location": "cpu"
+  },
+  "evaluation": {
+    "returncode": 0,
+    "batch_size": 1,
+    "seq_len": 1024,
+    "num_tokens": 20971520,
+    "num_bytes": 83462186,
+    "total_nats": 57379240.0,
+    "val_bpb": 0.9918353324459732,
+    "eval_seconds": 719.2732106900075,
+    "timeout_seconds": 1200,
+    "over_timeout": false
+  },
+  "harness_confirmation_payload": {
+    "decision_gate": "CONFIRMED",
+    "first_lr015_bpb": "0.9920722144854677",
+    "repeat_full20m_bpb": "0.9918353324459732",
+    "two_run_arithmetic_mean": "0.99195377346572045",
+    "prior_best_bpb": "0.9928513116311253",
+    "repeat_below_prior_best": true,
+    "mean_below_prior_best": true,
+    "first_arm_retroactively_relabelled": false,
+    "replication_required": false,
+    "operator_scientific_verdict": null
+  },
+  "checkpoint": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+    "bytes": 469831009,
+    "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+    "inode": 2938565,
+    "nlink": 1,
+    "regular_file": true,
+    "holder": null,
+    "preserved": true,
+    "prune_authorized": false
+  },
+  "sealed_artifacts": {
+    "ready_to_retrieve": true,
+    "completion_receipt_sha256": "f956963a82ac633d97ae5bd718ebd82eeac80bca8a08350ca85b0bbc59512386",
+    "artifact_manifest_sha256": "90a50f4ffcb2360006669f57a466e8c1df18608ea55181a26bbb761f00994b37",
+    "archive_bytes": 66831,
+    "archive_sha256": "a8425fba6638cf4882e5d40d6bc399c436698a6c096819dae3d12396d50980bb",
+    "bound_artifact_hash_audit": "pass",
+    "archive_member_count": 9
+  },
+  "guard_postflight": {
+    "command_returncode": 0,
+    "guard_error": null,
+    "cleanup_actions": [],
+    "remaining_owned_processes": [],
+    "device_holders": [],
+    "neuron_process_count": 0,
+    "host_clean": false,
+    "failures": [
+      "less than8GiB disk space available"
+    ],
+    "free_bytes": 7363252224,
+    "completed_at_utc": "2026-09-24T07:52:08.450078+00:00"
+  },
+  "operator_fresh_postcheck": {
+    "checked_at_utc": "2026-09-24T07:53:46Z",
+    "remote_head_unchanged": true,
+    "tracked_source_clean": true,
+    "candidate_hash_unchanged": true,
+    "prepare_hash_unchanged": true,
+    "checkpoint_hash_unchanged": true,
+    "checkpoint_holder": null,
+    "device_holders": [],
+    "training_or_evaluation_processes": [],
+    "host_lock": "available",
+    "free_bytes": 7363207168,
+    "host_clean_8gib_gate": false
+  },
+  "operator_actions_not_taken": [
+    "checkpoint pruning",
+    "cache cleanup",
+    "retry",
+    "submission",
+    "trn22 action"
+  ]
+}
