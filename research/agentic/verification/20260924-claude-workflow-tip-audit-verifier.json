@@ -1,0 +1,79 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_DOCUMENTATION_ONLY_PRIVATE_WORKFLOW_AUDIT",
+  "audited_commit": "0ba1beee8920ea55397a14b01428df8a3ccc1d1f",
+  "direct_parent": "2c086929483de88095d0c627e572fdf4af9a1f72",
+  "source_provenance": {
+    "fetched_tip": "752ea5e00d020e1f2e601ee633448bf5ea52f522",
+    "s0_commit": "c30422e2a9f0ed7203c85597eef1cb78c9480b62",
+    "research_v2_commit": "dd4c05002ef269a0fae292ae90bf60cda5182104",
+    "commit_chain_verified": true,
+    "newly_recorded_source_hashes_recomputed": 19,
+    "all_newly_recorded_source_hashes_match": true
+  },
+  "changed_path_audit": {
+    "pre_receipt_paths": [
+      "research/agentic/DETERMINISTIC_WORKFLOW_V2.md",
+      "research/agentic/imports/claude-workflow-d08ea46/AUDIT.md",
+      "research/agentic/tests/test_deterministic_workflow_v2.py"
+    ],
+    "documentation_paths": 2,
+    "test_paths": 1,
+    "runtime_or_candidate_paths": 0,
+    "only_audit_documentation_and_tests_changed": true,
+    "private_code_imported": false,
+    "private_queue_or_ledger_imported": false,
+    "private_evidence_or_receipts_imported": false,
+    "private_candidate_or_patch_imported": false
+  },
+  "disposition_audit": {
+    "s0_matches_independent_analysis": true,
+    "s0_is_held_as_cleanup_hypothesis_not_promoted": true,
+    "canonical_116188_remains_current": true,
+    "s0_requires_independent_neuron_equivalence_cold_public20m_replays_and_reviewer_verification": true,
+    "research_v2_fresh_tail_retained_as_hypothesis_only": true,
+    "research_v2_table_freeze_deferred_until_prerequisites": true,
+    "research_v2_bundled_implementation_queue_evidence_and_a2_before_a1_order_rejected": true,
+    "run_job_and_modified_decider_templates_tests_rejected": true,
+    "run_job_missing_digest_bound_authorization_and_exact_schema": true,
+    "run_job_missing_durable_host_lock_and_one_run_lease": true,
+    "run_job_missing_no_follow_safe_root_path_confinement": true,
+    "run_job_causality_gate_is_fail_open_for_null": true,
+    "run_job_escaped_descendant_is_recorded_as_nonfatal_anomaly": true,
+    "run_job_archive_delete_sequence_can_remove_source_before_durable_final_receipts": true,
+    "external_material_granted_no_canonical_authority": true
+  },
+  "protected_scope": {
+    "root_train_py_unchanged": true,
+    "prepare_py_unchanged": true,
+    "current_state_unchanged": true,
+    "decision_log_unchanged": true,
+    "selection_engine_unchanged": true,
+    "canonical_queue_and_ledger_unchanged": true,
+    "proposal_or_authorization_state_unchanged": true
+  },
+  "checks_run": [
+    "reviewed the complete audited-commit diff and exact three-path pre-receipt allowlist",
+    "verified the target direct parent and the private d08ea46 -> c30422e -> dd4c050 -> 752ea5e ancestry",
+    "recomputed every newly recorded S0, research-v2, and run_job source-object SHA-256; 19 of 19 matched",
+    "read the private source objects without executing or copying their tools, candidates, patches, queue, or evidence",
+    "confirmed the documented S0, research-v2, and run_job dispositions against the source and independent findings",
+    "confirmed no private runtime, candidate, patch, queue, ledger, evidence, or receipt file was imported",
+    "ran /home/poojith-devan/Desktop/Trainium/.agent-venv/bin/python -m unittest discover -s research/agentic/tests -v: 88 passed",
+    "ran git diff --check"
+  ],
+  "limitations": [
+    "This receipt verifies only the canonical documentation audit and its provenance pins; it does not approve any private implementation, queue, evidence, candidate, experiment, or result.",
+    "The untrusted private tools and candidate files were inspected as immutable Git objects and were not executed.",
+    "No hardware, training, evaluation, submission portal, or private validation data was accessed."
+  ],
+  "actions_not_taken": [
+    "host or AWS access",
+    "training or evaluation",
+    "candidate or protocol modification",
+    "push",
+    "submission"
+  ]
+}
