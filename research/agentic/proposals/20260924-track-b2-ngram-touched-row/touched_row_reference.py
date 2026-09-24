@@ -119,8 +119,7 @@ def state_equal(dense,lazy,beta2,state_bf16):
         for row in dense["param"][key]:assert np.array_equal(dense["param"][key][row],lazy["param"][key][row])
         for row,value in dense["moment"][key].items():
             logical=logical_moment(lazy,key,row,beta2,state_bf16)
-            if state_bf16:np.testing.assert_allclose(logical,value,rtol=8e-3,atol=2e-5)
-            else:assert np.array_equal(logical,value)
+            assert np.array_equal(logical,value)
 
 
 def physical_equal(left,right):
@@ -164,15 +163,13 @@ def records(rng,step):
     return result
 
 
-def source_contract():
+def source_invariance_contract():
     assert hashlib.sha256(SOURCE.read_bytes()).hexdigest()=="35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2"
     assert hashlib.sha256(PREPARE.read_bytes()).hexdigest()=="5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
     text=SOURCE.read_text();assert "'model_state': {k: v.detach().cpu() for k, v in model.state_dict().items()}" in text
     assert "model.load_state_dict(state, strict=True)" in text and "self.ngram_embeds = nn.ModuleDict(tables)" in text
-    expected={f"ngram_embeds.{key}.weight" for key in TABLES};checkpoint_keys={f"ngram_embeds.{key}.weight" for key in TABLES}
-    assert checkpoint_keys==expected
-    table={key:bf16(np.arange(DIM,dtype=np.float32)[None,:]) for key in TABLES};loaded={key:value.copy() for key,value in table.items()}
-    assert all(np.array_equal(loaded[key],table[key]) for key in TABLES) # eval reads identical model-table bytes; optimizer metadata is separate.
+    # This proves only that the approved source/evaluator bytes and strict-load expression are
+    # unchanged. It intentionally does not fabricate a model checkpoint or claim native logits.
 
 
 def invalid_inputs():
@@ -196,7 +193,7 @@ def run(state_bf16,bf16_collective):
 
 
 if __name__=="__main__":
-    source_contract();invalid_inputs()
+    source_invariance_contract();invalid_inputs()
     for state_bf16 in (False,True):
         for bf16_collective in (False,True):run(state_bf16,bf16_collective)
     print("four-table touched-row lazy RMSProp CPU oracle: PASS (native BF16 ordering remains gated)")

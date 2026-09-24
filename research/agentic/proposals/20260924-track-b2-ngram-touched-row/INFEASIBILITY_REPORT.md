@@ -67,8 +67,15 @@ serialize/reload/**next-update** equivalence. It covers BF16 parameters with FP3
 rejects invalid indices/shapes/dtypes, and statically binds the actual 35c9 model-state/
 strict-load evaluation contract and table keys. Its BF16 mode is an explicitly defined software
 emulation: occurrence additions, clipped records, collective accumulation, and AVG are rounded at
-declared boundaries. Native Trainium may choose a different reduction tree or accumulation order,
+declared boundaries and matches its dense oracle bit-for-bit. Native Trainium may choose a different reduction tree or accumulation order,
 so native BF16 equivalence remains an explicit hardware probe gate rather than an offline claim.
+
+The source check establishes only that the approved 35c9 `train.py`, `prepare.py`, model-state
+save expression, and strict-load expression are unchanged. It does **not** construct a synthetic
+checkpoint and does not claim checkpoint-key, table-byte, or logit identity. The future component
+probe must use one authenticated real checkpoint, strict-load it through the exact control and
+candidate evaluation paths, and compare the complete key set, all four n-gram table bytes, and
+predeclared-input logits exactly. Failure or absence of that evidence blocks any training run.
 
 The safer next action is a separately authorized component-only native probe with tiny fixed
 shapes. It must test, independently, sparse/occurrence-gradient capture, multi-rank fixed-shape

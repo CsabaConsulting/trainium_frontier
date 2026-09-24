@@ -54,7 +54,7 @@
   "success_criteria": {
     "quality": "Full-budget public val_bpb must improve by at least 0.0015 against a nearby same-host exact 35c9 control after all exactness gates pass.",
     "throughput": "Unprofiled warmed whole-step median must improve by at least 3%, including index extraction, duplicate reduction, clipping, collectives, lazy decay, and row writes.",
-    "correctness": "Across the exact four-table geometry, one joint rank-local clip coefficient covers all table gradients. The FP32 CPU oracle exactly matches deterministic dense AVG plus RMSProp; its explicitly defined BF16 occurrence/collective emulation passes BF16-parameter/FP32-state and BF16-state variants but does not establish native rounding order. Untouched parameter and physical lazy state bytes do not change; deterministic replay and serialize/reload/next-update pass; actual 35c9 checkpoint model-key and load_for_eval source contracts remain unchanged; no crash, NaN, causality, or budget failure."
+    "correctness": "Across the exact four-table geometry, one joint rank-local clip coefficient covers all table gradients. The software-defined FP32 and BF16 oracles bit-exactly match deterministic dense AVG plus RMSProp, but the BF16 oracle does not establish native rounding order. Untouched parameter and physical lazy state bytes do not change; deterministic replay and serialize/reload/next-update pass. Offline checks establish only byte-identical 35c9/prepare source and an unchanged strict-load expression. A future authenticated native probe must strict-load the same real checkpoint through both paths and compare exact model keys, table bytes, and logits; no crash, NaN, causality, or budget failure."
   },
   "abort_conditions": [
     "The backward path materializes or scans the full dense table gradient.",
@@ -65,6 +65,7 @@
     "Deferred beta2 decay or global bias correction differs from dense RMSProp.",
     "Untouched table parameters change, or logical optimizer state differs from dense RMSProp.",
     "Checkpoint model keys, load_for_eval behavior, logits, causality, or scoring path changes.",
+    "The future authenticated native component probe does not strict-load one real checkpoint through control and candidate and establish identical key sets, n-gram table bytes, and logits on predeclared inputs.",
     "Whole-step throughput gain is below 3% or final BPB gate fails.",
     "Any training, SSH, submission, or AWS action occurs before independent verification and separate human run approval."
   ],
