@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "role": "independent_verifier",
+  "verdict": "PASS",
+  "scope": "technical_submission_package_only",
+  "reviewed_commit": "7e0ab71b8eefbdc4908b73ccb6f7e20218378c0f",
+  "reviewed_parent": "4a594d47eceac33f3abe091d90ff36f5af292ef0",
+  "supersedes_hold_receipt_commit": "4506b96b4ac55055e415a9442bcb61b3a38a7216",
+  "package_path": "submissions/insurance_116188_review_20260924",
+  "candidate": {
+    "path": "submissions/insurance_116188_review_20260924/train.py",
+    "bytes": 85557,
+    "sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "canonical_byte_equality": true,
+    "evidence_object_byte_equality": true
+  },
+  "launch_command": {
+    "path": "submissions/insurance_116188_review_20260924/launch-command.txt",
+    "bytes": 246,
+    "sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "trailing_newline_count": 1,
+    "embedded_newlines": 0,
+    "unchanged_from_prior_package": true
+  },
+  "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "checks": {
+    "sha256sums_verified_entries": 9,
+    "sha256sums_missing_non_self_files": 0,
+    "sha256sums_extra_files": 0,
+    "manifest_total_bound_items_verified": 20,
+    "manifest_direct_result_runtime_postflight_bindings_verified": 6,
+    "manifest_prior_receipts_verified": 13,
+    "official_prepare_check": "PASS",
+    "confirmation_static_decimal": "PASS",
+    "python_compile": "PASS",
+    "synthetic_cpu_strict_load_exact_logits_frozen_hook_free_state_identity": "PASS",
+    "reviewer_risk_ast_scan": "PASS",
+    "secret_and_prohibited_file_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "review_findings": {
+    "newline_statement_corrected": true,
+    "reviewer_risk_discloses_three_import_time_os_environ_setdefault_calls": true,
+    "neuron_defaults_are_compile_training_defaults_not_an_eval_only_path": true,
+    "load_for_eval_count": 1,
+    "torch_load_count": 1,
+    "torch_load_map_location_cpu": true,
+    "torch_load_weights_only": true,
+    "hidden_eval_wrapper_hook_monkeypatch_or_alternate_weights_found": false,
+    "external_data_pretrained_weights_or_scoring_changes_found": false,
+    "full_prior_rejection_text_available": false,
+    "uncertainty_and_required_human_risk_acceptance_explicit": true
+  },
+  "authority": {
+    "technical_packaging_complete": true,
+    "submission_approved": false,
+    "human_upload_authorized": false,
+    "human_only_decision_remaining": "Recover the full prior rejection explanation, or explicitly accept the residual uncertainty that its unavailable text may identify a reviewer concern not visible in the truncated records; then separately authorize one human-controlled upload.",
+    "this_receipt_authorizes_submission": false
+  }
+}
