@@ -12,11 +12,13 @@ touched-row-only synchronized table optimizer. Track C keeps the review-clean ca
 adopted research changes by at most 12 hours. Window-pattern and RoPE-base experiments are not
 launchable as flag-only arms because those flags do not exist in `35c9...`.
 
-Track B2's CPU feasibility contract independently passed on branch
-`experiment/20260924-track-b2-ngram-touched-row` at verifier receipt `b58ce84f`. This is not
-hardware authorization: a native component probe must still strict-load an authenticated real
-`35c9...` checkpoint through control and candidate paths and prove complete key identity, exact
-four-table bytes, and exact predeclared-input logits before any sparse-update training run.
+Track B2's CPU feasibility contract and blocked native-probe harness independently passed on branch
+`experiment/20260924-track-b2-ngram-touched-row` at verifier receipts `b58ce84f` and `a2a44065`.
+This is not hardware authorization: the probe remains non-dispatchable until it is bound to an
+authenticated successful `35c9...` Track-A receipt, retained checkpoint, independently reviewed
+candidate, host and immutable request. One separately human-approved component probe must then
+prove key/table/logit identity and native distributed-update semantics; even a passing probe does
+not authorize sparse-update training.
 
 The Track-A launcher repair independently passed 21/21 tests and hostile descendant-process
 fixtures. Its exact dual-host controls are verifier-finalized and pushed on
