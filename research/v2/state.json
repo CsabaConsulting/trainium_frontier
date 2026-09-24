@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T21:26:00Z",
+  "written_utc": "2026-09-24T21:28:28Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -20,7 +20,7 @@
   "launch_authorized": false,
   "active_launcher": "one-off legacy fresh_start_launch/guard; no unattended controller",
   "one_job_authorization": {
-    "status": "DISPATCHED_ONCE_RUNNING",
+    "status": "SAFETY_STOP_REQUESTED_DISK_BELOW_FLOOR_POSTFLIGHT_PENDING",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
     "request": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r1.request.json",
     "request_sha256": "4f1495c86ac236789a085d5f235a3d2c3550653c9690f49ff66bb596e3d17c8e",
@@ -67,7 +67,7 @@
       "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence"
     },
     "native": {
-      "status": "A0_WARM_FULL_RUN_RUNNING",
+      "status": "A0_COMPILE_DISK_FLOOR_FAILURE_PRE_STEP_POSTFLIGHT_PENDING",
       "blocking": true
     },
     "runner": {
@@ -99,15 +99,17 @@
       "neuron_device_holders": 0
     },
     "trn22": {
-      "status": "RUNNING_A0_WARM_DENSE_CONTROL",
+      "status": "DISK_FLOOR_BREACH_GUARD_STOP_POSTFLIGHT_PENDING",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T21:25:57Z",
+      "last_observed_utc": "2026-09-24T21:28:28Z",
       "prelaunch_free_bytes": 7950065664,
+      "floor_breach_observed_free_bytes": 6449438720,
+      "operational_floor_bytes": 6979321856,
       "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
       "guard_pid": 2963679,
       "training_processes": null,
       "neuron_device_holders": null,
-      "telemetry_note": "Guard dispatch confirmed; live child/device-holder counts are pending Operator observation"
+      "telemetry_note": "Operator authenticated guard PID/UID/argv and signaled only that guard on first below-floor observation; terminal postflight and process/device quiescence pending"
     }
   },
   "breakers": {
@@ -118,7 +120,9 @@
       "tripped": false
     },
     "trn22": {
-      "tripped": false
+      "tripped": true,
+      "reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
+      "human_reset_required": true
     }
   },
   "alert_cmd": "${TRAINIUM_ALERT_CMD}",
@@ -130,8 +134,8 @@
       "deletion_targets": []
     }
   ],
-  "last_event": "One exact warm c5c A0 baseline dispatched on trn22 at 21:25:57 UTC under the guarded launcher, with the independent boundary observer already alive. No terminal result or BPB yet. trn21 and warm S0 remain disk-blocked.",
-  "updated_utc": "2026-09-24T21:26:00Z",
+  "last_event": "A0 compile consumed disk before the first observed optimizer step; trn22 free space fell to 6,449,438,720 bytes below the immutable 6.5-GiB floor. Operator signaled only the authenticated guard. No score or checkpoint claim; postflight pending. No further training until human volume expansion and breaker decision.",
+  "updated_utc": "2026-09-24T21:28:28Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
   "ideation_policy": {
