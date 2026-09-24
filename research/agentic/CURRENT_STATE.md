@@ -60,6 +60,12 @@ This section supersedes earlier Track-A readiness and host-control statements be
 - A9 out-pool was likewise stopped as a prior dense negative/null. The exact one-factor
   `t39-outpool-900s` run lost about `+0.0013` BPB at both 1024 and 2048 context while completing
   1.4% fewer steps; its throughput-adjusted residual was also non-improving. No repeat was made.
+- A10 (depth 8 x width 768 plus winning tables) is ineligible: there is no adopted table winner,
+  and the proposed arm bundles depth, width, and table changes. Prior depth-8 evidence is also
+  strongly wall-clock negative. The duplicate-cleared Track-A queue therefore has no immediately
+  runnable arm: A1 awaits the hybrid-ownership repair gates; A2 shares that blocker; A3/A7 flags
+  are absent; A4/A5/A6/A8/A9 are evidence-stopped; A10 is dependency-blocked. Unblocking and
+  verifying A1 is the next useful Track-A action.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
