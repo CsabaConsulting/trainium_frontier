@@ -1,0 +1,104 @@
+{
+  "schema": "a1-native-five-g1-r2-rematerialization-authority-ruling-v1",
+  "created_at_utc": "2026-09-24T18:33:11Z",
+  "role": "independent-verifier-read-only-authority-ruling",
+  "verdict": "ALLOW_EXACT_DETERMINISTIC_REMATERIALIZATION_ONLY",
+  "r3_authority_chain_required_under_stated_facts": false,
+  "governing_authority": {
+    "request_bearing_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
+    "request_bearing_head": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "request_template_sha256": "a2d1a0a60e8672d816e0ef94ee77d04af771d70b05fc72fb416f3ee252bc7fee",
+    "authorization_sha256": "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771",
+    "authorization_verifier_commit": "3a5e47f917f39063885500d9a3c00bd1417e8d8c",
+    "authorization_verifier_receipt_sha256": "40434954117bd94af3ee05d8101de395634ea68b0ba3924cef5be3960b33979c",
+    "historical_request_verifier_commit": "65b807dab3ea6a785e44aef91fef32c5168b3879",
+    "historical_request_verifier_receipt_sha256": "bcd1e09dd09c8c8d448d1e4b9ed39fe238d4abd7fb70caadf7a3feb2ecc76572",
+    "repaired_launcher_sha256": "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f"
+  },
+  "lost_request_identity": {
+    "path": "/tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.request.json",
+    "sha256": "dfde895a86c66a71eb6a450c4f82bacf44209c6c815fc81a368af23499e921fb",
+    "bytes": 8305,
+    "mode": "0600",
+    "single_link": true,
+    "status_after_controller_restart": "ABSENT",
+    "absence_independently_confirmed_locally": true
+  },
+  "recovery_facts_supplied_for_ruling": {
+    "request_was_never_dispatched": true,
+    "local_dispatch_receipt_absent": true,
+    "remote_exact_label_process_absent": true,
+    "remote_exact_label_lock_absent": true,
+    "remote_device_holder_absent": true,
+    "remote_runtime_job_absent": true,
+    "remote_runtime_result_absent": true,
+    "remote_output_absent": true,
+    "remote_report_absent": true,
+    "remote_compile_cache_absent": true,
+    "staged_bundle_exact_and_preserved": true,
+    "remote_checkout_clean_at_authorized_head": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "verifier_host_access_performed": false,
+    "basis": "These remote recovery facts were supplied as controlling facts for this read-only ruling; this Verifier did not repeat host access."
+  },
+  "canonical_findings": {
+    "materializer_is_not_authority": true,
+    "materializer_accepts_only_exact_external_head_template_auth_and_output_path": true,
+    "materializer_requires_output_path_absent": true,
+    "materializer_uses_no_follow_o_excl_mode_0600_single_link_publication": true,
+    "materializer_has_no_consumption_nonce_counter_or_durable_materialization_marker": true,
+    "materializer_does_not_launch_or_access_host": true,
+    "deterministic_builder_reconstructed_in_memory_without_write": true,
+    "reconstructed_request_sha256": "dfde895a86c66a71eb6a450c4f82bacf44209c6c815fc81a368af23499e921fb",
+    "reconstructed_request_bytes": 8305,
+    "launcher_writes_exclusive_local_dispatch_receipt_before_ssh": true,
+    "dispatch_absence_proves_launcher_dispatch_boundary_was_not_entered": true,
+    "historical_request_receipt_requires_fresh_verification_for_any_new_file_identity": true,
+    "historical_request_receipt_does_not_require_new_authorization_for_identical_regeneration": true,
+    "r1_was_consumed_by_an_actual_dispatch_attempt_not_by_request_serialization": true
+  },
+  "ruling": {
+    "supervisor_may_rematerialize": true,
+    "scope": "Create only the same deterministic local request at the same absent path from the exact existing authority literals; this is recovery of an ephemeral serialization, not a launch or experiment retry.",
+    "authorized_head": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "request_sha256_literal": "a2d1a0a60e8672d816e0ef94ee77d04af771d70b05fc72fb416f3ee252bc7fee",
+    "authorization_sha256_literal": "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771",
+    "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
+    "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
+    "output_path": "/tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.request.json",
+    "expected_output_sha256": "dfde895a86c66a71eb6a450c4f82bacf44209c6c815fc81a368af23499e921fb",
+    "expected_output_bytes": 8305,
+    "expected_output_mode": "0600",
+    "expected_output_links": 1,
+    "new_r3_label_or_authority_required": false
+  },
+  "mandatory_post_rematerialization_gate": {
+    "fresh_independent_same_file_verification_required": true,
+    "old_request_receipt_cannot_attest_new_inode": true,
+    "requirements": [
+      "Open the exact output once with O_RDONLY|O_CLOEXEC|O_NOFOLLOW and prove stable regular current-owner mode-0600 single-link identity.",
+      "Prove exact 8305 bytes and SHA-256 dfde895a86c66a71eb6a450c4f82bacf44209c6c815fc81a368af23499e921fb.",
+      "Rebuild the canonical request only in memory and prove exact object and canonical-byte equality.",
+      "Revalidate the exact authority branch/head/template/auth hashes, all fingerprints, and continued dispatch/runtime/output/report absence.",
+      "Write and push a new request-verifier receipt bound to the new inode observation before any Operator decision."
+    ]
+  },
+  "fail_closed_conditions": {
+    "any_existing_dispatch_receipt_or_remote_attempt_artifact_requires_new_chain": true,
+    "any_non_absent_output_path_before_materialization_requires_stop": true,
+    "any_authority_source_head_hash_path_or_output_byte_drift_requires_stop": true,
+    "any_output_hash_size_mode_owner_link_or_canonical_mismatch_requires_stop": true,
+    "any uncertainty_in_supplied_remote_recovery_facts_requires_stop": true
+  },
+  "authority_not_granted_by_this_ruling": {
+    "host_access": false,
+    "ssh": false,
+    "launcher_execution": false,
+    "native_execution": false,
+    "g2": false,
+    "full_a1": false,
+    "cleanup": false,
+    "checkpoint_prune": false,
+    "cache_cleanup": false,
+    "submission": false
+  }
+}
