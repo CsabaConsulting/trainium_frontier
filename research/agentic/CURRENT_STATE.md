@@ -12,6 +12,12 @@ touched-row-only synchronized table optimizer. Track C keeps the review-clean ca
 adopted research changes by at most 12 hours. Window-pattern and RoPE-base experiments are not
 launchable as flag-only arms because those flags do not exist in `35c9...`.
 
+Track B2's CPU feasibility contract independently passed on branch
+`experiment/20260924-track-b2-ngram-touched-row` at verifier receipt `b58ce84f`. This is not
+hardware authorization: a native component probe must still strict-load an authenticated real
+`35c9...` checkpoint through control and candidate paths and prove complete key identity, exact
+four-table bytes, and exact predeclared-input logits before any sparse-update training run.
+
 The previously launched Trn22 `116188cf...` current-base control remains valid submission-safety
 work and is allowed to finish; it is not mislabeled as a `35c9...` Track-A control. The old LR0125
 and embedding-only harness work is parked unlaunched. The legacy autonomous fixed queue remains
