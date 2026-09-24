@@ -1,0 +1,269 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015"
+  ],
+  "elapsed_s": 10.6,
+  "host": "ip-172-31-32-253",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": null,
+  "prepare": {
+    "dir": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2",
+    "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "stub": false
+  },
+  "python": "3.12.3",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+      ],
+      "classification": "FileNotFoundError in main:4010",
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r2.steps.jsonl'",
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.11.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4856, in <module>\n    main()\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4010, in main\n    record_step_boundary(step)\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/prepare.py\", line 109, in record_step_boundary\n    with open(STEP_LOG_PATH, \"a\", encoding=\"utf-8\") as fh:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "FileNotFoundError: [Errno 2] No such file or directory: '/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r2.steps.jsonl'\n"
+      ],
+      "train_py_frame": {
+        "code": "record_step_boundary(step)",
+        "function": "main",
+        "line": 4010
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+      ],
+      "classification": "RuntimeError in main:4031",
+      "error": "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:19339: Connection reset by peer",
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.11.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4856, in <module>\n    main()\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4031, in main\n    dist.all_reduce(control, op=dist.ReduceOp.MAX)\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 83, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 3075, in all_reduce\n    work.wait()\n",
+        "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:19339: Connection reset by peer\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(control, op=dist.ReduceOp.MAX)",
+        "function": "main",
+        "line": 4031
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+      ],
+      "classification": "RuntimeError in main:4031",
+      "error": "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:547] Connection closed by peer [172.31.32.253]:31928",
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.11.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4856, in <module>\n    main()\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4031, in main\n    dist.all_reduce(control, op=dist.ReduceOp.MAX)\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 83, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 3075, in all_reduce\n    work.wait()\n",
+        "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:547] Connection closed by peer [172.31.32.253]:31928\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(control, op=dist.ReduceOp.MAX)",
+        "function": "main",
+        "line": 4031
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/dev/shm/trainium-v2-g2-20260925-trn22-r2/g2-73cswq9j/out"
+      ],
+      "classification": "RuntimeError in main:4031",
+      "error": "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:20666: Connection reset by peer",
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.11.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4856, in <module>\n    main()\n",
+        "  File \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py\", line 4031, in main\n    dist.all_reduce(control, op=dist.ReduceOp.MAX)\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 83, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 3075, in all_reduce\n    work.wait()\n",
+        "RuntimeError: [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:538] Read error [172.31.32.253]:20666: Connection reset by peer\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(control, op=dist.ReduceOp.MAX)",
+        "function": "main",
+        "line": 4031
+      }
+    }
+  ],
+  "reason": "FileNotFoundError in main:4010",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "steps": 3,
+  "timed_out": false,
+  "torch": "2.11.0+cpu",
+  "torchrun_log_tail": [
+    "  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637",
+    "       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())",
+    "[W924 22:43:57.481468337 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.",
+    "  Overriding a previously registered kernel for the same operator and the same dispatch key",
+    "  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)",
+    "    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6",
+    "  dispatch key: PrivateUse1",
+    "  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637",
+    "       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())",
+    "[W924 22:43:57.481536123 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.",
+    "  Overriding a previously registered kernel for the same operator and the same dispatch key",
+    "  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)",
+    "    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6",
+    "  dispatch key: PrivateUse1",
+    "  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637",
+    "       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())",
+    "[W924 22:43:57.481589517 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.",
+    "  Overriding a previously registered kernel for the same operator and the same dispatch key",
+    "  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)",
+    "    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6",
+    "  dispatch key: PrivateUse1",
+    "  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637",
+    "       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())",
+    "[W924 22:43:57.481590867 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.",
+    "  Overriding a previously registered kernel for the same operator and the same dispatch key",
+    "  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)",
+    "    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6",
+    "  dispatch key: PrivateUse1",
+    "  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637",
+    "       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())",
+    "muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=3 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 3 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 8,",
+    "  \"n_embd\": 1024,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]",
+    "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]",
+    "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/train.py",
+  "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "verdict": "FAIL"
+}
