@@ -21,10 +21,11 @@ import torch
 REPORT_SCHEMA = "a1-native-five-equivalence-v1"
 TABLE_NAMES = ("ngram_embeds.b5.weight", "ngram_embeds.t5.weight")
 ARM_LABELS = {
-    "G0": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
-    "G1": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
-    "G2": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
+    "G0": "fs-20260925-v2-a1-native5-g0-hybrid-observation-off-trn22-r1",
+    "G1": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn22-r1",
+    "G2": "fs-20260925-v2-a1-native5-g2-ordinary-observation-on-trn22-r1",
 }
+EXPECTED_HOST = "trn22"
 
 
 def _tensor_record(tensor: torch.Tensor) -> dict[str, Any]:
@@ -74,7 +75,7 @@ class NativeGateObserver:
             raise ValueError("native gate arm/observation/mode contract mismatch")
         if world_size != 4 or rank not in range(world_size):
             raise ValueError("native gate requires world_size=4 and a valid rank")
-        if host != "trn21" or label != ARM_LABELS[arm]:
+        if host != EXPECTED_HOST or label != ARM_LABELS[arm]:
             raise ValueError("native gate host/label contract mismatch")
         report_dir = Path(report_dir)
         report_dir.mkdir(parents=True, exist_ok=True)

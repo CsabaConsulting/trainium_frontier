@@ -18,7 +18,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 OWNERSHIP_MANIFEST_PATH = Path(__file__).with_name("a1_ownership_manifest.json")
-OWNERSHIP_MANIFEST_SHA256 = "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007"
+OWNERSHIP_MANIFEST_SHA256 = "6f085b0d2e06ca6386cde2b993955014c226a25d636287d7e3e7cba65a35463b"
 OWNERSHIP_MANIFEST_SCHEMA = "a1-native-five-ownership-manifest-v1"
 SCHEMA = "a1-native-five-equivalence-v1"
 TABLES = {"ngram_embeds.b5.weight", "ngram_embeds.t5.weight"}
@@ -32,6 +32,7 @@ LABELS = {
     "G1": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
     "G2": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
 }
+EXPECTED_HOST = "trn21"
 WORLD_SIZE = 4
 EXPECTED_STEPS = 5
 # Exact A1 ownership contract reconstructed from the pinned source and flags.  The
@@ -350,7 +351,7 @@ def _parse_rank_bytes(data: bytes, arm: str, rank: int) -> list[dict[str, Any]]:
     detailed, mode = ARMS[arm]
     if (header.get("arm"), header.get("detailed"), header.get("optimizer_mode"),
             header.get("rank"), header.get("world_size"), header.get("host"),
-            header.get("label")) != (arm, detailed, mode, rank, 4, "trn21", LABELS[arm]):
+            header.get("label")) != (arm, detailed, mode, rank, 4, EXPECTED_HOST, LABELS[arm]):
         raise InvalidGate(f"{arm} rank {rank}: identity mismatch")
     if header.get("config") != {
             "clip_after_reduce": True, "matrix_lr": 0.015,
