@@ -1,0 +1,49 @@
+{
+  "reviewed_commit": "0846e51baed8412be6b52d77efcde387ddaf81e2",
+  "reviewed_parent": "60bf43cff52d533607e3a12d6885679d4b439f8b",
+  "role": "independent_verifier_g0_exact_membership_r4",
+  "status": "FAIL",
+  "summary": "Exact immediate name/type allowlists now reject the requested extra-member attacks before, after and at the final membership check. The final operation still does not jointly bind those names to the previously hashed inode identities: a late same-name file replacement passes the final allowlist and reaches result creation.",
+  "checks": {
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-native5-g0-r4.u8J9oK",
+    "reviewed_commit_exact": true,
+    "reviewed_parent_is_prior_fail": true,
+    "py_compile_passed": true,
+    "complete_gate_tests_passed": 29,
+    "accepted_optimizer_regression_tests_passed": 13,
+    "realistic_success_lifecycle_passed": true,
+    "output_empty_directory_rejected": true,
+    "report_empty_directory_rejected": true,
+    "output_nested_file_or_directory_rejected": true,
+    "report_nested_file_or_directory_rejected": true,
+    "output_extra_immediate_file_rejected": true,
+    "report_extra_immediate_file_rejected": true,
+    "output_post_hash_insertion_rejected_when_final_allowlist_runs": true,
+    "report_post_hash_insertion_rejected_when_final_allowlist_runs": true,
+    "late_output_file_identity_replacement_rejected": false,
+    "late_report_file_identity_replacement_rejected": false,
+    "prior_alias_escape_nondir_hardlink_and_sealed_write_matrix_passed": true,
+    "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "package_verification_sha256": "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf",
+    "g0_finalization_sha256": "38b661ddd243e108454f1926dd50537e2efd2e299ac043c2848a15a4dd3fa968",
+    "g0_request_template_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+    "protected_science_or_launcher_files_changed": false
+  },
+  "blockers": [
+    {
+      "id": "B1_FINAL_MEMBERSHIP_AND_CONTENT_SEALS_ARE_SEPARATE",
+      "evidence": "For both output/final.pt and report/rank-0.jsonl, a clean allowlist and artifact snapshot were established and _revalidate_snapshot passed. Replacing the file with a new regular single-link inode immediately afterward still passed the same _validate_success_artifact_allowlist used as run()'s last artifact-tree operation. The replacement inode differed from the stored identity, but no _revalidate_snapshot call follows the final allowlist before SealedWrite.",
+      "impact": "A PASS result can name the exact expected files while those names resolve to bytes/inodes different from the artifacts recorded in the result.",
+      "required_fix": "Make the final pre-result gate jointly authenticate exact immediate membership and every hashed file identity. At minimum, run the exact membership check, then revalidate the stored file identities, then recheck membership immediately before SealedWrite; preferably use held output/report dirfds and a membership seal so name/type/inode bindings are validated as one operation. Add deterministic replacement and insertion attacks injected between every final subcheck for both output and report."
+    }
+  ],
+  "authorization_conditions": [
+    "Do not finalize or materialize G0 while B1 remains unresolved.",
+    "Re-review must rerun all 29 tests, optimizer regressions, realistic lifecycle, prior attack matrix, and late same-name replacement/insertion attacks at every final seal boundary.",
+    "G1/G2, cleanup, pruning, native execution, full A1 and submission remain unauthorized."
+  ],
+  "hardware_authorized": false,
+  "g0_request_may_be_finalized": false
+}
