@@ -1,0 +1,175 @@
+{
+  "schema": "a1-native-five-g1-r3-correctness-independent-verification-v1",
+  "verdict": "PASS",
+  "role": "independent-verifier",
+  "verified_at_utc": "2026-09-24T18:53:23Z",
+  "reviewed_branch": "implement/20260925-v2-a1-native5-g1-correctness-r3",
+  "reviewed_commit": "37071df8069835d363e51883e090ff594e5a6520",
+  "reviewed_parent": "5313527dd34ad1c5927636340b4d97252a644828",
+  "reviewed_tree": "b341fbb1b7ac8f80434faaa4422e9739d28ff323",
+  "origin_alignment": {
+    "fetched_ref": "origin/implement/20260925-v2-a1-native5-g1-correctness-r3",
+    "fetched_commit": "37071df8069835d363e51883e090ff594e5a6520",
+    "clean_detached_review": true,
+    "git_fsck_strict": "PASS"
+  },
+  "instructions": {
+    "root_agent_contract": "supplied to the Verifier out of band and followed; no AGENTS.md is tracked at the reviewed commit",
+    "read": [
+      "README.md",
+      "research/experiment-protocol.md",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R3_CORRECTNESS_RETRY_AMENDMENT.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/G1_R2_CORRECTNESS_FAILURE_ANALYSIS.md",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/RUNBOOK.md"
+    ],
+    "not_present_at_reviewed_commit": [
+      "research/agentic/CURRENT_STATE.md",
+      "research/agentic/DECISION_LOG.md"
+    ]
+  },
+  "scope": {
+    "changed_files": 15,
+    "observer_executable_change": "exactly one ARM_LABELS['G1'] literal: consumed r1 label -> unique r3 label",
+    "observer_old_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "observer_new_sha256": "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225",
+    "g0_label_unchanged": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+    "g2_label_unchanged": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
+    "ownership_manifest_change": "only the authenticated observer SHA-256 literal",
+    "comparator_change": "only the ownership-manifest SHA-256 literal",
+    "remaining_changes": "r3-only proposal, provenance, unique identity, finalization, adjudication and regression-test plumbing"
+  },
+  "tests": {
+    "full_command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r3_package.py research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py",
+    "full_result": "PASS",
+    "total": 104,
+    "breakdown": {
+      "gate_package": 60,
+      "g1_package": 10,
+      "g1_r2_package": 12,
+      "g1_r3_package": 9,
+      "ownership": 13
+    },
+    "py_compile": "PASS: observer, every package Python file and fresh_start_launch.py",
+    "json_parse": "PASS: all 2335 tracked JSON files",
+    "git_diff_check": "PASS"
+  },
+  "cross_boundary": {
+    "method": "independent script loaded the exact template train_argv and child_environment, then constructed the actual research.a1_native_gate_observer.NativeGateObserver",
+    "accepted": {
+      "label": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
+      "host": "trn21",
+      "ranks": [0, 1, 2, 3],
+      "world_size": 4,
+      "headers": 4,
+      "exclusive_rank_files": 4
+    },
+    "rejected_on_every_rank": [
+      "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+      "exact r3 label with host trn22"
+    ],
+    "negative_cases": 12,
+    "production_forwarding": "AST confirms the sole production NativeGateObserver call forwards args.native_gate_arm, args.native_gate_observation, args.native_gate_label, args.native_gate_host and args.native_gate_report_dir without transformation"
+  },
+  "science_and_protected_files": {
+    "unchanged_from_parent": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "submissions/dense6x1024_public0992851/train.py": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+      "research/fresh_start_launch.py": "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f",
+      "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+      "research/fresh_start_host.py": "f5bc5034b4ac77e2af3234a9630ab8e4d0e3f1b24f7404ac22778d30016e6d16",
+      "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+      "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705"
+    },
+    "authenticated_repin": {
+      "research/a1_native_gate_observer.py": "25bc72a2c4a70948915e0449d6dbc6fbcfa35e519b06a82137b55d755c88e225",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "5fd3b2f075191210b7e373c8321c68b2d8f880db8cc7a788d60a90db4a382007",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": "4b199343a1cecfc6be4b86242da421127c39e8dcf9f67b378ef56f75927fdd32"
+    },
+    "request_source_fingerprints": "PASS: all 37 exact regular single-link files match",
+    "r2_to_r3_science": "17 fixed fields exactly equal; child environment differs only compile-cache/run-id identity; train argv differs only out-dir/label/report identity",
+    "evaluator_tokenizer_scoring": "no changed file; repository contract remains in unchanged prepare.py"
+  },
+  "g0_revalidation": {
+    "command": "python compare_gate_reports.py --validate-g0-only <immutable-G0-native-gate-dir> --output <new-temporary-output>",
+    "status": "PASS",
+    "result_sha256": "5e92240808e95b445a2bd0cb2f7c816c33d814e9a3a6cd0bff97504f013b6ce1",
+    "result_bytes": 326,
+    "owned_entry_count": 66,
+    "owner_exchanges_per_rank": 5,
+    "note": "This is the expected mechanical replay digest after the observer/manifest pin rebound; the immutable historical r4 PASS receipt remains pinned separately."
+  },
+  "provenance_and_consumption": {
+    "r1": {
+      "failure_commit": "e1550203a61c53cd7c73b0c543ced8a157312612",
+      "analysis_commit": "2029ca66ec83cbcc98fef42b1e0571205c013c69",
+      "analysis_sha256": "c457bb70c161d1db5f048581cbfbe321acc260bd249e131eac847ae8be7b676b",
+      "failure_receipt_sha256": "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943",
+      "consumed": true,
+      "training_started": false
+    },
+    "r2": {
+      "failure_commit": "5b392db4bc8c01a47da2f5969cb33df0c50ec52b",
+      "analysis_commit": "5313527dd34ad1c5927636340b4d97252a644828",
+      "analysis_sha256": "014288adbbcfaa516cbdcf141e5f70a7dc7418fa63191f6797014ee0b5b20c3a",
+      "failure_receipt_sha256": "c6db31c323c545c851c63fb1c8313b46a0b2d0aeafc1e2a1ea8045e43acd8fb5",
+      "runtime_result_sha256": "705547ff56258ac69232b0dd515d07a52056445c32ce5e513ac15613ffba8596",
+      "consumed": true,
+      "training_updates": 0,
+      "rank_reports": 0,
+      "checkpoint_count": 0,
+      "process_group_quiescent": true
+    },
+    "old_authorities": "r1 authorization, r2 authorization and pending r3 authorization all reject against the r3 finalizer"
+  },
+  "unique_r3_identity": {
+    "label": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
+    "branch": "experiment/20260925-v2-a1-hybrid-native5-g1-r3-finalization",
+    "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_a1_native5_g1_hybrid_observation_on_trn21_r3",
+    "bundle": "/home/ubuntu/v2-a1-native5-g1-r3.bundle",
+    "compile_cache": "/home/ubuntu/neuron_cache_20260925_v2_a1_native5_g1_trn21_r3",
+    "output": "out/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
+    "report": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3/native-gate",
+    "runtime_job": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.job.json",
+    "child_log": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.child.log",
+    "runtime_result": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.runtime-result.json",
+    "dispatch": "research/run-logs/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.dispatch.json",
+    "request": "/tmp/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.request.json",
+    "all_distinct_from_r1_r2": true,
+    "all_local_runtime_request_paths_absent": true
+  },
+  "finalization": {
+    "request_template_sha256": "50b083be810557b4cc222520119006475bc59158659dfa7d63ba90fd4272b43a",
+    "request_template_bytes": 18521,
+    "finalizer_sha256": "4b4364d5812b81d3ddafd889705f4ccb2bf0af564f8b425158b5a5f9108b98b6",
+    "pending_authorization_sha256": "3572b10a3d81df4b8d1e55872bab74ab8ea166da8fb4088b98e9732548b64295",
+    "pending_authorization": "rejected by validate_authorization; all 12 protected hashes and the request hash remain PENDING_EXTERNAL_VERIFIER",
+    "executable_authorization_exists": false,
+    "concrete_request_exists": false,
+    "hash_cycle": "PASS: template does not embed authorization SHA; future authorization binds the independently hashed template and does not pin itself; concrete request receives distinct external template/auth hashes and fingerprints the authorization path",
+    "downstream_locks": "G2, full A1, cleanup, checkpoint prune, cache delete and submission remain false/locked"
+  },
+  "secret_review": {
+    "method": "scanned only the 15 changed tracked files for private-key/AWS-token content markers; did not open any secret file",
+    "secret_content_markers": "absent",
+    "request_identity_or_key_path": "absent",
+    "request_key_material": "absent"
+  },
+  "authorization_boundary": {
+    "implementation_verification": "PASS",
+    "separate_state_only_authorization_review_may_proceed": true,
+    "request_materialization_authorized_by_this_receipt": false,
+    "host_access_authorized_by_this_receipt": false,
+    "native_execution_authorized_by_this_receipt": false,
+    "g2_authorized": false,
+    "full_a1_authorized": false,
+    "cleanup_or_prune_authorized": false,
+    "submission_authorized": false
+  },
+  "blockers": []
+}
