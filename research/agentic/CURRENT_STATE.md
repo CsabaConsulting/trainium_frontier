@@ -88,6 +88,14 @@ This section supersedes earlier Track-A readiness and host-control statements be
   collective, HBM, checkpoint, and fresh-cache gates also remain unauthenticated. Historical LNC1
   evidence is unfavorable. Do not propose B1 until A1 works and a separately matched pack16
   topology contract clears the documented component gates.
+- A2 (bigram+trigram tables at layers `1,-1`, mult64, dim128, BF16 RMSProp) is
+  `GO-CONDITIONAL` only after A1 passes and produces a valid archived same-host result. Historical
+  evidence found adding layer 1 improved about `-0.0118` BPB at fixed steps, with a roughly 5.86%
+  throughput cost; the current-stack prediction versus A1 is about `-0.010` fresh2M BPB with a
+  wide `[-0.025,+0.005]` interval. The exact profile creates four 128-MiB tables plus roughly
+  512 MiB each of replicated RMSProp moments and dense gradients, so ownership correctness, HBM,
+  collectives, checkpoint/load, causality, throughput, and same-host A1 comparison must gate it.
+  No executable A2 proposal may exist before A1 clears those dependencies.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
