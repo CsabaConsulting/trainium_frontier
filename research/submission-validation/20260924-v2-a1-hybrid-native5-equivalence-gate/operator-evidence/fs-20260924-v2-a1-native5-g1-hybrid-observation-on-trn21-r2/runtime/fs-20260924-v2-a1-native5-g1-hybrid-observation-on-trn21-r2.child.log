@@ -1,0 +1,162 @@
+[W924 18:36:39.021971344 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0924 18:36:39.582000 2814671 torch/distributed/run.py:851] 
+W0924 18:36:39.582000 2814671 torch/distributed/run.py:851] *****************************************
+W0924 18:36:39.582000 2814671 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0924 18:36:39.582000 2814671 torch/distributed/run.py:851] *****************************************
+[W924 18:36:41.181819097 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 18:36:41.182056844 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 18:36:41.183453861 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 18:36:41.183582016 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=5 steps max_seconds=1800 official_budget=1800s
+gradient_clip=1 clip_after_reduce=True
+attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False
+branch_precision: bf16_norm_output=True nki_local_conv=True
+WARNING: --num-steps 5 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 8,
+  "n_embd": 1024,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0,
+  "n_kv_heads": 0
+}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+num_params=251,933,964 flops_per_token=7.314632e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=131,072 grad_accum_steps=1 pack_factor=32
+SUBMISSION_OPTIMIZER_INTEGRATION {"owner_partitioning": true, "rank": 2, "elements_by_owner": [27405059, 30540035, 30408963, 29362179], "estimated_ms_by_owner": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], "shard_elements": 30540160, "total_padded_bytes": 488642560, "replicated_rmsprop_groups": [{"group": 4, "parameters": [{"position": 0, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 2}, {"position": 1, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 2}]}]}
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 4914, in <module>
+[rank2]:     main()
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 3862, in main
+[rank2]:     NATIVE_GATE_OBSERVER = NativeGateObserver(
+[rank2]:                            ^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/a1_native_gate_observer.py", line 78, in __init__
+[rank2]:     raise ValueError("native gate host/label contract mismatch")
+[rank2]: ValueError: native gate host/label contract mismatch
+ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']
+SUBMISSION_OPTIMIZER_INTEGRATION {"owner_partitioning": true, "rank": 0, "elements_by_owner": [27405059, 30540035, 30408963, 29362179], "estimated_ms_by_owner": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], "shard_elements": 30540160, "total_padded_bytes": 488642560, "replicated_rmsprop_groups": [{"group": 4, "parameters": [{"position": 0, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 0}, {"position": 1, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 0}]}]}
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 4914, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 3862, in main
+[rank0]:     NATIVE_GATE_OBSERVER = NativeGateObserver(
+[rank0]:                            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/a1_native_gate_observer.py", line 78, in __init__
+[rank0]:     raise ValueError("native gate host/label contract mismatch")
+[rank0]: ValueError: native gate host/label contract mismatch
+SUBMISSION_OPTIMIZER_INTEGRATION {"owner_partitioning": true, "rank": 1, "elements_by_owner": [27405059, 30540035, 30408963, 29362179], "estimated_ms_by_owner": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], "shard_elements": 30540160, "total_padded_bytes": 488642560, "replicated_rmsprop_groups": [{"group": 4, "parameters": [{"position": 0, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 1}, {"position": 1, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 1}]}]}
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 4914, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 3862, in main
+[rank1]:     NATIVE_GATE_OBSERVER = NativeGateObserver(
+[rank1]:                            ^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/a1_native_gate_observer.py", line 78, in __init__
+[rank1]:     raise ValueError("native gate host/label contract mismatch")
+[rank1]: ValueError: native gate host/label contract mismatch
+SUBMISSION_OPTIMIZER_INTEGRATION {"owner_partitioning": true, "rank": 3, "elements_by_owner": [27405059, 30540035, 30408963, 29362179], "estimated_ms_by_owner": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], "shard_elements": 30540160, "total_padded_bytes": 488642560, "replicated_rmsprop_groups": [{"group": 4, "parameters": [{"position": 0, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 3}, {"position": 1, "shape": [524288, 128], "elements": 67108864, "dtype": "torch.bfloat16", "contiguous": true, "requires_grad": true, "device_type": "neuron", "device_index": 3}]}]}
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 4914, in <module>
+[rank3]:     main()
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py", line 3862, in main
+[rank3]:     NATIVE_GATE_OBSERVER = NativeGateObserver(
+[rank3]:                            ^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r2/research/a1_native_gate_observer.py", line 78, in __init__
+[rank3]:     raise ValueError("native gate host/label contract mismatch")
+[rank3]: ValueError: native gate host/label contract mismatch
+W0924 18:36:56.083000 2814671 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2814686 closing signal SIGTERM
+W0924 18:36:56.084000 2814671 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2814687 closing signal SIGTERM
+W0924 18:36:56.084000 2814671 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2814689 closing signal SIGTERM
+E0924 18:36:56.198000 2814671 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 2 (pid: 2814688) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-24_18:36:56
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 2814686)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2814686
+[2]:
+  time      : 2026-09-24_18:36:56
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : -15 (pid: 2814687)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2814687
+[3]:
+  time      : 2026-09-24_18:36:56
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -15 (pid: 2814689)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2814689
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-24_18:36:56
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : 1 (pid: 2814688)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
