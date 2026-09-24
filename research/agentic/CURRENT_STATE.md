@@ -1,6 +1,21 @@
 # Current state
 
-Last reconciled: 2026-09-24 09:10 UTC
+Last reconciled: 2026-09-24 10:00 UTC
+
+## Standing mission v2 — table-first first-place campaign
+
+At 2026-09-24 15:30 IST the human replaced the small-tuning critical path with the table-first
+campaign in `STANDING_MISSION_V2_2026-09-24.md`. The exact Recursive primary source and the exact
+`35c9...` flag surface have been audited. Track A now starts with per-host `35c9...` LR-0.015
+controls followed by last-layer and layers-`1,-1` hashed-table arms. Track B develops a
+touched-row-only synchronized table optimizer. Track C keeps the review-clean candidate behind
+adopted research changes by at most 12 hours. Window-pattern and RoPE-base experiments are not
+launchable as flag-only arms because those flags do not exist in `35c9...`.
+
+The previously launched Trn22 `116188cf...` current-base control remains valid submission-safety
+work and is allowed to finish; it is not mislabeled as a `35c9...` Track-A control. The old LR0125
+and embedding-only harness work is parked unlaunched. The legacy autonomous fixed queue remains
+inactive until the v2 proposals, independent receipts, and exact host controls replace it.
 
 ## Final-week override — LR 0.015 adopted, canonicalization in progress
 
