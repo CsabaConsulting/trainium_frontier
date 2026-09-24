@@ -4,6 +4,12 @@ Status: **NON-EXECUTABLE / PENDING INDEPENDENT VERIFICATION**. This is cleanup-o
 authorizes no host access, training, evaluation, r4 staging, cache cleanup, checkpoint pruning,
 AWS action, submission, or deletion. There is deliberately no executable authorization blob.
 
+Repair r2 descends from independent FAIL `e1152cb26c78dbdc68b5c57f5b0749760dcade82`
+(receipt SHA-256 `c874891cbc754943eb4ca2d1f5f37b9f7a994200cd87c563a81133edd5867051`).
+It replaces path-based unlinking with exact-inode same-filesystem quarantine, hashes bundles again
+after quarantine and immediately before unlink, binds complete checkout membership/content, and
+creates/fsyncs an append-only O_EXCL intent journal before the first destructive rename.
+
 ## Frozen scope
 
 The only deletable names are the ordered five targets embedded in `cleanup_contract.py` and
@@ -33,8 +39,10 @@ The package binds failure evidence `e1550203`, `5b392db4...`, `5e45a564...`, and
 5. A Cleanup Operator may then use `python cleanup_contract.py execute --request ... --inventory
    ... --authorization ...`. It redoes every check while holding the host lock, compares the fresh
    inventory exactly, deletes by fixed parent dirfd with no shell/glob/environment expansion,
-   fsyncs after each target, proves exact absence and preservation, requires at least the frozen
-   free-byte threshold, and writes one O_EXCL durable receipt.
+   fsyncs after every quarantine/deletion outcome, proves exact absence and preservation, requires
+   at least the frozen free-byte threshold, and writes/readback-seals one O_EXCL durable receipt.
+   Every caught interruption after intent yields a durable `PARTIAL_FAILURE` journal/receipt; it
+   can never be reported as PASS. Unknown/replaced entries are never recursively accepted/unlinked.
 6. A different Verifier authenticates the receipt before any r4 package or staging is considered.
 
 Any missing target, hash/size/metadata drift, symlink/hardlink/nonregular entry, checkout drift,

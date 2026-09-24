@@ -16,17 +16,19 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import socket
 import stat
 import subprocess
 import sys
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 
-SCHEMA_REQUEST = "a1-native-g1-consumed-staging-cleanup-request-v1"
-SCHEMA_INVENTORY = "a1-native-g1-consumed-staging-cleanup-inventory-v1"
-SCHEMA_AUTH = "a1-native-g1-consumed-staging-cleanup-authorization-v1"
-SCHEMA_RECEIPT = "a1-native-g1-consumed-staging-cleanup-receipt-v1"
+SCHEMA_REQUEST = "a1-native-g1-consumed-staging-cleanup-request-v2"
+SCHEMA_INVENTORY = "a1-native-g1-consumed-staging-cleanup-inventory-v2"
+SCHEMA_AUTH = "a1-native-g1-consumed-staging-cleanup-authorization-v2"
+SCHEMA_RECEIPT = "a1-native-g1-consumed-staging-cleanup-receipt-v2"
+SCHEMA_JOURNAL = "a1-native-g1-consumed-staging-cleanup-journal-v1"
 HOST = "trn21"
 HOSTNAME = "ip-172-31-34-85"
 PARENT = "/home/ubuntu"
@@ -103,8 +105,36 @@ class ContractError(RuntimeError):
     pass
 
 
+# Tests replace this hook to force mutations at destructive boundaries.  It is
+# None in production; the operation never accepts a callback from CLI/request.
+_BOUNDARY_HOOK: Callable[[str, dict[str, Any]], None] | None = None
+
+
+def _boundary(name: str, **context: Any) -> None:
+    if _BOUNDARY_HOOK is not None:
+        _BOUNDARY_HOOK(name, context)
+
+
 def canonical(value: Any) -> bytes:
     return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n").encode()
+
+
+def _first_difference(left: Any, right: Any, path: str = "$") -> str:
+    if type(left) is not type(right):
+        return f"{path}: type {type(left).__name__} != {type(right).__name__}"
+    if isinstance(left, dict):
+        if set(left) != set(right):
+            return f"{path}: keys {sorted(set(left) ^ set(right))}"
+        for key in sorted(left):
+            if left[key] != right[key]:
+                return _first_difference(left[key], right[key], f"{path}.{key}")
+    elif isinstance(left, list):
+        if len(left) != len(right):
+            return f"{path}: length {len(left)} != {len(right)}"
+        for index, (a, b) in enumerate(zip(left, right, strict=True)):
+            if a != b:
+                return _first_difference(a, b, f"{path}[{index}]")
+    return f"{path}: {left!r} != {right!r}"
 
 
 def sha_bytes(data: bytes) -> str:
@@ -123,54 +153,14 @@ def _read_fd(fd: int) -> bytes:
         chunks.append(chunk)
 
 
-def read_sealed(path: str, *, require_mode: int | None = None) -> tuple[bytes, dict[str, int]]:
-    """Read once through O_NOFOLLOW and bind bytes to stable regular metadata."""
-    try:
-        fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
-    except OSError as exc:
-        raise ContractError(f"cannot safely open {path}: {exc}") from None
-    try:
-        before = os.fstat(fd)
-        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
-            raise ContractError(f"not a single-link regular file: {path}")
-        if before.st_uid != os.getuid():
-            raise ContractError(f"wrong owner: {path}")
-        if require_mode is not None and stat.S_IMODE(before.st_mode) != require_mode:
-            raise ContractError(f"wrong mode: {path}")
-        data = _read_fd(fd)
-        after = os.fstat(fd)
-        named = os.lstat(path)
-        fields = ("st_dev", "st_ino", "st_mode", "st_nlink", "st_uid", "st_gid", "st_size",
-                  "st_mtime_ns", "st_ctime_ns")
-        if any(getattr(before, key) != getattr(after, key) for key in fields):
-            raise ContractError(f"file mutated while read: {path}")
-        if (named.st_dev, named.st_ino) != (before.st_dev, before.st_ino):
-            raise ContractError(f"path identity changed while read: {path}")
-        if len(data) != before.st_size:
-            raise ContractError(f"short read: {path}")
-        return data, stat_record(before)
-    finally:
-        os.close(fd)
-
-
-def read_json(path: str, *, require_mode: int | None = None) -> tuple[dict[str, Any], bytes]:
-    data, _ = read_sealed(path, require_mode=require_mode)
-    try:
-        value = json.loads(data)
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        raise ContractError(f"invalid JSON: {path}") from None
-    if not isinstance(value, dict):
-        raise ContractError(f"JSON root must be object: {path}")
-    return value, data
-
-
 def read_json_immediate_parent(path: str, *, require_mode: int | None = None) -> tuple[dict[str, Any], bytes]:
     """Read an input anchored below the fixed parent; no ancestor can be a link."""
     if Path(path).parent != Path(PARENT):
         raise ContractError("input is not an immediate child of fixed parent")
     parent_fd = open_safe_dir(PARENT)
     try:
-        fd = os.open(Path(path).name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=parent_fd)
+        fd = os.open(Path(path).name,
+                     os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent_fd)
         try:
             before = os.fstat(fd)
             if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
@@ -204,6 +194,24 @@ def stat_record(value: os.stat_result) -> dict[str, int]:
     }
 
 
+def directory_identity(value: os.stat_result) -> dict[str, int]:
+    """Stable anchor identity; child creation legitimately changes size/times."""
+    return {"dev": value.st_dev, "ino": value.st_ino, "mode": stat.S_IMODE(value.st_mode),
+            "uid": value.st_uid, "gid": value.st_gid}
+
+
+def mount_id(fd: int) -> int:
+    try:
+        lines = Path(f"/proc/self/fdinfo/{fd}").read_text().splitlines()
+        return int(next(line.split(":", 1)[1] for line in lines if line.startswith("mnt_id:")))
+    except (OSError, StopIteration, ValueError):
+        raise ContractError("cannot authenticate filesystem mount identity") from None
+
+
+def parent_identity(fd: int) -> dict[str, int]:
+    return {**directory_identity(os.fstat(fd)), "mount_id": mount_id(fd)}
+
+
 def open_safe_dir(path: str) -> int:
     """Open an absolute directory by walking every component without links."""
     if not os.path.isabs(path) or os.path.normpath(path) != path:
@@ -225,15 +233,11 @@ def open_safe_dir(path: str) -> int:
         raise
 
 
-def fixed_target_map() -> dict[str, dict[str, Any]]:
-    return {item["path"]: dict(item) for item in TARGETS}
-
-
 def validate_request(request: dict[str, Any]) -> None:
     exact = {
         "schema", "state", "cleanup", "host", "expected_hostname", "parent", "origin",
         "minimum_post_cleanup_free_bytes", "targets", "preserve", "authorities",
-        "evidence_commits", "package_head", "inventory_output", "receipt_output",
+        "evidence_commits", "package_head", "inventory_output", "journal_output", "receipt_output",
     }
     if set(request) != exact:
         raise ContractError("request schema mismatch")
@@ -266,68 +270,117 @@ def validate_request(request: dict[str, Any]) -> None:
         raise ContractError("request evidence provenance mismatch")
     if not isinstance(request["package_head"], str) or len(request["package_head"]) != 40:
         raise ContractError("request package_head is not finalized")
-    for key in ("inventory_output", "receipt_output"):
+    outputs = []
+    for key in ("inventory_output", "journal_output", "receipt_output"):
         path = request[key]
         if not isinstance(path, str) or not path.startswith(PARENT + "/") or Path(path).parent != Path(PARENT):
             raise ContractError(f"unsafe {key}")
-
-
-def _sealed_path_record(path: str, expected_sha: str | None = None,
-                        expected_size: int | None = None) -> dict[str, Any]:
-    data, metadata = read_sealed(path)
-    digest = sha_bytes(data)
-    if expected_sha is not None and digest != expected_sha:
-        raise ContractError(f"hash mismatch: {path}")
-    if expected_size is not None and len(data) != expected_size:
-        raise ContractError(f"size mismatch: {path}")
-    return {"path": path, "sha256": digest, "bytes": len(data), "metadata": metadata}
+        outputs.append(path)
+    if len(set(outputs)) != len(outputs):
+        raise ContractError("request output paths must be distinct")
 
 
 def _git(checkout_fd: int, *argv: str) -> str:
+    env = os.environ.copy()
+    env["GIT_OPTIONAL_LOCKS"] = "0"
     proc = subprocess.run([GIT, "-C", f"/proc/self/fd/{checkout_fd}", *argv],
                           text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          pass_fds=(checkout_fd,), timeout=120, check=False)
+                          pass_fds=(checkout_fd,), timeout=120, check=False, env=env)
     if proc.returncode != 0:
         raise ContractError(f"git {' '.join(argv)} failed: {proc.stderr.strip()}")
     return proc.stdout
 
 
-def _scan_tree_no_links(fd: int, relative: str = "") -> dict[str, int]:
+def _hash_fd(fd: int) -> tuple[str, int, dict[str, int]]:
+    """Hash exact bytes through one fd and reject in-read mutation."""
+    os.lseek(fd, 0, os.SEEK_SET)
+    before = os.fstat(fd)
+    digest = hashlib.sha256()
+    size = 0
+    while True:
+        try:
+            chunk = os.read(fd, 1024 * 1024)
+        except InterruptedError:
+            continue
+        if not chunk:
+            break
+        digest.update(chunk)
+        size += len(chunk)
+    after = os.fstat(fd)
+    if stat_record(before) != stat_record(after) or size != after.st_size:
+        raise ContractError("file changed while hashing")
+    return digest.hexdigest(), size, stat_record(after)
+
+
+def _assert_named_inode(parent_fd: int, name: str, opened: os.stat_result) -> None:
+    named = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+        raise ContractError(f"name-to-inode binding changed: {name}")
+
+
+def _inventory_tree(fd: int, relative: str = "", root_dev: int | None = None,
+                    root_mount: int | None = None) -> dict[str, Any]:
+    """Return the complete authenticated directory/file membership contract."""
     opened = os.fstat(fd)
-    counts = {"directories": 1, "regular_files": 0, "logical_bytes": 0,
-              "allocated_bytes": opened.st_blocks * 512}
-    for name in sorted(os.listdir(fd)):
-        if name in (".", ".."):
-            raise ContractError("invalid directory entry")
-        item = os.stat(name, dir_fd=fd, follow_symlinks=False)
+    root_dev = opened.st_dev if root_dev is None else root_dev
+    root_mount = mount_id(fd) if root_mount is None else root_mount
+    if not stat.S_ISDIR(opened.st_mode) or opened.st_dev != root_dev or opened.st_uid != os.getuid():
+        raise ContractError(f"unsafe checkout directory: {relative or '.'}")
+    if mount_id(fd) != root_mount:
+        raise ContractError(f"mount substitution in checkout: {relative or '.'}")
+    entries: list[dict[str, Any]] = [
+        {"path": relative, "kind": "directory", "metadata": stat_record(opened),
+         "mount_id": root_mount}
+    ]
+    names = sorted(os.listdir(fd))
+    if any(name in (".", "..") or "/" in name or "\x00" in name for name in names):
+        raise ContractError("invalid directory entry")
+    for name in names:
         where = f"{relative}/{name}" if relative else name
-        if stat.S_ISLNK(item.st_mode):
-            raise ContractError(f"symlink forbidden in checkout: {where}")
-        if stat.S_ISDIR(item.st_mode):
-            child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW,
+        try:
+            child = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
                             dir_fd=fd)
-            try:
-                sub = _scan_tree_no_links(child, where)
-            finally:
-                os.close(child)
-            for key in counts:
-                counts[key] += sub[key]
-        elif stat.S_ISREG(item.st_mode) and item.st_nlink == 1:
-            counts["regular_files"] += 1
-            counts["logical_bytes"] += item.st_size
-            counts["allocated_bytes"] += item.st_blocks * 512
-        else:
-            raise ContractError(f"non-regular or multi-link entry forbidden: {where}")
-    return counts
+        except OSError as exc:
+            raise ContractError(f"cannot no-follow open checkout entry {where}: {exc}") from None
+        try:
+            item = os.fstat(child)
+            _assert_named_inode(fd, name, item)
+            if item.st_dev != root_dev or item.st_uid != os.getuid():
+                raise ContractError(f"mount/owner substitution in checkout: {where}")
+            if stat.S_ISDIR(item.st_mode):
+                entries.extend(_inventory_tree(child, where, root_dev, root_mount)["entries"])
+            elif stat.S_ISREG(item.st_mode) and item.st_nlink == 1:
+                digest, size, metadata = _hash_fd(child)
+                _assert_named_inode(fd, name, os.fstat(child))
+                if mount_id(child) != root_mount:
+                    raise ContractError(f"mount substitution in checkout: {where}")
+                entries.append({"path": where, "kind": "file", "metadata": metadata,
+                                "mount_id": root_mount,
+                                "bytes": size, "sha256": digest})
+            else:
+                raise ContractError(f"symlink, hardlink, or nonregular checkout entry: {where}")
+        finally:
+            os.close(child)
+    if sorted(os.listdir(fd)) != names:
+        raise ContractError(f"checkout membership changed while inventoried: {relative or '.'}")
+    total = sum(entry["metadata"]["blocks"] * 512 for entry in entries)
+    logical = sum(entry.get("bytes", 0) for entry in entries)
+    return {"entries": entries, "directories": sum(x["kind"] == "directory" for x in entries),
+            "regular_files": sum(x["kind"] == "file" for x in entries),
+            "logical_bytes": logical, "allocated_bytes": total,
+            "manifest_sha256": sha_bytes(canonical(entries))}
 
 
 def verify_checkout(parent_fd: int, target: dict[str, Any]) -> dict[str, Any]:
     name = Path(target["path"]).name
-    before = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-    if not stat.S_ISDIR(before.st_mode) or before.st_uid != os.getuid():
-        raise ContractError(f"checkout is not an owned real directory: {target['path']}")
     fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=parent_fd)
     try:
+        before = os.fstat(fd)
+        _assert_named_inode(parent_fd, name, before)
+        if not stat.S_ISDIR(before.st_mode) or before.st_uid != os.getuid():
+            raise ContractError(f"checkout is not an owned real directory: {target['path']}")
+        if mount_id(fd) != mount_id(parent_fd):
+            raise ContractError(f"checkout is a mount substitution: {target['path']}")
         if _git(fd, "rev-parse", "HEAD").strip() != target["head"]:
             raise ContractError(f"checkout HEAD mismatch: {target['path']}")
         if _git(fd, "remote", "get-url", "origin").strip() != ORIGIN:
@@ -337,42 +390,35 @@ def verify_checkout(parent_fd: int, target: dict[str, Any]) -> dict[str, Any]:
         if _git(fd, "status", "--porcelain=v1", "--untracked-files=all", "--ignored=matching") != "":
             raise ContractError(f"checkout is dirty: {target['path']}")
         _git(fd, "fsck", "--full", "--strict")
-        tree = _scan_tree_no_links(fd)
+        tree = _inventory_tree(fd)
         after = os.fstat(fd)
-        named = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-        if (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino) or \
-                (after.st_dev, after.st_ino) != (named.st_dev, named.st_ino):
+        _assert_named_inode(parent_fd, name, after)
+        if stat_record(before) != stat_record(after):
             raise ContractError(f"checkout identity changed: {target['path']}")
         return {"path": target["path"], "kind": "checkout", "head": target["head"],
-                "origin": ORIGIN, "metadata": stat_record(after), "tree": tree}
+                "origin": ORIGIN, "metadata": stat_record(after), "mount_id": mount_id(fd),
+                "tree": tree}
     finally:
         os.close(fd)
 
 
 def verify_bundle(parent_fd: int, target: dict[str, Any]) -> dict[str, Any]:
     name = Path(target["path"]).name
-    fd = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=parent_fd)
+    fd = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+                 dir_fd=parent_fd)
     try:
         before = os.fstat(fd)
         if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_uid != os.getuid():
             raise ContractError(f"bundle metadata mismatch: {target['path']}")
-        digest = hashlib.sha256()
-        size = 0
-        while True:
-            chunk = os.read(fd, 1024 * 1024)
-            if not chunk:
-                break
-            digest.update(chunk)
-            size += len(chunk)
-        after = os.fstat(fd)
-        named = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-        if stat_record(before) != stat_record(after) or \
-                (after.st_dev, after.st_ino) != (named.st_dev, named.st_ino):
-            raise ContractError(f"bundle identity changed: {target['path']}")
-        if size != target["bytes"] or digest.hexdigest() != target["sha256"]:
+        _assert_named_inode(parent_fd, name, before)
+        if mount_id(fd) != mount_id(parent_fd):
+            raise ContractError(f"bundle is a mount substitution: {target['path']}")
+        digest, size, metadata = _hash_fd(fd)
+        _assert_named_inode(parent_fd, name, os.fstat(fd))
+        if size != target["bytes"] or digest != target["sha256"]:
             raise ContractError(f"bundle bytes/hash mismatch: {target['path']}")
-        return {"path": target["path"], "kind": "bundle", "sha256": digest.hexdigest(),
-                "bytes": size, "metadata": stat_record(after)}
+        return {"path": target["path"], "kind": "bundle", "sha256": digest,
+                "bytes": size, "metadata": metadata, "mount_id": mount_id(fd)}
     finally:
         os.close(fd)
 
@@ -387,17 +433,24 @@ def _sealed_beneath(root: str, relative: str, expected_sha: str,
     try:
         if os.fstat(root_fd).st_uid != os.getuid():
             raise ContractError("protected root has wrong owner")
+        root_mount = mount_id(root_fd)
         parts = Path(relative).parts
         for component in parts[:-1]:
             nxt = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW,
                           dir_fd=fd)
+            if mount_id(nxt) != root_mount:
+                os.close(nxt)
+                raise ContractError("mount substitution in protected path")
             opened.append(nxt)
             fd = nxt
-        file_fd = os.open(parts[-1], os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=fd)
+        file_fd = os.open(parts[-1],
+                          os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd)
         try:
             before = os.fstat(file_fd)
             if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_uid != os.getuid():
                 raise ContractError("protected file metadata mismatch")
+            if mount_id(file_fd) != root_mount:
+                raise ContractError("mount substitution in protected file")
             data = _read_fd(file_fd)
             after = os.fstat(file_fd)
             named = os.stat(parts[-1], dir_fd=fd, follow_symlinks=False)
@@ -415,13 +468,14 @@ def _sealed_beneath(root: str, relative: str, expected_sha: str,
     if expected_size is not None and len(data) != expected_size:
         raise ContractError("protected file size mismatch")
     return {"path": f"{root}/{relative}", "sha256": expected_sha, "bytes": len(data),
-            "metadata": stat_record(before)}
+            "metadata": stat_record(before), "mount_id": root_mount}
 
 
 def protected_records() -> dict[str, Any]:
     root_fd = open_safe_dir(R2_ROOT)
     try:
         root_stat = os.fstat(root_fd)
+        root_mount = mount_id(root_fd)
         if root_stat.st_uid != os.getuid():
             raise ContractError("preserved r2 checkout has wrong owner")
     finally:
@@ -430,15 +484,16 @@ def protected_records() -> dict[str, Any]:
           for relative, digest in R2_RUNTIME_HASHES.items()}
     g0_relative = os.path.relpath(G0_CHECKPOINT["path"], G0_ROOT)
     return {
-        "r2_checkout": {"path": R2_ROOT, "metadata": stat_record(root_stat)},
+        "r2_checkout": {"path": R2_ROOT, "metadata": stat_record(root_stat),
+                        "mount_id": root_mount},
         "r2_runtime": r2,
         "g0_checkpoint": _sealed_beneath(G0_ROOT, g0_relative, G0_CHECKPOINT["sha256"],
                                           G0_CHECKPOINT["bytes"]),
     }
 
 
-def free_record(parent: str) -> dict[str, int]:
-    info = os.statvfs(parent)
+def free_record_fd(parent_fd: int) -> dict[str, int]:
+    info = os.fstatvfs(parent_fd)
     return {"free_bytes": info.f_bavail * info.f_frsize, "free_inodes": info.f_favail,
             "fragment_size": info.f_frsize}
 
@@ -517,13 +572,15 @@ def _assert_request_head(request: dict[str, Any]) -> None:
 
 
 def _collect_inventory_locked(request: dict[str, Any], request_sha256: str,
-                              health: dict[str, Any]) -> dict[str, Any]:
+                              health: dict[str, Any], parent_fd: int | None = None) -> dict[str, Any]:
     validate_request(request)
     _assert_request_head(request)
-    parent_fd = open_safe_dir(PARENT)
+    owns_parent_fd = parent_fd is None
+    if parent_fd is None:
+        parent_fd = open_safe_dir(PARENT)
     try:
         parent_stat = os.fstat(parent_fd)
-        before = free_record(PARENT)
+        before = free_record_fd(parent_fd)
         records = []
         for target in TARGETS:
             record = (verify_checkout if target["kind"] == "checkout" else verify_bundle)(parent_fd, target)
@@ -543,14 +600,15 @@ def _collect_inventory_locked(request: dict[str, Any], request_sha256: str,
             "schema": SCHEMA_INVENTORY, "status": "VERIFIED_READ_ONLY",
             "host": HOST, "hostname": HOSTNAME, "request_sha256": request_sha256,
             "package_head": request["package_head"], "parent": PARENT,
-            "parent_metadata": stat_record(parent_stat), "free_before": before,
+            "parent_metadata": parent_identity(parent_fd), "free_before": before,
             "target_allocated_bytes": allocated,
             "projected_post_cleanup_free_bytes": projected,
             "health": health, "targets": records, "protected": protected,
             "deletion_performed": False, "training_authorized": False,
         }
     finally:
-        os.close(parent_fd)
+        if owns_parent_fd:
+            os.close(parent_fd)
 
 
 def collect_inventory(request: dict[str, Any], request_sha256: str) -> dict[str, Any]:
@@ -558,13 +616,16 @@ def collect_inventory(request: dict[str, Any], request_sha256: str) -> dict[str,
         return _collect_inventory_locked(request, request_sha256, health)
 
 
-def _write_exclusive(path: str, value: dict[str, Any]) -> str:
+def _write_exclusive(path: str, value: dict[str, Any],
+                     expected_parent_identity: dict[str, int] | None = None) -> str:
     if Path(path).parent != Path(PARENT):
         raise ContractError("output is not an immediate child of fixed parent")
     parent_fd = open_safe_dir(PARENT)
     name = Path(path).name
     data = canonical(value)
     try:
+        if expected_parent_identity is not None and parent_identity(parent_fd) != expected_parent_identity:
+            raise ContractError("output parent identity differs from operation anchor")
         fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
                      0o600, dir_fd=parent_fd)
         try:
@@ -585,7 +646,23 @@ def _write_exclusive(path: str, value: dict[str, Any]) -> str:
         if (created.st_dev, created.st_ino) != (named.st_dev, named.st_ino) or named.st_nlink != 1:
             raise ContractError("output path identity changed")
         os.fsync(parent_fd)
-        return sha_bytes(data)
+        _boundary("after_output_write_before_readback", output=name, parent_fd=parent_fd)
+        # Seal the published receipt/inventory by reading the exact final inode.
+        sealed_fd = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+                            dir_fd=parent_fd)
+        try:
+            sealed = os.fstat(sealed_fd)
+            if ((sealed.st_dev, sealed.st_ino) != (created.st_dev, created.st_ino)
+                    or sealed.st_nlink != 1 or stat.S_IMODE(sealed.st_mode) != 0o600):
+                raise ContractError("published output inode changed")
+            readback = _read_fd(sealed_fd)
+            final = os.fstat(sealed_fd)
+            _assert_named_inode(parent_fd, name, final)
+            if stat_record(sealed) != stat_record(final) or readback != data:
+                raise ContractError("published output readback mismatch")
+        finally:
+            os.close(sealed_fd)
+        return sha_bytes(readback)
     finally:
         os.close(parent_fd)
 
@@ -612,51 +689,336 @@ def validate_authorization(auth: dict[str, Any], request: dict[str, Any], reques
         raise ContractError("authorization lacks independent verifier identity")
 
 
-def _identity_key(record: dict[str, Any]) -> tuple[int, int, int, int, int, int]:
-    m = record["metadata"]
-    return m["dev"], m["ino"], m["mode"], m["uid"], m["gid"], m["nlink"]
-
-
-def _unlink_tree(fd: int) -> None:
-    for name in sorted(os.listdir(fd)):
-        item = os.stat(name, dir_fd=fd, follow_symlinks=False)
-        if stat.S_ISDIR(item.st_mode):
-            child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW,
-                            dir_fd=fd)
-            try:
-                _unlink_tree(child)
-                os.fsync(child)
-            finally:
-                os.close(child)
-            os.rmdir(name, dir_fd=fd)
-        elif stat.S_ISREG(item.st_mode) and item.st_nlink == 1:
-            os.unlink(name, dir_fd=fd)
-        else:
-            raise ContractError("tree changed to unsafe entry during deletion")
-
-
-def _delete_verified(parent_fd: int, target: dict[str, Any], inventory_record: dict[str, Any]) -> None:
-    name = Path(target["path"]).name
-    current = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-    if (current.st_dev, current.st_ino, stat.S_IMODE(current.st_mode), current.st_uid,
-            current.st_gid, current.st_nlink) != _identity_key(inventory_record):
-        raise ContractError(f"target identity drift before delete: {target['path']}")
-    if target["kind"] == "bundle":
-        os.unlink(name, dir_fd=parent_fd)
-    else:
-        fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=parent_fd)
+def _full_write(fd: int, data: bytes) -> None:
+    view = memoryview(data)
+    while view:
         try:
-            _unlink_tree(fd)
-            os.fsync(fd)
+            count = os.write(fd, view)
+        except InterruptedError:
+            continue
+        if count <= 0:
+            raise ContractError("short durable write")
+        view = view[count:]
+
+
+class Journal:
+    """Append-only, O_EXCL evidence created before the first destructive rename."""
+
+    def __init__(self, parent_fd: int, path: str, header: dict[str, Any]):
+        if Path(path).parent != Path(PARENT):
+            raise ContractError("unsafe journal path")
+        self.parent_fd = parent_fd
+        self.name = Path(path).name
+        self.fd = os.open(self.name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
+                          0o600, dir_fd=parent_fd)
+        self.created = os.fstat(self.fd)
+        if not stat.S_ISREG(self.created.st_mode) or self.created.st_nlink != 1:
+            raise ContractError("journal creation metadata mismatch")
+        self.append("INTENT", **header)
+        os.fsync(parent_fd)
+
+    def append(self, event: str, **fields: Any) -> None:
+        record = {"schema": SCHEMA_JOURNAL, "sequence": os.lseek(self.fd, 0, os.SEEK_CUR),
+                  "event": event, **fields}
+        _full_write(self.fd, canonical(record))
+        os.fsync(self.fd)
+
+    def seal(self) -> dict[str, Any]:
+        os.fsync(self.fd)
+        os.close(self.fd)
+        self.fd = -1
+        os.fsync(self.parent_fd)
+        fd = os.open(self.name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+                     dir_fd=self.parent_fd)
+        try:
+            current = os.fstat(fd)
+            if ((current.st_dev, current.st_ino) != (self.created.st_dev, self.created.st_ino)
+                    or current.st_nlink != 1 or stat.S_IMODE(current.st_mode) != 0o600):
+                raise ContractError("journal inode changed")
+            data = _read_fd(fd)
+            after = os.fstat(fd)
+            _assert_named_inode(self.parent_fd, self.name, after)
+            if stat_record(current) != stat_record(after):
+                raise ContractError("journal mutated during seal")
+            return {"path": f"{PARENT}/{self.name}", "sha256": sha_bytes(data),
+                    "bytes": len(data), "metadata": stat_record(after)}
         finally:
             os.close(fd)
-        os.rmdir(name, dir_fd=parent_fd)
-    os.fsync(parent_fd)
+
+    def close(self) -> None:
+        if self.fd >= 0:
+            os.close(self.fd)
+            self.fd = -1
+
+
+def _metadata_equal(actual: os.stat_result, expected: dict[str, int], *, renamed: bool = False) -> bool:
+    observed = stat_record(actual)
+    return observed == expected
+
+
+def _require_absent(parent_fd: int, name: str) -> None:
     try:
         os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
     except FileNotFoundError:
         return
-    raise ContractError(f"target still exists after delete: {target['path']}")
+    raise ContractError(f"path must be absent: {name}")
+
+
+def _restore_quarantine(parent_fd: int, quarantine: str, original: str,
+                        expected_dev_ino: tuple[int, int]) -> bool:
+    """Restore only the quarantined inode; never remove a replacement."""
+    try:
+        current = os.stat(quarantine, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    if (current.st_dev, current.st_ino) != expected_dev_ino:
+        return False
+    try:
+        os.stat(original, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        os.rename(quarantine, original, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+        os.fsync(parent_fd)
+        return True
+    return False
+
+
+def _restore_untrusted_quarantine(parent_fd: int, quarantine: str, original: str) -> bool:
+    """Undo our atomic rename without interpreting or deleting the moved entry."""
+    try:
+        os.stat(quarantine, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    try:
+        os.stat(original, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        os.rename(quarantine, original, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+        os.fsync(parent_fd)
+        return True
+    return False
+
+
+def _tree_children(tree: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
+    records = {entry["path"]: entry for entry in tree["entries"]}
+    if "" not in records or records[""]["kind"] != "directory" or len(records) != len(tree["entries"]):
+        raise ContractError("invalid authenticated checkout manifest")
+    children: dict[str, list[str]] = {path: [] for path, item in records.items()
+                                      if item["kind"] == "directory"}
+    for path in records:
+        if not path:
+            continue
+        parent = str(Path(path).parent)
+        parent = "" if parent == "." else parent
+        if parent not in children:
+            raise ContractError("orphan in authenticated checkout manifest")
+        children[parent].append(Path(path).name)
+    for value in children.values():
+        value.sort()
+    return records, children
+
+
+def _validate_open_file(fd: int, record: dict[str, Any], *, renamed: bool = False) -> None:
+    current = os.fstat(fd)
+    if (not stat.S_ISREG(current.st_mode) or current.st_nlink != 1
+            or not _metadata_equal(current, record["metadata"], renamed=renamed)):
+        raise ContractError(f"file identity/schema drift: {record['path']}")
+    if "mount_id" in record and mount_id(fd) != record["mount_id"]:
+        raise ContractError(f"file mount identity drift: {record['path']}")
+    digest, size, _ = _hash_fd(fd)
+    if digest != record["sha256"] or size != record["bytes"]:
+        raise ContractError(f"file bytes drift: {record['path']}")
+
+
+def _validate_open_dir(fd: int, record: dict[str, Any], *, renamed: bool = False) -> None:
+    current = os.fstat(fd)
+    if (not stat.S_ISDIR(current.st_mode)
+            or not _metadata_equal(current, record["metadata"], renamed=renamed)):
+        raise ContractError(f"directory identity/schema drift: {record['path']}")
+    if "mount_id" in record and mount_id(fd) != record["mount_id"]:
+        raise ContractError(f"directory mount identity drift: {record['path']}")
+
+
+def _quarantine_name(prefix: str, identity: str) -> str:
+    return f".cleanup-{prefix}-{identity}"
+
+
+def _delete_manifest_dir(fd: int, relative: str, records: dict[str, dict[str, Any]],
+                         children: dict[str, list[str]], journal: Journal,
+                         target_state: dict[str, Any]) -> None:
+    remaining = list(children[relative])
+    for name in list(remaining):
+        if sorted(os.listdir(fd)) != remaining:
+            raise ContractError(f"unknown/missing checkout entry before deletion: {relative or '.'}")
+        path = f"{relative}/{name}" if relative else name
+        record = records[path]
+        flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
+        if record["kind"] == "directory":
+            flags |= os.O_DIRECTORY
+        child = os.open(name, flags, dir_fd=fd)
+        qname = _quarantine_name("entry", sha_bytes(path.encode())[:24])
+        quarantined = False
+        entry_deleted = False
+        try:
+            if record["kind"] == "directory":
+                _validate_open_dir(child, record)
+            else:
+                _validate_open_file(child, record)
+            _assert_named_inode(fd, name, os.fstat(child))
+            _require_absent(fd, qname)
+            _boundary("before_entry_quarantine", relative=path, original=name, quarantine=qname, dir_fd=fd)
+            os.rename(name, qname, src_dir_fd=fd, dst_dir_fd=fd)
+            quarantined = True
+            opened = os.fstat(child)
+            try:
+                _assert_named_inode(fd, qname, opened)
+                _require_absent(fd, name)
+            except BaseException:
+                _restore_untrusted_quarantine(fd, qname, name)
+                raise
+            os.fsync(fd)
+            journal.append("ENTRY_QUARANTINED", target=target_state["path"], relative=path,
+                           dev=opened.st_dev, ino=opened.st_ino)
+            _boundary("after_entry_quarantine", relative=path, quarantine=qname, dir_fd=fd)
+            if record["kind"] == "directory":
+                _validate_open_dir(child, record, renamed=True)
+                _delete_manifest_dir(child, path, records, children, journal, target_state)
+                if os.listdir(child):
+                    raise ContractError(f"authenticated directory did not become empty: {path}")
+                _assert_named_inode(fd, qname, os.fstat(child))
+                os.rmdir(qname, dir_fd=fd)
+            else:
+                _boundary("before_entry_final_hash", relative=path, quarantine=qname, dir_fd=fd)
+                _validate_open_file(child, record, renamed=True)
+                _assert_named_inode(fd, qname, os.fstat(child))
+                # No callback or path lookup occurs between this binding and unlink.
+                os.unlink(qname, dir_fd=fd)
+            entry_deleted = True
+            target_state["destructive_started"] = True
+            os.fsync(fd)
+            journal.append("ENTRY_DELETED", target=target_state["path"], relative=path,
+                           dev=opened.st_dev, ino=opened.st_ino)
+            _boundary("after_entry_delete", relative=path, dir_fd=fd)
+        except BaseException:
+            if quarantined and not entry_deleted and not target_state["destructive_started"]:
+                _restore_quarantine(fd, qname, name, (os.fstat(child).st_dev, os.fstat(child).st_ino))
+            raise
+        finally:
+            os.close(child)
+        remaining.remove(name)
+    if os.listdir(fd):
+        raise ContractError(f"unknown checkout entries remain: {relative or '.'}")
+
+
+def _target_outcome(parent_fd: int, state: dict[str, Any]) -> dict[str, Any]:
+    result = {"path": state["path"], "deleted": state["deleted"],
+              "destructive_started": state["destructive_started"]}
+    for key, name in (("original", state["name"]), ("quarantine", state["quarantine"])):
+        try:
+            item = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            result[key] = {"present": True, "metadata": stat_record(item)}
+        except FileNotFoundError:
+            result[key] = {"present": False}
+    if not result["original"]["present"] and not result["quarantine"]["present"]:
+        state["deleted"] = True
+        state["destructive_started"] = True
+        result["deleted"] = True
+        result["destructive_started"] = True
+    return result
+
+
+def _delete_target_quarantined(parent_fd: int, target: dict[str, Any], record: dict[str, Any],
+                               index: int, request_sha: str, journal: Journal,
+                               state: dict[str, Any]) -> dict[str, Any]:
+    name = Path(target["path"]).name
+    qname = _quarantine_name("target", f"{request_sha[:16]}-{index}")
+    _require_absent(parent_fd, qname)
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
+    if target["kind"] == "checkout":
+        flags |= os.O_DIRECTORY
+    fd = os.open(name, flags, dir_fd=parent_fd)
+    quarantined = False
+    try:
+        if target["kind"] == "bundle":
+            _validate_open_file(fd, record)
+        else:
+            _validate_open_dir(fd, {"path": "", "metadata": record["metadata"],
+                                    "mount_id": record["mount_id"]})
+            current_tree = _inventory_tree(fd)
+            if current_tree != record["tree"]:
+                raise ContractError(f"checkout manifest drift before quarantine: {target['path']}")
+        opened = os.fstat(fd)
+        _assert_named_inode(parent_fd, name, opened)
+        _boundary("after_target_open_before_quarantine", target=target["path"], original=name,
+                  quarantine=qname, parent_fd=parent_fd, target_fd=fd)
+        os.rename(name, qname, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+        quarantined = True
+        try:
+            _assert_named_inode(parent_fd, qname, opened)
+            _require_absent(parent_fd, name)
+        except BaseException:
+            _restore_untrusted_quarantine(parent_fd, qname, name)
+            raise
+        os.fsync(parent_fd)
+        journal.append("TARGET_QUARANTINED", path=target["path"], quarantine=qname,
+                       dev=opened.st_dev, ino=opened.st_ino)
+        _boundary("after_target_quarantine", target=target["path"], quarantine=qname,
+                  parent_fd=parent_fd, target_fd=fd)
+        if target["kind"] == "bundle":
+            # Required post-quarantine and immediately-pre-unlink exact same-fd check.
+            _validate_open_file(fd, record, renamed=True)
+            _boundary("before_bundle_final_hash", target=target["path"], quarantine=qname,
+                      parent_fd=parent_fd, target_fd=fd)
+            _validate_open_file(fd, record, renamed=True)
+            _assert_named_inode(parent_fd, qname, os.fstat(fd))
+            os.unlink(qname, dir_fd=parent_fd)
+        else:
+            current_tree = _inventory_tree(fd)
+            actual_entries = current_tree["entries"]
+            expected_entries = record["tree"]["entries"]
+            if actual_entries != expected_entries:
+                raise ContractError(f"checkout manifest drift after quarantine: {target['path']}")
+            _boundary("after_checkout_quarantine_validation", target=target["path"], quarantine=qname,
+                      parent_fd=parent_fd, target_fd=fd)
+            records, children = _tree_children(record["tree"])
+            _delete_manifest_dir(fd, "", records, children, journal, state)
+            if os.listdir(fd):
+                raise ContractError("checkout quarantine is not empty")
+            _assert_named_inode(parent_fd, qname, os.fstat(fd))
+            os.rmdir(qname, dir_fd=parent_fd)
+        state["deleted"] = True
+        state["destructive_started"] = True
+        os.fsync(parent_fd)
+        journal.append("TARGET_DELETED", path=target["path"], dev=opened.st_dev, ino=opened.st_ino)
+        _boundary("after_target_delete", target=target["path"], parent_fd=parent_fd)
+        _require_absent(parent_fd, name)
+        _require_absent(parent_fd, qname)
+        return state
+    except BaseException:
+        if quarantined and not state["destructive_started"]:
+            restored = _restore_quarantine(parent_fd, qname, name, (os.fstat(fd).st_dev, os.fstat(fd).st_ino))
+            if restored:
+                journal.append("TARGET_RESTORED_AFTER_FAILURE", path=target["path"])
+        raise
+    finally:
+        os.close(fd)
+
+
+def _best_effort_failure_state(parent_fd: int, inventory: dict[str, Any], states: list[dict[str, Any]],
+                               error: BaseException) -> dict[str, Any]:
+    outcomes = [_target_outcome(parent_fd, item) for item in states]
+    try:
+        protected = protected_records()
+        protected_ok = protected == inventory["protected"]
+    except BaseException as protected_error:
+        protected = {"error": f"{type(protected_error).__name__}: {protected_error}"}
+        protected_ok = False
+    try:
+        free = free_record_fd(parent_fd)
+    except BaseException as free_error:
+        free = {"error": f"{type(free_error).__name__}: {free_error}"}
+    return {"error": f"{type(error).__name__}: {error}",
+            "target_outcomes": outcomes,
+            "protected_postflight": protected, "protected_exact": protected_ok,
+            "free_after_failure": free}
 
 
 def execute(request: dict[str, Any], request_sha: str, inventory: dict[str, Any], inventory_sha: str,
@@ -667,50 +1029,98 @@ def execute(request: dict[str, Any], request_sha: str, inventory: dict[str, Any]
     if inventory.get("schema") != SCHEMA_INVENTORY or inventory.get("status") != "VERIFIED_READ_ONLY":
         raise ContractError("invalid inventory")
     with host_quiescence() as health:
-        fresh = _collect_inventory_locked(request, request_sha, health)
-        for key in ("parent_metadata", "targets", "protected"):
-            if fresh[key] != inventory[key]:
-                raise ContractError(f"read-only inventory drift: {key}")
-        execution_free_before = fresh["free_before"]
         parent_fd = open_safe_dir(PARENT)
-        deleted: list[str] = []
+        journal: Journal | None = None
+        states: list[dict[str, Any]] = []
         try:
-            for target, record in zip(TARGETS, inventory["targets"], strict=True):
-                _delete_verified(parent_fd, target, record)
-                deleted.append(target["path"])
+            fresh = _collect_inventory_locked(request, request_sha, health, parent_fd=parent_fd)
+            for key in ("parent_metadata", "targets", "protected"):
+                if fresh[key] != inventory[key]:
+                    raise ContractError(f"read-only inventory drift: {key}: "
+                                        f"{_first_difference(fresh[key], inventory[key])}")
+            execution_free_before = fresh["free_before"]
+            _require_absent(parent_fd, Path(request["journal_output"]).name)
+            _require_absent(parent_fd, Path(request["receipt_output"]).name)
+            for index in range(len(TARGETS)):
+                _require_absent(parent_fd, _quarantine_name("target", f"{request_sha[:16]}-{index}"))
+            journal = Journal(parent_fd, request["journal_output"], {
+                "package_head": request["package_head"], "request_sha256": request_sha,
+                "inventory_sha256": inventory_sha, "authorization_sha256": authorization_sha,
+                "exact_targets": [item["path"] for item in TARGETS],
+                "free_before": execution_free_before,
+            })
+            for index, (target, record) in enumerate(zip(TARGETS, inventory["targets"], strict=True)):
+                state = {"path": target["path"], "name": Path(target["path"]).name,
+                         "quarantine": _quarantine_name("target", f"{request_sha[:16]}-{index}"),
+                         "deleted": False, "destructive_started": False}
+                states.append(state)
+                result = _delete_target_quarantined(parent_fd, target, record, index, request_sha,
+                                                    journal, state)
+                states[-1] = result
             protected_after = protected_records()
             if protected_after != inventory["protected"]:
                 raise ContractError("preserved r2/G0 identity changed")
-            free_after = free_record(PARENT)
+            for target in TARGETS:
+                _require_absent(parent_fd, Path(target["path"]).name)
+            os.fsync(parent_fd)
+            free_after = free_record_fd(parent_fd)
             if free_after["fragment_size"] != execution_free_before["fragment_size"]:
                 raise ContractError("filesystem geometry changed during cleanup")
             if free_after["free_bytes"] < execution_free_before["free_bytes"]:
                 raise ContractError("free bytes decreased after cleanup")
             if free_after["free_bytes"] < MIN_POST_CLEANUP_FREE_BYTES:
                 raise ContractError("post-cleanup free bytes below r4 staging requirement")
-            for target in TARGETS:
-                try:
-                    os.stat(Path(target["path"]).name, dir_fd=parent_fd, follow_symlinks=False)
-                except FileNotFoundError:
-                    continue
-                raise ContractError(f"deleted target reappeared: {target['path']}")
+            journal.append("PASS_READY", deleted_exact_paths=[item["path"] for item in TARGETS],
+                           free_after=free_after, protected_exact=True)
+            journal_seal = journal.seal()
+            journal = None
             return {
                 "schema": SCHEMA_RECEIPT, "status": "PASS", "cleanup_performed": True,
                 "host": HOST, "hostname": HOSTNAME, "package_head": request["package_head"],
                 "request_sha256": request_sha, "inventory_sha256": inventory_sha,
                 "authorization_sha256": authorization_sha, "health": health,
-                "deleted_exact_paths": deleted, "targets_absent": True,
-                "protected_after": protected_after,
+                "journal": journal_seal, "parent_metadata": inventory["parent_metadata"],
+                "deleted_exact_paths": [item["path"] for item in TARGETS],
+                "target_outcomes": [_target_outcome(parent_fd, item) for item in states],
+                "targets_absent": True, "protected_after": protected_after,
                 "authorized_inventory_free_before": inventory["free_before"],
-                "free_before": execution_free_before,
-                "free_after": free_after, "minimum_post_cleanup_free_bytes": MIN_POST_CLEANUP_FREE_BYTES,
+                "free_before": execution_free_before, "free_after": free_after,
+                "minimum_post_cleanup_free_bytes": MIN_POST_CLEANUP_FREE_BYTES,
                 "same_filesystem": True, "parent_fsynced_after_each_target": True,
                 "training_authorized": False, "evaluation_authorized": False,
                 "r4_staging_authorized": False, "cache_cleanup_performed": False,
                 "checkpoint_pruning_performed": False,
             }
+        except BaseException as exc:
+            if journal is None:
+                raise
+            failure = _best_effort_failure_state(parent_fd, inventory, states, exc)
+            try:
+                journal.append("PARTIAL_FAILURE", **failure)
+                journal_seal = journal.seal()
+                journal = None
+            except BaseException as journal_error:
+                journal_seal = {"error": f"{type(journal_error).__name__}: {journal_error}",
+                                "intent_was_fsynced": True}
+            return {
+                "schema": SCHEMA_RECEIPT, "status": "PARTIAL_FAILURE",
+                "cleanup_performed": any(item["deleted"] for item in states),
+                "host": HOST, "hostname": HOSTNAME, "package_head": request["package_head"],
+                "request_sha256": request_sha, "inventory_sha256": inventory_sha,
+                "authorization_sha256": authorization_sha, "health": health,
+                "journal": journal_seal, "parent_metadata": inventory["parent_metadata"], **failure,
+                "training_authorized": False, "evaluation_authorized": False,
+                "r4_staging_authorized": False, "cache_cleanup_performed": False,
+                "checkpoint_pruning_performed": False,
+            }
         finally:
+            if journal is not None:
+                journal.close()
             os.close(parent_fd)
+
+
+def _raise_sigterm(_signum: int, _frame: Any) -> None:
+    raise ContractError("SIGTERM")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -728,15 +1138,24 @@ def main(argv: list[str] | None = None) -> int:
         request_sha = sha_bytes(request_bytes)
         if args.command == "inventory":
             value = collect_inventory(request, request_sha)
-            digest = _write_exclusive(request["inventory_output"], value)
+            digest = _write_exclusive(request["inventory_output"], value,
+                                      expected_parent_identity=value["parent_metadata"])
         else:
             inventory, inventory_bytes = read_json_immediate_parent(args.inventory, require_mode=0o600)
             authorization, authorization_bytes = read_json_immediate_parent(args.authorization, require_mode=0o600)
-            value = execute(request, request_sha, inventory, sha_bytes(inventory_bytes), authorization,
-                            sha_bytes(authorization_bytes))
-            digest = _write_exclusive(request["receipt_output"], value)
-        print(json.dumps({"status": value["status"], "sha256": digest}, sort_keys=True))
-        return 0
+            previous_term = signal.getsignal(signal.SIGTERM)
+            signal.signal(signal.SIGTERM, _raise_sigterm)
+            try:
+                value = execute(request, request_sha, inventory, sha_bytes(inventory_bytes), authorization,
+                                sha_bytes(authorization_bytes))
+            finally:
+                signal.signal(signal.SIGTERM, previous_term)
+            digest = _write_exclusive(request["receipt_output"], value,
+                                      expected_parent_identity=value["parent_metadata"])
+        output = {"status": value["status"], "sha256": digest}
+        stream = sys.stdout if value["status"] in {"PASS", "VERIFIED_READ_ONLY"} else sys.stderr
+        print(json.dumps(output, sort_keys=True), file=stream)
+        return 0 if value["status"] in {"PASS", "VERIFIED_READ_ONLY"} else 2
     except (ContractError, OSError, subprocess.SubprocessError) as exc:
         print(json.dumps({"status": "FAIL_CLOSED", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2

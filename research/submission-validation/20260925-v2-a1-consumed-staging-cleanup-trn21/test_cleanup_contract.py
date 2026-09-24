@@ -55,6 +55,7 @@ def request_for_current_constants(parent: Path, head: str = "a" * 40) -> dict:
         },
         "package_head": head,
         "inventory_output": str(parent / "cleanup.inventory.json"),
+        "journal_output": str(parent / "cleanup.journal.jsonl"),
         "receipt_output": str(parent / "cleanup.receipt.json"),
     }
 
@@ -144,20 +145,22 @@ class StaticContractTests(unittest.TestCase):
 
 
 class SealedIOTests(unittest.TestCase):
-    def test_sealed_read_rejects_symlink_hardlink_directory_and_wrong_mode(self):
-        with tempfile.TemporaryDirectory() as temp:
+    def test_anchored_json_read_rejects_symlink_hardlink_directory_and_wrong_mode(self):
+        with tempfile.TemporaryDirectory() as temp, mock.patch.object(C, "PARENT", temp):
             root = Path(temp)
-            regular = root / "regular"; regular.write_bytes(b"value"); regular.chmod(0o600)
-            data, _ = C.read_sealed(str(regular), require_mode=0o600)
-            self.assertEqual(data, b"value")
+            regular = root / "regular"; regular.write_text('{"value":1}\n'); regular.chmod(0o600)
+            value, data = C.read_json_immediate_parent(str(regular), require_mode=0o600)
+            self.assertEqual(value, {"value": 1})
+            self.assertEqual(data, b'{"value":1}\n')
             symlink = root / "symlink"; symlink.symlink_to(regular)
-            with self.assertRaises(C.ContractError): C.read_sealed(str(symlink))
+            with self.assertRaises(OSError): C.read_json_immediate_parent(str(symlink))
             hard = root / "hard"; os.link(regular, hard)
-            with self.assertRaises(C.ContractError): C.read_sealed(str(regular))
+            with self.assertRaises(C.ContractError): C.read_json_immediate_parent(str(regular))
             directory = root / "directory"; directory.mkdir()
-            with self.assertRaises(C.ContractError): C.read_sealed(str(directory))
+            with self.assertRaises(C.ContractError): C.read_json_immediate_parent(str(directory))
             hard.unlink(); regular.chmod(0o644)
-            with self.assertRaises(C.ContractError): C.read_sealed(str(regular), require_mode=0o600)
+            with self.assertRaises(C.ContractError):
+                C.read_json_immediate_parent(str(regular), require_mode=0o600)
 
     def test_safe_dir_rejects_symlink_ancestor_and_noncanonical_path(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -184,6 +187,53 @@ class SealedIOTests(unittest.TestCase):
             with mock.patch.object(C.os, "write", return_value=0):
                 with self.assertRaises(C.ContractError):
                     C._write_exclusive(path, {"status": "PASS"})
+
+    def test_full_write_retries_eintr(self):
+        with tempfile.TemporaryFile() as stream:
+            original = C.os.write
+            calls = []
+            def interrupted_once(fd, data):
+                calls.append(True)
+                if len(calls) == 1:
+                    raise InterruptedError
+                return original(fd, data)
+            with mock.patch.object(C.os, "write", side_effect=interrupted_once):
+                C._full_write(stream.fileno(), b"durable")
+            stream.seek(0)
+            self.assertEqual(stream.read(), b"durable")
+
+    def test_output_rejects_replaced_parent_identity(self):
+        with tempfile.TemporaryDirectory() as outer:
+            parent = Path(outer) / "parent"; parent.mkdir()
+            fd = C.open_safe_dir(str(parent))
+            try:
+                identity = C.parent_identity(fd)
+            finally:
+                os.close(fd)
+            moved = Path(outer) / "moved"; parent.rename(moved); parent.mkdir()
+            with mock.patch.object(C, "PARENT", str(parent)):
+                with self.assertRaisesRegex(C.ContractError, "parent identity"):
+                    C._write_exclusive(str(parent / "receipt.json"), {"status": "PASS"}, identity)
+            self.assertFalse((parent / "receipt.json").exists())
+
+    def test_output_readback_rejects_same_size_mutation_and_inode_replacement(self):
+        for attack in ("mutate", "replace"):
+            with self.subTest(attack=attack), tempfile.TemporaryDirectory() as temp, \
+                    mock.patch.object(C, "PARENT", temp):
+                path = Path(temp) / "receipt.json"
+                def race(event, context):
+                    if event != "after_output_write_before_readback":
+                        return
+                    if attack == "mutate":
+                        data = path.read_bytes()
+                        path.write_bytes(b"X" * len(data))
+                    else:
+                        path.unlink()
+                        path.write_text('{}\n')
+                        path.chmod(0o600)
+                with mock.patch.object(C, "_BOUNDARY_HOOK", race):
+                    with self.assertRaises(C.ContractError):
+                        C._write_exclusive(str(path), {"status": "PASS"})
 
 
 class FilesystemContractTests(unittest.TestCase):
@@ -214,6 +264,19 @@ class FilesystemContractTests(unittest.TestCase):
                 with self.assertRaises(C.ContractError): C.verify_bundle(fd, target)
                 path.unlink(); path.symlink_to(parent / "missing")
                 with self.assertRaises(OSError): C.verify_bundle(fd, target)
+            finally:
+                os.close(fd)
+
+    def test_bundle_mount_substitution_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp); data = b"bundle"
+            path = parent / "one.bundle"; path.write_bytes(data)
+            target = {"path": str(path), "kind": "bundle", "bytes": len(data), "sha256": digest(data)}
+            fd = C.open_safe_dir(str(parent))
+            try:
+                with mock.patch.object(C, "mount_id", side_effect=[222, 111]):
+                    with self.assertRaisesRegex(C.ContractError, "mount substitution"):
+                        C.verify_bundle(fd, target)
             finally:
                 os.close(fd)
 
@@ -260,14 +323,12 @@ class FilesystemContractTests(unittest.TestCase):
                 mock.patch.object(C, "open_safe_dir", return_value=10), \
                 mock.patch.object(C.os, "fstat", return_value=mock.Mock(st_dev=1)), \
                 mock.patch.object(C.os, "close"), \
-                mock.patch.object(C, "free_record", return_value={"free_bytes": 9_000_000_000}), \
+                mock.patch.object(C, "free_record_fd", return_value={"free_bytes": 9_000_000_000}), \
                 mock.patch.object(C, "protected_records", return_value={}), \
                 mock.patch.object(C, "_assert_request_head"), \
-                mock.patch.object(C, "validate_request"), \
-                mock.patch.object(C, "_delete_verified") as deleted:
+                mock.patch.object(C, "validate_request"):
             with self.assertRaises(C.ContractError):
                 C._collect_inventory_locked({}, "a" * 64, {})
-            deleted.assert_not_called()
 
     def test_insufficient_conservative_projection_fails_before_delete(self):
         targets = ({"path": "/fixed/one", "kind": "bundle"},)
@@ -277,14 +338,12 @@ class FilesystemContractTests(unittest.TestCase):
                 mock.patch.object(C, "open_safe_dir", return_value=10), \
                 mock.patch.object(C.os, "fstat", return_value=mock.Mock(st_dev=1)), \
                 mock.patch.object(C.os, "close"), \
-                mock.patch.object(C, "free_record", return_value={"free_bytes": 1}), \
+                mock.patch.object(C, "free_record_fd", return_value={"free_bytes": 1}), \
                 mock.patch.object(C, "protected_records", return_value={}), \
                 mock.patch.object(C, "_assert_request_head"), \
-                mock.patch.object(C, "validate_request"), \
-                mock.patch.object(C, "_delete_verified") as deleted:
+                mock.patch.object(C, "validate_request"):
             with self.assertRaisesRegex(C.ContractError, "projection"):
                 C._collect_inventory_locked({}, "a" * 64, {})
-            deleted.assert_not_called()
 
 
 class EndToEndTempCleanupTests(unittest.TestCase):
@@ -348,7 +407,7 @@ class EndToEndTempCleanupTests(unittest.TestCase):
                 mock.patch.object(C, "MIN_POST_CLEANUP_FREE_BYTES", 1),
                 mock.patch.object(C, "_assert_request_head"),
                 mock.patch.object(C, "host_quiescence", self._health),
-                mock.patch.object(C, "free_record", return_value={"free_bytes": 10_000_000_000,
+                mock.patch.object(C, "free_record_fd", return_value={"free_bytes": 10_000_000_000,
                                                                   "free_inodes": 1_000_000,
                                                                   "fragment_size": 4096}),
             )
@@ -376,6 +435,233 @@ class EndToEndTempCleanupTests(unittest.TestCase):
             self.assertEqual(len(list(r2.glob("runtime/*"))), 8)
             self.assertEqual(checkpoint.read_bytes(), b"checkpoint")
             self.assertEqual(result["free_before"], result["free_after"])
+
+
+class RaceRegressionTests(unittest.TestCase):
+    def _git_fixture(self, path: Path, origin: str) -> str:
+        path.mkdir()
+        subprocess.check_call([C.GIT, "-C", str(path), "init", "-q"])
+        subprocess.check_call([C.GIT, "-C", str(path), "config", "user.name", "Test"])
+        subprocess.check_call([C.GIT, "-C", str(path), "config", "user.email", "test@example.invalid"])
+        (path / "tracked").write_text("authorized\n")
+        subprocess.check_call([C.GIT, "-C", str(path), "add", "tracked"])
+        subprocess.check_call([C.GIT, "-C", str(path), "commit", "-qm", "fixture"])
+        subprocess.check_call([C.GIT, "-C", str(path), "remote", "add", "origin", origin])
+        return subprocess.check_output([C.GIT, "-C", str(path), "rev-parse", "HEAD"], text=True).strip()
+
+    @contextlib.contextmanager
+    def _health(self):
+        yield {"hostname": C.HOSTNAME, "workflow_lock_free_and_held_by_cleanup": True,
+               "relevant_processes": [], "device_holders": [], "neuron_process_count": 0}
+
+    @contextlib.contextmanager
+    def fixture(self, kinds=("checkout",)):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp)
+            origin = "fixture-origin"
+            targets = []
+            for index, kind in enumerate(kinds):
+                if kind == "checkout":
+                    path = parent / f"checkout-{index}"
+                    head = self._git_fixture(path, origin)
+                    targets.append({"kind": "checkout", "role": f"checkout-{index}",
+                                    "path": str(path), "head": head,
+                                    "archive_evidence_commit": "e" * 40})
+                else:
+                    path = parent / f"bundle-{index}"
+                    data = f"authorized-bundle-{index}".encode()
+                    path.write_bytes(data)
+                    targets.append({"kind": "bundle", "role": f"bundle-{index}",
+                                    "path": str(path), "bytes": len(data), "sha256": digest(data),
+                                    "archive_evidence_commit": "e" * 40})
+            r2 = parent / "protected-r2"; r2.mkdir()
+            runtime = r2 / "runtime.json"; runtime.write_bytes(b"runtime")
+            runtime_hashes = {"runtime.json": digest(b"runtime")}
+            checkpoint = parent / "g0.pt"; checkpoint.write_bytes(b"checkpoint")
+            checkpoint_spec = {"path": str(checkpoint), "bytes": len(b"checkpoint"),
+                               "sha256": digest(b"checkpoint")}
+            patches = (
+                mock.patch.object(C, "PARENT", str(parent)),
+                mock.patch.object(C, "ORIGIN", origin),
+                mock.patch.object(C, "TARGETS", tuple(targets)),
+                mock.patch.object(C, "R2_ROOT", str(r2)),
+                mock.patch.object(C, "R2_RUNTIME_HASHES", runtime_hashes),
+                mock.patch.object(C, "G0_CHECKPOINT", checkpoint_spec),
+                mock.patch.object(C, "G0_ROOT", str(parent)),
+                mock.patch.object(C, "MIN_POST_CLEANUP_FREE_BYTES", 1),
+                mock.patch.object(C, "_assert_request_head"),
+                mock.patch.object(C, "host_quiescence", self._health),
+                mock.patch.object(C, "free_record_fd", return_value={"free_bytes": 10_000_000_000,
+                                                                  "free_inodes": 1_000_000,
+                                                                  "fragment_size": 4096}),
+            )
+            with contextlib.ExitStack() as stack:
+                for patch in patches:
+                    stack.enter_context(patch)
+                request = request_for_current_constants(parent)
+                request_sha = digest(C.canonical(request))
+                inventory = C.collect_inventory(request, request_sha)
+                inventory_sha = digest(C.canonical(inventory))
+                auth = {
+                    "schema": C.SCHEMA_AUTH, "state": "finalized", "executable": True,
+                    "cleanup": True, "authorized_head": request["package_head"],
+                    "request_sha256": request_sha, "inventory_sha256": inventory_sha,
+                    "host": C.HOST, "expected_hostname": C.HOSTNAME, "targets": list(C.TARGETS),
+                    "authorities": C.FORBIDDEN_AUTHORITIES,
+                    "minimum_post_cleanup_free_bytes": C.MIN_POST_CLEANUP_FREE_BYTES,
+                    "independent_verifier_commit": "b" * 40, "human_authorization": True,
+                }
+                yield {"parent": parent, "targets": targets, "request": request,
+                       "request_sha": request_sha, "inventory": inventory,
+                       "inventory_sha": inventory_sha, "auth": auth,
+                       "auth_sha": digest(C.canonical(auth)), "r2": r2,
+                       "checkpoint": checkpoint}
+
+    def _execute(self, fixture):
+        return C.execute(fixture["request"], fixture["request_sha"], fixture["inventory"],
+                         fixture["inventory_sha"], fixture["auth"], fixture["auth_sha"])
+
+    def test_checkout_swap_after_open_never_deletes_replacement(self):
+        with self.fixture(("checkout",)) as item:
+            target = Path(item["targets"][0]["path"])
+            moved = item["parent"] / "authorized-moved"
+            def attack(event, context):
+                if event == "after_target_open_before_quarantine":
+                    target.rename(moved)
+                    target.mkdir()
+                    (target / "unknown").write_text("replacement-must-survive")
+            with mock.patch.object(C, "_BOUNDARY_HOOK", attack):
+                result = self._execute(item)
+            self.assertEqual(result["status"], "PARTIAL_FAILURE")
+            self.assertEqual((moved / "tracked").read_text(), "authorized\n")
+            self.assertEqual((target / "unknown").read_text(), "replacement-must-survive")
+            self.assertTrue(Path(item["request"]["journal_output"]).is_file())
+
+    def test_same_inode_bundle_mutation_after_quarantine_is_not_unlinked(self):
+        with self.fixture(("bundle",)) as item:
+            target = Path(item["targets"][0]["path"])
+            mutated = b"X" * item["targets"][0]["bytes"]
+            def attack(event, context):
+                if event == "before_bundle_final_hash":
+                    quarantine = item["parent"] / context["quarantine"]
+                    with quarantine.open("r+b") as stream:
+                        stream.write(mutated)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+            with mock.patch.object(C, "_BOUNDARY_HOOK", attack):
+                result = self._execute(item)
+            self.assertEqual(result["status"], "PARTIAL_FAILURE")
+            self.assertEqual(target.read_bytes(), mutated)
+            self.assertFalse(result["cleanup_performed"])
+
+    def test_post_inventory_checkout_insertion_is_preserved_and_rejected(self):
+        with self.fixture(("checkout",)) as item:
+            target = Path(item["targets"][0]["path"])
+            def attack(event, context):
+                if event == "after_checkout_quarantine_validation":
+                    (item["parent"] / context["quarantine"] / "late-unknown").write_text("keep")
+            with mock.patch.object(C, "_BOUNDARY_HOOK", attack):
+                result = self._execute(item)
+            self.assertEqual(result["status"], "PARTIAL_FAILURE")
+            self.assertEqual((target / "late-unknown").read_text(), "keep")
+            self.assertFalse(result["cleanup_performed"])
+
+    def test_nested_directory_swap_before_quarantine_preserves_replacement(self):
+        with self.fixture(("checkout",)) as item:
+            target = Path(item["targets"][0]["path"])
+            fired = []
+            def attack(event, context):
+                if event == "before_entry_quarantine" and context["relative"] == ".git" and not fired:
+                    fired.append(True)
+                    os.rename(".git", ".git-authorized-moved",
+                              src_dir_fd=context["dir_fd"], dst_dir_fd=context["dir_fd"])
+                    os.mkdir(".git", dir_fd=context["dir_fd"])
+                    replacement = os.open(".git", os.O_RDONLY | os.O_DIRECTORY,
+                                          dir_fd=context["dir_fd"])
+                    try:
+                        fd = os.open("unknown", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600,
+                                     dir_fd=replacement)
+                        os.write(fd, b"preserve"); os.close(fd)
+                    finally:
+                        os.close(replacement)
+            with mock.patch.object(C, "_BOUNDARY_HOOK", attack):
+                result = self._execute(item)
+            self.assertTrue(fired)
+            self.assertEqual(result["status"], "PARTIAL_FAILURE")
+            self.assertTrue((target / ".git-authorized-moved").is_dir())
+            self.assertEqual((target / ".git" / "unknown").read_bytes(), b"preserve")
+
+    def test_nested_hardlink_fifo_and_symlink_are_rejected_by_inventory(self):
+        for attack in ("hardlink", "fifo", "symlink"):
+            with self.subTest(attack=attack), self.fixture(("checkout",)) as item:
+                root = Path(item["targets"][0]["path"])
+                if attack == "hardlink":
+                    os.link(root / "tracked", root / "extra")
+                elif attack == "fifo":
+                    os.mkfifo(root / "extra")
+                else:
+                    (root / "extra").symlink_to("tracked")
+                with self.assertRaises(C.ContractError):
+                    C.collect_inventory(item["request"], item["request_sha"])
+
+    def test_interruption_after_each_destructive_boundary_is_never_pass(self):
+        boundaries = ("after_target_quarantine", "after_entry_quarantine",
+                      "after_entry_delete", "after_target_delete")
+        for boundary in boundaries:
+            with self.subTest(boundary=boundary), self.fixture(("checkout",)) as item:
+                fired = []
+                def interrupt(event, _context):
+                    if event == boundary and not fired:
+                        fired.append(True)
+                        raise RuntimeError(f"interrupt at {boundary}")
+                with mock.patch.object(C, "_BOUNDARY_HOOK", interrupt):
+                    result = self._execute(item)
+                self.assertTrue(fired)
+                self.assertEqual(result["status"], "PARTIAL_FAILURE")
+                self.assertTrue(Path(item["request"]["journal_output"]).is_file())
+                events = [json.loads(line)["event"] for line in
+                          Path(item["request"]["journal_output"]).read_text().splitlines()]
+                self.assertEqual(events[0], "INTENT")
+                self.assertEqual(events[-1], "PARTIAL_FAILURE")
+
+    def test_main_writes_durable_partial_receipt_after_first_target_deleted(self):
+        with self.fixture(("bundle", "bundle")) as item:
+            second = item["targets"][1]
+            def attack(event, context):
+                if event == "before_bundle_final_hash" and context["target"] == second["path"]:
+                    quarantine = item["parent"] / context["quarantine"]
+                    quarantine.write_bytes(b"Z" * second["bytes"])
+            request_path = item["parent"] / "request.json"
+            inventory_path = Path(item["request"]["inventory_output"])
+            auth_path = item["parent"] / "authorization.json"
+            for path, value in ((request_path, item["request"]),
+                                (inventory_path, item["inventory"]),
+                                (auth_path, item["auth"])):
+                path.write_bytes(C.canonical(value)); path.chmod(0o600)
+            with mock.patch.object(C, "_BOUNDARY_HOOK", attack):
+                rc = C.main(["execute", "--request", str(request_path),
+                             "--inventory", str(inventory_path), "--authorization", str(auth_path)])
+            self.assertEqual(rc, 2)
+            receipt = json.loads(Path(item["request"]["receipt_output"]).read_text())
+            self.assertEqual(receipt["status"], "PARTIAL_FAILURE")
+            self.assertTrue(receipt["cleanup_performed"])
+            self.assertFalse(Path(item["targets"][0]["path"]).exists())
+            self.assertTrue(Path(item["targets"][1]["path"]).exists())
+            self.assertEqual(json.loads(Path(item["request"]["journal_output"]).read_text().splitlines()[-1])
+                             ["event"], "PARTIAL_FAILURE")
+
+    def test_stale_v1_and_mutated_journal_paths_are_rejected(self):
+        with self.fixture(("bundle",)) as item:
+            stale = copy.deepcopy(item["request"]); stale["schema"] = "a1-native-g1-consumed-staging-cleanup-request-v1"
+            with self.assertRaises(C.ContractError): C.validate_request(stale)
+            missing = copy.deepcopy(item["request"]); missing.pop("journal_output")
+            with self.assertRaises(C.ContractError): C.validate_request(missing)
+            alias = copy.deepcopy(item["request"]); alias["journal_output"] = alias["receipt_output"]
+            with self.assertRaises(C.ContractError): C.validate_request(alias)
+            stale_auth = copy.deepcopy(item["auth"]); stale_auth["schema"] = "a1-native-g1-consumed-staging-cleanup-authorization-v1"
+            with self.assertRaises(C.ContractError):
+                C.validate_authorization(stale_auth, item["request"], item["request_sha"],
+                                         item["inventory"], item["inventory_sha"])
 
 
 if __name__ == "__main__":

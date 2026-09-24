@@ -2,6 +2,8 @@
   "schema_version": 1,
   "proposal_id": "20260925-v2-a1-consumed-staging-cleanup-trn21-r1",
   "status": "completed-implementation-pending-independent-verification",
+  "repair_parent_verifier_fail": "e1152cb26c78dbdc68b5c57f5b0749760dcade82",
+  "repair_parent_receipt_sha256": "c874891cbc754943eb4ca2d1f5f37b9f7a994200cd87c563a81133edd5867051",
   "role": "Implementer",
   "operation_class": "cleanup-only",
   "hypothesis": "Exact consumed controller staging can be removed without touching any scientific or evidentiary artifact, and the resulting free space can be measured against the frozen r4 pre-staging threshold.",
@@ -19,5 +21,5 @@
     "r3_failure": "5e45a564bba0d04b052345a7c9c1812ddb71ce51",
     "analysis": "83e533546fb8b53f5c8268d84f0ccd2b5c90e1a1"
   },
-  "decision": "An independent Verifier must finalize the request, then an Operator must produce a read-only inventory. A separate exact executable authorization may be created only after that inventory is independently accepted. The checked-in package cannot delete anything."
+  "decision": "An independent Verifier must first accept the r2 quarantine, complete-manifest, journal, and sealed-receipt repair. It may then finalize the request, after which an Operator can produce a read-only inventory. A separate exact executable authorization may be created only after that inventory is independently accepted. The checked-in package cannot delete anything."
 }
