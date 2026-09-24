@@ -1,0 +1,77 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_HARNESS_ONLY_NON_DISPATCHABLE",
+  "audited_final_commit": "39e4deae80fe53aa3e784e0a4e3c47d2d6bd802a",
+  "audited_core_commit": "782a1af497680c223cc6f9751e29c216b082e8e6",
+  "protected_hashes": {
+    "control_train_py": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "prepare_py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "authorization_json": "0501b20eb2566ff204aaf70a959d8d9a7c715e7a161e99ada11eb7f26afff7e2"
+  },
+  "scope": {
+    "request_state": "blocked_non_dispatchable",
+    "command": [],
+    "dispatch_authorized": false,
+    "training_authorized": false,
+    "device_probe_authorized": false,
+    "submission_authorized": false
+  },
+  "rank_evidence_audit": {
+    "local_contribution_hash_captured_before_collective": true,
+    "four_local_contribution_hashes_required_distinct": true,
+    "global_gradient_hash_captured_after_sum_and_world_size_division": true,
+    "four_global_gradient_hashes_required_identical": true,
+    "four_param_hashes_required_identical": true,
+    "four_logical_moment_hashes_required_identical": true,
+    "production_helper_exercised_with_fake_collective": true,
+    "missing_duplicate_wrong_rank_and_cross_rank_mutations_rejected": true
+  },
+  "trust_and_science_gates": {
+    "actual_request_file_no_follow_read_and_exact_schema_validation": true,
+    "request_authorization_core_host_output_argv_and_source_hash_binding": true,
+    "authorization_exact_schema_and_request_contract_binding": true,
+    "authenticated_track_a_receipt_required": true,
+    "checkpoint_pre_and_post_sha256_and_size_binding": true,
+    "strict_load_required_for_control_and_candidate": true,
+    "complete_ordered_key_identity_required": true,
+    "exact_b1_t1_b5_t5_bytes_and_deterministic_logits_required": true,
+    "harness_owned_native_bf16_four_rank_dense_reference": true,
+    "candidate_touched_only_schema_and_bit_exact_comparison": true,
+    "exclusive_no_follow_output_creation": true,
+    "training_checkpoint_mutation_prune_and_cleanup_forbidden": true
+  },
+  "checks_run": [
+    "component-probe fail-closed and adversarial test suite",
+    "blocked request fingerprint test suite",
+    "production reduce_clipped_with_evidence fake-distributed integration",
+    "rank evidence missing, duplicate, wrong-rank, global-gradient and parameter mutation attacks",
+    "request, authorization, checkpoint and symlink-parent attacks",
+    "Python compilation checks",
+    "all request source fingerprints recomputed from the exact core commit",
+    "clean-worktree and direct-parent audit"
+  ],
+  "future_binding_and_approval_gates": [
+    "Bind an authenticated successful exact-35c9 Track-A control receipt path and SHA-256.",
+    "Bind the retained checkpoint path, SHA-256, and byte size from that receipt.",
+    "Bind a distinct independently reviewed candidate train.py path and SHA-256 implementing only the touched-row probe export.",
+    "Bind the exact target hostname, immutable core commit, request contract digest, authorization digest, exact argv, and a unique nonexistent output path.",
+    "Finalize the request as authorized_component_probe_only with dispatch_authorized true while training_authorized remains false.",
+    "Obtain separate explicit human approval for one bounded native component probe and independent final verification of the finalized bindings.",
+    "Even a passing component probe does not authorize training; any training requires a separate completed proposal, verification, and human approval."
+  ],
+  "limitations": [
+    "No Neuron device execution occurred, so SDK support, native compiler behavior, and real device numerics remain unverified.",
+    "The current authorization lacks the Track-A receipt, checkpoint, candidate, hostname, core, and request-contract bindings and therefore correctly fails closed.",
+    "This receipt approves harness readiness only and is not approval to dispatch, train, promote a candidate, clean artifacts, or submit."
+  ],
+  "actions_not_taken": [
+    "SSH",
+    "device execution",
+    "training",
+    "push",
+    "submission",
+    "source modification"
+  ]
+}
