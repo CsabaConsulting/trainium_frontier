@@ -1,8 +1,28 @@
 # Current state
 
-Last reconciled: 2026-09-24 23:18 UTC
+Last reconciled: 2026-09-24 23:46 UTC
 
-## Current handoff: trn22 CPU gate archived; trn21 evaluation stage verified
+## Current handoff: trn21 evaluator running; trn22 A0 monitor hold
+
+The one-label trn21 G1 r2 guarded public20M retained-checkpoint evaluator
+launched at 23:41:16 UTC after a fresh PASS preflight and the corrected
+[exact authorization](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/request.guard-authorized.json).
+The Operator reports guard PID 2835264 alive with 1-second disk samples and no
+stop as of 23:44:31 UTC. There is no evaluator result or G1 PASS until the
+archived postflight passes independent review; this is not a new model run.
+
+On trn22, the c5c A0 r2 [final request passed independent static review](verification/20260925-trn22-c5c-a0-r2-final-request-review.md)
+and a [fresh read-only prelaunch audit](../v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json)
+passed with 58,452,860,928 B root free. Native dispatch is explicitly
+[HOLD](../v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json):
+the proven launcher has no reviewed continuous disk monitor, and the earlier
+attempt crossed the 6.5-GiB floor before step zero. An Implementer is preparing
+an external <=1-second, authenticated owned-guard monitor with a 2-GiB reserve;
+it will need independent review before one-shot authorization. The r2 science
+label is unused. No native run or BPB improvement exists; best public20M remains
+0.9918353324 single / 0.9919537735 mean.
+
+## Historical handoff: trn22 CPU gate archived; trn21 evaluation stage verified
 
 The corrected exact-environment, four-rank CPU G2 on trn22 [passed its Operator
 probe](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/operator-receipt.json)
