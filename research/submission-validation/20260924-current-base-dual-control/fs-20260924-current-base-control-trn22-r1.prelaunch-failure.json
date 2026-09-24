@@ -1,0 +1,91 @@
+{
+  "schema": "current-base-control-operator-prelaunch-failure-v1",
+  "label": "fs-20260924-current-base-control-trn22-r1",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "status": "FAIL_PRELAUNCH_AUTHORIZATION_HASH_MISMATCH",
+  "operator_action": "abort_before_launcher",
+  "verified_branch": "origin/experiment/current-base-dual-control-20260924",
+  "verified_branch_head": "5f749b2cfdbf5f9a85cbd526e67cb35005d1eddc",
+  "finalization_commit": "34eb289f06353461d26a88f994104f259ea06714",
+  "runtime_core": "b02ea2d8229aa55431cfd0959cf555118e823053",
+  "verifier_receipt": {
+    "path": "research/agentic/verification/20260924-current-base-dual-control-independent-verifier.json",
+    "sha256": "fdc09453988d37a37f84e4a02f581d8f3f88961bb5b4a72c9abd4b45d79c028b",
+    "verdict": "PASS_PENDING_OPERATOR_PREFLIGHT"
+  },
+  "pinned_files": {
+    "request": {
+      "path": "research/submission-validation/20260924-current-base-dual-control/trn22-request.json",
+      "sha256": "7bc0d968146c6c5b1dc05205698dd328e57b1fd29d88630877a10ac1ebd63a91"
+    },
+    "job": {
+      "path": "research/submission-validation/20260924-current-base-dual-control/trn22-job.json",
+      "sha256": "cff9afc2ba59ba7933a401ef4f2cd3ea92e61f2dbe2caf66028cdde41a7ec6ae"
+    },
+    "authorization": {
+      "path": "research/submission-validation/20260924-current-base-dual-control/trn22-authorization.json",
+      "sha256_at_runtime_core": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+      "sha256_at_finalization": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968"
+    },
+    "driver": {
+      "path": "research/submission-validation/20260924-current-base-dual-control/control_job.py",
+      "sha256_at_runtime_core": "d9a81f2b2d9e46f460bba7991243b9c4d8f88e72865be7a568f6f9b16739167a"
+    },
+    "launcher": {
+      "path": "research/fresh_start_launch.py",
+      "sha256": "dc3479c09abe344ef8239f6ce7c06f903dd7213deca5f25fe260c7ce715afab2"
+    },
+    "candidate_train_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "failed_gate": {
+    "request_command_flag": "--authorization-sha256",
+    "request_command_value": "5089199e97138afbeeabfcdaf541d845bcfd792c02a823de07787ea3a1ce1357",
+    "runtime_authorization_file_sha256": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+    "old_authorization_commit": "8689f509",
+    "authorization_contract_changed_at": "0c148b86",
+    "driver_check": "sha(auth_path) must equal --authorization-sha256",
+    "predicted_driver_result_if_launched": "authorization mismatch",
+    "reason": "The finalized request retained the pre-contract authorization digest after the runtime authorization file changed to bind request contract a932aac93749674b20dee56b070efc5f400aa414dbb40f9056bc6d6cae2e0f48. The launcher fingerprint expects the new bytes, but the workload argv supplies the old digest."
+  },
+  "read_only_host_preflight": {
+    "checked_at_utc": "2026-09-24T09:23:59Z",
+    "reachable": true,
+    "hostname_exact": true,
+    "free_bytes": 8039395328,
+    "free_gib": 7.487270355224609,
+    "minimum_required_gib": 6.5,
+    "disk_gate_pass": true,
+    "free_inodes": 25122893,
+    "memory_available_kib": 128437420,
+    "workload_processes": [],
+    "device_holders": [],
+    "neuron_processes": [],
+    "host_lock_holders": [],
+    "experiment_lock_holders": [],
+    "remote_target": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1",
+    "remote_target_exists": false,
+    "label_run_log_exists": false,
+    "data_cache_exists": true,
+    "native_python_exists": true
+  },
+  "launch": {
+    "authorized_literal": "python /home/poojith-devan/Desktop/Trainium-current-base-dual-control/research/fresh_start_launch.py /home/poojith-devan/Desktop/Trainium-current-base-dual-control/research/submission-validation/20260924-current-base-dual-control/trn22-request.json",
+    "executed": false,
+    "pid": null,
+    "remote_staging_performed": false,
+    "label_consumed": false
+  },
+  "actions_not_taken": [
+    "launcher invocation",
+    "remote staging",
+    "training",
+    "evaluation",
+    "cleanup",
+    "instance lifecycle change",
+    "controller breaker change",
+    "checkpoint prune",
+    "submission"
+  ]
+}
