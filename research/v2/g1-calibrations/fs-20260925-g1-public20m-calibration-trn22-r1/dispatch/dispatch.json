@@ -1,0 +1,93 @@
+{
+  "request": {
+    "schema": "fresh-start-request-v2",
+    "host": "trn22",
+    "expected_hostname": "ip-172-31-32-253",
+    "remote": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1",
+    "expected_commit": "5f509ed5e727dfd864ef5216885e242cd8e70c17",
+    "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+    "purpose": "G1 fresh-process evaluator calibration against retained known-score checkpoint; warm existing eval caches, no training or new checkpoint",
+    "min_free_bytes": 6979321856,
+    "runner_owns_manifest": false,
+    "non_overwrite": true,
+    "command": [
+      "timeout",
+      "--foreground",
+      "--signal=TERM",
+      "--kill-after=60s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1/prepare.py",
+      "eval-public",
+      "--train-py",
+      "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1/train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
+      "--device",
+      "neuron",
+      "--batch-size",
+      "1",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1",
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/hlo",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/inductor",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/compiler",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/eval-full20m/caches/debug"
+    },
+    "fingerprint_paths": [
+      "train.py",
+      "prepare.py"
+    ],
+    "expected_sha256": {
+      "train.py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+    },
+    "calibration": {
+      "known_public20m": 0.992968300659387,
+      "tolerance_abs": 0.0002,
+      "num_tokens": 20971520,
+      "num_bytes": 83462186,
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
+      "checkpoint_sha256": "1b1d1a3f0ec6b5580312b760f5fee4f702c3fe97c9ddd01ed811472736aadf1b",
+      "reference_commit": "68ecfeb168ddd095ed14f1908fee7c0284dbc97f",
+      "historical_eval_seconds": 731.733122856007,
+      "not_a_new_model_result": true,
+      "not_an_advancement_control": true,
+      "scored_training": false
+    },
+    "operator_requirements": [
+      "G2 batch finished and quiescent; no concurrent CPU/Neuron/torch/eval work.",
+      "Fresh hostname/source/checkpoint hash, new thin-root Git HEAD and full cleanliness; exact new label absent.",
+      "All six existing cache paths must exist as directories; no cold cache creation or clearing.",
+      "Root free must be >=7194070221 bytes (6.5GiB floor plus 0.2GiB warm-eval allowance). Keep disk monitor and abort rather than violate floor.",
+      "Run unchanged generic fresh_start_launch/guard with corrected transport identity only; do not modify model/prepare or the remote old checkout source.",
+      "After guarded completion, prove 10-second stable artifacts plus no processes/device holders before reading final hashes; retain checkpoint.",
+      "Parse actual full JSON; require exact tokens/bytes, finite BPB recomputation from nats/bytes, no timeout, score within tolerance and clean postflight.",
+      "No cleanup, breaker reset, AWS changes, or automatic next scored run."
+    ],
+    "staging": {
+      "original_source_commit": "c025d216c2c07210449651099a982fe5656169fd",
+      "receipt_sha256": "14130a713176babf18e564d86a85e40b3f1602933689ed8ebbe579b52ff8b680",
+      "reason": "Prior source checkout had six archived untracked run artifacts; new clean thin checkout preserves full cleanliness without excluding, moving, or deleting them."
+    },
+    "pre_launch_required_free_bytes": 7194070221
+  },
+  "requested_at": "2026-09-24T20:53:11.827629+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20260925-g1-public20m-calibration-trn22-r1\", \"pid\": 2950407, \"commit\": \"5f509ed5e727dfd864ef5216885e242cd8e70c17\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn22_r1/research/run-logs/fs-20260925-g1-public20m-calibration-trn22-r1.log\", \"started_at\": \"2026-09-24T20:53:19.756924+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
