@@ -1,0 +1,99 @@
+{
+  "proposal_id": "20260925-v2-c5c-a2-m64d128-trn22-r1",
+  "status": "HUMAN_DIRECTED_CONDITIONAL_NON_DISPATCHABLE",
+  "owner_role": "researcher profile inherited from the human-directed workflow queue; transcribed by implementer",
+  "hypothesis": "The exact research-v2 A2 bigram and trigram table profile at VE layers 1 and 5 lowers fresh public-20M BPB against a valid same-host c5c dense A0 control within the 1800-second full-chip budget.",
+  "single_causal_change": "Replace only --no-ngram-ve in the c5c A0 argv with the queue's complete A2 table profile: bigram and trigram tables at layers 1,-1, multiplier 64, dimension 128, BF16 RMSProp, flat table LR, and separate table clipping. This is one predeclared table-module profile versus dense A0, not an isolated measurement of layer 1.",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": -0.008,
+  "predicted_bpb_interval": [-0.017, 0.003],
+  "prediction_basis": "research/v2/queue.json A2 prior versus dense A0; unmeasured on exact c5c bytes",
+  "candidate_shortlist": [
+    {
+      "idea": "A2: bigram and trigram tables at VE layers 1 and 5, mult64/dim128",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.008,
+      "why_ranked": "Human's newer parallel table priority assigns A2 to trn22. Old-stack step-matched layer-1 evidence is promising, while exact-c5c quality and native cost remain unknown."
+    },
+    {
+      "idea": "A1: last-VE-layer bigram and trigram tables, mult64/dim128",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.005,
+      "why_ranked": "Smaller table profile is separately packaged for trn21 and is the required same-host comparator before attributing an incremental layer-1 effect."
+    },
+    {
+      "idea": "D1: dense epoch-value diagnostic",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Diagnoses repeated-data effects but cannot replace a measured table arm or its same-host dense control."
+    },
+    {
+      "idea": "B2: touched-row table update",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.002,
+      "why_ranked": "Potentially reduces table synchronization cost only after an exact dense table path passes; the previous B2 source candidate failed review."
+    }
+  ],
+  "selection_rationale": "The newer human controller brief directs A2 on trn22 in parallel with A1 on trn21, superseding the older A1-first scheduling recommendation. This package preserves A2 as a separately measured table profile versus a valid trn22 c5c A0; it cannot claim the layer-1 increment without a same-host A1 result. This proposal is complete for static review but grants no machine action.",
+  "p_improve": 0.6,
+  "estimated_host_hours": 2.0,
+  "ev_bpb_per_host_hour": 0.0024,
+  "trainium_feasibility": "Exact c5c source, LNC2/four ranks, depth 6, width 1024 and padded vocabulary 8192 create b1, t1, b5 and t5. Each 524288 x 128 BF16 table has 128 MiB of weights. Across four tables, weights, dense BF16 gradients and BF16 RMSProp second moments imply about 1.5 GiB per rank before temporary tensors, model state, activations and compiler memory. AdamW/Muon owner partitioning remains active; the RMSProp group is replicated and follows globally averaged, separately clipped gradients. Full-size CPU memory, Neuron HBM, collective timing, compile/startup and root-disk/checkpoint peaks are unmeasured. Both hosts remain below the disk floor, and trn22 has a human-reset breaker.",
+  "cheapest_falsifier": "After static review and memory-qualified containment, run the exact c5c full-size four-rank, two-step CPU G2 with RMSProp trace and real prepare.py import. Reject on a wrong table set, missing/extra RMS calls, rank divergence, nonfinite trace, update recomputation error, unchanged table, or strict checkpoint-load failure before any native smoke.",
+  "prior_result_refs": [
+    "research/v2/ledger.jsonl: the trn22 c5c A0 r1 stopped on disk before step 0 and is not a control",
+    "research/agentic/DECISION_LOG.md: old 35c9 A1 r2 failed before step 1 at ownership; no table BPB verdict",
+    "workflow/evidence/g2-a2m8-impl1.json: multiplier-8 stub CPU evidence on earlier source, not exact c5c/m64 proof",
+    "research/v2/TABLE_GATE_BRIEF_2026-09-25.md: exact table G2/native gates and A1 attribution caveat"
+  ],
+  "evidence": [
+    "research/v2/CONTROLLER_BRIEF_2026-09-25.md: newer human-directed A2/trn22 and A1/trn21 priority",
+    "research/v2/queue.json: exact A2 flag delta, -0.008 prediction, 80% interval, P=0.6 and trn22 screen host",
+    "research/trn2-experiment-results.md: historical step-matched layer-1 result and 5.86% four-rank throughput cost on an older stack",
+    "research/agentic/verification/20260925-upstream-s0-research-v2-static-verifier.md: exact-size four-rank A2 G2 trace acceptance",
+    "submissions/research_v2/train.py SHA256 c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
+  ],
+  "duplicate_search_terms": ["A2", "layers 1,-1", "ngram-ve-layers", "bigram", "trigram", "m64d128", "RMSProp", "c5c table"],
+  "duplicate_search_files": ["research/v2/ledger.jsonl", "research/experiment-log.jsonl", "research/agentic/DECISION_LOG.md", "research/trn2-experiment-results.md", "research/v2/queue.json", "research/submission-validation/"],
+  "duplicate_finding": "No completed exact-c5c A2 mult64/dim128 trn22 result, G2 or native smoke appears in these records. The existing A2 queue/template labels are unexecuted profiles; historical table experiments used another source or geometry. The proposed g2, smoke and full labels had no exact-string collision at package time and must be checked again before staging.",
+  "control": {
+    "git_commit": null,
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "run_label": null,
+    "pending_a0_retry_label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "trn22 same host, exact c5c source, seed 42, train data, compiler flags and fresh public-20M/context-1024 evaluation. Bind only a valid archived c5c A0 result; the consumed r1 label and historical 35c9/116188 results are not controls."
+  },
+  "candidate": {
+    "branch": "codex/20260925-v2-c5c-a2-trn22-pending",
+    "files_allowed": ["proposal, gate contract, runbook and implementer handoff only; no model or evaluator edits"],
+    "expected_diff": "No source change: only the existing c5c A0 --no-ngram-ve token is replaced by the exact queue A2 table profile in the proposed argv.",
+    "run_label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full",
+    "launch_command": "Pending stage and one-shot authorization only. Exact proposed effective science environment and command argv are in GATE_CONTRACT.json; no final host request or dispatch command exists."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "Use fresh-process public-20M/context-1024 against the valid trn22 c5c A0 control. A same-host delta <= -0.0006 nominates a trn21 replicate; the unchanged decide.py two-host adoption rule requires both deltas negative, mean <= -0.0010 and disagreement <= 0.0015, then human acknowledgement. A delta <= -0.010 or BPB < 0.975 is HOLD for independent cold replay/audit. No layer-1 increment is attributed until same-host A1 is measured.",
+    "throughput": "Record completed steps, training seconds, steady-state step time, token rate and compile/startup cost against the same-host A0. If the step ratio is outside [0.90, 1.10], quality is CONFOUNDED under the unchanged decision rules.",
+    "correctness": "Independent package review, exact-size four-rank G2/RMS trace, separately reviewed 30-step native smoke, valid same-host A0, human storage/breaker decisions, clean staged source/effective environment, finite full-chip seed-42 run within 1800 seconds, strict model-only checkpoint load, causal and batch-independent evaluation, full quiescence, retrieved logs and fresh public-20M evidence."
+  },
+  "abort_conditions": [
+    "No human-confirmed trn22 EBS/guest expansion, no human-provenance breaker reset, or insufficient newly projected table-run root free space",
+    "Missing independent package review, exact c5c/m64 G2/RMS rank-trace PASS, native smoke PASS or valid same-host c5c A0 public-20M control",
+    "Source, prepare.py, queue, argv, effective environment, cache, staged checkout, label or receipt hash mismatch",
+    "Occupied or dirty host, Neuron holder, active lock, reused label/output path, uncontrolled G2 descendant, or more than one host job",
+    "Crash, NaN, nonfinite gradient/checkpoint, rank disagreement, causality/batch-independence failure, startup above the queue's 870-second gate, budget breach, disk floor breach, missing checkpoint or incomplete quiescence",
+    "Any use of this non-dispatchable package as a job request, breaker reset, AWS action, cleanup permission or leaderboard submission"
+  ],
+  "human_approved_by": "Human-directed parallel A2/trn22 profile in the 2026-09-25 controller brief; no AWS, breaker, adoption, submission or one-shot dispatch authority",
+  "verdict": null
+}
