@@ -27,8 +27,11 @@ tokenizer, evaluator, launcher or decision-rule source is changed.
   `NEURON_COMPETITION_R1_SEED=42`, and
   `NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS=1800`, plus LNC=2. The final
   request must also bind the unique trusted
-  `NEURON_COMPETITION_R1_STEP_LOG=<absolute label>.steps.jsonl` to the
-  observer's exact file. Optional `NEURON_COMPETITION_R1_OUT_DIR`, if used,
+  `NEURON_COMPETITION_R1_STEP_LOG=<reviewed-scratch-root>/<label>/<label>.steps.jsonl`
+  to the observer's exact file. This parent directory must already exist,
+  outside the clean pinned source checkout, and be positively proven writable
+  by the exact run UID **before** the observer or guard starts. The STEP_LOG
+  file itself must still be absent. Optional `NEURON_COMPETITION_R1_OUT_DIR`, if used,
   must resolve to the CLI output directory. Reject all other unapproved
   `NEURON_COMPETITION_R1_*` overrides, especially step/eval/compile flags.
 - Exact `torchrun` argv is the ordered array in
@@ -74,7 +77,25 @@ Implementer package.
    absent label, checkout, output, log, STEP_LOG and observer receipt paths;
    no `torchrun`, training/eval, tagged process, shared-lock holder or
    `/dev/neuron*` holder; and no second active launcher.
-5. Root free space must exceed **both** a provisional 20 GiB prelaunch floor
+5. **Positive STEP_LOG-parent preflight:** choose a reviewed scratch root
+   outside the pinned source checkout, owned by the exact run UID and not
+   group/world writable. A dedicated `<scratch>/<label>` directory may be
+   created only under that reviewed root, without touching any protected
+   material; it must be private (`0700`) and owned by that UID. Walk every
+   component with `lstat`: all must exist, be directories and not symlinks.
+   Resolve the parent canonically and record its device, inode, UID, GID and
+   mode. As the **same UID that will run `torchrun`**, create one unique
+   sibling `<label>.write-probe` with exclusive creation, write and fsync it,
+   then preserve it as stage evidence; record its hash. Do **not** create
+   the STEP_LOG itself to test writability. The parent must remain writable
+   and its identity/mode unchanged at observer start and final pre-dispatch.
+   If any check is missing, HOLD before observer/guard launch. Guard
+   process/postflight JSON may remain in the pinned checkout's ignored
+   `research/run-logs`; that separate parent must also already exist,
+   have no symlinked components, and be owned/writable/searchable by the
+   same run UID before observer start. Record its device, inode, UID, GID and
+   mode separately; an absent or changed parent is another stage failure.
+6. Root free space must exceed **both** a provisional 20 GiB prelaunch floor
    and the independently reviewed A2-specific projection of compile/cache,
    temporary, smoke checkpoint/log and unknown-growth reserve above the
    immutable 6.5 GiB operational floor (6,979,321,856 B). The old A0 10 GiB
@@ -83,9 +104,12 @@ Implementer package.
    Monitor actual root free bytes through compile and training; preemptively
    stop only the authenticated owned job if it approaches the floor. A single
    below-floor sample, OOM or unbounded growth fails the gate.
-6. Materialize a **new immutable smoke request** that hashes the complete
-   `env -i` command, source, stage, cache/observer paths, guard and disk/HBM
-   projection. The Supervisor, not this Implementer, issues a separate
+7. Materialize a **new immutable smoke request** that hashes the complete
+   `env -i` command, source, stage, cache/observer paths, STEP_LOG parent
+   identity and positive probe, guard and disk/HBM projection. The canonical
+   STEP_LOG path must be byte-identical in the clean environment assignment,
+   observer adapter arguments, guard process manifest and request. The
+   Supervisor, not this Implementer, issues a separate
    one-attempt authorization after an independent review of the finalized
    request. Only an Operator may then dispatch.
 
@@ -97,19 +121,41 @@ The zero-step A0 `r1` failure cannot fill that control field.
 
 ## Observer, containment and native acceptance
 
-Use the already-reviewed read-only
+Use the new smoke-only
+[`NATIVE_SMOKE_BOUNDARY_OBSERVER.py`](NATIVE_SMOKE_BOUNDARY_OBSERVER.py)
+adapter around the **unchanged**, already-reviewed read-only
 `research/a0_boundary_observer.py` (SHA-256
-`a6f437fe8a9d0a14ec3025bc822f1afa12e3f355fca730e4ae0db7ae00263592`)
-with the **same** label-specific guard-process JSON, STEP_LOG and postflight
-JSON from the proven legacy guard. Stage the observer outside the pinned
-training checkout. Start it before the guard; prove it is alive and the
-STEP_LOG is absent before dispatch. The observer's `.steps.jsonl` file is
-actually one fsynced decimal integer per completed optimizer boundary,
-not JSONL. The exact path must be in both the guarded `env -i` command and
-the observer request. Bind the guard script's own staged hash; it is not
-present in this controller checkout. If the guard cannot support an exact
-30-step smoke, or its process/postflight contract differs, stop and seek
-independent review—do not substitute an ad-hoc launcher or two launchers.
+`a6f437fe8a9d0a14ec3025bc822f1afa12e3f355fca730e4ae0db7ae00263592`).
+The older A0 observer's CLI incorrectly requires its STEP_LOG file beside
+guard receipts inside the source checkout. Its core `observe()` accepts
+separate paths. The adapter hash-checks and executes those exact reviewed
+core bytes, first authenticating the private external STEP_LOG parent,
+same-UID positive probe and unchanged parent device/inode/owner/mode. It
+requires the guard process/postflight JSON at their ordinary label-specific
+paths under the pinned source checkout while STEP_LOG lives in the reviewed
+external scratch directory. After the guard finishes, it checks the parent
+identity and positive-probe hash again; any swap invalidates the observer
+proof. Stage **both** observer files outside the pinned
+training checkout and hash them in the request. Start the adapter before the
+guard; prove it is alive and the STEP_LOG is absent before dispatch. The
+observer's `.steps.jsonl` file is actually one fsynced decimal integer per
+completed optimizer boundary, not JSONL. Bind the guard script's staged
+SHA-256; it is not present in this controller checkout. If the guard cannot
+support an exact 30-step smoke, its process/postflight contract differs, or
+the adapted observer fails its preflight, stop and seek independent review—do
+not substitute an ad-hoc launcher or two launchers.
+
+The immutable request must spell out the adapter's complete argv (no shell
+globs): `--label`, `--source-checkout`, `--scratch-root`, `--base-observer`,
+`--guard-script`, `--guard-script-sha256`, `--process-json`,
+`--postflight-json`, `--boundary-file`, `--write-probe`,
+`--write-probe-sha256`, `--expected-run-uid`, `--parent-device`,
+`--parent-inode`, `--parent-uid`, `--parent-gid`, `--parent-mode`,
+`--guard-parent-device`, `--guard-parent-inode`, `--guard-parent-uid`,
+`--guard-parent-gid`, `--guard-parent-mode`,
+`--poll-seconds 0.02`, and `--timeout-seconds 4800`. All path/identity/hash
+values must come from the positive stage receipt, not an example in this
+runbook. An omitted or changed argument fails the stage.
 
 Successful process exit is only the first check. Require all of the following
 before an independent Verifier can call the **native smoke gate** PASS:
@@ -143,10 +189,14 @@ before an independent Verifier can call the **native smoke gate** PASS:
 The original queue's IMPL-1 acceptance mentions a **50-step** Neuron smoke
 with equal per-rank table hashes, while the newer A2 package and master
 runbook specify **30 steps**. This package implements only the current
-30-step smoke. Before promoting A2 to a full experiment, the Supervisor and
-independent Verifier must either obtain the outstanding 50-step proof under
-a separate unique label or record a legitimate newer human-approved
-supersession. Never silently call 30 steps a 50-step pass.
+30-step initial compile/correctness smoke. The full scored A2 remains
+**HOLD** after it: a later, separately proposed and independently reviewed
+**at-least-50-step** exact-source/native rank-hash diagnostic under a new
+label must show equal table and moment hashes on all four ranks, or the
+human must explicitly supersede the old criterion in durable writing.
+Merely making this smoke 50 steps without adding a verified rank-hash
+diagnostic would not close the equality gate and would waste host time.
+Never silently call 30 steps a 50-step pass.
 
 Archive every failure, including an empty boundary log. A crash, NaN,
 missing checkpoint, failed equality/correctness proof, disk-floor breach,
