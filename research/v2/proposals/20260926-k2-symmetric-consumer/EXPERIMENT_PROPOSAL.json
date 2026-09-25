@@ -1,0 +1,106 @@
+{
+  "proposal_id": "20260926-k2-symmetric-feature-consumer",
+  "status": "COMPLETED_PROPOSAL_SOURCE_IMPLEMENTATION_ONLY_NATIVE_DISABLED",
+  "owner_role": "Implementer under separately selected Supervisor proposal",
+  "hypothesis": "Explicit LNC2 two-program feature ownership with identical runtime control schedules can compile the supplied-metadata ordered FP32 consumer without the old asymmetric basic-block failure.",
+  "single_causal_change": "Replace implicit one-program full-width consumer with explicit grid[2], disjoint 64-column ownership and identical row-group/trip-count schedule on both programs. No routing, arithmetic reduction, dtype, checker or production change.",
+  "mechanism_class": "diagnostic_compiler_feasibility",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "estimated_host_hours": 0.184,
+  "estimate_scope": "Future diagnostic upper timeout600+60 seconds, not authorized here; no quality prediction.",
+  "candidate_shortlist": [
+    {
+      "idea": "Selected symmetric feature sharding",
+      "why_ranked": "Documented matching LNC2 grid and equal control schedules; preserves per-element token-order arithmetic without intercore reduction."
+    },
+    {
+      "idea": "Bare old consumer or namespace-only retry",
+      "why_ranked": "Rejected: parked d0f0 route already failed, not a distinct design."
+    },
+    {
+      "idea": "Split row groups across cores",
+      "why_ranked": "Rejected: different maxima produce unequal dynamic control (e.g. 253 vs1)."
+    },
+    {
+      "idea": "Explicit grid2 with identical full-width writes",
+      "why_ranked": "Rejected: races/multiple writers, not safe ownership."
+    }
+  ],
+  "selection_rationale": "Smallest distinct ownership design addressing documented current NKI0.5 contract; native root cause remains unproved.",
+  "trainium_feasibility": "V256 C128 T256 only. Grid2, both groups0/1 on both programs; pid changes only feature offset0/64. Dynamic count comes from same immutable group_maximums. Existing indirect HBM gather with base stride128 and compile-time feature offset. FP32 output unchanged. Actual compile/autograd/SBUF allocation unsupported until native gate.",
+  "cheapest_falsifier": "Own stdlib strict-byte emulation plus full-context source review, then one separately approved bounded tiny native checker; no production model.",
+  "prior_result_refs": [
+    "research/v2/operator/20260926-trn22-k2-namespace-native/completed/results-bundle.json",
+    "research/v2/operator/20260926-trn22-k2-namespace-native/completed/OPERATOR_RESULT.md",
+    "research/v2/analysis/20260926-k2-lncsymmetric-research/NOTE.md"
+  ],
+  "evidence": [
+    "AWS NKI0.5 release notes explicitly retain matching SPMD grid",
+    "Archived torch_neuronx nki_kernel.py lines118-120 describe kernel[grid].dump_config; lnc flows into CompileOptions133",
+    "AWS access patterns define compile-time offset plus indirect_dim0 vector_offset"
+  ],
+  "duplicate_search_terms": [
+    "lncsymmetric",
+    "program_id",
+    "resident_consumer[2]",
+    "feature sharding"
+  ],
+  "control": {
+    "git_commit": "d0f0d7fbdbe07ddee39680ee1a2b79fdfac388ca",
+    "kernel_sha256": "4939265bf73b3d5f42276e72e48f022df338226a40a9be5b79ed63bde6a4f5b8",
+    "run_label": "fs-20260926-k2-resident-consumer-trn22-r3",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "No comparison/native execution requested; old failure evidence preserved, no scientific control claim."
+  },
+  "candidate": {
+    "branch": "codex/20260926-k2-symmetric-consumer",
+    "files_allowed": [
+      "research/v2/lanes/k2-symmetric-consumer/*",
+      "research/v2/proposals/20260926-k2-symmetric-consumer/*"
+    ],
+    "expected_diff": "New separate experimental module from exact d0f0 body; only explicit two-program launch, half-width tiles, feature offset and disjoint stores. Unchanged checker89189024/reference14572563 copied byte-for-byte.",
+    "run_label": "fs-20260926-k2-symmetric-consumer-trn22-r1",
+    "launch_command": "NOT_BOUND_OR_AUTHORIZED: future checker command is documented after source hashes exist; no launcher added."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "Not evaluated; no BPB, model, data or scorer involved.",
+    "throughput": "Not evaluated; default checker timing0, no whole-step claim.",
+    "correctness": "All existing20 cases/150 comparisons in each of four complete rank receipts; full tensor byte equality including signed zero, finite inputs/output, eager/compiled wrapper VJP, empty rows and retained cancellation counterexamples. Compiler/refusal/missing rank is FAIL/HOLD, never tolerance relaxation."
+  },
+  "abort_conditions": [
+    "Unsupported explicit grid/offset/dynamic control contract",
+    "Any CPU byte/ownership/control mismatch",
+    "Any native compile/runtime/nonfinite/byte mismatch or incomplete receipt",
+    "No independent fresh source review, binding review or separate Operator assignment"
+  ],
+  "resource_estimate": {
+    "logical_input_gradient_bytes_max": 131072,
+    "output_bytes": 131072,
+    "metadata_bytes": 3080,
+    "per_program_accumulator_bytes": 32768,
+    "per_program_four_fp32_tiles_bytes": 131072,
+    "metadata_replicated_across_programs": true,
+    "actual_sbuf_peak": "Unknown compiler allocation/liveness; source declared tile estimate only.",
+    "maximum_dynamic_iterations_per_program": 256,
+    "metadata_construction_cost": "Excluded; supplied synthetic metadata only, no production routing integration.",
+    "performance": "Unknown. Same logical gradient/output bytes, duplicated metadata and narrower transactions may cost more; no promised gain."
+  },
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "native_retry_authorized": false,
+  "submission_authorized": false,
+  "human_approved_by": "Supervisor selected source-only bounded new-design implementation; no native permission",
+  "verdict": null
+}
