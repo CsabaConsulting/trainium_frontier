@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:29 UTC
+Last reconciled: 2026-09-25 12:35 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
@@ -19,8 +19,11 @@ retry and nonsecret failure classification passed independent static review
 (`297a1097`), but remains operationally HOLD. The first disabled trn22
 no-write diagnostic (`5b60d9ec`) received independent static HOLD
 (`d8e70c2b`) because its separate remote GNU-timeout identity probe came
-after, rather than before, a diagnostic phase. A narrow disabled repair and
-the trn21 diagnostic are being developed offline. Further write attempts
+after, rather than before, a diagnostic phase. The trn21 diagnostic
+(`2b1dbff6`) is built but awaiting independent static review. The distinct disabled
+trn22 r2 diagnostic (`e9ef3115`) now has independent static-only PASS
+(`6fe2b2a1`); it still needs a request-bound final review and Supervisor
+assignment before read-only host contact. Further write attempts
 are HOLD pending diagnosis and distinct independent authority. The human
 approved at most one new safe attempt per host **conditional on a read-only
 diagnosis identifying a fix and independent safety review**; see
@@ -43,6 +46,10 @@ A0 control with zero training steps from the earlier disk-floor incident;
 the subsequent disk expansion removed that particular gate, but no new
 scored run has followed. G1's two old-checkpoint public20M calibrations
 passed; they are evaluator checks, not new model results.
+An offline fallback audit found no already-reviewed native route on the
+existing e65 host checkouts: although their model and evaluator bytes match
+r10, the reviewed paired safety monitor/launcher is absent. This is why the
+new clean r10 checkout remains a prerequisite for a scored control.
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
