@@ -1,6 +1,12 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 new disabled private-cache repair under independent review while earlier static HOLD controls; trn21 disabled lock repair independent static PASS only; read-only lock/ACL observations archived; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 disabled private-cache repair independently held on FIFO open; trn21 disabled lock repair independent static PASS only; read-only lock/ACL observations archived; scored training on both hosts HOLD; no new BPB result.**
+
+At 05:49 UTC, trn22's disabled private-cache repair received
+[independent static HOLD](authorizations/trn22-c5c-a0-r4-transfer-lock-private-cache-hold/INDEPENDENT_DISABLED_STATIC_REVIEW.HOLD.md):
+a pre-existing FIFO lock pathname can block a read-only open before regular
+file validation. A distinct disabled successor is being prepared; no host
+transfer or training authority exists.
 
 At 05:41 UTC, a [distinct disabled trn22 private-cache lock repair](authorizations/trn22-c5c-a0-r4-transfer-lock-private-cache-hold/GATE_CONTRACT.HOLD.json)
 was committed for independent static review. Its entry points still HOLD;
