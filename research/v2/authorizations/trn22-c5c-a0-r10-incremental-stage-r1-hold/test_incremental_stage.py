@@ -299,8 +299,35 @@ class IncrementalStageTests(unittest.TestCase):
         for name, field in (("remote_incremental.py", "remote_source_sha256"),
                             ("operator_once.py", "operator_source_sha256")):
             self.assertEqual(hold[field], hashlib.sha256((HERE / name).read_bytes()).hexdigest())
-        for path in (operator.ENABLED_REQUEST, operator.FINAL_REVIEW, operator.ASSIGNMENT):
-            self.assertFalse(path.exists())
+        enabled = operator.ENABLED_REQUEST
+        self.assertTrue(enabled.is_file())
+        self.assertEqual(
+            hashlib.sha256(enabled.read_bytes()).hexdigest(),
+            "b33a72fc3b5588f537c23ff4bb565344a92eabef58a33970db2bf2160a60ee91",
+        )
+        enabled_request = json.loads(enabled.read_text())
+        self.assertIs(enabled_request["dispatch_authorized"], True)
+        self.assertIs(enabled_request["source_stage_authorized"], True)
+        self.assertIs(enabled_request["native_training_authorized"], False)
+        self.assertEqual(enabled_request["attempt_label"], remote.LABEL)
+        self.assertEqual(enabled_request["target"], str(remote.TARGET))
+        self.assertEqual(enabled_request["marker"], str(operator.MARKER))
+        self.assertFalse(operator.FINAL_REVIEW.exists())
+        self.assertFalse(operator.ASSIGNMENT.exists())
+        contact = mock.Mock(side_effect=AssertionError("contacted"))
+        with mock.patch.object(operator, "_local_stop_and_breakers") as stop, \
+             mock.patch.object(operator, "_ssh_identity") as ssh, \
+             mock.patch.object(operator, "_marker") as marker:
+            if __debug__:
+                with self.assertRaises(FileNotFoundError):
+                    operator.stage_once(remote_call=contact)
+            else:
+                with self.assertRaisesRegex(RuntimeError, "optimized Python"):
+                    operator.stage_once(remote_call=contact)
+            stop.assert_not_called()
+            ssh.assert_not_called()
+            marker.assert_not_called()
+            contact.assert_not_called()
         with tempfile.TemporaryDirectory(prefix="trn22-r10-authority-") as temp:
             absent = Path(temp) / "enabled.json"
             marker = Path(temp) / "marker"
