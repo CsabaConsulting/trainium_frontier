@@ -1,26 +1,28 @@
 # Current state
 
-Last reconciled: 2026-09-25 11:55 UTC
+Last reconciled: 2026-09-25 12:12 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
-capacity. Trn22's exact r5 one-shot source-stage attempt passed fresh preflight
-and the live remote GNU timeout check, then failed during the write SSH phase
-(`ad925338`). Its marker is consumed, but a distinct-process postflight found
-**no bundle or target**, intact e65 science/checkpoint/caches, no holder or
-STOP, and about 58.45 GB free. The independent result is HOLD (`b1387247`):
-the reviewed wrapper suppressed the remote error, so the underlying cause is
-**unknown**, not proven to be timing. There was no cleanup, retry, native run,
-or eval. A separately labelled, disabled repair with bounded pre-open timing
-retry and nonsecret failure classification is being developed; any future
-stage needs fresh independent authority. Trn21's r4 enabled stage request
-received independent final HOLD (`06451f16`) for a narrow STOP-before-remote-
-probe gap. Its distinct disabled r5 repair (`2db60693`) is under independent
-static review; no trn21 r10 host stage has run. Both r10 A0 control proposals
-remain selected (`6a3aa8e9`, `8aec974e`), but native launch is HOLD on both
-hosts. A disabled trn21 native package (`726eca9f`) is under independent
-static review. Neither host has a new scored run or BPB. The best confirmed
-local public20M/context-1024 result remains 0.9918353324 (single) /
-0.9919537735 (two-run mean).
+capacity. Both one-shot r10 source-stage attempts passed their fresh
+preflights and live remote GNU timeout probes, then failed with the **same
+generic write-SSH error**: trn22 `ad925338` (independent result HOLD
+`b1387247`) and trn21 `1b1f33bb` (independent result review pending).
+Both one-attempt markers are consumed. Each distinct-process postflight found
+**no bundle or new checkout**, intact e65 science/protected assets, no STOP,
+process or Neuron holder, and over 57 GB free. The wrappers suppressed the
+remote error; the root cause is **unknown**. Two matching failures increase
+concern about a shared pre-open/transport defect, but do not prove one, and
+do not prove the one-second timing gate caused the failures. There has been
+no cleanup, retry, native run, eval, or new BPB. A separately labelled,
+disabled trn22 r6 repair (`7b250a74`) with bounded pre-open timing-only
+retry and nonsecret failure classification is under independent static
+review; a no-write diagnostic is being developed. Further write attempts
+are HOLD pending diagnosis, distinct independent authority and the required
+human retry decision. Both r10 A0 control proposals remain selected
+(`6a3aa8e9`, `8aec974e`), and both disabled native packages have static
+PASS (`ae718458` trn22, `a254d223` trn21), but neither host is native-
+launch-ready. The best confirmed local public20M/context-1024 result remains
+0.9918353324 (single) / 0.9919537735 (two-run mean).
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
