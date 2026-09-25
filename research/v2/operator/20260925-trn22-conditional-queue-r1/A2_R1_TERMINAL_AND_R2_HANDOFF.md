@@ -18,8 +18,9 @@ are archived exactly under `a2-r1-final/`, with hashes in
 
 ## Automatic common-lock handoff to r2
 
-At **16:01:54.170 UTC / 21:31:54 IST**, existing queue PID3050509 created
-the new r2 attempt and fresh preflight; at **16:01:54.172 UTC**, it started
+At **16:01:54.160978 UTC / 21:31:54 IST**, existing queue PID3050509 created
+the new r2 attempt, with fresh preflight at **16:01:54.168078 UTC**;
+at **16:01:54.172316 UTC**, it started
 training timeout-wrapper PID3051234. This follows the prior driver/eval
 completion by approximately three seconds. No second launcher, overlap,
 process interruption, SDK switch or timer change was involved.
