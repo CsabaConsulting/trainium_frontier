@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 08:49 UTC, disabled trn22 r3 source stage `80c96851` received
+[independent HOLD](verification/20260925-trn22-r9-incremental-stage-r3-independent-HOLD.md)
+at `6e2e9878`: concrete r2 pre-open and O_EXCL-age defects are repaired,
+but the new provisional-bundle unlink would be unauthorized cleanup.
+A distinct disabled no-unlink r4 repair is assigned. A2 CPU-only final-
+pending package `164cfcd8` awaits independent review; no host stage or
+new scored BPB occurred.
+
 At 08:39 UTC, the disabled trn22 r2 read-only timing diagnostic `384eb822`
 received [independent STATIC PASS only](verification/20260925-trn22-r9-final-continuity-timing-r4-independent-static-PASS.md)
 at `9aa9a124`. It has no enabled request or host timing receipt and cannot

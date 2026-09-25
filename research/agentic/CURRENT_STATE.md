@@ -1,6 +1,15 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:39 UTC
+Last reconciled: 2026-09-25 08:49 UTC
+
+The disabled trn22 e65→r9 r3 small-bundle stage `80c96851` received
+[independent HOLD](../v2/verification/20260925-trn22-r9-incremental-stage-r3-independent-HOLD.md)
+at `6e2e9878`: it closes the earlier bounded pre-open and O_EXCL-age
+defects, but its zero-byte provisional-file unlink is cleanup not approved
+by the human controller. A distinct disabled r4 no-unlink repair is now
+assigned. The A2 exact-size CPU-only G2 final-pending package `164cfcd8`
+is under separate independent static review. No host stage, native run,
+table result, or new BPB follows from either package.
 
 The disabled trn22 r2 read-only timing diagnostic `384eb822` received
 [independent STATIC PASS only](../v2/verification/20260925-trn22-r9-final-continuity-timing-r4-independent-static-PASS.md)
