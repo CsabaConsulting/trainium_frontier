@@ -1,0 +1,45 @@
+{
+  "ended_utc": "2026-09-25T23:53:10.665609+00:00",
+  "error": "RuntimeError: NEURON_LS_COMMAND_FAILED",
+  "lock": {
+    "device": 66305,
+    "driver_pid": 3100580,
+    "fd": 3,
+    "inode": 596823,
+    "lifetime": "Outer flock remains through driver and all synchronous phases.",
+    "parent_pid": 3100579,
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "verified_existing_exclusive_lock": true
+  },
+  "lock_path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+  "neuron_ls": {
+    "command": [
+      "/opt/aws/neuron/bin/neuron-ls",
+      "--json-output"
+    ],
+    "returncode": 2,
+    "stderr": "fatal error: failed to reserve page summary memory\n\nruntime stack:\nruntime.throw({0x151876a?, 0x20000000?})\n\t/usr/local/go/src/runtime/panic.go:1229 +0x48 fp=0x7fffe4b722e0 sp=0x7fffe4b722b0 pc=0x670488\nruntime.(*pageAlloc).sysInit(0x2176148, 0x60?)\n\t/usr/local/go/src/runtime/mpagealloc_64bit.go:81 +0x112 fp=0x7fffe4b72348 sp=0x7fffe4b722e0 pc=0x62e1b2\nruntime.(*pageAlloc).init(0x2176148, 0x2176140, 0x2199b60, 0x0)\n\t/usr/local/go/src/runtime/mpagealloc.go:327 +0x85 fp=0x7fffe4b72378 sp=0x7fffe4b72348 pc=0x62b8c5\nruntime.(*mheap).init(0x2176140)\n\t/usr/local/go/src/runtime/mheap.go:821 +0x225 fp=0x7fffe4b723b0 sp=0x7fffe4b72378 pc=0x627985\nruntime.mallocinit()\n\t/usr/local/go/src/runtime/malloc.go:493 +0xfd fp=0x7fffe4b723f8 sp=0x7fffe4b723b0 pc=0x60b1fd\nruntime.schedinit()\n\t/usr/local/go/src/runtime/proc.go:877 +0x112 fp=0x7fffe4b72490 sp=0x7fffe4b723f8 pc=0x63c7d2\nruntime.rt0_go()\n\t/usr/local/go/src/runtime/asm_amd64.s:373 +0x123 fp=0x7fffe4b72498 sp=0x7fffe4b72490 pc=0x675e23\n",
+    "stderr_sha256": "6371672636a54ed42515970f1c68c738107e814ba0aa68bb88333b1681ee37e8",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "ps": {
+    "busy": [],
+    "command": [
+      "/usr/bin/ps",
+      "-eo",
+      "pid=,ppid=,comm=,args="
+    ],
+    "excluded_pids": [
+      3100580,
+      3100579
+    ],
+    "returncode": 0,
+    "row_count": 259,
+    "stderr": "",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "1af0d4c38d0423ebb99f0d796c05a56e024053d3cf71f2a58225ab3978a75ac6"
+  },
+  "schema": "same-host-lifetime-lock-idle-v1",
+  "started_utc": "2026-09-25T23:53:10.654158+00:00",
+  "status": "REFUSED"
+}
