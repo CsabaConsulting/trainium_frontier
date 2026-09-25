@@ -201,6 +201,39 @@ class R4InterlockImplementationTest(unittest.TestCase):
         self.assertEqual(monitor.state, "HOLD")
         self.assertIn("QUIESCENT_HOLD", [event for event, _ in case.journal.events])
 
+    def test_same_uid_marker_spoof_outside_child_session_is_never_killed(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        spoof_pid = 45679
+        system.procs[spoof_pid] = base.ProcInfo(
+            spoof_pid, os.getuid(), 88005, 1, spoof_pid, spoof_pid,
+            ("/usr/bin/unrelated",), "/usr/bin/unrelated")
+        system.owned_pids.add(spoof_pid)  # Exact public marker, unrelated session.
+        system.free = case.binding["stop_free_bytes"]
+        system.time += 0.25
+        self.assertIsNone(monitor.tick())
+        for _ in range(500):
+            if monitor.state == "KILLING":
+                break
+            system.time += 0.25
+            self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", spoof_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.guard_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.child_pid + 100000), system.signals)
+        for pid in (case.guard_pid, case.child_pid):
+            system.procs[pid] = None
+        for _ in range(130):
+            system.time += 0.25
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
+        self.assertEqual(monitor.state, "HOLD")
+        self.assertNotIn(("KILL", spoof_pid + 100000), system.signals)
+        self.assertIn("MARKER_ONLY_PROCESS_HOLD", [event for event, _ in case.journal.events])
+        self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
+
     def test_term_and_kill_ignoring_guard_child_end_in_explicit_unresolved_hold(self):
         case = self.base_case()
         case.system.free = case.binding["stop_free_bytes"]

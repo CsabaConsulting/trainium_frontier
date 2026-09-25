@@ -5,7 +5,8 @@ This is not a launcher or an authorization mechanism. A separately reviewed,
 one-attempt authorization is required before this program may be armed. It
 first signals the pidfd of the exact guard that wrote the expected process
 receipt. If TERM does not quiesce the job, it escalates through authenticated
-pidfds for the bound child and exact run-marker descendants. It never signals
+pidfds for the bound child and descendants proven in its live kernel session
+with the exact run marker. It never signals
 a process group or an unverified numeric PID.
 """
 
@@ -405,6 +406,7 @@ class GuardMonitor:
             self.journal.emit("GUARD_BOUND", guard_pid=guard.pid,
                               guard_uid=guard.uid, guard_birth_ticks=guard.birth_ticks,
                               child_pid=child.pid, child_birth_ticks=child.birth_ticks,
+                              child_session=child.session,
                               job_sha256=self.job_hash, process_sha256=self.process_hash)
         except BaseException:
             if self.guard_pidfd is None:
@@ -446,27 +448,40 @@ class GuardMonitor:
             raise MonitorError("owned child executable changed")
         return current
 
-    def _owned_descendants(self) -> list[ProcInfo]:
+    def _owned_descendants(self) -> tuple[list[ProcInfo], list[ProcInfo]]:
         if self.guard is None or self.child is None:
             raise MonitorError("owned process roots are not bound")
-        result = []
+        # A public environment marker is a discovery hint, not proof of
+        # descent. Only a live, reauthenticated child can anchor its unique
+        # kernel session. Processes outside that session remain HOLD-only.
+        child_anchor = self._bound_child()
+        proven, marker_only = [], []
         for proc in self.system.owned_processes(self.label):
             if proc.pid == self.guard.pid:
                 if proc.birth_ticks != self.guard.birth_ticks:
-                    raise MonitorError("marked guard PID was reused")
+                    marker_only.append(proc)
                 continue
             if proc.pid == self.child.pid:
                 if proc.birth_ticks != self.child.birth_ticks:
-                    raise MonitorError("marked child PID was reused")
+                    marker_only.append(proc)
                 continue
-            if proc.uid != self.binding["expected_uid"] or proc.birth_ticks < self.guard.birth_ticks:
-                raise MonitorError("owned marker process has incompatible identity")
-            result.append(proc)
-        return result
+            if (child_anchor is None or proc.uid != self.binding["expected_uid"]
+                    or proc.birth_ticks < self.child.birth_ticks
+                    or proc.session != self.child.session):
+                marker_only.append(proc)
+            else:
+                proven.append(proc)
+        return proven, marker_only
 
     def _quiescent(self) -> bool:
-        return (self._bound_guard() is None and self._bound_child() is None
-                and not self._owned_descendants())
+        if self._bound_guard() is not None or self._bound_child() is not None:
+            return False
+        proven, marker_only = self._owned_descendants()
+        if marker_only:
+            self.hold_reason = "run-marker process remains without proven child-session ownership"
+            self._emit_safety("MARKER_ONLY_PROCESS_HOLD",
+                              pids=[proc.pid for proc in marker_only])
+        return not proven and not marker_only
 
     def _stop_owned_guard(self, reason: str) -> None:
         if self.state in ("STOPPING", "KILLING"):
@@ -500,10 +515,13 @@ class GuardMonitor:
         self._emit_safety("TERM_SENT", reason=reason, guard_pid=guard.pid)
 
     def _kill_live_targets(self) -> None:
-        """KILL only bound pidfds and separately marker-authenticated pidfds."""
+        """KILL only bound pidfds and marker/session-authenticated pidfds."""
         errors = []
         try:
-            descendants = self._owned_descendants()
+            descendants, marker_only = self._owned_descendants()
+            if marker_only:
+                errors.append("run-marker process lacks proven live child-session ownership: "
+                              + ",".join(str(proc.pid) for proc in marker_only))
         except Exception as error:
             descendants = []
             errors.append(f"descendant inventory: {error}")
@@ -520,6 +538,8 @@ class GuardMonitor:
                 if (current.birth_ticks != seen.birth_ticks
                         or current.uid != self.binding["expected_uid"]
                         or current.argv != seen.argv or current.exe != seen.exe
+                        or current.session != self.child.session
+                        or self._bound_child() is None
                         or not self.system.has_marker(seen.pid, self.label)):
                     raise MonitorError("descendant changed before pidfd KILL")
                 self.system.kill_pidfd(pidfd)
