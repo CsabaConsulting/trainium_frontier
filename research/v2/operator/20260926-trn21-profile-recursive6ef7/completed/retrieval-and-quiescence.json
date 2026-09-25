@@ -1,0 +1,480 @@
+{
+  "host": "trn21",
+  "utc": "2026-09-25T19:54:57.820663+00:00",
+  "logs": {
+    "profile.log": {
+      "bytes": 11263,
+      "sha256": "69533785aa90af534fe3a57fee9dc97e6391bea52feaa5232ac68d3eb0196933",
+      "step_lines": [
+        "step 00000 | loss 9.0112 | lrm 1.000 | dt 448.26s | tok/s 292 | remaining_steps 21 | remaining_time 1352s | epoch 1",
+        "step 00001 | loss 8.7822 | lrm 0.801 | dt 357.51s | tok/s 367 | remaining_steps 20 | remaining_time 994s | epoch 1",
+        "step 00002 | loss 8.3752 | lrm 0.602 | dt 0.50s | tok/s 262,803 | remaining_steps 19 | remaining_time 993s | epoch 1",
+        "step 00003 | loss 8.1160 | lrm 0.602 | dt 0.50s | tok/s 260,954 | remaining_steps 18 | remaining_time 993s | epoch 1",
+        "step 00004 | loss 7.8316 | lrm 0.602 | dt 0.50s | tok/s 259,774 | remaining_steps 17 | remaining_time 1800s | epoch 1",
+        "step 00010 | loss 6.6741 | lrm 1.000 | dt 0.51s | tok/s 258,883 | remaining_steps 11 | remaining_time 1797s | epoch 1",
+        "step 00020 | loss 5.9669 | lrm 1.000 | dt 0.50s | tok/s 262,535 | remaining_steps 1 | remaining_time 1791s | epoch 1"
+      ],
+      "tail": "sion: bf16_norm_output=True nki_local_conv=True\nWARNING: --num-steps 22 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).\nmodel_config={\n  \"sequence_len\": 1024,\n  \"vocab_size\": 8192,\n  \"n_layer\": 6,\n  \"n_head\": 8,\n  \"n_embd\": 1024,\n  \"mlp_ratio\": 4,\n  \"attn_scale\": 0.0,\n  \"n_kv_heads\": 0\n}\nSUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}\nSUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}\nSUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}\nSUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}\nnum_params=117,453,580 flops_per_token=7.298872e+08\ntorch.compile enabled (backend=neuron)\nmicro_tokens=131,072 grad_accum_steps=1 pack_factor=32\nSUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}\nSUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}\nSUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}\nSUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}\nmuon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]\nmuon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]\nmuon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]\nstep 00000 | loss 9.0112 | lrm 1.000 | dt 448.26s | tok/s 292 | remaining_steps 21 | remaining_time 1352s | epoch 1\nstep 00001 | loss 8.7822 | lrm 0.801 | dt 357.51s | tok/s 367 | remaining_steps 20 | remaining_time 994s | epoch 1\nstep 00002 | loss 8.3752 | lrm 0.602 | dt 0.50s | tok/s 262,803 | remaining_steps 19 | remaining_time 993s | epoch 1\nstep 00003 | loss 8.1160 | lrm 0.602 | dt 0.50s | tok/s 260,954 | remaining_steps 18 | remaining_time 993s | epoch 1\nstep 00004 | loss 7.8316 | lrm 0.602 | dt 0.50s | tok/s 259,774 | remaining_steps 17 | remaining_time 1800s | epoch 1\nstep 00010 | loss 6.6741 | lrm 1.000 | dt 0.51s | tok/s 258,883 | remaining_steps 11 | remaining_time 1797s | epoch 1\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.\n  _warn_once(\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.\n  _warn_once(\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.\n  _warn_once(\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.\n  _warn_once(\nstep 00020 | loss 5.9669 | lrm 1.000 | dt 0.50s | tok/s 262,535 | remaining_steps 1 | remaining_time 1791s | epoch 1\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\n---\ncheckpoint_path:    /home/ubuntu/trainium_profile_recursive6ef7_20260926_trn21_r1/out/final.pt\ntraining_seconds:  15.6\nbudget_seconds:    1800\ntarget_steps:      22\nmax_train_seconds: 1800\nstartup_allowance_est: 832.1\ncharged_seconds_est:   15.9\nover_budget:       False\ntotal_seconds:     823.5\ncompiled:          True\nnki_relu2:         False\nnki_rope_norm:     True\nnki_softcap_ce:    True\ntransposed_linear: False\nnki_muon:          False\ncompile_muon:      True\nmuon_lr_fp32:      False\nngram_ve:          False tables=0 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False\nout_bigram:        False bf16=True gate_bias=-2.0 lr=0.0\noneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234\nengram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True\nbatch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1\nweight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0\nsched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95\nnum_steps:         22\ntotal_tokens_M:    2.9\nworld_size:        4\nlnc:               2\nseq_len:           1024\nnum_params_M:      117.5\nPROFILE_END_UTC=2026-09-25T19:52:38.430544+00:00\n"
+    }
+  },
+  "inventory": [
+    {
+      "path": "profile/rank1/terminal.json",
+      "bytes": 2059
+    },
+    {
+      "path": "profile/rank1/binding.json",
+      "bytes": 1570
+    },
+    {
+      "path": "profile/rank1/profile.json",
+      "bytes": 25745
+    },
+    {
+      "path": "profile/rank2/terminal.json",
+      "bytes": 2064
+    },
+    {
+      "path": "profile/rank2/binding.json",
+      "bytes": 1570
+    },
+    {
+      "path": "profile/rank2/profile.json",
+      "bytes": 25736
+    },
+    {
+      "path": "profile/rank3/terminal.json",
+      "bytes": 2063
+    },
+    {
+      "path": "profile/rank3/binding.json",
+      "bytes": 1570
+    },
+    {
+      "path": "profile/rank3/profile.json",
+      "bytes": 25374
+    },
+    {
+      "path": "profile/rank0/terminal.json",
+      "bytes": 2059
+    },
+    {
+      "path": "profile/rank0/binding.json",
+      "bytes": 1570
+    },
+    {
+      "path": "profile/rank0/profile.json",
+      "bytes": 26011
+    },
+    {
+      "path": "profile/rank1/native/i-0329acb9a6244986b_pid_3008378/1790365944906445276/host_mem.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank1/native/i-0329acb9a6244986b_pid_3008378/1790365944906445276/trace.json",
+      "bytes": 16029891
+    },
+    {
+      "path": "profile/rank1/native/i-0329acb9a6244986b_pid_3008378/1790365944906445276/cpu_util.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank1/native/i-0329acb9a6244986b_pid_3008378/1790365944906445276/ntrace.pb",
+      "bytes": 1472803
+    },
+    {
+      "path": "profile/rank1/native/i-0329acb9a6244986b_pid_3008378/1790365944906445276/trace_info.pb",
+      "bytes": 5930
+    },
+    {
+      "path": "profile/rank2/native/i-0329acb9a6244986b_pid_3008379/1790365944906486287/host_mem.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank2/native/i-0329acb9a6244986b_pid_3008379/1790365944906486287/trace.json",
+      "bytes": 17269103
+    },
+    {
+      "path": "profile/rank2/native/i-0329acb9a6244986b_pid_3008379/1790365944906486287/cpu_util.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank2/native/i-0329acb9a6244986b_pid_3008379/1790365944906486287/ntrace.pb",
+      "bytes": 1464723
+    },
+    {
+      "path": "profile/rank2/native/i-0329acb9a6244986b_pid_3008379/1790365944906486287/trace_info.pb",
+      "bytes": 5872
+    },
+    {
+      "path": "profile/rank3/native/i-0329acb9a6244986b_pid_3008380/1790365944906485767/host_mem.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank3/native/i-0329acb9a6244986b_pid_3008380/1790365944906485767/trace.json",
+      "bytes": 13547941
+    },
+    {
+      "path": "profile/rank3/native/i-0329acb9a6244986b_pid_3008380/1790365944906485767/cpu_util.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank3/native/i-0329acb9a6244986b_pid_3008380/1790365944906485767/ntrace.pb",
+      "bytes": 1305254
+    },
+    {
+      "path": "profile/rank3/native/i-0329acb9a6244986b_pid_3008380/1790365944906485767/trace_info.pb",
+      "bytes": 4967
+    },
+    {
+      "path": "profile/rank0/native/neffs/barrier_561826fb125f4bb8991c29e085c8949a.neff",
+      "bytes": 2733
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/profile_nc_0_session_0.ntff",
+      "bytes": 4130966280
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/host_mem.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/trace.json",
+      "bytes": 10181471
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/cpu_util.pb",
+      "bytes": 0
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/ntrace.pb",
+      "bytes": 1529888
+    },
+    {
+      "path": "profile/rank0/native/i-0329acb9a6244986b_pid_3008377/1790365944906458876/trace_info.pb",
+      "bytes": 5929
+    },
+    {
+      "path": "profile/rank0/native/neffs/5e/92/5e92f71a77f1ae355260bb75353d48d7.neff",
+      "bytes": 29594
+    },
+    {
+      "path": "profile/rank0/native/neffs/5e/d5/5ed5caafecb63b537c9a49446eef48fd.neff",
+      "bytes": 8891
+    },
+    {
+      "path": "profile/rank0/native/neffs/c6/85/c685cfed3f0c074fb36a1eb3ed41a89f.neff",
+      "bytes": 8882
+    },
+    {
+      "path": "profile/rank0/native/neffs/5f/53/5f53eb41f8db0c02ce412439d1d59e24.neff",
+      "bytes": 13084
+    },
+    {
+      "path": "profile/rank0/native/neffs/5c/6b/5c6b42a9f690b0958d1af0192d3f5205.neff",
+      "bytes": 8870
+    },
+    {
+      "path": "profile/rank0/native/neffs/2d/ef/2def56f87baa6ad5861a34eadeed6cc4.neff",
+      "bytes": 46104
+    },
+    {
+      "path": "profile/rank0/native/neffs/40/e3/40e3eacd4ccb847eb81672d6e15540df.neff",
+      "bytes": 1036851
+    },
+    {
+      "path": "profile/rank0/native/neffs/e2/79/e279b76208048da264487e84d8d3e1b1.neff",
+      "bytes": 9717
+    },
+    {
+      "path": "profile/rank0/native/neffs/07/dd/07dda3a1890a043fdc6a978c567808f6.neff",
+      "bytes": 26751
+    },
+    {
+      "path": "profile/rank0/native/neffs/c9/e7/c9e7eab95c99a6d3af46203b95f33fa1.neff",
+      "bytes": 8871
+    },
+    {
+      "path": "profile/rank0/native/neffs/6c/02/6c02d9ecd99a677838a8bb8333061109.neff",
+      "bytes": 29557
+    },
+    {
+      "path": "profile/rank0/native/neffs/00/3f/003ffd37ee9d9a52da4b8e180404c05a.neff",
+      "bytes": 9012
+    },
+    {
+      "path": "profile/rank0/native/neffs/30/6d/306dce34cb5ebf62c290ce067d0733b5.neff",
+      "bytes": 13240
+    },
+    {
+      "path": "profile/rank0/native/neffs/30/bb/30bbd8e99fd6f02cad0317aa2e6eef2e.neff",
+      "bytes": 31095
+    },
+    {
+      "path": "profile/rank0/native/neffs/2b/cb/2bcb8d46bcf61983d8fae15b52c0366c.neff",
+      "bytes": 15305
+    },
+    {
+      "path": "profile/rank0/native/neffs/ec/5b/ec5beb167e7a8048208888f138616189.neff",
+      "bytes": 51785
+    },
+    {
+      "path": "profile/rank0/native/neffs/cf/52/cf5238273bf726c20d4dd32a92848fe0.neff",
+      "bytes": 57366
+    },
+    {
+      "path": "profile/rank0/native/neffs/6e/46/6e46ddc85c5ccddc5886bd3616019db1.neff",
+      "bytes": 28204789
+    },
+    {
+      "path": "profile/rank0/native/neffs/a8/28/a82824ef45e6750661bec3367f8cd3e0.neff",
+      "bytes": 46374
+    },
+    {
+      "path": "profile/rank0/native/neffs/d3/6c/d36cfa576e5d1493be3f74ed5a5cc710.neff",
+      "bytes": 28049121
+    },
+    {
+      "path": "profile/rank0/native/neffs/d3/0c/d30c785f81d34d2bb17fb9d6b6a64c49.neff",
+      "bytes": 9028
+    },
+    {
+      "path": "profile/rank0/native/neffs/78/37/7837fbaf5b9df482f134f784ef00a2c4.neff",
+      "bytes": 33409
+    },
+    {
+      "path": "profile/rank0/native/neffs/f4/8f/f48f269ebb0a9d6ea4418acf38494a1f.neff",
+      "bytes": 35144
+    },
+    {
+      "path": "profile/rank0/native/neffs/36/38/3638fb50fab2985504a72f3cea4aaf43.neff",
+      "bytes": 51548
+    },
+    {
+      "path": "profile/rank0/native/neffs/31/d6/31d67c90ccd1c989579ab6f5dc5bb168.neff",
+      "bytes": 11411
+    },
+    {
+      "path": "profile/rank0/native/neffs/96/04/960483363e20c6bd8e2bafdc7ab70171.neff",
+      "bytes": 33526
+    },
+    {
+      "path": "profile/rank0/native/neffs/4d/58/4d58255c2d9f1ff007fff581406df8df.neff",
+      "bytes": 27522
+    },
+    {
+      "path": "profile/rank0/native/neffs/80/22/80220ec8935155992970815378983431.neff",
+      "bytes": 12706
+    },
+    {
+      "path": "profile/rank0/native/neffs/80/ce/80cec73ce4f49c94bfb02d671a15e15c.neff",
+      "bytes": 22713
+    },
+    {
+      "path": "profile/rank0/native/neffs/80/7e/807ec15decd6870deadc852b038c9e52.neff",
+      "bytes": 10010
+    },
+    {
+      "path": "profile/rank0/native/neffs/c0/3f/c03fd6c011fc5649c5f7cac711e97103.neff",
+      "bytes": 51944
+    },
+    {
+      "path": "profile/rank0/native/neffs/91/f5/91f585baea4d2ebf8681ef15ee1cc3da.neff",
+      "bytes": 53723
+    },
+    {
+      "path": "profile/rank0/native/neffs/64/52/6452141e812e9465c111915466d92027.neff",
+      "bytes": 53656276
+    },
+    {
+      "path": "profile/rank0/native/neffs/06/82/068235e5174fbd524afb2f3657f45190.neff",
+      "bytes": 11571
+    },
+    {
+      "path": "profile/rank0/native/neffs/bc/81/bc81c8f6e70a4958c89f66b9a213ee45.neff",
+      "bytes": 9410
+    },
+    {
+      "path": "profile/rank0/native/neffs/26/d4/26d40bc2ebf51dfd1595103e0a8a52ce.neff",
+      "bytes": 187627
+    },
+    {
+      "path": "profile/rank0/native/neffs/ff/32/ff32f06c3bf1b780a48d1aed8be6a45a.neff",
+      "bytes": 10054
+    },
+    {
+      "path": "profile/rank0/native/neffs/51/f2/51f2e5a93194bf435ae33dcef6d94df6.neff",
+      "bytes": 28315
+    },
+    {
+      "path": "profile/rank0/native/neffs/24/0b/240b9604f2b94f3011012f42a544919d.neff",
+      "bytes": 8896
+    },
+    {
+      "path": "profile/rank0/native/neffs/24/d5/24d52db2658faea18a676b53eb904374.neff",
+      "bytes": 68899
+    },
+    {
+      "path": "profile/rank0/native/neffs/f9/7b/f97bfe5cf6a66d30c8936e0224f33f28.neff",
+      "bytes": 15211
+    },
+    {
+      "path": "profile/rank0/native/neffs/48/2e/482ea599c6e859142e6c9f58da879de9.neff",
+      "bytes": 8903
+    },
+    {
+      "path": "profile/rank0/native/neffs/de/2c/de2c2844c971191ff0d18cb2e4eb3c4f.neff",
+      "bytes": 11746
+    },
+    {
+      "path": "profile/rank0/native/neffs/3b/87/3b875f76c01847f2b97ebce7d7487979.neff",
+      "bytes": 30801
+    },
+    {
+      "path": "profile/rank0/native/neffs/8b/25/8b25b714965a310ca894e675c404b628.neff",
+      "bytes": 8878
+    },
+    {
+      "path": "profile/rank0/native/neffs/fd/78/fd785bad804f6359154cf9b0249d2768.neff",
+      "bytes": 46110
+    },
+    {
+      "path": "profile/rank0/native/neffs/a4/25/a42512da5903c6ee0df9e6e5ee6e6a3b.neff",
+      "bytes": 59222
+    },
+    {
+      "path": "profile/rank0/native/neffs/27/cc/27cc1812acb3b1145b2854ba597d6b38.neff",
+      "bytes": 27646
+    },
+    {
+      "path": "profile/rank0/native/neffs/13/1c/131c328f78fd5a66f337c0d3f2f7edec.neff",
+      "bytes": 11395
+    },
+    {
+      "path": "profile/rank0/native/neffs/7e/17/7e176dd3cd5dc800311d765b519b4130.neff",
+      "bytes": 26756
+    },
+    {
+      "path": "profile/rank0/native/neffs/d9/81/d9811c2923f2adcf7ed583d6ded78877.neff",
+      "bytes": 126576
+    },
+    {
+      "path": "profile/rank0/native/neffs/d9/e9/d9e9872e25e2a9057bfa53cdfbf0bf8e.neff",
+      "bytes": 50820
+    },
+    {
+      "path": "profile/rank0/native/neffs/60/3c/603c3873982f67e1d0c93d9ef529edcd.neff",
+      "bytes": 11411
+    },
+    {
+      "path": "profile/rank0/native/neffs/1e/f7/1ef7ce132533707501e411935597f402.neff",
+      "bytes": 9028
+    },
+    {
+      "path": "profile/rank0/native/neffs/6d/66/6d66b7b8e4922c606dedc8e5debc8dfc.neff",
+      "bytes": 8890
+    },
+    {
+      "path": "profile/rank0/native/neffs/56/f2/56f22810501fa413024fd3b963cf3f7b.neff",
+      "bytes": 45728
+    },
+    {
+      "path": "profile/rank0/native/neffs/56/9b/569b0de6e0255b6c02e6c82fb151634f.neff",
+      "bytes": 8898
+    },
+    {
+      "path": "profile/rank0/native/neffs/46/7f/467fcfca915be657ed4a8ddc0c1ce184.neff",
+      "bytes": 48529
+    },
+    {
+      "path": "profile/rank0/native/neffs/53/a1/53a1ec3eb36cac862f5ac1a84f159da3.neff",
+      "bytes": 22526
+    },
+    {
+      "path": "profile/rank0/native/neffs/55/39/5539f626c8cbafc2251192821160be5e.neff",
+      "bytes": 8895
+    },
+    {
+      "path": "profile/rank0/native/neffs/0c/35/0c35713c5afd44be16f0c2623c633d35.neff",
+      "bytes": 30886
+    },
+    {
+      "path": "profile/rank0/native/neffs/85/8d/858d59f569d4186995007558dde26eff.neff",
+      "bytes": 8881
+    },
+    {
+      "path": "profile/rank0/native/neffs/b7/9f/b79f39cabfed6b2fbf5780dbb28c3afe.neff",
+      "bytes": 30755
+    },
+    {
+      "path": "profile/rank0/native/neffs/b7/b2/b7b2a69b1f8d871d9a86eecdf6072e8f.neff",
+      "bytes": 48563
+    },
+    {
+      "path": "profile/rank0/native/neffs/4e/c6/4ec65113fd2d66e7c196ce9d48b46e85.neff",
+      "bytes": 44161
+    },
+    {
+      "path": "profile/rank0/native/neffs/77/a9/77a9662833e18c7f739dcb40d1e4c4b0.neff",
+      "bytes": 9272
+    },
+    {
+      "path": "profile/rank0/native/neffs/cc/68/cc680215f968ec6782bfdbf7c2018b88.neff",
+      "bytes": 27899
+    },
+    {
+      "path": "profile/rank0/native/neffs/11/9a/119ac630b6a1cb307667fe15f5a3ce05.neff",
+      "bytes": 11886
+    },
+    {
+      "path": "profile/rank0/native/neffs/e5/38/e538f0646efe1837fd549b6731417d6e.neff",
+      "bytes": 51897
+    },
+    {
+      "path": "profile/rank0/native/neffs/c5/72/c5722bbf34fc7389716773f86596f1ef.neff",
+      "bytes": 11359
+    },
+    {
+      "path": "profile/rank0/native/neffs/79/e0/79e0bab04564e05ba8cc6d321f2bf3c3.neff",
+      "bytes": 11384
+    },
+    {
+      "path": "profile/rank0/native/neffs/3d/11/3d11ce7b995b2d6204154e26fe631318.neff",
+      "bytes": 26750
+    },
+    {
+      "path": "profile/rank0/native/neffs/98/99/98992ca3a1dd68c7d0824666e712637b.neff",
+      "bytes": 69815
+    },
+    {
+      "path": "profile/rank0/native/neffs/fb/21/fb21b9821cfcb879f9e32ec2efaf29b4.neff",
+      "bytes": 53699278
+    },
+    {
+      "path": "profile/rank0/native/neffs/fb/b9/fbb93f55fa2089ebe5ee4f44a815b21a.neff",
+      "bytes": 1010650
+    },
+    {
+      "path": "profile/rank0/native/neffs/d0/f4/d0f416c91195e9bfabfb3008e3d62eae.neff",
+      "bytes": 53710
+    },
+    {
+      "path": "profile/rank0/native/neffs/8d/f0/8df073681c534b2763db2ca981c1b6a1.neff",
+      "bytes": 27518
+    },
+    {
+      "path": "profile/rank0/native/neffs/fa/b6/fab684288695dbef187abf381254fffd.neff",
+      "bytes": 12995
+    },
+    {
+      "path": "profile/rank0/native/neffs/f0/12/f012e182922c52deafeadc614841fd29.neff",
+      "bytes": 45811
+    }
+  ],
+  "neuron_ls_rc": 0,
+  "neuron_ls": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0329acb9a6244986b\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+  "neuron_ls_stderr": "",
+  "ps_rc": 0,
+  "job_lines": [],
+  "lock_competitor_rc": 0
+}
