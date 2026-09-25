@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:21 UTC
+Last reconciled: 2026-09-25 05:28 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -36,7 +36,9 @@ rejects the host's observed `0775` lock parent. A separate read-only
 did acquire and release the existing lock without a metadata change, but
 does not clear that policy HOLD. On trn21, a separate
 [disabled final-r3 repair](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R3_HOLD.json)
-is under independent static review; its live lock-parent modes are unknown.
+received [independent static PASS for its disabled form only](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_R3_DISABLED_STATIC_REVIEW.md).
+Its live lock-parent modes remain unknown; no enabled request, host transfer,
+or native launch follows from that review.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at
 0.9918353324 single / 0.9919537735 two-run mean. The Sep 25 noon-IST S0

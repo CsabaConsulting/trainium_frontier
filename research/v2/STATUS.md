@@ -1,6 +1,11 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 lock repair static HOLD on host mode/hash; trn21 disabled lock repair under independent review; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 lock repair static HOLD on host mode/hash; trn21 disabled lock repair independent static PASS only; scored training on both hosts HOLD; no new BPB result.**
+
+At 05:28 UTC, trn21's disabled final-r3 lock repair received
+[independent static PASS](authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_R3_DISABLED_STATIC_REVIEW.md)
+for the exact disabled package. Its live lock-parent modes have not yet been
+verified, and no enabled request, host transfer, native run or score is authorized.
 
 At 05:21 UTC, trn22's disabled lock-and-final-scan repair received
 [independent static HOLD](authorizations/trn22-c5c-a0-r4-transfer-lock-final-scan-hold/INDEPENDENT_LOCK_FINAL_SCAN_STATIC_HOLD.md):
