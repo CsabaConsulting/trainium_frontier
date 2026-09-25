@@ -12,8 +12,8 @@
   "trusted_prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
   "trusted_prepare_policy": "Copy only exact unmodified S0 train.py into the unique sandbox; import unchanged trusted prepare.py through PYTHONPATH and verify both host-file and fresh-process imported prepare.__file__/SHA before launch. No evaluator or data copy/edit.",
   "run_root": "/home/ubuntu/trainium_s0_warm_smoke_20260925_trn21_r1",
-  "step_log_path": "/home/ubuntu/trainium_s0_warm_smoke_20260925_trn21_r1/training-steps.jsonl",
-  "step_log_policy": "After proving the new run root and step-log path absent, precreate an empty private append-only job-owned step log exclusively and set only NEURON_COMPETITION_R1_STEP_LOG to this exact path. The trusted prepare.record_step_boundary writes rank 0 only. Preserve its raw bytes, inode and parsed distinct completed step numbers; do not edit prepare.py or train.py.",
+  "step_log_path": "/home/ubuntu/trainium_s0_warm_smoke_20260925_trn21_r1/receipts/step-boundaries-rank0.log",
+  "step_log_policy": "After proving the new run root and step-log path absent, privately create the job-owned receipts parent and precreate an empty append-only step log exclusively; set only NEURON_COMPETITION_R1_STEP_LOG to this exact path. The trusted prepare.record_step_boundary writes rank 0 only. Preserve its raw bytes, inode and parsed distinct completed step numbers; do not edit prepare.py or train.py.",
   "warm_cache_paths": {
     "NEURON_COMPILE_CACHE_URL": "/var/tmp/neuron-compile-cache",
     "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler",
