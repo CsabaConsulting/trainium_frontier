@@ -1,0 +1,58 @@
+{
+  "schema": "batch262144-cpu-source-bindings-v1",
+  "status": "PREPARED_NOT_STAGED",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "stage_root": "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1",
+  "files": [
+    {
+      "role": "candidate",
+      "git_commit": "4e361d15baef94f041501f558620422c55ae8c88",
+      "git_path": "workflow/proposals/research-v2/train.py",
+      "sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+      "stage_path": "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1/train.py"
+    },
+    {
+      "role": "reference_recursive_on",
+      "git_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+      "git_path": "workflow/proposals/research-v2/train.py",
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "stage_path": "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1/control-6ef7.py"
+    },
+    {
+      "role": "unchanged_g2_tool",
+      "git_commit": "1e51dd6bd49eb2ec31ed27193ded0a28ea522459",
+      "git_path": "workflow/tools/preflight_dryrun.py",
+      "sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+      "stage_path": "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1/preflight_dryrun.py"
+    },
+    {
+      "role": "trusted_existing_prepare_not_copied",
+      "git_commit": "1e51dd6bd49eb2ec31ed27193ded0a28ea522459",
+      "git_path": "prepare.py",
+      "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "host_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py"
+    }
+  ],
+  "driver_template": {
+    "git_commit": "1e51dd6bd49eb2ec31ed27193ded0a28ea522459",
+    "git_path": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/candidate-off/cpu_driver.py",
+    "sha256": "17106fb442b6e90a72f9b75adebac17e458953a66f1b57731d61cbefd8370904",
+    "allowed_binding_only": "ROOT path literal, unique per probe; every other byte and operational check unchanged"
+  },
+  "source_review": {
+    "git_commit": "86597104e1246f8a3e1dde141178f74370d96f63",
+    "git_path": "research/v2/verification/20260925-recursive-batch262144-independent/REVIEW.md",
+    "verdict": "PASS_SOURCE_AND_BOUNDED_CPU_ONLY",
+    "scope": "No full-size/native/quality/cold/submission approval"
+  },
+  "staging_policy": "Operator uses existing exact-Git-object staging into new absent paths after current architecture train AND fresh20M finish; verify every object locally/remotely and fresh imported prepare identity. No packages/stubs/data/evaluator edits or host actions by packet author.",
+  "protected": [
+    "canonical research source",
+    "clean4083 candidate",
+    "all existing submissions and Downloads",
+    "prepare.py/tokenizer/data/evaluator",
+    "ledger and queue",
+    "running jobs and retained artifacts"
+  ]
+}

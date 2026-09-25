@@ -1,0 +1,152 @@
+{
+  "schema": "trn-cpu-only-experiment-proposal-v2",
+  "proposal_id": "20260925-batch262144-exact-cpu-trn22",
+  "status": "COMPLETE_CPU_PACKET_PENDING_ROOT_REVIEW_OPERATOR_EXECUTION",
+  "proposal_content_complete": true,
+  "owner_role": "supervisor",
+  "author_session": "fp8_local_implementer",
+  "cpu_execution_authorized": false,
+  "native_training_authorized": false,
+  "submission_authorized": false,
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "hypothesis": "At full6x1024 parameter size, the narrow batch option preserves exact6ef7 Recursive-ON behavior when omitted and executes two correctly normalized accumulation passes when set262144, without rank/checkpoint failures.",
+  "single_causal_change": "Only --total-batch-size262144 on candidate a489; reference and candidate default run identical adopted Recursive-ON dense argv. Model width/depth, microshape config, LR/schedule/data/optimizer/timing remain unchanged.",
+  "mechanism_class": "cpu_correctness_gate",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "prediction_note": "No Neuron timing, native gradient, fresh20M or quality inference from these synthetic CPU tests.",
+  "candidate_shortlist": [
+    {
+      "idea": "Three serial full-parameter CPU probes using reviewed driver and existing G2 tool",
+      "mechanism_class": "cpu_correctness_gate",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Explicit Supervisor request after independent source/reduced-CPU PASS86597104; protects the next native gate without a new launcher or approval framework."
+    }
+  ],
+  "selection_rationale": "Extends only the currently missing full-parameter CPU coverage; does not repeat the source implementation or reroute running jobs.",
+  "estimated_host_hours": 0.1,
+  "estimated_host_hours_scope": "Planning CPU-slot estimate only. Archived same-host full6ef7 Recursive-OFF CPU G2 took20.6s; current ON/default/accum2 times remain unmeasured. Existing per-probe timeout3600 is retained; any timeout fails and requires quiescence, not retry.",
+  "trainium_feasibility": {
+    "execution": "CPU/gloo only using existing native_venv Python, not Neuron training",
+    "world_size": 4,
+    "parameters": 117453580,
+    "layers": 6,
+    "width": 1024,
+    "heads": 8,
+    "mlp_ratio": 4,
+    "production_context": 1024,
+    "production_pack_factor": 32,
+    "synthetic_micro_rows": 2,
+    "synthetic_micro_tokens": 256,
+    "production_global_batch_default": 131072,
+    "production_global_batch_arm": 262144,
+    "grad_accum_default": 1,
+    "grad_accum_arm": 2,
+    "physical_synthetic_world_tokens_per_update_default": 2048,
+    "physical_synthetic_world_tokens_per_update_arm": 4096,
+    "minimum_available_ram_gib": 64,
+    "minimum_free_disk_gib": 6.5,
+    "memory_policy": "Run probes serially on idle trn22 only; no full model on laptop and no overlap with native training/eval/compiler/G2."
+  },
+  "cheapest_falsifier": "Reference/default must both finish and compare bit-identically before starting arm262144. Stop packet on any failure; retain artifacts and do not consume additional probes.",
+  "prior_result_refs": [
+    "4e361d15baef94f041501f558620422c55ae8c88: exact source a489 and reduced CPU self-checks",
+    "86597104e1246f8a3e1dde141178f74370d96f63: independent source/reduced-CPU PASS",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/6ef7-off/results/g2.json: historical full-size20.6s PASS, Recursive OFF, not reusable as requested ON reference"
+  ],
+  "evidence": [
+    "sources.json",
+    "cpu-g2-plan.json",
+    "research/v2/lanes/recursive-batch262144/proposal.json at4e361d15",
+    "research/v2/verification/20260925-recursive-batch262144-independent/REVIEW.md at86597104",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/OPERATOR_PREPARATION.md"
+  ],
+  "duplicate_search_terms": [
+    "batch262144 full-size G2",
+    "a489f7",
+    "Recursive ON full parameter"
+  ],
+  "control": {
+    "type": "synthetic CPU arithmetic reference, not quality control",
+    "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "probe": "reference-6ef7",
+    "recursive_schedule": true,
+    "public_val_bpb": null,
+    "steps": 3,
+    "box_constraint": "Same trn22 CPU slot/runtime/argv/input/fake clock, serially. Fresh native6ef7 controls remain pending and are not fabricated or relabeled."
+  },
+  "candidate": {
+    "commit": "4e361d15baef94f041501f558620422c55ae8c88",
+    "source_sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+    "git_path": "workflow/proposals/research-v2/train.py",
+    "files_allowed": [],
+    "source_changes_authorized": false,
+    "stage_root": "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1",
+    "binding": "cpu-g2-plan.json exact per-probe requests and detached_outer_command; each sibling cpu_driver.py differs from reviewed template only in ROOT literal",
+    "probe_order": [
+      "reference-6ef7",
+      "candidate-default",
+      "candidate-262144"
+    ],
+    "run_labels": [
+      "fs-20260925-recursive-batch262144-base-trn22-g2-r1",
+      "fs-20260925-recursive-batch262144-default-trn22-g2-r1",
+      "fs-20260925-recursive-batch262144-on-trn22-g2-r1"
+    ],
+    "launch_command": "The three exact per-probe existing-driver outer and inner command arrays in cpu-g2-plan.json; no native command is authorized."
+  },
+  "active_work_dependency": {
+    "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+    "policy": "Wait until current architecture training AND automatic freshpublic20M evaluation have terminal receipts and clean quiescence. Do not interrupt either. Supervisor/Operator owns between-job handoff; no queue/PAUSE mutation by packet author."
+  },
+  "required_prelaunch": [
+    "Root reviews packet and assigns the next compatible idle trn22 CPU boundary after architecture train+fresh20M. Operator uses existing manual route, no new approval system or second launcher.",
+    "Fresh canonical and host STOP/breaker checks; expected hostname, clean frozen source provenance and local/remote hashes, trusted existing prepare import path/hash, full dependency/runtime availability without installation.",
+    "No train/eval/compiler/G2 workload or Neuron holder. Existing common device0 flock must be acquired with -n. Queue remains owned at its between-job boundary; no forced handoff.",
+    "New absent stage/probe/tmp/output paths and unique labels, private directories, disk>=6.5GiB plus all retained checkpoint/log headroom and MemAvailable>=64GiB before each probe.",
+    "Stage only exact source/G2 Git objects, these ROOT-only driver bindings and request JSON. Never deploy test_support, stub_prepare or --real-data; do not copy/edit evaluator/data/tokenizer.",
+    "Run serially. Before batch262144 require raw default/reference PASS and existing comparator identical:true. After each probe require own terminal record and clean postflight before continuing."
+  ],
+  "scope": {
+    "training": false,
+    "cpu_synthetic_optimizer_steps_per_probe": 3,
+    "quality_budget_run": false,
+    "native_device_use": false,
+    "public_eval": false,
+    "data_reads": false,
+    "source_mutation": false,
+    "ledger_mutation": false,
+    "queue_mutation": false,
+    "host_action_by_author": false,
+    "environment_budget_declaration": "1800 retained solely to match approved training argv; G2 appends --num-steps3 and CPU/no-compile/private-output. This is not a full-budget quality run."
+  },
+  "gates": {
+    "rules_review": true,
+    "source_independent_review": true,
+    "packet_independent_review": false,
+    "cpu_full_size": false,
+    "default_bit_identity_full_size": false,
+    "native_correctness": false,
+    "quality": false,
+    "submission": false
+  },
+  "success_criteria": {
+    "reference_default": "117453580 full model parameters,6 layers/width1024,all4 ranks exit0/no timeout,3 finite losses/rank,62 final state digests,zero cross-rank differences,strict deterministic checkpoint load; same ownership plan and exact losses/digests across reference/default via unchanged comparator.",
+    "arm": "Same full model count/shape/ownership; grad_accum_steps2,batch_rampFalse,6 finite micro-losses/rank over3 updates,62 changed parameters,zero cross-rank mismatches,strict deterministic checkpoint reload and no timeout/nonfinite values. Arm state need not equal control state.",
+    "physical_input_disclosure": "Synthetic2x256 inputs per rank physically process2048/4096 world tokens per optimizer step; log131072/262144 is production configuration accounting. No full hardware update, gradient-quality or throughput proof.",
+    "artifacts": "Per-probe source/request/driver/G2/prepare hashes and source commits, actual environment, fresh preflight, launch/process/terminal/g2 JSON, all4 raw rank JSON, full logs, comparator output, kept checkpoint URI/SHA, clean read-only postflight, and independent numeric acceptance.",
+    "native": "No automatic promotion. Native full run stays pending CPU acceptance, current priority/control handoff, genuine fresh6ef7 same-host controls and separate source-bound Operator native gates."
+  },
+  "abort_conditions": [
+    "Active architecture train/eval or another workload, device/lock holder, STOP/breaker, insufficient RAM/disk, reused label/path or input hash mismatch",
+    "Any probe nonzero exit/missing receipt/timeout/nonfinite value/rank inconsistency/checkpoint failure",
+    "Default comparator not exactly identical; do not launch batch262144 after failed baseline/default",
+    "Missing quiescence: preserve owned process/artifact evidence and use existing Operator containment protocol, never kill unrelated work or advance another job",
+    "Any requested expansion to native training/eval, source/runtime/evaluator changes, cleanup, AWS operations, queue mutation or fabricated control data"
+  ],
+  "human_approved_by": "Poojith's batch lever through Supervisor; current assignment authorizes local packet preparation only. Root review then distinct Operator execution.",
+  "verdict": "PREPARED_NOT_EXECUTED"
+}
