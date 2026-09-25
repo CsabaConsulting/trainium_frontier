@@ -1,6 +1,34 @@
 # Current state
 
-Last reconciled: 2026-09-25 19:07 UTC (26 September IST)
+Last reconciled: 2026-09-25 19:27 UTC (26 September IST)
+
+## Current NIGHT MODE and single-launcher handoff
+
+Read `workflow/SINGLE_LAUNCHER_2026-09-26.md` and NIGHT MODE first, then CT
+and fresh-review instructions. Shared remote flock plus in-lock `ps` AND
+`neuron-ls` idle checks are mandatory for every launcher. The same lock must
+survive the job and attached eval. Operator is hardening pending drivers;
+no next launch until the binding is reviewed. Running jobs are untouched.
+All three existing automation prompts carry this rule. Self-audit is 04:00
+IST and the single morning report is 07:45 IST; no blocking human questions.
+
+Latest remote observation 19:20:47 UTC: trn22 cold baseline started
+19:13:34.782609 UTC (00:43:34 IST), all four workers plus compiler active,
+no first boundary or measured startup yet; 37.2 GiB free. trn21 control
+finished 3,662 steps in source training 1,784.8 seconds, over_budget false;
+its fresh public-20M evaluation started 19:14:14.589067 UTC and is pending.
+No new confirmed BPB improvement. Schedule base mean remains 0.9901674436550496.
+
+Fresh isolated architecture review completed with source/CPU-only PASS;
+archive commit 550e1862 awaits root acceptance. The earlier sandbox-only
+ENOENT attempt remains a failed infrastructure attempt, not a model refusal.
+Fresh P review completed 19:24:48 UTC with bounded CPU-only PASS; archive is
+being prepared. Neither proves native startup/capture/performance. Architecture
+full run still requires the cold five-step startup gate <=900 seconds.
+K2 implementer is auditing duplicate-safe embedding scatter; no speed claim.
+
+The following 19:07 and earlier snapshots are retained as history, not live
+host status or launch authority.
 
 ## Controlling CT gate and fresh-review handoff
 

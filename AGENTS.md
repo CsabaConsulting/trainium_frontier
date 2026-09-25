@@ -2,6 +2,16 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Mandatory single launcher (26 September IST)
+
+Read `workflow/SINGLE_LAUNCHER_2026-09-26.md` before any launch. Every controller,
+main session, subagent and manual path must hold the SAME exclusive remote
+`flock` at `/home/ubuntu/.cache/trainium_freshstart/device0.lock`, then pass
+fresh `ps` AND `neuron-ls` idle checks inside the lock. Retain it for the whole
+job and attached eval. Contention, busy state or failed/ambiguous checks mean
+no launch: log the evidence and move on. Never replace the lock file or bypass
+the rule. Preserve current jobs. Sole Operator ownership remains in force.
+
 ## NIGHT MODE (26 September, approximately01:00–08:00 IST)
 
 Read `workflow/NIGHT_MODE_2026-09-26.md` before CT/latestamendments. Do not wait

@@ -1,5 +1,11 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**MANDATORY SINGLE LAUNCHER:** Read `SINGLE_LAUNCHER_2026-09-26.md` first.
+All launchers must hold the same exclusive remote-host flock, then pass both
+`ps` and `neuron-ls` idle checks while holding it. Retain the lock through
+the job and attached eval. Any contention, busy result or check failure means
+no launch, log and move on. No manual-path or agent exemptions; preserve live jobs.
+
 **NIGHT MODE:** `NIGHT_MODE_2026-09-26.md` controls delegated reversible
 decisions until08IST. No blockingquestions; logtime/reason/undo inDECISIONS,
 queuehuman-onlyitems inQUESTIONS_FOR_POOJITH. Correctness/budget/legality
