@@ -1,6 +1,35 @@
 # Current state
 
-Last reconciled: 2026-09-25 19:54 UTC (26 September IST)
+Last reconciled: 2026-09-25 20:06 UTC (26 September IST)
+
+## Guard working within timebox; full architecture running
+
+The required safeguard passed actual launches at01:08:22 and01:09:16IST,
+before the01:24deadline. No manual fallback was needed. Both historical queue
+runner processes were confirmed absent at01:04:26IST, not merely starved;
+their pauses remain and they must not be rearmed. Common exclusive lifetime
+flock plus fresh in-lock ps AND neuron-ls applies to every next native job.
+
+trn22 full architecture started20:02:37.478520UTC /01:32:37IST, exact3e79,
+four workers3112536–3112539, driver3112491, lock inode832589. Launch and
+under-lock receipts are archived in e2cd3697. The prior cold five-step gate
+was independently accepted at844.35300997796seconds. This full research run
+uses those primed caches, not a fresh-cache submission replay. Its unchanged
+driver retains the same lock through training and fresh public20M/context1024
+eval. Quality/startup/steps for the full run are pending.
+
+trn21 batch262k source received a fresh isolated Astra source/CPU PASS:352own
+checks/11cases;114archive and38binding checks rerun. One-shot timing assignment
+a0a7af2a is issued, Operator is staging; no actual launch claimed yet. It is
+105steps only, same-estimator5%screen versus268831tokens/s, no automatic full
+run/eval. Existing P finished; four SHA-verified runtime traces are local and
+under bounded independent analysis. Device bottleneck and MFU remain unknown.
+
+K2's ordered-wave arithmetic redesign is research-only (9a26031d), not a
+kernel implementation or native authorization. Original e4d93 remains REFUSE.
+No new confirmed BPB improvement; base mean0.9901674436550496 remains unchanged.
+
+The snapshots below are historical and superseded by this section.
 
 ## Diagnostics completed — supersedes live-launch snapshots below
 
