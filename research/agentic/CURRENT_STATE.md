@@ -9,7 +9,9 @@ step-count gates. Every full-quality arm uses final fresh public20M/context1024
 at the official1,800-second budget; steps below60% of control and timing spikes
 or stalls are diagnostic alarms only. Numeric BPB thresholds, correctness,
 two-host replication, startup charging and cold submission audit are unchanged.
-The selector implementation is under independent review; no more exemption asks.
+The selector implementation has independent PASS:16tests normal/-O plus270
+independent BPB-policy comparisons; no more exemption asks. Evidence:
+`research/v2/verification/20260925-general-fixed-budget-selector-PASS.md`.
 
 trn21 Recursive6ef7 finished3,669 steps at17:09:50 UTC. Fresh20M completed
 at17:21:47 UTC: **0.9900560897366009**, versus same-host0.9914739939934344,
