@@ -1,6 +1,50 @@
 # Current state
 
-Last reconciled: 2026-09-25 16:43:38 UTC
+Last reconciled: 2026-09-25 17:25 UTC
+
+## Latest: schedule single-host nomination; general fixed-budget selection
+
+Poojith's `workflow/FIXED_BUDGET_SELECTION_2026-09-25.md` removes ALL
+step-count gates. Every full-quality arm uses final fresh public20M/context1024
+at the official1,800-second budget; steps below60% of control and timing spikes
+or stalls are diagnostic alarms only. Numeric BPB thresholds, correctness,
+two-host replication, startup charging and cold submission audit are unchanged.
+The selector implementation is under independent review; no more exemption asks.
+
+trn21 Recursive6ef7 finished3,669 steps at17:09:50 UTC. Fresh20M completed
+at17:21:47 UTC: **0.9900560897366009**, versus same-host0.9914739939934344,
+delta **-0.0014179042568335**. Root independently checked10 retrieved hashes,
+source/evaluator identities, clean exits and raw nats/bytes BPB arithmetic.
+It is appended to `research/v2/ledger.jsonl`: **NOMINATE**, not adoption.
+Training1784.8s/native charged1785.2s/over_budgetFalse; native startup estimate
+783.4s is not a true cold-cache measurement. Driver wall2575.683s has a different
+origin; do not subtract unlike clocks and claim exact official accounting.
+Checkpointf91600e2 remains on the host. Official score is still reported0.9901.
+
+trn22 Recursive6ef7 finished3,657 steps at17:16:28 UTC and is in fresh20M
+evaluation. Training1784.9s/native charged1785.3s/over_budgetFalse; startup
+estimate817.9s. Its final BPB is pending. This is the already-running replicate.
+
+After trn21's queue exited at its owned boundary, exact FP8 CPU OFF started
+at17:23:06 UTC; ON and matchedc5c follow serially. trn22 runs exact architecture
+CPU ON/OFF/references immediately after its eval. Prepared manual routes avoid
+the old queue registry limitation. Six scalar fallback jobs per host remain
+staged, deliberately paused only between jobs for these higher-priority checks;
+Operators own prompt serial hand-back if a gate fails. No dual launchers.
+
+FP8 timing packet30177711 now has independent PASSb880cc4a: component check,
+one matched OFF100/ON100 pair (20warmup+80measured fullsteps), then ON checkpoint
+check. A full quality run still requires >=3% speedup. Combined architecture+FP8
+sourcea2f6b188 has independent offline source/reduced-CPU PASS14b035cc but no
+exact-size/native/performance/BPB evidence; it cannot preempt standalone gates.
+
+Both next native bindings can export existing SDK graph compile timings at
+process exit. No compiler/cache behavior is changed and zero timing alone is
+not a cache hit. Cache-root correctness is confirmed, reuse/root cause remains
+unproven. See `research/v2/lanes/table-compile/CACHE_EXIT_METRICS_DIAGNOSTIC_2026-09-25.md`.
+
+The section immediately below is the earlier16:43 handoff; its priority policy
+remains, but newer live status and selection rules above supersede it.
 
 ## Post-A1 priority change; both schedule jobs running; overnight queues installed
 

@@ -474,10 +474,13 @@
     "eval_seq_len": 1024,
     "eval_tokens": 20971520,
     "decision_engine": "workflow/tools/decide.py",
-    "decision_rules": "v2-2026-09-24",
+    "decision_rules": "pending independently reviewed fixed-budget amendment",
     "screen_eval_tokens": 2097152,
     "adoption_mean_delta_max": -0.001,
-    "adoption_human_ack_required": false
+    "adoption_human_ack_required": false,
+    "human_policy": "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
+    "step_count_gate": false,
+    "step_ratio_alarm_below": 0.6
   },
   "gates": {
     "G1": {
@@ -595,19 +598,11 @@
       "arm_id": "L3-timer-dense",
       "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
       "started_utc": "2026-09-25T16:26:55Z",
-      "last_process_check_utc": "2026-09-25T16:43:38Z",
-      "status": "TRAINING_STEP450",
+      "last_process_check_utc": "2026-09-25T17:09:50.977320Z",
+      "status": "TRAIN_COMPLETE_FRESH_PUBLIC20M_EVAL_RUNNING",
       "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
       "queue_pid": 2930000,
-      "workers": [
-        2930018,
-        2930019,
-        2930020,
-        2930021
-      ],
-      "latest_logged_step": 450,
-      "latest_logged_loss": 3.3391,
-      "latest_logged_toks_per_second": 269966,
+      "workers": [],
       "startup_complete": true,
       "df_h_root_available": "46G",
       "pending_staged_fallback_count": 6,
@@ -625,27 +620,45 @@
       "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
       "submission_eligible": false,
       "launch_allowed": true,
-      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission"
+      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
+      "last_process_check_scope": "Training terminal and evaluation launch; ongoing monitoring by assigned Operator",
+      "previous_training_workers": [
+        2930018,
+        2930019,
+        2930020,
+        2930021
+      ],
+      "training_steps": 3669,
+      "training_ended_utc": "2026-09-25T17:09:50.977320Z",
+      "training_exit_code": 0,
+      "eval_pid": 2954582,
+      "public_20m": null,
+      "training_seconds": 1784.8,
+      "startup_allowance_est": 783.4,
+      "charged_seconds_est": 1785.2,
+      "over_budget": false,
+      "last_training_progress_sample": {
+        "step": 450,
+        "loss": 3.3391,
+        "tokens_per_second": 269966,
+        "observed_utc": "2026-09-25T16:43:38Z"
+      },
+      "completion_receipt": "research/v2/operator/20260925-trn21-l3-timer-dense-full-r1/",
+      "owned_pause_after_eval": true,
+      "next_priority": "Exact9212 CPU ON/OFF/c5c; independent numeric review, then prepared FP8 native matched timing",
+      "fallback_handback": "Six staged jobs preserved; Operator resumes serial fallback if priority gate blocks, never dual launch"
     },
     "trn22": {
       "label": "fs-20260925-l3-timer-dense-trn22-r1-full",
       "arm_id": "L3-timer-dense",
       "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
       "started_utc": "2026-09-25T16:32:57.497606Z",
-      "last_process_check_utc": "2026-09-25T16:43:38Z",
-      "status": "FOUR_WORKERS_LIVE_STARTUP_STEP0",
+      "last_process_check_utc": "2026-09-25T17:16:28.191784Z",
+      "status": "TRAIN_COMPLETE_FRESH_PUBLIC20M_EVAL_RUNNING",
       "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
       "queue_pid": 3053905,
-      "workers": [
-        3053923,
-        3053924,
-        3053925,
-        3053926
-      ],
-      "latest_logged_step": 0,
-      "latest_logged_loss": 9.0112,
-      "latest_logged_toks_per_second": 298,
-      "startup_complete": false,
+      "workers": [],
+      "startup_complete": true,
       "df_h_root_available": "45G",
       "pending_staged_fallback_count": 6,
       "fallback_labels": [
@@ -662,7 +675,33 @@
       "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
       "submission_eligible": false,
       "launch_allowed": true,
-      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission"
+      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
+      "last_process_check_scope": "Training terminal and evaluation launch; ongoing monitoring by assigned Operator",
+      "previous_training_workers": [
+        3053923,
+        3053924,
+        3053925,
+        3053926
+      ],
+      "training_steps": 3657,
+      "training_ended_utc": "2026-09-25T17:16:28.191784Z",
+      "training_exit_code": 0,
+      "eval_pid": 3077306,
+      "public_20m": null,
+      "training_seconds": 1784.9,
+      "startup_allowance_est": 817.9,
+      "charged_seconds_est": 1785.3,
+      "over_budget": false,
+      "last_training_progress_sample": {
+        "step": 0,
+        "loss": 9.0112,
+        "tokens_per_second": 298,
+        "observed_utc": "2026-09-25T16:43:38Z"
+      },
+      "completion_receipt": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/completed-training/",
+      "owned_pause_after_eval": true,
+      "next_priority": "Exact93ae CPU ON/OFF/c5c/6ef7; independent numeric review, then prepared architecture full run",
+      "fallback_handback": "Six staged jobs preserved; Operator resumes serial fallback if priority gate blocks, never dual launch"
     }
   },
   "breakers": {
@@ -701,6 +740,12 @@
       "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
       "resolved_utc": "2026-09-24T22:35:15Z",
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
+    },
+    {
+      "item": "General fixed1800-second budget selection for ALL arms; steps diagnostic only",
+      "resolved_utc": "2026-09-25T17:21:00Z",
+      "authority": "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
+      "scope": "No step-window exemptions needed; BPB thresholds, replication, correctness, charging and submission audit unchanged"
     }
   ],
   "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
@@ -720,8 +765,8 @@
   },
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {
-    "trn21": 0,
-    "trn22": 0
+    "trn21": 6,
+    "trn22": 6
   },
   "table_a1_exact_gate_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_HOLD_NO_DISPATCH",
