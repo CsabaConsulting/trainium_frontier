@@ -1,0 +1,110 @@
+{
+  "proposal_id": "20260925-116188-cold-compile-smoke-trn22-r1",
+  "status": "RESEARCH_COMPLETE_DISPATCH_HOLD",
+  "owner_role": "researcher",
+  "proposal_content_complete": true,
+  "launch_authorized": false,
+  "hypothesis": "The previously successful 116188 dense training file can initialize and compile on trn22 from freshly empty, explicitly routed Neuron caches, and complete at least 20 synchronized native steps on all four ranks. If it reproduces S0's pre-model RNG/NEFF failure, shared cold-start setup becomes a stronger suspect, not a proven cause.",
+  "single_causal_change": "Diagnostic contrast with historical successful 116188 training: keep exact source bytes, historical dense model flags, seed 42 and LNC2 x4 while isolating every compile cache in fresh empty job-owned directories and shortening the CLI budget to --max-train-seconds 120. The different host, cache state and budget make this a startup diagnostic, not a one-factor BPB experiment.",
+  "mechanism_class": "startup_compile_diagnostic",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [0.0, 0.0],
+  "candidate_shortlist": [
+    {
+      "idea": "Known-good 116188 true-cold 120-second compile smoke on trn22",
+      "mechanism_class": "startup_compile_diagnostic",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Tests whether the same class of zero-step failure occurs with a historically successful file under a demonstrably empty persistent compile cache."
+    },
+    {
+      "idea": "S0 warm-cache 120-second compile smoke on trn21",
+      "mechanism_class": "startup_compile_diagnostic",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Tests S0 itself but cannot establish that a cold official compile succeeds."
+    }
+  ],
+  "selection_rationale": "Poojith directly requested a known-good cold-cache discriminator, then made it a 120-second compile smoke to save host time ahead of A1/A2. A clean contrast is informative about startup only; S0 still needs a distinct full-budget true-cold replay before submission.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 0.5,
+  "trainium_feasibility": "Exact source SHA256 116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d previously completed full-chip training on trn21 and passed four-rank CPU G2 on trn22 for historical flags. This file accepts --max-train-seconds at line 1303. The argument changes wall-clock LR, weight-decay and momentum scheduling in Python, which can change optimizer state and losses. Whether model forward/backward compiled graph shapes are unchanged is a source-based hypothesis requiring native graph/cache evidence. The compiler/startup phase may still take minutes because first startup steps have an allowance independent of the 120-second training target. Seven dedicated cache paths are precreated empty under the new root; the documented NEURON_COMPILE_CACHE_URL must point to the fresh persistent directory, with no compiler cache-dir override.",
+  "cheapest_falsifier": "Verify all fresh cache directories empty and effective persistent-cache routing, then either capture the first Neuron compiler/journal error or observe at least 20 finite synchronized step boundaries on every rank plus normal termination. If effective cold-cache isolation cannot be demonstrated, result is inconclusive as a cold contrast even if startup succeeds.",
+  "prior_result_refs": [
+    "fs-20260924-c595-matrixlr015-trn21-r1: 3635 steps/public20M 0.9920722144854677 with 116188 bytes",
+    "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 3654 steps/public20M 0.9918353324459732 with 116188 bytes",
+    "fs-20260925-s0-cold-replay-trn21-r1: zero-step NKI RNG/NEFF failure, effective persistent-cache coldness unproved",
+    "fs-20260925-v2-c5c-a0-control-trn22-r10: training, fresh public20M evaluation and quiescent postflight required before this host slot"
+  ],
+  "evidence": [
+    "research/v2/incidents/20260925-s0-cold-trn21-r1/READONLY_COMPILER_POSTMORTEM.md",
+    "research/v2/proposals/20260925-116188-cold-cache-contrast-trn22-r1.json (superseded unlaunched 1800-second design)",
+    "research/v2/assignments/20260925-trn22-116188-cold-contrast-r1.json (launch_authorized=false; superseded)",
+    "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-s0-116188-trn22-r1.json",
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py"
+  ],
+  "duplicate_search_terms": ["116188 cold compile smoke", "fs-20260925-116188-cold-compile-smoke-trn22-r1", "known-good cold contrast", "S0 cold replay"],
+  "control": {
+    "git_commit": "984ba59a770ba8410c17735083e4367ce1ab3f42",
+    "source_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "run_label": "fs-20260924-c595-matrixlr015-confirm-trn21-r2",
+    "public_val_bpb": 0.9918353324459732,
+    "steps": 3654,
+    "box_constraint": "Historical source-feasibility reference only; this new trn22 120-second smoke has no valid BPB or step-rate quality comparison."
+  },
+  "candidate": {
+    "branch": "codex/20260925-s0-short-compile-smoke-proposals-r1",
+    "files_allowed": [],
+    "expected_diff": "None. Copy only exact existing 116188 train.py bytes. Add CLI --max-train-seconds 120 after the historical launch flags; do not make a temporary train.py copy with an edited constant.",
+    "source_path": "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "source_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "run_label": "fs-20260925-116188-cold-compile-smoke-trn22-r1",
+    "run_root": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --max-train-seconds 120"
+  },
+  "cache_policy": {
+    "run_root_must_be_absent_before_staging": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1",
+    "fresh_cache_paths": {
+      "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/persistent",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/compiler",
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/neff_local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/hlo",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/debug",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/cache/inductor"
+    },
+    "proof_required": "Before launch all seven paths and root are absent, then create private empty cache dirs and record zero object counts. Set documented NEURON_COMPILE_CACHE_URL to cache/persistent. Leave external NEURON_CC_FLAGS unset and verify no inherited --cache_dir override. After first compile, show newly written compiler objects under the declared persistent URL and archive cache/debug logs. Never clear or overwrite any older cache. An empty NEURON_COMPILE_CACHE_DIR alone does not prove true coldness."
+  },
+  "trusted_prepare": {
+    "host_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+    "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "policy": "Copy only exact train.py into the fresh sandbox; import unchanged trusted prepare.py by PYTHONPATH. Verify fresh-process imported prepare.__file__ and SHA before launch."
+  },
+  "evaluation": "No public BPB evaluation is needed or valid for this 120-second compile smoke. Retrieve full rank logs, compiler/error logs, per-rank step boundaries, startup allowance and charged training time, final checkpoint metadata/hash if produced, cache-path proof and quiescent postflight. Any later full S0 cold replay requires its own fresh public20M evaluation.",
+  "required_prelaunch": [
+    "Supervisor issues a one-use smoke assignment after independent proposal review; the old 1800-second 116188 cold assignment remains revoked and unused.",
+    "trn22 c5c A0 r10 training and fresh public20M evaluation are terminal, with no Neuron process/device/lock holder and a fresh normal/crash postflight.",
+    "Verify unique label/root absent, source SHA on host, trusted prepare SHA/import path, data/tokenizer, seed 42, LNC2 x4, disk free >=6.5 GiB, no STOP/breaker and no other active launcher.",
+    "Record the existing four-rank CPU G2 receipt for source/historical flags only; obtain an exact-CLI four-rank CPU G2 PASS if available before launch, or explicitly record the break-glass no-exact-receipt allowance and --max-train-seconds-only argv delta. Do not call the prior receipt an exact-argv PASS.",
+    "Verify all new cache dirs empty before launch, effective persistent URL and no override; archive evidence that new compiler files land beneath that URL."
+  ],
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Not measured; no public20M, no BPB delta, no decide.py win/adoption and no S0 submission clearance.",
+    "throughput": "Record compile/startup time, startup allowance cap/excess, charged training time and effective cache path; no training-throughput or quality comparison with 1800-second runs.",
+    "correctness": "All four ranks compile and initialize cleanly, complete at least 20 finite synchronized training steps each, exit normally, produce a finite/loadable model checkpoint if the source writes one, and leave complete logs plus quiescent postflight. Also prove effective cold-cache isolation with new files in the previously empty documented persistent URL. If slow cold compilation consumes the startup allowance and the file cleanly ends before 20 steps, classify INCONCLUSIVE_FOR_CODE_CACHE rather than a 116188 or S0 code defect. Under 20 steps or absent per-rank/cold proof is never a PASS; actual compiler errors are failures and all evidence is retained."
+  },
+  "abort_conditions": [
+    "Any A0 train/eval or Neuron holder still active; disk free <6.5 GiB; STOP/breaker; unique label/root collision; non-empty or unverified cache; source or prepare hash mismatch.",
+    "Wrong graph/model flags, source-byte edit, inherited compiler cache override, wrong seed/topology, NaN, crash, checkpoint absence, missing all-rank step evidence or non-quiescent postflight.",
+    "Do not rerun a consumed label; archive the first real compiler error and rank journals on failure."
+  ],
+  "human_approved_by": "Poojith direct 120-second known-good cold discriminator instruction, 2026-09-25 IST; proposal is not launch authority",
+  "verdict": null
+}
