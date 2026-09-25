@@ -1,5 +1,12 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**CONTROLLING ALL IN DIRECTIVE:** Read `ALL_IN_FOR_FIRST_2026-09-26.txt`
+fully. It supersedes conflicting priorities below, removes the150USD/day
+Bedrock cap, requests1000USD/day alert and two-family builders/review, and
+prioritizes profiling/Muon/embedding-scatter over FP8. The architecture tree
+and all legality/human-only boundaries remain. No claim of active lanes,
+configured alerts or verified external gains without evidence.
+
 **LATEST HUMAN PRIORITIES (26 September):** Read
 `NEXT_12_HOURS_2026-09-26.md` first. Architecture result and compilation lead;
 FP8 timing precedes repair but remains diagnostic while gradients are broken.

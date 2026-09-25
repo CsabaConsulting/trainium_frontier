@@ -1,0 +1,176 @@
+DIRECTIVE: ALL IN FOR #1. From Poojith, with Csaba's approval.
+This replaces the "final push" directive wherever they conflict. The legality rules and the
+Human-only list stay exactly as they are. Read fully, then acknowledge in 3 lines (end of file).
+
+=====================================================================
+0. WHAT CHANGED
+=====================================================================
+- AI spend is no longer a constraint. Csaba: "don't hold yourself back". The $150/day Bedrock
+  cap is removed. Keep one spend alert at $1,000/day, only to catch runaway loops, and report
+  spend in every 6-hour report.
+- No extra trn2.3xlarge capacity exists anywhere. We are asking Csaba to book a trn2.48xlarge
+  (16 Trn2 chips; Capacity Blocks for ML offers it in us-east-2 Ohio). Build its harness now
+  (lane X) so it is used the minute it exists.
+- The #3 team (Trainium of Thought) published their path on this exact hardware. It is our map.
+  Their numbers (external claims):
+  - 8 layers x ~1024, U-Net skips, attention in a subset of layers, 4 processes,
+    262k tokens per step, ~0.715 s/step = about 365k tok/s. We do ~268k tok/s on a SMALLER model.
+  - Muon for matrices; AdamW for embeddings, head and small params; bf16 state.
+  - NKI fused kernels: norm, RoPE, cross entropy, ReLU^2, flash attention, embedding scatter,
+    parts of the optimizer step.
+  - Their progression: 0.9848 (arch + kernels)
+      -> 0.9679 "embedding scatter, Muon batching"   (-0.017, their biggest single step)
+      -> 0.9669 FP8 projections                     (-0.001)
+      -> 0.9656 FP8 tables + fused RoPE             (-0.0013)
+  - What failed for them: a custom matmul kernel (faster alone, slower inside the graph),
+    attention/smear gates, a 203M model, a 10-layer model (fewer steps, finished behind).
+  - We are at about their 0.9848 stage (our schedule base is ~0.9885 official, estimated).
+    Their next step was worth -0.017. We copy that step first.
+- Consequences:
+  - Muon batching and the embedding-scatter kernel are now priority 1.
+  - FP8 drops to priority 3 (they got only -0.001 from it).
+  - No host slots for models bigger than 8x1024, or for gates.
+
+=====================================================================
+1. THE REAL CONSTRAINTS, AND HOW WE USE UNLIMITED AI AGAINST THEM
+=====================================================================
+AI tokens are free now. Host slots and verified code are not. So we use AI to get:
+ (a) more useful runs per host-hour: working compile cache, no wasted replicates, nothing on
+     Trn2 that a CPU can check;
+ (b) more host-hours: the 16-chip machine, if Csaba books it;
+ (c) bigger wins per run: kernels and Muon batching built in parallel by many agents, raced;
+ (d) zero rejected submissions: a dedicated compliance agent.
+More agents than independent tasks adds merge conflicts and review load, not speed.
+Scale verification with implementation: at least 1 verifier per 3 implementers.
+
+=====================================================================
+2. FLEET RULES
+=====================================================================
+- Models: Codex subagents (GPT-6 Astra) plus Claude Code on Bedrock using Claude Opus 5.5.
+  Do NOT use Fable 5.1 for this work; it declines LLM R&D. Never reword a prompt to get around
+  a refusal. Switch model instead.
+- Racing: lanes K1, K2, K3 and K4 each get TWO independent implementers from different model
+  families, in separate branches. The first patch that passes the gates AND is faster on Trn2
+  wins. Kill the other.
+- Gates for every patch: default-OFF flag; CPU G2 PASS with the flag on; flag-off bit-identity
+  over 3 steps; adversarial review by a model family that did not write it; then a short Trn2
+  timing check before any full run.
+- External agents: repo and CPU only. No host access, no keys; secrets only in env vars.
+  Only the Operator launches.
+- Every lane writes research/v2/lanes/<lane>/STATUS.md every 2 hours:
+  done / blocked (with the real error text) / next.
+
+=====================================================================
+3. LANES (deadlines IST)
+=====================================================================
+P  PROFILE. First host slot after the architecture decision (~25 min).
+   neuron-profile one steady-state step of the current best base AND of 8x1024.
+   Output: ms per phase (forward, backward, optimizer incl. Newton-Schulz, all-reduce,
+   embedding backward, data), an MFU estimate, and a check that every matmul and SDPA runs in
+   bf16 (the resid_lambda fp32 promotion). Deadline Sep 26 06:00. Re-rank K lanes by it.
+
+K1 MUON BATCHING. Priority 1.
+   Group same-shape matrices and run Newton-Schulz as one batched matmul per group. If not
+   already done: split the Muon work across the 4 ranks and all_gather the updates.
+   Exactness: batched vs per-matrix updates equal within bf16 tolerance on CPU.
+   Pass: >= 5% faster whole step. Deadline Sep 26 14:00.
+
+K2 EMBEDDING SCATTER. Priority 1.
+   NKI kernel for the token-embedding and value-embedding backward: scatter-add of row
+   gradients, duplicate indices handled, fp32 accumulation. Exact vs the dense path on a CPU
+   reference. Pass: >= 5% faster step on the base. It also makes tables cheap (lane T).
+   Deadline Sep 26 18:00.
+
+K3 FLASH ATTENTION + ReLU^2. Priority 2.
+   NKI flash attention forward+backward (start from AWS's published NKI kernels if the license
+   allows; attribute them) and a fused ReLU^2 MLP activation. Attention must be identical in
+   train and eval (reviewer flag). Pass: >= 3% faster step for each. Deadline Sep 27 06:00.
+
+K4 FP8. Priority 3.
+   Whole-step timing test first. < 3% faster: close it. Otherwise fix gradients (tolerance
+   check: per-parameter gradient cosine >= 0.99 vs bf16 over 3 steps), then a full run.
+   FP8 tables only after tables are back in.
+
+A  ARCHITECTURE. Follow the decision tree already given for the 8x1024 result.
+   Plus: 262k tokens/step on the best base (the #3 team's batch).
+   No bigger models, no gates.
+
+T  TABLES v2 (starts when K2 lands). Tables on the arch base with the scatter kernel, then B2
+   sparse updates, then FP8 tables. The #3 stack kept tables, so our A1 loss (+0.007, 10%
+   slower) was most likely the scatter cost, not the idea.
+
+S  SCHEDULE/OPTIMIZER. One agent. Warmup/cooldown fitted to the steps that actually fit;
+   LR retune (x0.8, x1.25) on every new base; the remaining Recursive package pieces.
+
+V  VELOCITY. Operator + 1 agent, starts now.
+   - Make the warm compile cache actually hit. Research runs still pay 15-17 min; target
+     <= 3 min warm. Cold compile only for submission candidates.
+   - List the graphs compiled per run and remove the avoidable ones. This also lowers
+     8x1024 cold startup; target <= 870 s.
+   - SEED CHECK. Run the current base with seeds 43 and 44. Our two controls matched within
+     0.00004, so same-seed cross-host replicates only test hardware determinism, and each one
+     costs a full slot.
+       If cross-seed spread <= 0.0005: adopt any single-run delta <= -0.002. Replicate only
+       -0.002 < delta <= -0.001, and with a different seed.
+       If spread is larger: replicate with a different seed, not a different host.
+     Submissions keep seed 42.
+
+X  SCALE-OUT HARNESS. Build now, CPU only, ready by Sep 26 12:00.
+   A runner for a trn2.48xlarge with 16 independent jobs, one per chip: NEURON_RT_VISIBLE_CORES
+   per chip, a per-job torchrun master port, per-job cache and output dirs, per-job receipts.
+   First jobs on the new machine: 2 base controls on 2 chips. Per-chip tok/s must match
+   trn2.3xlarge within 2% before any result from that machine counts.
+   Research only; the submission launch stays the bare official command.
+
+I  INTEL. Web-enabled agent, public sources only. Every public detail on the top-10 teams; the
+   rest of the Trainium of Thought write-up; AWS NKI kernel samples (flash attention, scatter);
+   Neuron FP8 docs. Report every 12 hours.
+
+C  COMPLIANCE AND SUBMISSION. One agent.
+   Keep the 116188 vehicle within 6 hours of the best result. Audit every candidate against
+   the reviewer flags: no monkeypatching get_token_bytes, no reimplemented scoring, identical
+   attention in train and eval, record_step_boundary called, weights_only load, bare launch.
+   Cold replay before handing it to Poojith.
+
+R  ANALYST. Keep the backlog ranked by expected BPB gain per host-hour. Kill any lane that
+   misses its pass rule, and say so in the report.
+
+=====================================================================
+4. HOST QUEUE ORDER (both hosts, never idle)
+=====================================================================
+ 1. decision-tree follow-up of the architecture result
+ 2. profile slot (P)
+ 3. Trn2 timing checks of new kernels (short runs, ~25 min)
+ 4. full runs of patches that passed timing
+ 5. 262k tokens/step on the best base
+ 6. seed check (2 runs), overnight
+ 7. LR retune on a new base
+ 8. flag bank on the newest base
+Nothing that a CPU can check runs on Trn2.
+
+=====================================================================
+5. SUBMISSIONS
+=====================================================================
+Submit every confirmed gain of >= 0.003 official after a cold replay and the compliance audit.
+Poojith uploads. Expected first one: arch + schedule (+ batch) during Sep 26.
+Final package frozen Sep 29 18:00 IST.
+
+=====================================================================
+6. MILESTONES (public-20M)
+=====================================================================
+- Sep 26 23:00: <= 0.983  (arch + schedule + batch)
+- Sep 27 23:00: <= 0.970  (Muon batching + embedding scatter)
+- Sep 28 18:00: <= 0.960  (tables v2, attention kernels, FP8)
+- Sep 29 18:00 freeze: <= 0.947  (first-place range)
+If a milestone is missed, say so and state the pivot in the same message.
+
+=====================================================================
+7. REPORTING
+=====================================================================
+Every 6 hours, same format as before, plus: AI spend since the last report, one status line
+per lane, busy % per host.
+
+Acknowledge in 3 lines:
+ (1) how many agents you started per lane,
+ (2) what each host runs next,
+ (3) when P and the seed check are scheduled.

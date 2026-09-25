@@ -2,6 +2,23 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Controlling human directive: ALL IN FOR FIRST (26 September)
+
+Read `workflow/ALL_IN_FOR_FIRST_2026-09-26.txt` fully. It replaces conflicting
+Final Push/MOONSHOT/next-twelve-hours priorities while preserving legality,
+human-only AWS/submission actions and the architecture decision tree.
+Muon/embedding-scatter audits and profiling now precede FP8. The150USD/day
+Bedrock cap is explicitly removed;1000USD/day alert requested, not confirmed
+configured. Use local GPT-6 Astra and Claude Opus5.5 on Bedrock, never Fable
+or disguised refusal retries. Two-family racing/review must actually occur
+before claiming those gates; named but unstarted lanes are not active agents.
+Seed43/44 diagnostics are authorized; conditional selection changes wait for
+their data and a reviewed implementation. Submission seed remains42.
+No model larger than8x1024 or new gates. Latest external-team scores and
+causal explanations are hypotheses until sourced and reproduced. Existing
+Muon batching/ownership already exists: audit differences, not no-op patches.
+The app goal's old text remains historical; this newer direct instruction wins.
+
 ## Newest human priorities: 26 September, next twelve hours
 
 Read `workflow/NEXT_12_HOURS_2026-09-26.md` first. Architecture's final20M
