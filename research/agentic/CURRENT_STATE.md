@@ -1,12 +1,12 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:12 UTC
+Last reconciled: 2026-09-25 12:18 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
 preflights and live remote GNU timeout probes, then failed with the **same
 generic write-SSH error**: trn22 `ad925338` (independent result HOLD
-`b1387247`) and trn21 `1b1f33bb` (independent result review pending).
+`b1387247`) and trn21 `1b1f33bb` (independent result HOLD `97ac177b`).
 Both one-attempt markers are consumed. Each distinct-process postflight found
 **no bundle or new checkout**, intact e65 science/protected assets, no STOP,
 process or Neuron holder, and over 57 GB free. The wrappers suppressed the
@@ -15,8 +15,9 @@ concern about a shared pre-open/transport defect, but do not prove one, and
 do not prove the one-second timing gate caused the failures. There has been
 no cleanup, retry, native run, eval, or new BPB. A separately labelled,
 disabled trn22 r6 repair (`7b250a74`) with bounded pre-open timing-only
-retry and nonsecret failure classification is under independent static
-review; a no-write diagnostic is being developed. Further write attempts
+retry and nonsecret failure classification passed independent static review
+(`297a1097`), but remains operationally HOLD; a no-write diagnostic is being
+developed. Further write attempts
 are HOLD pending diagnosis, distinct independent authority and the required
 human retry decision. Both r10 A0 control proposals remain selected
 (`6a3aa8e9`, `8aec974e`), and both disabled native packages have static
