@@ -1,6 +1,34 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:33 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:46 UTC (26 September IST)
+
+## Current: both hosts active; submission qualification separate
+
+trn21 is confirming exact3e79, old schedule, seed42. At21:45:21UTC it had
+960steps at266441tok/s and1330source seconds remaining. Preserve its attached
+fresh20M evaluation. trn22 started the one-factor architecture LR0.012 fallback
+at21:45:12.574738UTC, four workers and original lifetime lock verified in
+0c8287ce. Releasec3cf38d2 followed the21:44bounded wait cutoff for the preferred
+checkpoint diagnostic. All59 packet checks passed normal/-O; model bytes are
+unchanged3e79. Compare to same-host architecture0.986340, not old c5c.
+The20m42s idle incident was reported and is closed by that actual launch.
+
+Checkpoint-only diagnostic135b19e8 is frozen and under independent review;
+it has NOT run or reversed clean-source REFUSE. Both full research jobs remain
+intact. Recursive-on-architecture implementation proceeds independently.
+Pending packets are not six ready queued jobs and must not be presented as such.
+
+A separate REVIEW-ONLY copy now exists in
+`/home/poojith-devan/Downloads/Trainium-architecture-REVIEW-ONLY-3f5035/`.
+Its train.py matches3f5035 exactly; launch-command.txt matches the unchanged
+116188 command SHA b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd.
+READ_ME_FIRST explicitly forbids upload until qualification. Existing
+Downloads/train.py was not overwritten. No measured clean-file score exists.
+Best authenticated public20M remains0.9863403052402583, still one provisional
+architecture result, not a confirmed two-host mean or official score.
+
+This section supersedes the prior idle, compiling-only, packet-preparing and
+all-downloads-unchanged snapshots below; their raw evidence is retained.
 
 ## Current: submission HOLD, unchanged-checkpoint diagnostic in preparation
 

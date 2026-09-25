@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-## Current — 26 September 03:03 IST
+## Current — 26 September 03:16 IST
 
 The installation/staging snapshots below are historical, not current gates.
 Use `research/agentic/CURRENT_STATE.md`, `research/v2/state.json` and the latest
@@ -14,9 +14,11 @@ cross-host confirmation and clean submission preparation continue. The upload
 file is NOT ready: the exact-score clean116188 port still needs independent
 review, full-size identity, cold replay and human-mediated Claude audit.
 
-trn21's exact architecture repeat started at 02:54 IST and is compiling.
-trn22's bcbd cold-five passed in 493.34 seconds; it is now idle awaiting an
-independently reviewed checkpoint-only diagnostic. Clean source3f5035 has a
+trn21's exact architecture repeat started at 02:54 IST and has reached960steps
+at266441tok/s. trn22's bcbd cold-five passed in493.34seconds; after a reported
+20m42s idle interval it launched exact3e79 LR0.012 at03:15:12IST. Both jobs have
+attached fresh20M evaluation and retain their original host locks. The separately
+prepared checkpoint-only diagnostic is under independent review. Clean source3f5035 has a
 fresh structural batch-routing REFUSE (527db181), despite zero numerical
 error in the small CPU tests. A separate synthetic trained-checkpoint test
 will investigate behavioural parity; fullCPU/cold/full/upload remain HOLD.
