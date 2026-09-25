@@ -27,7 +27,7 @@
   "p_improve": 0.0,
   "estimated_host_hours": 0.5,
   "trainium_feasibility": "Exact source SHA256 116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d previously completed full-chip training on trn21 and passed four-rank CPU G2 on trn22 for historical flags. This file accepts --max-train-seconds at line 1303. The argument changes wall-clock LR, weight-decay and momentum scheduling in Python, which can change optimizer state and losses. Whether model forward/backward compiled graph shapes are unchanged is a source-based hypothesis requiring native graph/cache evidence. The compiler/startup phase may still take minutes because first startup steps have an allowance independent of the 120-second training target. Seven dedicated cache paths are precreated empty under the new root; the documented NEURON_COMPILE_CACHE_URL must point to the fresh persistent directory, with no compiler cache-dir override.",
-  "cheapest_falsifier": "Verify all fresh cache directories empty and effective persistent-cache routing, then either capture the first Neuron compiler/journal error or observe at least 20 finite synchronized step boundaries on every rank plus normal termination. If effective cold-cache isolation cannot be demonstrated, result is inconclusive as a cold contrast even if startup succeeds.",
+  "cheapest_falsifier": "After base-G2 PASS and independent static check of the sole --max-train-seconds 120 CLI delta, verify all fresh cache directories empty and effective persistent-cache routing; then capture the first Neuron compiler/journal error or observe at least 20 distinct finite completed rank-0 step boundaries plus torchrun/all-four-worker exit zero after synchronized per-step collectives and final dist.barrier/checkpoint. prepare.record_step_boundary writes only on rank 0, so no per-rank step files are expected. Without effective cold-cache isolation the result is inconclusive as a cold contrast even if startup succeeds.",
   "prior_result_refs": [
     "fs-20260924-c595-matrixlr015-trn21-r1: 3635 steps/public20M 0.9920722144854677 with 116188 bytes",
     "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 3654 steps/public20M 0.9918353324459732 with 116188 bytes",
@@ -78,12 +78,17 @@
     "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "policy": "Copy only exact train.py into the fresh sandbox; import unchanged trusted prepare.py by PYTHONPATH. Verify fresh-process imported prepare.__file__ and SHA before launch."
   },
-  "evaluation": "No public BPB evaluation is needed or valid for this 120-second compile smoke. Retrieve full rank logs, compiler/error logs, per-rank step boundaries, startup allowance and charged training time, final checkpoint metadata/hash if produced, cache-path proof and quiescent postflight. Any later full S0 cold replay requires its own fresh public20M evaluation.",
+  "step_boundary_evidence": {
+    "environment": "NEURON_COMPETITION_R1_STEP_LOG=/home/ubuntu/trainium_116188_cold_smoke_20260925_trn22_r1/receipts/step-boundaries-rank0.log",
+    "policy": "The sole allowed NEURON_COMPETITION_R1_* instrumentation exception. Precreate a unique private append-only file and parent in the job-owned run root, verify absent/empty before creation, then pass the path to all four workers. Trusted prepare.record_step_boundary writes only rank-0 completed boundaries; never claim direct per-rank boundary logs. Archive the raw rank-0 log, four worker exit statuses or independently bounded torchrun-all-workers exit proof, final dist.barrier/checkpoint evidence, and quiescent postflight. No seed, shape, budget, data, evaluator or source override is allowed."
+  },
+  "evaluation": "No public BPB evaluation is needed or valid for this 120-second compile smoke. Retrieve raw rank-0 boundary log, all-worker exit evidence, compiler/error logs, startup allowance and charged training time, finite checkpoint metadata/hash, cache-path proof and quiescent postflight. Any later full S0 cold replay requires its own fresh public20M evaluation.",
   "required_prelaunch": [
     "Supervisor issues a one-use smoke assignment after independent proposal review; the old 1800-second 116188 cold assignment remains revoked and unused.",
     "trn22 c5c A0 r10 training and fresh public20M evaluation are terminal, with no Neuron process/device/lock holder and a fresh normal/crash postflight.",
     "Verify unique label/root absent, source SHA on host, trusted prepare SHA/import path, data/tokenizer, seed 42, LNC2 x4, disk free >=6.5 GiB, no STOP/breaker and no other active launcher.",
-    "Record the existing four-rank CPU G2 receipt for source/historical flags only; obtain an exact-CLI four-rank CPU G2 PASS if available before launch, or explicitly record the break-glass no-exact-receipt allowance and --max-train-seconds-only argv delta. Do not call the prior receipt an exact-argv PASS.",
+    "Record base-command four-rank CPU G2 PASS plus a separate independent static check that the sole training argv delta is the existing parser's --max-train-seconds 120. The human break-glass allowance substitutes these for an unavailable exact-120s-argv G2; explicitly record the exception in assignment and Operator receipt. Never mislabel base G2 as an exact-argv PASS.",
+    "Precreate the unique job-owned rank-0 step log path, set only NEURON_COMPETITION_R1_STEP_LOG as instrumentation, and capture raw log plus torchrun/four-worker exits. No other NEURON_COMPETITION_R1_* training override is permitted.",
     "Verify all new cache dirs empty before launch, effective persistent URL and no override; archive evidence that new compiler files land beneath that URL."
   ],
   "gates": {
@@ -97,12 +102,12 @@
   },
   "success_criteria": {
     "quality": "Not measured; no public20M, no BPB delta, no decide.py win/adoption and no S0 submission clearance.",
-    "throughput": "Record compile/startup time, startup allowance cap/excess, charged training time and effective cache path; no training-throughput or quality comparison with 1800-second runs.",
-    "correctness": "All four ranks compile and initialize cleanly, complete at least 20 finite synchronized training steps each, exit normally, produce a finite/loadable model checkpoint if the source writes one, and leave complete logs plus quiescent postflight. Also prove effective cold-cache isolation with new files in the previously empty documented persistent URL. If slow cold compilation consumes the startup allowance and the file cleanly ends before 20 steps, classify INCONCLUSIVE_FOR_CODE_CACHE rather than a 116188 or S0 code defect. Under 20 steps or absent per-rank/cold proof is never a PASS; actual compiler errors are failures and all evidence is retained."
+    "throughput": "Record compile/startup time, startup allowance cap/excess, charged training time, effective cache path, raw rank-0 boundary log and all-worker exit proof; no training-throughput or quality comparison with 1800-second runs.",
+    "correctness": "Clean four-rank compile/runtime startup; at least 20 distinct finite completed rank-0 boundaries in the trusted step log; torchrun/all four worker exit codes zero after synchronized per-step distributed collectives and the source's final dist.barrier following rank-0 checkpoint save; finite/loadable checkpoint; complete logs, effective cold-cache isolation proved by new files under the previously empty documented persistent URL, and quiescent postflight. No direct per-rank boundary files are required or possible from unchanged prepare.py. If slow cold compilation consumes the allowance and a clean exit occurs before 20 boundaries, classify INCONCLUSIVE_FOR_CODE_CACHE, not a 116188 or S0 code defect. Actual compiler errors are failures."
   },
   "abort_conditions": [
     "Any A0 train/eval or Neuron holder still active; disk free <6.5 GiB; STOP/breaker; unique label/root collision; non-empty or unverified cache; source or prepare hash mismatch.",
-    "Wrong graph/model flags, source-byte edit, inherited compiler cache override, wrong seed/topology, NaN, crash, checkpoint absence, missing all-rank step evidence or non-quiescent postflight.",
+    "Wrong graph/model flags, source-byte edit, inherited compiler cache override, wrong seed/topology, NaN, crash, checkpoint absence, missing rank-0 boundary or all-worker exit evidence, or non-quiescent postflight.",
     "Do not rerun a consumed label; archive the first real compiler error and rank journals on failure."
   ],
   "human_approved_by": "Poojith direct 120-second known-good cold discriminator instruction, 2026-09-25 IST; proposal is not launch authority",
