@@ -247,6 +247,7 @@ NGRAM_VE_OPT = 'rmsprop'
 NGRAM_VE_BF16 = True
 NGRAM_RMS_FP32 = False
 USE_NKI_NGRAM_RMS = False
+USE_B2_SPARSE_NGRAM = False
 NGRAM_VE_CLIP_EXCLUDE = True
 NGRAM_VE_INDEX_GATHER = True
 USE_ENGRAM = False
@@ -1917,7 +1918,7 @@ class GPT(nn.Module):
         self.ngram_dim = NGRAM_VE_DIM if NGRAM_VE_DIM > 0 else config.n_embd
 
         def _table() -> nn.Embedding:
-            return nn.Embedding(self.ngram_rows, self.ngram_dim, _weight=torch.zeros(self.ngram_rows, self.ngram_dim, dtype=ngram_dtype))
+            return nn.Embedding(self.ngram_rows, self.ngram_dim, _weight=torch.zeros(self.ngram_rows, self.ngram_dim, dtype=ngram_dtype), sparse=USE_B2_SPARSE_NGRAM)
         tables: dict[str, nn.Module] = {}
         for i in range(config.n_layer):
             if has_ngram_bigram(i, config.n_layer):
@@ -2107,7 +2108,7 @@ class GPT(nn.Module):
         Advanced indexing is the only spelling that stays cheap at every shape.
         """
         tbl = self.ngram_embeds[key].weight
-        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
+        out = (self.ngram_embeds[key](rows) if USE_B2_SPARSE_NGRAM else (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows))).to(COMPUTE_DTYPE)
         if raw_out is not None:
             raw_out[key] = out
         if key in self.ngram_proj:
@@ -2826,6 +2827,9 @@ class MuonAdamW(torch.optim.Optimizer):
         Both foreach and scalar-tensor paths use the same promotion contract.
         """
         assert group['weight_decay'] == 0.0, 'rmsprop groups are weight-decay free by design'
+        if USE_B2_SPARSE_NGRAM:
+            self._rmsprop_step_sparse_cpu(group)
+            return
         if USE_NKI_NGRAM_RMS:
             self._rmsprop_step_nki(group)
             return
@@ -2855,6 +2859,60 @@ class MuonAdamW(torch.optim.Optimizer):
                     p.sub_(update * lr)
                 else:
                     p.add_(update, alpha=-lr)
+
+    @torch.no_grad()
+    def _rmsprop_step_sparse_cpu(self, group):
+        """B2 CPU reference: touch only globally present rows, with deferred FP32 decay.
+
+        This is deliberately NOT a Neuron implementation. The full-sized FP32 moment is
+        retained, but only selected rows are read/written. `last_touch` records the
+        table-step of the physical moment; applying beta2**gap before the next hit is
+        algebraically the dense zero-gradient recurrence. Different FP32 rounding
+        order means this is not claimed bit-identical to the dense optimizer. Native
+        sparse backward, coalescing, exchange, and indexed writes require a separate
+        component probe before the main() Neuron refusal can be removed.
+        """
+        if not NGRAM_RMS_FP32 or USE_NKI_NGRAM_RMS or group['weight_decay'] != 0.0:
+            raise ValueError('B2 sparse RMSProp requires FP32 moments, no NKI RMS, and zero weight decay')
+        beta2 = group['betas'][1]
+        if not 0.0 < beta2 < 1.0:
+            raise ValueError('B2 sparse RMSProp requires beta2 in (0, 1)')
+        for p in group['params']:
+            if p.grad is None:
+                continue
+            if p.grad.layout != torch.sparse_coo or p.ndim != 2:
+                raise ValueError('B2 table gradient must be a row-sparse COO matrix')
+            grad = p.grad.coalesce()
+            rows = grad.indices()[0]
+            values = grad.values().float()
+            if rows.ndim != 1 or values.shape != (rows.numel(), p.shape[1]) or not bool(((rows >= 0) & (rows < p.shape[0])).all()):
+                raise ValueError('B2 sparse RMSProp gradient row schema mismatch')
+            if not bool(torch.isfinite(values).all()):
+                raise ValueError('B2 sparse RMSProp received a nonfinite row gradient')
+            state = self.state[p]
+            if not state:
+                state['step'] = 0
+                state['exp_avg_sq'] = torch.zeros_like(p, dtype=torch.float32)
+                state['last_touch'] = torch.zeros(p.shape[0], dtype=torch.int64, device=p.device)
+            moment = state['exp_avg_sq']
+            last_touch = state['last_touch']
+            if moment.shape != p.shape or moment.dtype != torch.float32 or last_touch.shape != (p.shape[0],) or last_touch.dtype != torch.int64:
+                raise ValueError('B2 sparse RMSProp state schema mismatch')
+            table_step = state['step'] + 1
+            if rows.numel() == 0:
+                state['step'] = table_step
+                continue
+            gaps = table_step - last_touch.index_select(0, rows)
+            if not bool((gaps > 0).all()):
+                raise ValueError('B2 sparse RMSProp last_touch is not earlier than this step')
+            decay = torch.pow(torch.full_like(gaps, beta2, dtype=torch.float32), gaps).unsqueeze(1)
+            next_moment = moment.index_select(0, rows) * decay + (1.0 - beta2) * values.square()
+            bias2 = 1.0 - beta2 ** table_step
+            next_param = p.index_select(0, rows).float() - float(group['lr']) * (values / ((next_moment / bias2).sqrt() + group['eps']))
+            moment.index_copy_(0, rows, next_moment)
+            p.index_copy_(0, rows, next_param.to(p.dtype))
+            last_touch.index_fill_(0, rows, table_step)
+            state['step'] = table_step
 
     @torch.no_grad()
     def _muon_step(self, group):
@@ -3066,7 +3124,7 @@ def sync_gradients_flat(flat_grad_buffer: torch.Tensor) -> None:
         return
     dist.all_reduce(flat_grad_buffer, op=dist.ReduceOp.AVG)
 
-def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], clip_ngram_params: list[torch.nn.Parameter], *, max_norm: float, clip_after_reduce: bool=False, grad_flat_buffer: torch.Tensor | None=None, foreach: bool | None=None, skip_param_ids: frozenset[int] | None=None) -> None:
+def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], clip_ngram_params: list[torch.nn.Parameter], *, max_norm: float, clip_after_reduce: bool=False, grad_flat_buffer: torch.Tensor | None=None, foreach: bool | None=None, skip_param_ids: frozenset[int] | None=None, omit_param_ids: frozenset[int] | None=None) -> None:
     """Apply the selected clipping order, preserving the separate n-gram norm.
 
     Call after every micro-batch has accumulated and loss scaling has been undone.
@@ -3086,13 +3144,81 @@ def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Pa
             sync_gradients_flat(grad_flat_buffer)
     else:
         if clip_after_reduce:
-            sync_gradients(model)
+            sync_gradients(model, skip_param_ids=omit_param_ids)
         if max_norm > 0:
             torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=foreach)
             if clip_ngram_params:
                 torch.nn.utils.clip_grad_norm_(clip_ngram_params, max_norm, foreach=foreach)
         if not clip_after_reduce:
-            sync_gradients(model, skip_param_ids=skip_param_ids)
+            sync_gradients(model, skip_param_ids=(skip_param_ids or frozenset()) | (omit_param_ids or frozenset()))
+
+def sync_clip_sparse_ngram_cpu(params: list[torch.nn.Parameter], *, max_norm: float, row_capacity: int) -> None:
+    """B2 CPU reference: fixed-capacity exchange of touched rows, then joint clip.
+
+    The normal dense `all_reduce` must omit these parameters. Every rank visits
+    every table and performs the same count-check and two all-gathers, including
+    when it has zero local rows. This path is intentionally barred on Neuron:
+    compiled sparse COO backward, dynamic mask/coalesce, and indexed writes have
+    not passed the required native component probe.
+    """
+    if row_capacity < 1:
+        raise ValueError('B2 row capacity must be positive')
+    distributed = dist.is_available() and dist.is_initialized()
+    world_size = dist.get_world_size() if distributed else 1
+    merged: list[tuple[torch.nn.Parameter, torch.Tensor, torch.Tensor]] = []
+    for p in params:
+        local_bad = 0
+        try:
+            if p.ndim != 2:
+                raise ValueError('B2 expected a two-dimensional table')
+            if p.grad is None:
+                rows = torch.empty(0, dtype=torch.int64, device=p.device)
+                values = torch.empty((0, p.shape[1]), dtype=p.dtype, device=p.device)
+            else:
+                if p.grad.layout != torch.sparse_coo or p.ndim != 2:
+                    raise ValueError('B2 expected a row-sparse COO table gradient')
+                gradient = p.grad.coalesce()
+                rows = gradient.indices()[0]
+                values = gradient.values()
+                if rows.ndim != 1 or values.shape != (rows.numel(), p.shape[1]) or not bool(torch.isfinite(values).all()) or not bool(((rows >= 0) & (rows < p.shape[0])).all()):
+                    raise ValueError('B2 sparse gradient shape or finiteness failure')
+                if rows.numel() > row_capacity:
+                    raise ValueError('B2 sparse gradient exceeds fixed row capacity')
+        except (RuntimeError, ValueError):
+            local_bad = 1
+            rows = torch.empty(0, dtype=torch.int64, device=p.device)
+            values = torch.empty((0, p.shape[1] if p.ndim == 2 else 0), dtype=p.dtype, device=p.device)
+        status = torch.tensor([local_bad], dtype=torch.int32, device=p.device)
+        if distributed:
+            dist.all_reduce(status, op=dist.ReduceOp.MAX)
+        if int(status.item()) != 0:
+            raise ValueError('B2 sparse gradient validation failed on at least one rank')
+        send_rows = torch.full((row_capacity,), -1, dtype=torch.int64, device=p.device)
+        send_values = torch.zeros((row_capacity, p.shape[1]), dtype=p.dtype, device=p.device)
+        if rows.numel():
+            send_rows[:rows.numel()].copy_(rows)
+            send_values[:rows.numel()].copy_(values)
+        if distributed:
+            recv_rows = torch.empty((world_size * row_capacity,), dtype=torch.int64, device=p.device)
+            recv_values = torch.empty((world_size * row_capacity, p.shape[1]), dtype=p.dtype, device=p.device)
+            dist.all_gather_into_tensor(recv_rows, send_rows)
+            dist.all_gather_into_tensor(recv_values, send_values)
+        else:
+            recv_rows, recv_values = send_rows, send_values
+        valid = recv_rows >= 0
+        if not bool(valid.any()):
+            merged.append((p, rows[:0], values[:0]))
+            continue
+        # FP32 duplicate summation defines this experimental optimizer's math.
+        records = torch.sparse_coo_tensor(recv_rows[valid].unsqueeze(0), recv_values[valid].float(), size=p.shape, device=p.device).coalesce()
+        merged.append((p, records.indices()[0], records.values() / world_size))
+    norm_sq = sum((values.square().sum() for _p, _rows, values in merged), torch.zeros((), dtype=torch.float32, device=params[0].device))
+    coefficient = torch.clamp(torch.tensor(float(max_norm), device=norm_sq.device) / (norm_sq.sqrt() + 1e-6), max=1.0) if max_norm > 0 else torch.ones_like(norm_sq)
+    for p, rows, values in merged:
+        if rows.numel() == 0:
+            p.grad = None
+        else:
+            p.grad = torch.sparse_coo_tensor(rows.unsqueeze(0), (values * coefficient).to(p.dtype), size=p.shape, device=p.device).coalesce()
 
 def loss_scale_transition(scale: float, clean: int, finite: bool, growth_interval: int, max_scale: float):
     """One dynamic-loss-scaling step. Pure function (CPU-tested).
@@ -3156,6 +3282,7 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
     return total_norm
 ARCH_TOGGLE_NAMES = ['PACK_FACTOR', 'INIT_SCALE', 'USE_VE', 'WINDOW_PATTERN', 'SHORT_WINDOW_FRAC', 'ROPE_BASE', 'USE_LOCAL_CONV', 'LOCAL_CONV_KERNEL', 'TRAIN_LOCAL_CONV', 'USE_GATED_MLP', 'USE_WEIGHT_CACHE', 'USE_TRANSPOSED_LINEAR', 'WARMDOWN_RATIO', 'FINAL_LR_FRAC', 'WARMUP_STEPS', 'WD_DECAY_TO_ZERO', 'MUON_MOMENTUM_WARMUP_STEPS', 'USE_DOC_MASK', 'VE_WD', 'USE_SELECTIVE_GATE', 'SELECTIVE_GATE_CHANNELS', 'USE_FUSED_QKV', 'USE_CAUSAL_FASTPATH', 'USE_TRN2_COMPILER_FLAGS', 'COMPILE_SDPA_DIRECT', 'USE_NKI_ATTN', 'USE_NKI_LOCAL_CONV', 'USE_BF16_NORM_OUTPUT', 'USE_BF16_SDPA_INPUT', 'MATRIX_LR', 'EMBEDDING_LR', 'UNEMBEDDING_LR', 'SCALAR_LR', 'WEIGHT_DECAY', 'GRAD_CLIP', 'CLIP_AFTER_REDUCE', 'LOGIT_SOFTCAP', 'LOSS_BYTE_WEIGHT', 'LOSS_SCALE', 'LOSS_SCALE_DYNAMIC', 'ATTN_CPROJ_INIT_SCALE', 'MUON_NS_STEPS', 'MUON_MOMENTUM_COOLDOWN_FRAC', 'MUON_MOMENTUM_FINAL', 'ADAM_EVERY_N', 'ADAM_EVERY_N_LR_COMP', 'DEMON_BETA1', 'DEMON_BETA1_FINAL', 'DEMON_BETA1_REF', 'DEMON_BETA1_START_FRAC', 'MUON_BETA2', 'MUON_BETA2_FINAL', 'MUON_DEPTH_LR_BOTTOM', 'MUON_DEPTH_LR_TOP', 'MUON_DEPTH_MOM_BOTTOM', 'MUON_DEPTH_MOM_TOP', 'MUON_DEPTH_MOM_REF', 'DEPTH', 'N_EMBD', 'HEAD_DIM', 'MLP_RATIO', 'ATTN_SCALE', 'N_KV_HEADS', 'USE_NGRAM_VE', 'NGRAM_VE_LAYERS', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_DIM', 'NGRAM_VE_BF16', 'NGRAM_RMS_FP32', 'USE_NKI_NGRAM_RMS', 'NGRAM_VE_LR', 'NGRAM_VE_BETA2', 'NGRAM_VE_FLAT_LR', 'NGRAM_VE_OPT', 'NGRAM_VE_CLIP_EXCLUDE', 'USE_OUT_BIGRAM', 'OUT_BIGRAM_BF16', 'OUT_BIGRAM_GATE_BIAS', 'OUT_BIGRAM_LR', 'RELU2_TAU', 'USE_MLP_SANDWICH_NORM', 'USE_HEAD_GATE', 'HEAD_GATE_NORM', 'HEAD_GATE_CHANNELS', 'HEAD_GATE_MUL', 'HEAD_GATE_BIAS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'QK_SHIFT_BETA', 'QK_SHIFT_FREEZE', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'BLOCK_NUDGE_SITE', 'USE_QKV_NORM_CSE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_SITE', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'ENGRAM_BF16', 'USE_EPOCH_SHUFFLE', 'EPOCH_SHUFFLE_SEED', 'BATCH_RAMP', 'BATCH_RAMP_GRAD_ACCUM', 'BATCH_RAMP_BOUNDS', 'BATCH_RAMP_LR_EXP', 'USE_WEIGHT_EMA', 'WEIGHT_EMA_DECAYS', 'WEIGHT_EMA_START_FRAC', 'USE_BYTE_WTE_INIT', 'BYTE_WTE_INIT_MIX', 'BYTE_WTE_INIT_NGRAM', 'BYTE_WTE_INIT_STD', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN', 'USE_CAUTIOUS_WD', 'SCALAR_BETA1', 'SCALAR_BETA2']
 SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELECTIVE_GATE', 'USE_FUSED_QKV', 'USE_TRANSPOSED_LINEAR', 'USE_NGRAM_VE', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_DIM', 'USE_OUT_BIGRAM', 'USE_HEAD_GATE', 'HEAD_GATE_CHANNELS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'N_KV_HEADS', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN'}
+ARCH_TOGGLE_NAMES.append('USE_B2_SPARSE_NGRAM')
 
 def current_toggles() -> dict:
     g = globals()
@@ -3417,7 +3544,7 @@ def main() -> None:
     global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN, N_KV_HEADS
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LAYERS
-    global NGRAM_RMS_FP32, USE_NKI_NGRAM_RMS
+    global NGRAM_RMS_FP32, USE_NKI_NGRAM_RMS, USE_B2_SPARSE_NGRAM
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     global USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, OUT_BIGRAM_LR
     global RELU2_TAU, USE_MLP_SANDWICH_NORM
@@ -3477,6 +3604,7 @@ def main() -> None:
     parser.add_argument('--ngram-ve-flat-lr', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_FLAT_LR', '1' if NGRAM_VE_FLAT_LR else '0') != '0', help='hold the n-gram tables\' lr FLAT (warmup only, no warmdown), per Recursive\'s "sparse tables benefit from full-rate training". --no-ngram-ve-flat-lr puts them back on the normal cooldown.')
     parser.add_argument('--ngram-ve-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_BF16', '1' if NGRAM_VE_BF16 else '0') != '0', help='store n-gram tables and gradients in bf16 rather than fp32. Optimizer state follows that dtype unless --ngram-rms-fp32 is on.')
     parser.add_argument('--ngram-rms-fp32', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_RMS_FP32', '1' if NGRAM_RMS_FP32 else '0') != '0', help='Use FP32 second moments AND FP32 RMSProp update arithmetic for n-gram tables, retaining their parameter/gradient dtype. Casts grads before squaring and rounds at the final parameter write. Requires --ngram-ve-opt rmsprop. Default OFF.')
+    parser.add_argument('--b2-sparse-ngram', action=argparse.BooleanOptionalAction, default=False, help='CPU-only B2 research prototype: sparse table backward, fixed-capacity row exchange, and lazy FP32 RMSProp. Default OFF. Native Trainium execution is refused until a separately verified primitive probe passes.')
     parser.add_argument('--nki-ngram-rms', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_NGRAM_RMS', '1' if USE_NKI_NGRAM_RMS else '0') != '0', help='Fuse FP32 table RMSProp in NKI, using both cores under LNC2. Requires --ngram-rms-fp32 and contiguous BF16 Neuron tables. Default OFF; test quality and whole-run time before promotion.')
     parser.add_argument('--ngram-ve-clip-exclude', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_CLIP_EXCLUDE', '1' if NGRAM_VE_CLIP_EXCLUDE else '0') != '0', help='keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them as their own group, so adding them cannot change the effective lr of every other tensor through clip_coef. See split_clip_params.')
 
@@ -3646,6 +3774,7 @@ def main() -> None:
     NGRAM_VE_BF16 = args.ngram_ve_bf16
     NGRAM_RMS_FP32 = args.ngram_rms_fp32
     USE_NKI_NGRAM_RMS = args.nki_ngram_rms
+    USE_B2_SPARSE_NGRAM = args.b2_sparse_ngram
     NGRAM_VE_OPT = args.ngram_ve_opt
     NGRAM_VE_LR = args.ngram_ve_lr
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
@@ -3793,6 +3922,13 @@ def main() -> None:
         USE_NKI_MUON = False
         print0('muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run')
     device_type = detect_device_type(args.device_type)
+    if USE_B2_SPARSE_NGRAM:
+        if device_type != 'cpu':
+            parser.error('B2 sparse tables are HOLD on Neuron until sparse backward, fixed-row collectives, coalescing and indexed writes pass an independent native component probe')
+        if not (USE_NGRAM_VE and NGRAM_RMS_FP32 and NGRAM_VE_OPT == 'rmsprop' and NGRAM_VE_CLIP_EXCLUDE and CLIP_AFTER_REDUCE):
+            parser.error('--b2-sparse-ngram requires n-gram VE, --ngram-rms-fp32, RMSProp, separate n-gram clipping, and --clip-after-reduce')
+        if USE_NKI_NGRAM_RMS or USE_ENGRAM or USE_OUT_BIGRAM or args.grad_bucket or args.compile or ADAM_EVERY_N != 1 or BATCH_RAMP or LOSS_SCALE != 1.0 or LOSS_SCALE_DYNAMIC or args.debug_numerics_steps:
+            parser.error('--b2-sparse-ngram CPU prototype requires no NKI table RMS, Engram, out-bigram, grad bucket, compile, skipped Adam updates, batch ramp, loss scaling, or numeric debug')
     if USE_NKI_NGRAM_RMS and (device_type != 'neuron' or not _HAS_NKI):
         parser.error('--nki-ngram-rms requires a Neuron device and available NKI backend')
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
@@ -3886,6 +4022,14 @@ def main() -> None:
     cached_linears = [m for m in model.modules() if isinstance(m, Linear)] if USE_WEIGHT_CACHE else []
     clip_main_params, clip_ngram_params = split_clip_params(orig_model)
     assert not (grad_flat_buffer is not None and clip_ngram_params), '--grad-bucket clips one flat buffer and cannot exclude the n-gram tables; use --no-ngram-ve-clip-exclude to combine them'
+    sparse_ngram_params = list(orig_model.ngram_embeds.parameters()) if USE_B2_SPARSE_NGRAM else []
+    sparse_ngram_ids = frozenset(id(p) for p in sparse_ngram_params)
+    sparse_row_capacity = DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN * grad_accum_steps if USE_B2_SPARSE_NGRAM else 0
+    if USE_B2_SPARSE_NGRAM:
+        if not sparse_ngram_params:
+            raise ValueError('B2 sparse mode requires at least one n-gram table')
+        clip_main_params = [p for p in clip_main_params if id(p) not in sparse_ngram_ids]
+        clip_ngram_params = [p for p in clip_ngram_params if id(p) not in sparse_ngram_ids]
 
     def debug_numerics(stage, step_number, loss, inspect_tensors=False):
         if step_number >= args.debug_numerics_steps:
@@ -3975,7 +4119,9 @@ def main() -> None:
                             p.grad.detach().zero_()
             LOSS_SCALE, loss_scale_clean = (new_scale, new_clean)
         unscale_grads_(model, grad_flat_buffer, unscale_with)
-        clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)
+        clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids, omit_param_ids=sparse_ngram_ids if USE_B2_SPARSE_NGRAM else None)
+        if USE_B2_SPARSE_NGRAM:
+            sync_clip_sparse_ngram_cpu(sparse_ngram_params, max_norm=GRAD_CLIP, row_capacity=sparse_row_capacity)
         debug_numerics('clip_and_reduce', step, last_loss, inspect_tensors=True)
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
