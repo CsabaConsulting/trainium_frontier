@@ -35,8 +35,9 @@ REMOTE_SCRIPT = next(
 LOCAL_FUNCTIONS = [
     node for node in TREE.body
     if isinstance(node, ast.FunctionDef)
-    and node.name in {"require_unoptimized_python", "positive_timeout_seconds",
-                      "bounded_timeout_command", "validate_request", "main"}
+    and node.name in {"require_unoptimized_python",
+                      "bounded_timeout_command", "require_gnu_timeout",
+                      "validate_request", "main"}
 ]
 SOURCE_FINGERPRINT_PATHS = ast.literal_eval(next(
     node.value for node in TREE.body
@@ -48,7 +49,20 @@ FLOOR = 13 * 1024**3 // 2
 PRELAUNCH = 10 * 1024**3
 COMMIT = "a" * 40
 LABEL = "fs-synthetic-nonassert-r7"
-SOURCE_SHA256 = "dcf9fdc0e1d8ecc459e6687b87511f00a5747d3fff19dfdfeae0a6b57d818c07"
+SOURCE_SHA256 = "e6d6d4bcc391d575f6c82bc4b0643b3a04c99b783bc0cc532bc92e65e0b12b9c"
+A0_REQUEST_PATH = (SOURCE_PATH.parent / "v2/disk-monitor/"
+                   "fs-20260925-v2-c5c-a0-control-trn22-r3.request.DISABLED.json")
+A0_REQUEST = json.loads(A0_REQUEST_PATH.read_text())
+
+
+def a0_command(label, remote):
+    """Adapt the frozen disabled A0 argv only for disposable fake checkouts."""
+    original_label, original_remote = A0_REQUEST["label"], A0_REQUEST["remote"]
+    command = [arg.replace(original_remote, str(remote)).replace(original_label, label)
+               for arg in A0_REQUEST["command"]]
+    command[0] = "/usr/bin/timeout"
+    command[5] = "/usr/bin/env"
+    return command
 
 
 class FlagsProxy:
@@ -90,10 +104,9 @@ def request_template(remote="/home/ubuntu/trainium_freshstart_synthetic_r7",
         "label": LABEL,
         "expected_commit": COMMIT,
         "remote": str(remote),
-        "command": ["timeout", "--kill-after=1s", "1s", "true"],
+        "command": a0_command(LABEL, remote),
         "fingerprint_paths": list(SOURCE_FINGERPRINT_PATHS),
-        "environment": {"NEURON_LOGICAL_NC_CONFIG": "2",
-                        "NEURON_CC_FLAGS": "--optlevel=1"},
+        "environment": dict(A0_REQUEST["environment"]),
         "min_free_bytes": FLOOR,
         "pre_launch_required_free_bytes": PRELAUNCH,
         "runner_owns_manifest": False,
@@ -105,8 +118,13 @@ def request_template(remote="/home/ubuntu/trainium_freshstart_synthetic_r7",
     }
 
 
-def local_namespace(root, contacts, optimize=0):
+def local_namespace(root, contacts, optimize=0,
+                    timeout_banner="timeout (GNU coreutils) 9.1\n"):
     def fake_ssh(*args, **kwargs):
+        if args[0] == ["/usr/bin/timeout", "--version"]:
+            return subprocess.CompletedProcess(args[0], 0,
+                                               stdout=timeout_banner,
+                                               stderr="")
         contacts.append((args, kwargs))
         return subprocess.CompletedProcess(args[0], 0, stdout="FAKE_ONLY\n", stderr="")
 
@@ -207,7 +225,8 @@ class ActualInterpreterModeTests(unittest.TestCase):
 
 class LocalNonAssertTests(unittest.TestCase):
     def run_local(self, request, *, compiled_optimize=0, runtime_optimize=0,
-                  pythonoptimize=None):
+                  pythonoptimize=None,
+                  timeout_banner="timeout (GNU coreutils) 9.1\n"):
         with tempfile.TemporaryDirectory(prefix="launcher-r7-local-offline-") as tmp:
             root = Path(tmp)
             receipt_dir = root / "research/run-logs"
@@ -215,7 +234,8 @@ class LocalNonAssertTests(unittest.TestCase):
             request_path = root / "request.json"
             request_path.write_text(json.dumps(request))
             contacts = []
-            local = local_namespace(root, contacts, compiled_optimize)
+            local = local_namespace(root, contacts, compiled_optimize,
+                                    timeout_banner)
             fake_host = types.ModuleType("fresh_start_host")
             fake_host.MIN_OPERATIONAL_FREE_BYTES = FLOOR
             env = dict(os.environ)
@@ -297,7 +317,8 @@ class RemoteNonAssertTests(unittest.TestCase):
     def run_remote(self, *, compiled_optimize=0, runtime_optimize=0,
                    pythonoptimize=None, disk_free=11 * 1024**3,
                    dirty=b"", untracked=b"", commit=COMMIT,
-                   interlock_fails=False, mutation=None, allow_fake_guard=False):
+                   interlock_fails=False, mutation=None, allow_fake_guard=False,
+                   timeout_banner="timeout (GNU coreutils) 9.1\n"):
         with tempfile.TemporaryDirectory(prefix="launcher-r7-remote-offline-") as tmp:
             root = Path(tmp)
             checkout = root / "checkout"
@@ -315,7 +336,14 @@ class RemoteNonAssertTests(unittest.TestCase):
                 mutation(request, root, checkout, monitor)
 
             calls = {"git": [], "guard": [], "interlock": [],
-                     "preflight": [], "no_spawn": []}
+                     "preflight": [], "no_spawn": [], "timeout_version": []}
+
+            def fake_timeout_version(argv, **kwargs):
+                calls["timeout_version"].append(argv)
+                if argv != ["/usr/bin/timeout", "--version"]:
+                    raise AssertionError("UNEXPECTED_FAKE_PROCESS")
+                return subprocess.CompletedProcess(
+                    argv, 0, stdout=timeout_banner, stderr="")
 
             def fake_git(argv, **kwargs):
                 calls["git"].append(argv)
@@ -368,6 +396,7 @@ class RemoteNonAssertTests(unittest.TestCase):
                   patch.object(sys, "flags", FlagsProxy(sys.flags, runtime_optimize)),
                   patch.dict(os.environ, env, clear=True),
                   patch.object(subprocess, "check_output", side_effect=fake_git),
+                  patch.object(subprocess, "run", side_effect=fake_timeout_version),
                   patch.object(subprocess, "Popen", side_effect=fake_guard),
                   patch.object(shutil, "disk_usage",
                                return_value=types.SimpleNamespace(free=disk_free)),

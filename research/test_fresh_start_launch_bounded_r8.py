@@ -23,10 +23,7 @@ EXPECTED_FINGERPRINT_PATHS = (
     "research/v2/disk-monitor/root_free_guard_monitor.py",
     "research/v2/disk-monitor/paired_root_free_guard_monitor.py",
 )
-VALID_COMMAND = [
-    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s",
-    "3600s", "env", "-i", "true",
-]
+VALID_COMMAND = fake.request_template()["command"]
 
 
 def remote_literal(name):
@@ -160,8 +157,6 @@ class R8BoundedWitnessTests(unittest.TestCase):
                 self.assertEqual(len(receipts), 1)
                 error, calls, state = self.remote.run_remote(
                     compiled_optimize=compiled,
-                    mutation=lambda remote, *_: remote.update(
-                        command=list(VALID_COMMAND)),
                     allow_fake_guard=True)
                 self.assertIsNone(error)
                 self.assertEqual(len(calls["guard"]), 1)

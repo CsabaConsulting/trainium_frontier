@@ -23,24 +23,25 @@ sys.path.insert(0, str(Path(__file__).parent))
 import fresh_start_host as host
 import fresh_start_launch as launcher
 import fresh_start_monitor_interlock as interlock
+import test_fresh_start_launch_nonassert as launchfixtures
 import test_paired_root_free_guard_monitor as pairfixtures
 
 
 class R4EarlyRefusalImplementationTest(unittest.TestCase):
     def request(self, root, remote):
+        label = 'fs-synthetic-r4-early-refusal'
         return {
             'remote': str(remote),
-            'label': 'fs-synthetic-r4-early-refusal',
+            'label': label,
             'dispatch_authorized': True,
             'host': 'trn22',
             'expected_hostname': socket.gethostname(),
             'expected_commit': 'a' * 40,
             'min_free_bytes': host.MIN_OPERATIONAL_FREE_BYTES,
             'pre_launch_required_free_bytes': 10 * 1024**3,
-            'command': ['timeout', '--kill-after=1s', '1s', 'true'],
+            'command': launchfixtures.a0_command(label, remote),
             'fingerprint_paths': list(launcher.SOURCE_FINGERPRINT_PATHS),
-            'environment': {'NEURON_LOGICAL_NC_CONFIG': '2',
-                            'NEURON_CC_FLAGS': '--optlevel=1'},
+            'environment': dict(launchfixtures.A0_REQUEST['environment']),
             'monitor_interlock': {
                 'pair_binding_path': str(root / 'pair-binding.json'),
                 'no_spawn_path': str(root / 'no-spawn.json'),
@@ -49,9 +50,16 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
         }
 
     def execute_remote(self, request):
+        def fake_timeout_version(argv, **_kwargs):
+            if argv != ['/usr/bin/timeout', '--version']:
+                raise AssertionError('unexpected external command')
+            return subprocess.CompletedProcess(
+                argv, 0, stdout='timeout (GNU coreutils) 9.1\n', stderr='')
+
         original_path = sys.path[:]
         try:
-            with patch.object(sys, 'stdin', io.StringIO(json.dumps(request))):
+            with (patch.object(sys, 'stdin', io.StringIO(json.dumps(request))),
+                  patch.object(subprocess, 'run', side_effect=fake_timeout_version)):
                 exec(compile(launcher.REMOTE_SCRIPT, '<synthetic-remote-script>', 'exec'),
                      {'__name__': '__main__'})
         finally:
@@ -110,6 +118,8 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
             root = Path(directory)
             request = self.request(root, root / 'missing-checkout')
             request['label'] = case.binding['label']
+            request['command'] = launchfixtures.a0_command(
+                request['label'], request['remote'])
             request['expected_commit'] = case.binding['expected_commit']
             request['monitor_interlock']['pair_binding_path'] = str(case.pair_path)
             request['monitor_interlock']['no_spawn_path'] = case.pair['no_spawn_path']

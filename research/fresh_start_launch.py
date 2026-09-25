@@ -2,7 +2,8 @@
 """Launch one bounded, manifested job on an idle campaign host.
 
 The JSON request supplies host (trn21/trn22), remote checkout, expected_commit,
-label, purpose, command (argv, beginning with timeout), and explicit environment.
+label, purpose, the exact trn22 A0 argv beginning with absolute GNU timeout,
+and explicit environment.
 Set runner_owns_manifest for run_experiment.py: its log and launch manifest must
 not be pre-created. This helper never stops an existing process or edits source.
 Deployment and selection of an experiment remain separate decisions.
@@ -47,40 +48,64 @@ SOURCE_FINGERPRINT_PATHS = (
     'research/v2/disk-monitor/paired_root_free_guard_monitor.py',
 )
 
-def positive_timeout_seconds(value):
-    # A deliberately narrow GNU timeout duration grammar: integer seconds,
-    # minutes, hours or days, capped at one day. GNU's zero disables timeout.
-    match = re.fullmatch(r'([0-9]{1,8})([smhd]?)', value) if isinstance(value, str) else None
-    if match is None:
+def bounded_timeout_command(command, label, remote, environment):
+    # This is one reviewed A0 argv profile, not a shell or general command
+    # parser. The remote script cannot import the local helper before checkout.
+    if (not isinstance(command, list) or not isinstance(label, str)
+            or not isinstance(remote, str) or not isinstance(environment, dict)):
         return False
-    seconds = int(match[1]) * {'': 1, 's': 1, 'm': 60, 'h': 3600, 'd': 86400}[match[2]]
-    return 0 < seconds <= 86400
+    cache = ('/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1'
+             '/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train')
+    expected_environment = {
+        'NEURON_CC_FLAGS': '--optlevel=1 --auto-cast matmult --auto-cast-type bf16',
+        'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS': '1800',
+        'NEURON_COMPETITION_R1_SEED': '42',
+        'NEURON_LOGICAL_NC_CONFIG': '2',
+        'NEURON_COMPILE_CACHE_DIR': cache + '/compiler',
+        'TORCHINDUCTOR_CACHE_DIR': cache + '/inductor',
+        'TORCH_NEURONX_DEBUG_DIR': cache + '/debug',
+        'TORCH_NEURONX_HLO_CACHE_DIR': cache + '/hlo',
+        'TORCH_NEURONX_NEFF_CACHE_DIR': cache + '/neff',
+        'TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR': cache + '/local',
+    }
+    if environment != expected_environment:
+        return False
+    assignments = (
+        'NEURON_LOGICAL_NC_CONFIG', 'NEURON_CC_FLAGS',
+        'NEURON_COMPETITION_R1_SEED', 'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS',
+        'TORCH_NEURONX_NEFF_CACHE_DIR', 'TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR',
+        'TORCH_NEURONX_HLO_CACHE_DIR', 'TORCHINDUCTOR_CACHE_DIR',
+        'NEURON_COMPILE_CACHE_DIR', 'TORCH_NEURONX_DEBUG_DIR',
+    )
+    expected = [
+        '/usr/bin/timeout', '--foreground', '--signal=TERM',
+        '--kill-after=60s', '3600s', '/usr/bin/env', '-i',
+        'HOME=/home/ubuntu',
+        'PATH=/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin',
+        'NKI_VENV_PATH=/home/ubuntu/workspace/native_venv', 'PYTHONUNBUFFERED=1',
+        *[name + '=' + environment[name] for name in assignments],
+        'NEURON_COMPETITION_R1_OUT_DIR=' + remote + '/out/' + label,
+        'NEURON_COMPETITION_R1_STEP_LOG=' + remote + '/research/run-logs/' + label + '.steps.jsonl',
+        'TRAINIUM_FRESH_START_RUN_ID=' + label,
+        '/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone',
+        '--nproc_per_node=4', 'train.py', '--n-embd', '1024', '--no-ngram-ve',
+        '--no-qk-shift', '--compile-sdpa-direct', '--nki-local-conv',
+        '--bf16-norm-output', '--pack-factor', '32', '--clip-after-reduce',
+        '--seq-len', '1024', '--no-eval-public', '--matrix-lr', '0.015',
+    ]
+    return command == expected
 
-def bounded_timeout_command(command):
-    if (not isinstance(command, list) or not command
-            or not all(isinstance(arg, str) and arg and '\x00' not in arg for arg in command)
-            or command[0] != 'timeout'
-            or any(arg.startswith('PYTHONOPTIMIZE=') for arg in command)):
-        return False
-    seen = set()
-    index = 1
-    while index < len(command) and command[index].startswith('-'):
-        option = command[index]
-        if option == '--foreground':
-            name = 'foreground'
-        elif option == '--signal=TERM':
-            name = 'signal'
-        elif option.startswith('--kill-after=') and positive_timeout_seconds(option[13:]):
-            name = 'kill-after'
-        else:
-            return False
-        if name in seen:
-            return False
-        seen.add(name)
-        index += 1
-    return ('kill-after' in seen and index + 1 < len(command)
-            and positive_timeout_seconds(command[index])
-            and not command[index + 1].startswith('-'))
+def require_gnu_timeout():
+    # The argv uses an absolute path, and this check refuses a non-GNU image
+    # before checkout/lock/receipt. The actual child is later opened by guard.
+    result = subprocess.run(['/usr/bin/timeout', '--version'],
+                            capture_output=True, text=True, timeout=5,
+                            env={'PATH': '/usr/bin:/bin', 'LC_ALL': 'C'},
+                            check=False)
+    if (result.returncode != 0 or
+            not result.stdout.startswith('timeout (GNU coreutils) ') or
+            result.stderr):
+        raise RuntimeError('absolute GNU timeout is unavailable')
 
 m = json.load(sys.stdin)
 if not isinstance(m, dict) or m.get('dispatch_authorized') is not True:
@@ -95,7 +120,7 @@ if (not isinstance(m.get('remote'), str)
         or not pathlib.Path(m['remote']).is_absolute()
         or '..' in pathlib.Path(m['remote']).parts):
     raise RuntimeError('invalid remote checkout path')
-if m.get('host') not in ('trn21', 'trn22') or m.get('expected_hostname') != socket.gethostname():
+if m.get('host') != 'trn22' or m.get('expected_hostname') != socket.gethostname():
     raise RuntimeError('remote host identity mismatch')
 config = m.get('monitor_interlock')
 if not isinstance(config, dict):
@@ -111,9 +136,6 @@ if len({path.parent for path in interlock_paths.values()}) != 1:
     raise RuntimeError('remote interlock paths have different parents')
 if len(set(interlock_paths.values())) != 3:
     raise RuntimeError('remote interlock paths are not distinct')
-command = m.get('command')
-if not bounded_timeout_command(command):
-    raise RuntimeError('invalid bounded remote command')
 environment = m.get('environment')
 if (not isinstance(environment, dict)
         or not all(isinstance(key, str) and isinstance(value, str)
@@ -122,6 +144,9 @@ if (not isinstance(environment, dict)
         or environment.get('NEURON_LOGICAL_NC_CONFIG') not in ('1', '2')
         or '--optlevel=1' not in environment.get('NEURON_CC_FLAGS', '')):
     raise RuntimeError('unsafe remote child environment')
+command = m.get('command')
+if not bounded_timeout_command(command, label, m['remote'], environment):
+    raise RuntimeError('invalid exact A0 remote command or environment')
 if (type(m.get('min_free_bytes')) is not int
         or m['min_free_bytes'] != 13 * 1024**3 // 2
         or type(m.get('pre_launch_required_free_bytes')) is not int
@@ -135,6 +160,7 @@ if (not isinstance(fingerprints, list)
         or any(not isinstance(path, str) for path in fingerprints)
         or set(fingerprints) != set(SOURCE_FINGERPRINT_PATHS)):
     raise RuntimeError('invalid source fingerprint paths')
+require_gnu_timeout()
 stage = 'before_checkout'
 spawn_call_started = False
 
@@ -293,41 +319,63 @@ def require_unoptimized_python():
         raise RuntimeError("optimized Python is forbidden in the local launcher")
 
 
-def positive_timeout_seconds(value):
-    """Accept only a finite, positive, at-most-one-day GNU timeout duration."""
-    match = re.fullmatch(r"([0-9]{1,8})([smhd]?)", value) if isinstance(value, str) else None
-    if match is None:
+def bounded_timeout_command(command, label, remote, environment):
+    """Match one exact A0 argv; other experiments need reviewed profiles."""
+    if (not isinstance(command, list) or not isinstance(label, str)
+            or not isinstance(remote, str) or not isinstance(environment, dict)):
         return False
-    seconds = int(match[1]) * {"": 1, "s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]]
-    return 0 < seconds <= 86400
+    cache = ("/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1"
+             "/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train")
+    expected_environment = {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_DIR": cache + "/compiler",
+        "TORCHINDUCTOR_CACHE_DIR": cache + "/inductor",
+        "TORCH_NEURONX_DEBUG_DIR": cache + "/debug",
+        "TORCH_NEURONX_HLO_CACHE_DIR": cache + "/hlo",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": cache + "/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": cache + "/local",
+    }
+    if environment != expected_environment:
+        return False
+    assignments = (
+        "NEURON_LOGICAL_NC_CONFIG", "NEURON_CC_FLAGS",
+        "NEURON_COMPETITION_R1_SEED", "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS",
+        "TORCH_NEURONX_NEFF_CACHE_DIR", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR",
+        "TORCH_NEURONX_HLO_CACHE_DIR", "TORCHINDUCTOR_CACHE_DIR",
+        "NEURON_COMPILE_CACHE_DIR", "TORCH_NEURONX_DEBUG_DIR",
+    )
+    expected = [
+        "/usr/bin/timeout", "--foreground", "--signal=TERM",
+        "--kill-after=60s", "3600s", "/usr/bin/env", "-i",
+        "HOME=/home/ubuntu",
+        "PATH=/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+        "NKI_VENV_PATH=/home/ubuntu/workspace/native_venv", "PYTHONUNBUFFERED=1",
+        *[name + "=" + environment[name] for name in assignments],
+        "NEURON_COMPETITION_R1_OUT_DIR=" + remote + "/out/" + label,
+        "NEURON_COMPETITION_R1_STEP_LOG=" + remote + "/research/run-logs/" + label + ".steps.jsonl",
+        "TRAINIUM_FRESH_START_RUN_ID=" + label,
+        "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone",
+        "--nproc_per_node=4", "train.py", "--n-embd", "1024", "--no-ngram-ve",
+        "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+        "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+        "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015",
+    ]
+    return command == expected
 
 
-def bounded_timeout_command(command):
-    """Require a positive deadline and kill-after before dispatch."""
-    if (not isinstance(command, list) or not command
-            or not all(isinstance(arg, str) and arg and "\x00" not in arg for arg in command)
-            or command[0] != "timeout"
-            or any(arg.startswith("PYTHONOPTIMIZE=") for arg in command)):
-        return False
-    seen = set()
-    index = 1
-    while index < len(command) and command[index].startswith("-"):
-        option = command[index]
-        if option == "--foreground":
-            name = "foreground"
-        elif option == "--signal=TERM":
-            name = "signal"
-        elif option.startswith("--kill-after=") and positive_timeout_seconds(option[13:]):
-            name = "kill-after"
-        else:
-            return False
-        if name in seen:
-            return False
-        seen.add(name)
-        index += 1
-    return ("kill-after" in seen and index + 1 < len(command)
-            and positive_timeout_seconds(command[index])
-            and not command[index + 1].startswith("-"))
+def require_gnu_timeout():
+    """Refuse a non-GNU timeout at the absolute path before local receipt."""
+    result = subprocess.run(["/usr/bin/timeout", "--version"],
+                            capture_output=True, text=True, timeout=5,
+                            env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
+                            check=False)
+    if (result.returncode != 0 or
+            not result.stdout.startswith("timeout (GNU coreutils) ") or
+            result.stderr):
+        raise RuntimeError("absolute GNU timeout is unavailable")
 
 
 def validate_request(request):
@@ -335,8 +383,8 @@ def validate_request(request):
     if not isinstance(request, dict) or request.get("dispatch_authorized") is not True:
         raise RuntimeError("one-label dispatch is not authorized")
     host = request.get("host")
-    if not isinstance(host, str) or host not in HOSTS:
-        raise RuntimeError("unknown dispatch host")
+    if not isinstance(host, str) or host != "trn22" or host not in HOSTS:
+        raise RuntimeError("unknown A0 dispatch host")
     if (not isinstance(request.get("expected_hostname"), str)
             or not request["expected_hostname"]):
         raise RuntimeError("missing expected host identity")
@@ -368,9 +416,6 @@ def validate_request(request):
         raise RuntimeError("interlock paths have different parents")
     if len(set(paths.values())) != 3:
         raise RuntimeError("interlock paths are not distinct")
-    command = request.get("command")
-    if not bounded_timeout_command(command):
-        raise RuntimeError("a bounded command without Python optimization is required")
     environment = request.get("environment")
     if (not isinstance(environment, dict)
             or not all(isinstance(key, str) and isinstance(value, str)
@@ -379,6 +424,9 @@ def validate_request(request):
             or environment.get("NEURON_LOGICAL_NC_CONFIG") not in ("1", "2")
             or "--optlevel=1" not in environment.get("NEURON_CC_FLAGS", "")):
         raise RuntimeError("unsafe child environment")
+    command = request.get("command")
+    if not bounded_timeout_command(command, label, remote_value, environment):
+        raise RuntimeError("exact A0 command and environment are required")
     from fresh_start_host import MIN_OPERATIONAL_FREE_BYTES
     if (type(request.get("min_free_bytes")) is not int
             or request["min_free_bytes"] != MIN_OPERATIONAL_FREE_BYTES
@@ -402,6 +450,7 @@ def main():
     args = parser.parse_args()
     request = json.loads(args.request.read_text())
     validate_request(request)
+    require_gnu_timeout()
     receipt = ROOT / "research/run-logs" / (request["label"] + ".dispatch.json")
     with receipt.open("x") as output:
         # Preserve the intended action locally even if the remote host disappears.
