@@ -36,7 +36,8 @@ assert m.get('min_free_bytes') == MIN_OPERATIONAL_FREE_BYTES, 'request operation
 assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
 source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
                 'research/fresh_start_host.py', 'research/fresh_start_guard.py',
-                'research/fresh_start_launch.py', 'research/fresh_start_backup.py']
+                'research/fresh_start_launch.py', 'research/fresh_start_backup.py',
+                'research/fresh_start_monitor_interlock.py']
 dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
 new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
 assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
@@ -49,32 +50,62 @@ assert not manifest.exists() and not log.exists(), 'label already exists'
 if m.get('runner_owns_manifest'):
     log = fdir / (m['label'] + '.driver.log')
 assert not log.exists(), 'driver label already exists'
-pre = preflight(r, m['label'])
-paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
-         'research/fresh_start_host.py', 'research/fresh_start_guard.py',
-         'research/fresh_start_backup.py'] + m.get('fingerprint_paths', [])
-m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-         hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
-         preflight_free_bytes=free,
-         source_sha256={p: hashlib.sha256((r / p).read_bytes()).hexdigest() for p in dict.fromkeys(paths)})
-env = os.environ.copy()
-for key in ('NEURON_RT_VISIBLE_CORES', 'NEURON_RT_NUM_CORES'):
-    env.pop(key, None)
-env.update(m['environment'])
-if not m.get('runner_owns_manifest'):
-    with manifest.open('x') as f:
+from fresh_start_monitor_interlock import (require_live_pair, write_interlock_pass,
+                                           write_no_spawn)
+spawned = False
+stage = 'before_preflight'
+try:
+    # Preflight can take time; check before and immediately after it. A dying
+    # sidecar cannot leave a future guard unmonitored merely because the first
+    # check passed.
+    require_live_pair(m)
+    stage = 'preflight'
+    pre = preflight(r, m['label'])
+    stage = 'after_preflight'
+    require_live_pair(m)
+    paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
+             'research/fresh_start_host.py', 'research/fresh_start_guard.py',
+             'research/fresh_start_backup.py',
+             'research/fresh_start_monitor_interlock.py'] + m.get('fingerprint_paths', [])
+    m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+             hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
+             preflight_free_bytes=free,
+             source_sha256={p: hashlib.sha256((r / p).read_bytes()).hexdigest()
+                            for p in dict.fromkeys(paths)})
+    env = os.environ.copy()
+    for key in ('NEURON_RT_VISIBLE_CORES', 'NEURON_RT_NUM_CORES'):
+        env.pop(key, None)
+    env.update(m['environment'])
+    if not m.get('runner_owns_manifest'):
+        with manifest.open('x') as f:
+            json.dump(m, f, indent=2)
+    stage = 'before_job'
+    snapshot = require_live_pair(m)
+    write_interlock_pass(m, snapshot)
+    job = fdir / (m['label'] + '.job.json')
+    with job.open('x') as f:
         json.dump(m, f, indent=2)
-job = fdir / (m['label'] + '.job.json')
-with job.open('x') as f:
-    json.dump(m, f, indent=2)
-with log.open('x') as f:
-    p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),
-                          str(job), '--lock-fd', str(host_lock.fileno())],
-                         cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,
-                         start_new_session=True, pass_fds=(host_lock.fileno(),))
-print(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,
-                     hostname=m['hostname'], log=str(log), started_at=m['started_at'],
-                     protocol_version=2, preflight_passed=pre['passed'])))
+    # This is the last pre-spawn instruction with nontrivial latency. On a
+    # single-sidecar failure after this point, the survivor awaits the exact
+    # guard/process receipt and TERM-signals only the authenticated guard pidfd.
+    stage = 'before_guard_spawn'
+    require_live_pair(m)
+    with log.open('x') as f:
+        p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),
+                              str(job), '--lock-fd', str(host_lock.fileno())],
+                             cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,
+                             start_new_session=True, pass_fds=(host_lock.fileno(),))
+    spawned = True
+    print(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,
+                         hostname=m['hostname'], log=str(log), started_at=m['started_at'],
+                         protocol_version=2, preflight_passed=pre['passed'])))
+except BaseException as error:
+    if not spawned:
+        try:
+            write_no_spawn(m, stage, error)
+        except BaseException as receipt_error:
+            print('NO_SPAWN_RECEIPT_FAILURE ' + repr(receipt_error), file=sys.stderr)
+    raise
 '''
 
 
@@ -83,6 +114,8 @@ def main():
     parser.add_argument("request", type=Path)
     args = parser.parse_args()
     request = json.loads(args.request.read_text())
+    assert request.get('dispatch_authorized') is True, 'one-label dispatch is not authorized'
+    assert isinstance(request.get('monitor_interlock'), dict), 'paired interlock is required'
     assert request["host"] in HOSTS
     assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", request["label"])
     assert re.fullmatch(r"[0-9a-f]{40}", request["expected_commit"])
