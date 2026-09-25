@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+At 07:42 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
+was archived at `7929cc2a` and sent for independent evidence review. Both
+machines were idle in its bounded process/device/lock checks, with about
+54 GiB free each; the exact existing e65 c5c A0 checkouts were clean and
+matched pinned model/evaluator hashes. This is not fresh launch preflight or
+dispatch authority, and controller/host launch flags remain false. The
+disabled trn21 r10 exact launcher profile was implemented at `22bfbab5` and
+is under separate independent source review. An Implementer is preparing a
+disabled, small-bundle trn22 r9 source stage. No scored run, S0 replay, table
+result, BPB improvement, host transfer or launcher dispatch followed.
+
 At 07:30 UTC, the disabled trn22 final-r3 read-only timing diagnostic
 `4fd59da6` received [independent HOLD](verification/20260925-trn22-fifo-final-r3-timing-independent-HOLD.md)
 at `791a93ff`: its supplied test file has a `SyntaxError`, so zero supplied
