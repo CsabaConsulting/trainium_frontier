@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:03 UTC
+Last reconciled: 2026-09-25 06:05 UTC
 
 The distinct trn22 FIFO/nonblocking-lock transfer successor now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),
@@ -10,8 +10,13 @@ or scored run occurred. The trn21 final-r4 private-lock successor received
 [independent static HOLD](../v2/verification/20260925-trn21-r4-private-lock-independent-static-HOLD.md)
 because a below-floor terminal inode observation could falsely PASS the
 preflight/postflight validator; a distinct disabled repair is in progress.
-The trn22 A0 r5 native package remains under independent review. Best confirmed
-public20M is unchanged at 0.9918353324 single / 0.9919537735 two-run mean.
+The trn22 A0 r5 native package now has
+[independent static HOLD](../v2/verification/20260925-trn22-c5c-a0-r5-native-package-HOLD.md):
+optimized Python strips an assertion-based disabled dispatch check in the
+frozen launcher. Its offline reproducer used a fake SSH seam, not the host.
+A distinct fail-closed successor is being prepared; r5 cannot launch.
+Best confirmed public20M is unchanged at 0.9918353324 single /
+0.9919537735 two-run mean.
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 

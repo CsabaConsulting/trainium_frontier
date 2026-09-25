@@ -1,6 +1,13 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22's distinct nonblocking-lock successor has disabled-only static PASS, while trn21's final-r4 transfer has independent HOLD; trn22 A0 r5 package remains under review; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22's distinct nonblocking-lock successor has disabled-only static PASS, while trn21 final-r4 transfer and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result.**
+
+At 06:05 UTC, the [trn22 A0 r5 disabled native package](authorizations/trn22-c5c-a0-r5-native-hold/GATE_CONTRACT.json)
+received [independent HOLD](verification/20260925-trn22-c5c-a0-r5-native-package-HOLD.md):
+under optimized Python, the frozen launcher strips its assertion-based
+dispatch refusal and can create a local receipt and reach the SSH seam.
+The reproduction used a fake subprocess with no host contact. A distinct
+fail-closed successor is needed; no r5 native dispatch is authorized.
 
 At 06:02 UTC, the [distinct trn22 nonblocking-lock successor](authorizations/trn22-c5c-a0-r4-transfer-lock-nonblock-hold/GATE_CONTRACT.HOLD.json)
 received [independent PASS for disabled static bytes only](verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md).
