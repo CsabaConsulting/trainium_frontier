@@ -1,0 +1,574 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "2",
+    "--out-dir",
+    "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--ngram-ve",
+    "--ngram-ve-layers=-1",
+    "--ngram-ve-table-mult",
+    "64",
+    "--ngram-ve-dim",
+    "128",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015"
+  ],
+  "elapsed_s": 21.4,
+  "host": "ip-172-31-34-85",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+  "prepare": {
+    "dir": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1",
+    "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "stub": false
+  },
+  "python": "3.12.3",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "2",
+        "--out-dir",
+        "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+      ],
+      "checkpoint_check": {
+        "deterministic": true,
+        "logits_shape": [
+          1,
+          256,
+          8192
+        ],
+        "ok": true,
+        "path_exists": true
+      },
+      "cross_rank_mismatches": [],
+      "final_digests": {
+        "lm_head.weight": "85f1a3cf47b9771a",
+        "ngram_embeds.b5.weight": "cf13ec3f8d0b8c54",
+        "ngram_embeds.t5.weight": "6fde842f1dd1483b",
+        "ngram_proj.b5.weight": "3e5aa84e3fca27d8",
+        "ngram_proj.t5.weight": "a1c9c759fc241390",
+        "transformer.h.0.attn.c_k.weight": "61b8de0e32c5edc5",
+        "transformer.h.0.attn.c_proj.weight": "c08ed55582df50b0",
+        "transformer.h.0.attn.c_q.weight": "47a09e0b6b0d02fe",
+        "transformer.h.0.attn.c_v.weight": "38efbd9169e35907",
+        "transformer.h.0.local_conv.weight": "2eeb28e1fcc7cb7f",
+        "transformer.h.0.mlp.c_fc.weight": "58b269366dec984d",
+        "transformer.h.0.mlp.c_proj.weight": "8d31b44d44058fd6",
+        "transformer.h.0.resid_lambda": "6d10be0ffce09dfc",
+        "transformer.h.0.x0_lambda": "7b3185a242fd4eb0",
+        "transformer.h.1.attn.c_k.weight": "4eb411f53b85a67d",
+        "transformer.h.1.attn.c_proj.weight": "edb49a81c35d4195",
+        "transformer.h.1.attn.c_q.weight": "62b2a5c4c3568e69",
+        "transformer.h.1.attn.c_v.weight": "a268c20c65582eba",
+        "transformer.h.1.attn.ve_gate.weight": "602bb21a826b559c",
+        "transformer.h.1.local_conv.weight": "ea01afa97947f50b",
+        "transformer.h.1.mlp.c_fc.weight": "142686019d83b48a",
+        "transformer.h.1.mlp.c_proj.weight": "614f97bb1710f0f5",
+        "transformer.h.1.resid_lambda": "89cdce0b4f6b3880",
+        "transformer.h.1.x0_lambda": "d78afeb2f357d64f",
+        "transformer.h.2.attn.c_k.weight": "6d89595b4491c062",
+        "transformer.h.2.attn.c_proj.weight": "44437cc9ef387f13",
+        "transformer.h.2.attn.c_q.weight": "0b84e6086ad3ee7d",
+        "transformer.h.2.attn.c_v.weight": "ccacb4284ba5d816",
+        "transformer.h.2.local_conv.weight": "8abe0781077cf87d",
+        "transformer.h.2.mlp.c_fc.weight": "6ff4da687376438f",
+        "transformer.h.2.mlp.c_proj.weight": "dca10e893d8be1e1",
+        "transformer.h.2.resid_lambda": "38a37ebedcbb5e85",
+        "transformer.h.2.x0_lambda": "a787b177a397fc76",
+        "transformer.h.3.attn.c_k.weight": "6c99937194d48204",
+        "transformer.h.3.attn.c_proj.weight": "d02179e86239f00b",
+        "transformer.h.3.attn.c_q.weight": "4f8d58aaa5d1727c",
+        "transformer.h.3.attn.c_v.weight": "78a5103c9acc07d8",
+        "transformer.h.3.attn.ve_gate.weight": "02697f609639250e",
+        "transformer.h.3.local_conv.weight": "e6805a6fbd56feb7",
+        "transformer.h.3.mlp.c_fc.weight": "38ebb13ea6379d74",
+        "transformer.h.3.mlp.c_proj.weight": "7fbbfb36d4c921e0",
+        "transformer.h.3.resid_lambda": "78439e02a0e8c597",
+        "transformer.h.3.x0_lambda": "81aa62201c9dcd37",
+        "transformer.h.4.attn.c_k.weight": "498e39f4cdd1ecc6",
+        "transformer.h.4.attn.c_proj.weight": "b8efef7d0e2d570f",
+        "transformer.h.4.attn.c_q.weight": "7a766ab9d99d167e",
+        "transformer.h.4.attn.c_v.weight": "6017cdb5e5407e5a",
+        "transformer.h.4.local_conv.weight": "c4a328ab7ba37328",
+        "transformer.h.4.mlp.c_fc.weight": "f626dd19441bf6bf",
+        "transformer.h.4.mlp.c_proj.weight": "d0613ba9d2a485bc",
+        "transformer.h.4.resid_lambda": "c299b9b2e784ca9d",
+        "transformer.h.4.x0_lambda": "0dd5235befd59a0c",
+        "transformer.h.5.attn.c_k.weight": "a97eb458864bbedd",
+        "transformer.h.5.attn.c_proj.weight": "c630e131cae8d18e",
+        "transformer.h.5.attn.c_q.weight": "e2e89ab290d6a6da",
+        "transformer.h.5.attn.c_v.weight": "05ccdaf7fbd2404b",
+        "transformer.h.5.attn.ve_gate.weight": "dfb7be7500652a7d",
+        "transformer.h.5.attn.ve_gate_bi.weight": "8f746b4df982a96d",
+        "transformer.h.5.attn.ve_gate_tri.weight": "76affe27c6ebfb2b",
+        "transformer.h.5.local_conv.weight": "c80186cb45db3784",
+        "transformer.h.5.mlp.c_fc.weight": "b494835d31f65a5a",
+        "transformer.h.5.mlp.c_proj.weight": "bf419609c386b4ef",
+        "transformer.h.5.resid_lambda": "fa0017a2e4650543",
+        "transformer.h.5.x0_lambda": "a173e1c44de2e5f5",
+        "transformer.wte.weight": "0d3702093239d795",
+        "value_embeds.1.weight": "df402e98d529df8b",
+        "value_embeds.3.weight": "d1a3e5e42869b127",
+        "value_embeds.5.weight": "c5a28382425cc304"
+      },
+      "losses": [
+        9.010493278503418,
+        9.017670631408691
+      ],
+      "n_changed": 68,
+      "n_params": 68,
+      "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+      "plan_summary": {
+        "elements_by_owner": [
+          27405059,
+          30540035,
+          30408963,
+          29362179
+        ],
+        "estimated_ms_by_owner": [
+          12.991316601116363,
+          12.99464796558983,
+          12.984647965589831,
+          12.988706969361804
+        ],
+        "shard_elements": 30540160,
+        "total_padded_bytes": 488642560
+      },
+      "rank": 0,
+      "rmsprop_trace": {
+        "calls": 2,
+        "checks": [
+          {
+            "grad_abs_median_touched": 5.638867150992155e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.602487362921238e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2042,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.01690799639071428,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.017789718444982852,
+            "numel": 67108864,
+            "rows_touched": 2043,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 2
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.11.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "2",
+        "--out-dir",
+        "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.013445854187012,
+        9.026535987854004
+      ],
+      "n_changed": 68,
+      "n_params": 68,
+      "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+      "plan_summary": {
+        "elements_by_owner": [
+          27405059,
+          30540035,
+          30408963,
+          29362179
+        ],
+        "estimated_ms_by_owner": [
+          12.991316601116363,
+          12.99464796558983,
+          12.984647965589831,
+          12.988706969361804
+        ],
+        "shard_elements": 30540160,
+        "total_padded_bytes": 488642560
+      },
+      "rank": 1,
+      "rmsprop_trace": {
+        "calls": 2,
+        "checks": [
+          {
+            "grad_abs_median_touched": 5.638867150992155e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.602487362921238e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2042,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.01690799639071428,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.017789718444982852,
+            "numel": 67108864,
+            "rows_touched": 2043,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 2
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.11.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "2",
+        "--out-dir",
+        "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.0109281539917,
+        9.007803916931152
+      ],
+      "n_changed": 68,
+      "n_params": 68,
+      "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+      "plan_summary": {
+        "elements_by_owner": [
+          27405059,
+          30540035,
+          30408963,
+          29362179
+        ],
+        "estimated_ms_by_owner": [
+          12.991316601116363,
+          12.99464796558983,
+          12.984647965589831,
+          12.988706969361804
+        ],
+        "shard_elements": 30540160,
+        "total_padded_bytes": 488642560
+      },
+      "rank": 2,
+      "rmsprop_trace": {
+        "calls": 2,
+        "checks": [
+          {
+            "grad_abs_median_touched": 5.638867150992155e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.602487362921238e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2042,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.01690799639071428,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.017789718444982852,
+            "numel": 67108864,
+            "rows_touched": 2043,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 2
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.11.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "2",
+        "--out-dir",
+        "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.011688232421875,
+        9.021087646484375
+      ],
+      "n_changed": 68,
+      "n_params": 68,
+      "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+      "plan_summary": {
+        "elements_by_owner": [
+          27405059,
+          30540035,
+          30408963,
+          29362179
+        ],
+        "estimated_ms_by_owner": [
+          12.991316601116363,
+          12.99464796558983,
+          12.984647965589831,
+          12.988706969361804
+        ],
+        "shard_elements": 30540160,
+        "total_padded_bytes": 488642560
+      },
+      "rank": 3,
+      "rmsprop_trace": {
+        "calls": 2,
+        "checks": [
+          {
+            "grad_abs_median_touched": 5.638867150992155e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.602487362921238e-10,
+            "max_abs_err_over_lr": 0.0067636438104701395,
+            "numel": 67108864,
+            "rows_touched": 2042,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.01690799639071428,
+            "numel": 67108864,
+            "rows_touched": 2045,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 8.905772119760513e-09,
+            "max_abs_err_over_lr": 0.017789718444982852,
+            "numel": 67108864,
+            "rows_touched": 2043,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 2
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.11.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    }
+  ],
+  "reason": "all ranks completed the real training loop consistently",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "steps": 2,
+  "timed_out": false,
+  "torch": "2.11.0+cpu",
+  "torchrun_log_tail": [
+    "WARNING: --num-steps 2 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 8,",
+    "  \"n_embd\": 1024,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=251,933,964 flops_per_token=7.314632e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27405059, 30540035, 30408963, 29362179], \"estimated_ms_by_owner\": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], \"shard_elements\": 30540160, \"total_padded_bytes\": 488642560}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27405059, 30540035, 30408963, 29362179], \"estimated_ms_by_owner\": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], \"shard_elements\": 30540160, \"total_padded_bytes\": 488642560}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27405059, 30540035, 30408963, 29362179], \"estimated_ms_by_owner\": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], \"shard_elements\": 30540160, \"total_padded_bytes\": 488642560}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27405059, 30540035, 30408963, 29362179], \"estimated_ms_by_owner\": [12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804], \"shard_elements\": 30540160, \"total_padded_bytes\": 488642560}",
+    "muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]",
+    "muon step: COMPILED body for (2, 1024, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]",
+    "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]",
+    "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 4]",
+    "step 00000 | loss 9.0105 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0143 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "---",
+    "checkpoint_path:    /home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out/final.pt",
+    "training_seconds:  0.0",
+    "budget_seconds:    1800",
+    "target_steps:      2",
+    "max_train_seconds: 1800",
+    "startup_allowance_est: 0.0",
+    "charged_seconds_est:   0.0",
+    "over_budget:       False",
+    "total_seconds:     0.0",
+    "compiled:          False",
+    "nki_relu2:         False",
+    "nki_rope_norm:     True",
+    "nki_softcap_ce:    True",
+    "transposed_linear: False",
+    "nki_muon:          False",
+    "compile_muon:      True",
+    "muon_lr_fp32:      False",
+    "ngram_ve:          True tables=2 rows=524288 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0",
+    "oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "num_steps:         2",
+    "total_tokens_M:    0.3",
+    "world_size:        4",
+    "lnc:               2",
+    "seq_len:           1024",
+    "num_params_M:      251.9",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/source/train.py",
+  "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "verdict": "PASS"
+}
