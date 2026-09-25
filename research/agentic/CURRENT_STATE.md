@@ -1,5 +1,34 @@
 # Current state
 
+## 22:50 UTC update: cold gate passed, LR loss authenticated, next CPU assigned
+
+75b944 schedule-on-architecture cold-five completed831.421556s through the actual
+fifth boundary,835.843704s process wall,4.422148s charged. All five steps/checkpoint
+and six initially empty caches authenticated. This qualifies the startup gate,
+not quality. Separate full+fresh20M trn21 packet is being prepared disabled.
+
+LR0.012/trn22 fresh20M is0.9883603019664198, +0.002019996726161488 versus its
+same-host3e79 parent.3629steps,807.895213s startup,1789.406680s charged, no overrun;
+post-eval checkpoint4fc42f95 retained. It is not an LR win or a formal control.
+Originalarchitecture replication failed; confirmed6ef7 mean.9901674436550496 stays.
+Clean retained-checkpoint CPU completed25 exact tested cases, unchanged state and
+weights. Its native equivalence/general source approval remain UNPROVEN and the
+existing clean-source REFUSE/upload HOLD are not reversed. Root141 own checks
+normal/-O cover these three terminals; see20260926-overnight-terminals/.
+
+Fresh startup-clock Astra review7158a23b passed narrowly at22:46:29UTC; root read
+full report/spec and replayed851 archive plus106 binding checks normal/-O.
+One exact full113M CPU trn21 sequence is now assigned in
+20260926-startup-adjusted-trn21-cpu-assignment.md, pending actual launch.
+
+K2 native failed all four ranks at frontend resolution of `nl.bfloat16`, before
+any consumer exactness/timing. Raw94fb52c4 preserved; no retry/reset or speed gain.
+Original PIDs/descendants proved gone. Already-assigned stable-cache S1 actually
+started22:47:39UTC; S2 is conditional, not yet running. trn21 bounded training-only
+filehash check completed22:48:41; cross-host equality remains unknown until trn22
+has an idle boundary. No validation data or training data contents were exposed.
+This section supersedes the older live snapshots below.
+
 Last reconciled: 2026-09-25 22:30 UTC (26 September IST)
 
 ## Latest: architecture nonconfirmation; provisional adoption withdrawn
