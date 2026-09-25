@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T13:21:00Z",
+  "written_utc": "2026-09-25T13:24:35Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -16,6 +16,15 @@
     "confirmed_local_public20m_two_run_mean": 0.99195377346572045,
     "first_place_gap_estimate_public20m": 0.045,
     "gap_caveat": "Approximate public-to-official offset is unverified for the current stack; do not treat this as a score prediction"
+  },
+  "latest_handoff_20260925_1324z": {
+    "trn21_s0": "fs-20260925-s0-cold-replay-trn21-r1_FAILED_ZERO_STEP_20260925T131744Z_NKI_COLD_CACHE_MODULE_NEFF_READ_ERROR_RANK3_NO_RETRY_PRESERVE_EVIDENCE",
+    "trn21_next": "c5c A0 warm-cache manual control preassigned b18fb358; Operator fresh crash hygiene and source checks in progress; not launched yet",
+    "trn22_a0": "fs-20260925-v2-c5c-a0-control-trn22-r10_RUNNING_FOUR_RANKS_NO_RESULT_YET",
+    "confirmed_new_public20m_bpb": null,
+    "s0_failure_excerpt": "RuntimeError: Compilation error occurred on Neuron for operation=nki_kernel_global; COMPILATION FAILED: Failed to read file: .../cache/debug/neuronx-cc/47773f9a3f7185347fc76735876b8080/module.neff",
+    "first_launch_times": {"trn21_s0_utc": "2026-09-25T13:17:22Z", "trn22_a0_utc": "2026-09-25T13:19:56Z"},
+    "note": "Launch is not success; post-launch receipts and public20M remain pending. S0 label consumed, no score."
   },
   "latest_handoff_20260925_1321z": {
     "mode": "POOJITH_BREAK_GLASS_MANUAL_S0_AND_A0_PRELAUNCH_INDEPENDENT_REVIEW_WAIVED_POSTLAUNCH_REVIEW_REQUIRED",
@@ -439,7 +448,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "MANUAL_BREAK_GLASS_S0_RUNNING_FOUR_RANKS_CONFIRMED_NO_RESULT_R10_STAGE_R5_HISTORICAL_HOLD",
+      "status": "S0_COLD_REPLAY_FAILED_ZERO_STEP_NKI_MODULE_NEFF_READ_A0_MANUAL_PREP_IN_PROGRESS",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-25T12:10:53Z",
       "free_bytes_read_only_df": 57894498304,
@@ -600,7 +609,7 @@
     }
   ],
   "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
-  "updated_utc": "2026-09-25T13:21:00Z",
+  "updated_utc": "2026-09-25T13:24:35Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
