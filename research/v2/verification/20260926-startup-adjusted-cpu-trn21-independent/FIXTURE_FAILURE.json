@@ -1,0 +1,8 @@
+{
+  "error": "RuntimeError: FAIL: receipt wrong argv",
+  "scope": "Own stdlib negative test, no host or candidate execution",
+  "cause": "The in-memory fixture assigned request.argv and report.argv the same list. Deep-copying the combined fixture preserved that alias, so appending to report.argv also changed request.argv. Actual separately parsed JSON files do not share list identity.",
+  "correction": "Construct report.argv as an independent deep copy, then rerun the same append-only report mutation.",
+  "candidate_failure": false,
+  "candidate_or_threshold_changed": false
+}
