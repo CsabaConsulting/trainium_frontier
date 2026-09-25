@@ -1,5 +1,10 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+04:51IST update: cold still compiling; actualfifth pending. Disabled full
+packet59d21dde mechanicallyPASS0ed34633,132independentchecks and8preparation
+groups replayed normal/-O by root. Exact36a862/noRecursive/seed42 unchanged.
+Separate acceptedcold and Supervisorassignment still needed; no auto-full.
+
 04:42IST update: exact36a862 cold-five launched23:09:57UTC ontrn22, fourworkers
 and same original lifetimeflock. Bindingf35ac494 acceptedf1645917,112mechanical
 checks replayed; assignment912b99f3. Sixfreshcaches/MAX1800/num5/noRecursive.

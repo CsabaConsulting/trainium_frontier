@@ -1,5 +1,31 @@
 # Current state
 
+## 23:21 UTC: both jobs live; next clock full packet independently checked
+
+Operator's latest observation: trn21 full75b944+Recursive step1320,
+266276tok/s,1152s remaining. trn22 cold36a862 compiling at~662s with four
+workers and live compiler descendants. Both original locks held, no new error;
+free space24.805GB/trn21 and29.565GB/trn22. Actual cold fifth still pending.
+
+Full36a862 packet59d21dde is integrated as1d2f1e97, source unchanged/noRecursive.
+Independent0ed34633/canonical7d5909ea passes132checks normal/-O; root read full
+report/driver/proposal/binding and replayed132+8groups both modes. Mechanical
+qualification only: cold receipt/acceptance and separate release remain pending.
+No automatically started full/eval. Training would use exact cold private
+caches; cache-hit and true-cold-full equivalence are not established.
+
+K2 terminal audit e6a155b8/canonical3589a237 passes192checks normal/-O, replayed
+by root: PARKED_COMPILER_FAILURE, no consumer exactness/speed. New research
+0957c082 proposes investigating symmetric multicore ownership from AWS docs,
+not another native retry. Available upstream scatter bytes still require
+unique tile indices; do not blindly import a claimed duplicate-safe fix.
+
+S1 bounded named-file capture517b67ac/f19fbdda is assigned only after current
+trn22 cold terminal/retrieval/quiescence, <=30s/60MiB, no writes or newcold/S2.
+Saved P trace decoder is being prepared disabled with resource bounds; no
+kernel cost attribution yet. Confirmedmean0.9901674436550496, original.986340
+unconfirmed and submissionHOLD unchanged. Goal ACTIVE, no new confirmed BPB.
+
 ## 23:12 UTC: both hosts active; kernel route parked, no new confirmed BPB
 
 trn21 full75b944+Recursive reached step30 at23:10:27UTC, about267,218tok/s,
