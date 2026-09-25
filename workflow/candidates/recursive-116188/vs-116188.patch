@@ -1,0 +1,73 @@
+diff --git a/submissions/dense6x1024_direct_review_matrixlr015/train.py b/workflow/candidates/recursive-116188/train.py
+index 1b68b1ab..e6e94e2b 100644
+--- a/submissions/dense6x1024_direct_review_matrixlr015/train.py
++++ b/workflow/candidates/recursive-116188/train.py
+@@ -32 +32 @@ from prepare import EVAL_TIMEOUT_SECONDS, TOKENIZER_VOCAB_SIZE, TRAIN_STARTUP_AL
+-SEQ_LEN = 2048
++SEQ_LEN = 1024
+@@ -36 +36 @@ HEAD_DIM = 128
+-N_EMBD = 0
++N_EMBD = 1024
+@@ -69 +69 @@ ATTN_CPROJ_INIT_SCALE = 0.1
+-PACK_FACTOR = 4
++PACK_FACTOR = 32
+@@ -1178 +1178 @@ class MuonAdamW(torch.optim.Optimizer):
+-            one_beta2 = 1 - group['beta2']
++            one_beta2 = one_b2_t
+@@ -1276 +1276,4 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
+-def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
++# Schedule formulas adapted from Recursive's optimized_from_karpathy.py (Apache-2.0):
++# https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/main/nanochat_autoresearch/solutions/optimized_from_karpathy.py
++# Only the separate LR warmdowns, Muon momentum and NorMuon beta2 schedules are used.
++def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0, kind: str='muon') -> float:
+@@ -1279,2 +1282,3 @@ def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -
+-    progress = min(1.0, elapsed / max(1e-06, max_train_seconds))
+-    if progress < 1.0 - WARMDOWN_RATIO:
++    warmdown_ratio = 0.95 if kind == 'muon' else 0.65
++    progress = min(1.0, max(0.0, elapsed / max(1e-06, max_train_seconds)))
++    if progress < 1.0 - warmdown_ratio:
+@@ -1282,3 +1286,2 @@ def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -
+-    cooldown = (1.0 - progress) / WARMDOWN_RATIO
+-    lrm = cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
+-    return lrm
++    cooldown = (1.0 - progress) / warmdown_ratio
++    return cooldown * 1.0 + (1 - cooldown) * 0.05
+@@ -1287,4 +1290 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+-    """Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then a cooldown towards
+-    MUON_MOMENTUM_FINAL over the last MUON_MOMENTUM_COOLDOWN_FRAC of the wall-clock budget.
+-    """
+-    frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
++    frac = min(step / 300, 1.0)
+@@ -1292,2 +1292,4 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+-    cd = min(1.0, max(0.0, (progress - (1.0 - MUON_MOMENTUM_COOLDOWN_FRAC)) / MUON_MOMENTUM_COOLDOWN_FRAC))
+-    m = (1 - cd) * m + cd * MUON_MOMENTUM_FINAL
++    p = min(1.0, max(0.0, progress))
++    if p > 1.0 - 0.95:
++        cooldown = (p - (1.0 - 0.95)) / 0.95
++        m = 0.95 + cooldown ** 2 * (0.79 - 0.95)
+@@ -1295,0 +1298,5 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
++def muon_beta2(progress: float) -> float:
++    p = min(1.0, max(0.0, progress))
++    cooldown = max(0.0, (p - (1.0 - 0.95)) / 0.95)
++    return 0.95 + cooldown * (0.97 - 0.95)
++
+@@ -1305 +1312 @@ def main() -> None:
+-    parser.add_argument('--eval-public', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EVAL_PUBLIC', '1') != '0')
++    parser.add_argument('--eval-public', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EVAL_PUBLIC', '0') != '0')
+@@ -1412,0 +1420 @@ def main() -> None:
++        lrm_adam = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds, kind='adamw')
+@@ -1414,0 +1423 @@ def main() -> None:
++        muon_b2 = muon_beta2(wd_progress)
+@@ -1416 +1425,2 @@ def main() -> None:
+-            group['lr'] = group['initial_lr'] * 1.0 * (lrm_flat if group.get('no_lr_decay') else lrm)
++            lrm_group = lrm if group['kind'] == 'muon' else lrm_adam
++            group['lr'] = group['initial_lr'] * 1.0 * (lrm_flat if group.get('no_lr_decay') else lrm_group)
+@@ -1420 +1430 @@ def main() -> None:
+-                group['beta2'] = 0.9
++                group['beta2'] = muon_b2
+@@ -1434,0 +1445,2 @@ def main() -> None:
++            # Compile-heavy startup samples must not predict steady-state step cost.
++            recent_step_times.clear()
+@@ -1438 +1450 @@ def main() -> None:
+-        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:]) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
++        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:], default=0.0) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)

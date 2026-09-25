@@ -1,0 +1,147 @@
+{
+  "proposal_id": "20260925-recursive-116188-clean-port",
+  "schema": "trn-proposal-v2-with-agentic-gates",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_REVIEW_EXACT_G2_AND_OPERATOR_BINDING",
+  "owner_role": "supervisor",
+  "author_session": "fp8_local_implementer (bounded Porter assignment)",
+  "launch_authorized": false,
+  "submission_authorized": false,
+  "hypothesis": "The already-adopted Recursive schedule can be carried into the proven 116188 vehicle without changing model/evaluation semantics, and can complete a genuinely cold full-budget run with a finite strict-loadable checkpoint and fresh public20M evaluation.",
+  "single_causal_change": "Port the adopted Recursive schedule into 116188, plus the separately reviewed necessary startup-predictor reset; specialize only the proven launch-profile defaults for bare invocation. This is submission-safety confirmation of an adopted component, not a new mechanism screen.",
+  "causal_change": "Baked adopted schedule plus reviewed predictor repair; effective dense launch profile remains 6x1024/context1024/pack32/matrixLR0.015.",
+  "kind": "stack_confirmation",
+  "mechanism_class": "adopted_component_submission_port",
+  "base": {
+    "path": "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "commit": "5d907edad6105e763acb9636daaf70f6445946e5"
+  },
+  "adopted_reference": {
+    "adoption": "research/v2/adoptions/20260925-recursive-schedule.json",
+    "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "path": "workflow/proposals/research-v2/train.py",
+    "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "research_mean_public20m": 0.9901674436550496,
+    "same_host_mean_delta": -0.00132653250692355,
+    "submission_eligible": false
+  },
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "prediction_note": "The measured adoption above applies to research6ef7, not yet to this source or a true-cold replay. No new numerical claim or cross-host causal comparison is made.",
+  "candidate_shortlist": [
+    {
+      "idea": "Only the adopted schedule on the proven submission vehicle",
+      "mechanism_class": "adopted_component_submission_port",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Explicit Supervisor assignment following Poojith's adopted-component priority; excludes unadopted architecture, FP8 and tables. No independent new experiment was selected by the Implementer."
+    }
+  ],
+  "selection_rationale": "Research adoption has two-host fixed1800/public20M evidence; clean exact-source correctness and genuine cold-budget viability remain missing submission gates.",
+  "estimated_host_hours": 1.1,
+  "estimated_host_hours_scope": "Planning estimate per cold training+fresh20M replay, excluding CPU G2; not a wall-time exemption or automatic cutoff. Two separate cold host replays remain required by the submission workflow.",
+  "trainium_feasibility": {
+    "world_size": 4,
+    "logical_nc_config": 2,
+    "ownership_plan_change": false,
+    "model_or_parameter_shape_change": false,
+    "new_kernels": false,
+    "graph_change": "Existing Muon beta2 input becomes its existing persistent device scalar, exactly as adopted6ef7 ON; no new optimizer math. Native compiled numerical identity and compile behavior must still be reviewed.",
+    "cold_startup_risk": "Unproven for new source. Prior116188 short smoke was inconclusive for effective persistent cache routing. Unknown is not zero; new cache names alone do not prove cold.",
+    "memory": "Same dense6x1024 production parameter/optimizer sizes; no table or new model. Exact-size CPU G2 prohibited on laptop."
+  },
+  "cheapest_falsifier": "Independent narrow-diff/arithmetic review, then existing four-rank exact-size CPU G2 and lockstep against6ef7 Recursive ON on an idle sufficiently provisioned CPU host; reject before native launch if any fails.",
+  "evidence": [
+    "research/v2/adoptions/20260925-recursive-schedule.json",
+    "research/v2/proposals/20260925-startup-predictor-reset/prospective-116188.patch",
+    "research/v2/proposals/20260925-startup-predictor-reset/IMPLEMENTATION.md",
+    "research/v2/operator/20260925-trn22-116188-cold-smoke/final/FINAL_RESULT.md",
+    "research/v2/g1.json",
+    "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
+    "workflow/candidates/recursive-116188/IMPLEMENTATION.md",
+    "workflow/candidates/recursive-116188/tiny-lockstep.json"
+  ],
+  "prior_result_refs": [
+    "fs-20260925-l3-timer-dense-trn21-r1-full",
+    "fs-20260925-l3-timer-dense-trn22-r1-full"
+  ],
+  "duplicate_search_terms": ["recursive", "116188", "startup predictor", "cold replay"],
+  "duplicate_search_result": "Inspected adopted schedule record, preserved116188 vehicle and launch provenance, prior startup reset proposal/patch, and prior116188 inconclusive cold smoke. This exact clean source is new; prior S0/cold-smoke assignments are not reused as authority.",
+  "control": {
+    "git_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "run_labels": ["fs-20260925-l3-timer-dense-trn21-r1-full", "fs-20260925-l3-timer-dense-trn22-r1-full"],
+    "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Use only the selected host's valid controls and exact-source lineage for any quality comparison. Prior research adoption is context, not proof that this different cold vehicle has equal BPB. Do not pool cross-host controls."
+  },
+  "candidate": {
+    "branch": "codex/20260925-recursive-116188-submission-port",
+    "source_path": "workflow/candidates/recursive-116188/train.py",
+    "source_sha256": "4083da774ca0f8e26b69309203b07daceca1b559a1418eacc8371f2ff5021409",
+    "files_allowed": ["workflow/candidates/recursive-116188/"],
+    "expected_diff": "vs-116188.patch: exact adopted ON schedule bodies/group assignment/dynamic beta2 input, predictor clear+empty max default, four proven launch-default specializations. All unaffected model/checkpoint/eval/import code unchanged.",
+    "baked_defaults": {"n_embd": 1024, "seq_len": 1024, "pack_factor": 32, "eval_public": false},
+    "unchanged_effective_profile": {"depth": 6, "head_dim": 128, "n_head": 8, "mlp_ratio": 4, "matrix_lr": 0.015, "seed": 42, "num_steps": 1000000, "max_train_seconds": 1800, "compile": true, "compile_sdpa_direct": true, "nki_local_conv": true, "bf16_norm_output": true, "ngram_ve": false, "qk_shift": false, "clip_after_reduce": true, "out_dir": "out"},
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+    "argv": [],
+    "label_by_host": {"trn21": "fs-20260925-recursive116188-cold-trn21-r1", "trn22": "fs-20260925-recursive116188-cold-trn22-r1"},
+    "host": null,
+    "run_root": null,
+    "operator_assignment": null,
+    "binding_note": "Labels are reserved proposals only. Supervisor chooses the first free approved host and issues a separately reviewed one-use assignment with absent private root/cache paths and exact commands. No queue insertion or host staging is authorized here."
+  },
+  "budget": {
+    "training_budget_seconds": 1800,
+    "env": {"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800", "NEURON_COMPETITION_R1_SEED": "42"},
+    "startup_excluded_boundaries": 5,
+    "startup_allowance_cap_seconds": 900,
+    "source_launch_margin_seconds": 30,
+    "checkpoint_reserve_seconds": 15,
+    "over_budget_required": false,
+    "charged_through_exit_max_seconds": 1800,
+    "policy": "Source and authenticated declaration must agree. Measure runner launch through fifth received boundary and process exit; allowance=min(measured startup,900), charged=max(0,wall through exit-allowance). All actual excess over900 is charged. Preserve source estimates separately. Reserve may stop optimizer work before1800. About870 is diagnostic/planning warning only. Never subtract unmeasured startup or forgive a measured budget breach."
+  },
+  "cpu_g2": {
+    "status": "PENDING_INDEPENDENT_EXACT_SIZE",
+    "tool_path": "workflow/tools/preflight_dryrun.py",
+    "tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "candidate_argv": [],
+    "research_reference_argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015", "--recursive-schedule", "--seed", "42", "--max-train-seconds", "1800", "--num-steps", "1000000", "--out-dir", "out"],
+    "steps": 3,
+    "ranks": 4,
+    "micro_rows": 2,
+    "micro_tokens": 256,
+    "forbid_native_test_shims": true,
+    "limitation": "G2 CPU/no-compile/synthetic/fake-clock microbatch shims remain recorded by the existing tool; exact-size means full model width1024/depth6, not full native microbatch execution. Local width128 stub-prepare receipts are self-checks only."
+  },
+  "cold_cache": {
+    "status": "PENDING_EFFECTIVE_ROUTING_REVIEW_AND_MEASUREMENT",
+    "required_paths": ["NEURON_COMPILE_CACHE_URL", "NEURON_COMPILE_CACHE_DIR", "TORCH_NEURONX_NEFF_CACHE_DIR", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR", "TORCH_NEURONX_HLO_CACHE_DIR", "TORCH_NEURONX_DEBUG_DIR", "TORCHINDUCTOR_CACHE_DIR"],
+    "policy": "All paths must be new absent job-owned locations, then privately created empty; preserve existing caches. Independently review effective native cache hierarchy and compiler argv/environment before declaring cold. Archive pre/post inventories and attributable new objects/compiler events. Empty persistent URL despite other compile objects, unknown cache routing or any warm hit means cold proof remains INCONCLUSIVE; it cannot be relabeled PASS. No source edits or unreviewed compiler flags."
+  },
+  "evaluation": {
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "fresh_process": true,
+    "argv_template": ["<verified-native-python>", "<unchanged-trusted-prepare.py>", "eval-public", "--train-py", "<exact-staged-candidate.py>", "--checkpoint", "<new-root>/out/final.pt", "--device", "neuron", "--batch-size", "1", "--seq-len", "1024", "--eval-tokens", "20971520", "--timeout-seconds", "1200"],
+    "requirements": "Independent correct trained-forward/causality/batch-invariance/strict weights_only checkpoint checks, then unchanged trusted fresh public20M/context1024. Finite BPB, exact num_tokens20971520, no timeout, exact checkpoint/source hashes. No in-training eval or evaluator modification."
+  },
+  "required_prelaunch": [
+    "Independent source/proposal review, exact source/full-size bare-argv CPU G2 PASS, reference ON lockstep and trained-forward correctness receipts.",
+    "Supervisor binds one unique label, idle host, new private root, exact source/support hashes, cache map, trusted prepare/native runtime, environment, charged-time observer and existing verified contained driver. No duplicate launcher.",
+    "Protocol preflight: no training/eval/compiler/device/lock holder, no STOP/breaker, git clean, source/prepare SHA and actual imported prepare path match, five authorized train shards/tokenizer present, disk>=6.5GiB plus projected headroom, all run/cache/output targets absent. No cleanup/AWS action.",
+    "Effective environment must match complete clean default profile. Only reviewed runtime/cache/boundary instrumentation and explicit seed42/budget1800 declarations are allowed. External NEURON_CC_FLAGS unset so source sets its proven optlevel1/autocast BF16 default; conflicting options require separate review."
+  ],
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": true, "numerical_equivalence": false, "causality": false, "smoke_run": false, "human_run_approval": false},
+  "gate_scope": "cpu_or_static_checks is Implementer16-test/tiny-G2 self-check only; numerical_equivalence gate awaits independent production-size ON lockstep. No native or submission gate is passed by this packet.",
+  "success_criteria": {
+    "correctness": "All prior gates plus full-chip four-rank finite run, five or more genuine boundary observations, exit0 for all ranks, real strict-loadable checkpoint, quiescent postflight, <=1800 actual charged-through-exit seconds with over_budgetFalse, genuine cold cache evidence, trained-forward/causality checks and valid fresh20M eval. Five is only the official startup-observation minimum, not a quality step-window gate.",
+    "quality": "Apply unchanged numeric BPB thresholds, same-host controls, two-host replication and big-win HOLD in workflow/tools/decide.py where applicable. A single cold safety result does not create a new adoption or submission approval. No fixed step-window gate; report count, diagnose below60% of same-host control/spikes/stalls, and distinguish real incomplete/failed runs.",
+    "throughput": "Report only; no new speedup hypothesis or component-only substitution.",
+    "submission": "Two separately reviewed host cold replays and final audit, then human-only submission decision. No automatic submission-branch merge or Downloads replacement."
+  },
+  "abort_conditions": ["Source/profile/G2/review mismatch", "Host not idle, duplicate launcher, STOP/breaker, insufficient disk or reused label/root", "Crash/NaN/nonfinite loss, missing checkpoint, causality/load failure, failed quiescence or measured budget breach", "Unknown startup/cache evidence prevents cold submission acceptance; never fabricate missing fields"],
+  "human_approved_by": "Poojith via Supervisor: bounded isolated implementation and pending review packet; not launch or submission authority",
+  "verifier_receipt": null,
+  "verdict": "PENDING_INDEPENDENT_GATES"
+}
