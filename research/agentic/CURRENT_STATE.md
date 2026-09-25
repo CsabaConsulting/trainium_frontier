@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-25 04:07 UTC
+Last reconciled: 2026-09-25 04:15 UTC
+
+## New handoff: trn21 CPU-only G2 assigned; scored training still HOLD
+
+The exact trn21 stage-r2 [CPU-only G2 final request](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/RUNBOOK.md)
+has [independent final static PASS](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/INDEPENDENT_FINAL_CPU_G2_REVIEW.PASS.json).
+The Supervisor issued the [one-attempt CPU-only assignment](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/SUPERVISOR_CPU_ONLY_ASSIGNMENT.json)
+and locally authenticated its exact review/assignment byte chain. An Operator
+must still perform fresh live preflight, the contained four-rank synthetic
+three-step probe and a separate full read-only postflight. No trn21 CPU probe,
+native training, evaluation or new BPB result has occurred yet. The old e65
+checkout remains forbidden for native launch; r4 source staging is separate.
+
+The disabled trn21 r4 transfer implementation also received
+[independent static PASS](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_STATIC_TRANSFER_REVIEW.md)
+but remains DISPATCH HOLD pending a separate enabled request, final review,
+fresh host checks and one-shot assignment. On trn22, a repaired exact enabled
+transfer request is under separate final review; no transfer has occurred.
 
 ## Current handoff: repaired transfer static PASS; final authority still HOLD
 

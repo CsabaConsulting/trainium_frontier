@@ -1,6 +1,17 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
+Status: **both guest disks expanded; both host G1 calibrations PASS; trn21 CPU-only G2 assigned but not run; scored training on both hosts still HOLD; no new BPB result.**
+
+At 04:15 UTC, trn21's exact stage-r2 CPU-only final request received
+[independent static PASS](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/INDEPENDENT_FINAL_CPU_G2_REVIEW.PASS.json),
+and the Supervisor issued a [one-attempt CPU-only assignment](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/SUPERVISOR_CPU_ONLY_ASSIGNMENT.json)
+after authenticating actual file bytes. Fresh Operator host preflight, the
+four-rank synthetic probe and an independent numerical result review remain.
+This is not native-training or evaluation authority. The trn21 clean-r4
+transfer package now has [independent static PASS](authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_STATIC_TRANSFER_REVIEW.md)
+for its disabled form only. A new exact enabled request/final review/assignment
+remain before any trn21 transfer. The trn22 repaired enabled transfer request
+is under separate review. Neither host has produced a new BPB result.
 
 At 04:07 UTC, trn22's repaired but disabled transfer package
 [passed independent static review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_REPAIR_STATIC_REVIEW.md)
