@@ -1,8 +1,8 @@
 # Current state
 
-Last reconciled: 2026-09-25 04:55 UTC
+Last reconciled: 2026-09-25 05:01 UTC
 
-## Latest handoff: CPU evidence archived; both transfer repairs remain gated
+## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
 The assigned trn21 synthetic four-rank, three-step CPU-only G2 attempt ended
 with return code zero and clean pre/postflight checks. The complete
@@ -21,10 +21,13 @@ reproduced a late science-label race and placed that enabled package on HOLD.
 A separate [final-r2 repair](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R2_PENDING_REVIEW.json)
 also received a [Supervisor HOLD](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/SUPERVISOR_FINAL_R2_HOLD.md)
 after an independent Verifier found the label-continuity condition could fail.
-Neither r1 nor r2 may dispatch. The trn22 r3 enabled request has a
-[separate independent final PASS](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_REVIEW.json)
-with 32 targeted offline tests. Its dispatch remains HOLD pending fresh
-read-only host checks and a Supervisor one-shot transfer-only assignment.
+Neither r1 nor r2 may dispatch. The trn22 r3 enabled request's earlier
+[independent final PASS](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_REVIEW.json)
+was [superseded by an independent HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_LATE_LABEL_HOLD_ADDENDUM.md)
+after source analysis found the same label-timing gap. Its 04:58 UTC
+[read-only host snapshot](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_READONLY_FINAL_R3_FEASIBILITY_20260925T045814Z.md)
+was clean, but is only point-in-time feasibility; it does not override the
+writer HOLD. No transfer assignment may be issued for trn22 r3.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at
 0.9918353324 single / 0.9919537735 two-run mean. The Sep 25 noon-IST S0

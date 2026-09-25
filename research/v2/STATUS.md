@@ -1,6 +1,15 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 final-r2 transfer HOLD on label continuity; trn22 final-r3 transfer independent PASS but no assignment or host transfer; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both r4 transfer writers HOLD on label continuity; scored training on both hosts HOLD; no new BPB result.**
+
+At 05:01 UTC, trn22's earlier final-r3 PASS was
+[superseded by independent HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_LATE_LABEL_HOLD_ADDENDUM.md):
+its last science-label scan precedes potentially slow holder/Neuron/process
+checks before exclusive target creation. No assignment or transfer occurred.
+The Operator's [fresh read-only feasibility snapshot](authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_READONLY_FINAL_R3_FEASIBILITY_20260925T045814Z.md)
+found the host idle with about 54 GiB free and protected assets intact, but
+point-in-time host health does not clear the writer HOLD. A new, distinct
+repair and independent review are required before dispatch.
 
 At 04:55 UTC, trn22's exact final-r3 enabled transfer-only request
 [passed independent final review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_REVIEW.json)
