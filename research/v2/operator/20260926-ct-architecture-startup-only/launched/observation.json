@@ -1,0 +1,129 @@
+{
+  "host": "trn22",
+  "utc": "2026-09-25T19:39:55.934187+00:00",
+  "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet",
+  "processes": [
+    {
+      "pid": 3106600,
+      "ppid": 1,
+      "state": "S",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/dispatch_driver.py"
+      ],
+      "selected_environment": {},
+      "cpu_ticks": 1
+    },
+    {
+      "pid": 3106601,
+      "ppid": 3106600,
+      "state": "S",
+      "argv": [
+        "/usr/bin/flock",
+        "-n",
+        "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/host_driver.py"
+      ],
+      "selected_environment": {},
+      "cpu_ticks": 0
+    },
+    {
+      "pid": 3106602,
+      "ppid": 3106601,
+      "state": "S",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/host_driver.py"
+      ],
+      "selected_environment": {},
+      "cpu_ticks": 2
+    },
+    {
+      "pid": 3106619,
+      "ppid": 3106602,
+      "state": "S",
+      "argv": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "--signal=TERM",
+        "--kill-after=60s",
+        "1800s",
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+        "--package",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/package",
+        "--sandbox",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train",
+        "--mode",
+        "train",
+        "--fresh-caches"
+      ],
+      "selected_environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/compiler"
+      },
+      "cpu_ticks": 0
+    },
+    {
+      "pid": 3106620,
+      "ppid": 3106619,
+      "state": "S",
+      "argv": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+        "--package",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/package",
+        "--sandbox",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train",
+        "--mode",
+        "train",
+        "--fresh-caches"
+      ],
+      "selected_environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/compiler"
+      },
+      "cpu_ticks": 8
+    }
+  ],
+  "free_bytes": 40219750400,
+  "files": {
+    "preflight.json": {
+      "sha256": "69e73fc5fae0f5b445ad669f7cd31713813829f9a96aeb504da0c33feed37ab0",
+      "bytes": 3935
+    },
+    "operator-launch.json": {
+      "sha256": "99ef1d5347f77ac7d24f227d63c1a09a064f75c752f1d1e9a3a8c664ad751e8d",
+      "bytes": 590
+    },
+    "under-lock-idle.json": {
+      "sha256": "72937ffa457742e5e04ccaf65dac68efcacec802f7a2afbb53a4d1e695a78eb0",
+      "bytes": 1418
+    },
+    "outer-flock.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "dispatch.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "training-launch.json": {
+      "sha256": "185df2cf876c08479a7221756854fe15ffa8b8f34a24e12eae5984d1da62b924",
+      "bytes": 2062
+    },
+    "training.log": {
+      "sha256": "7829c73ba80eab46551ce81815c8e983564f6b8bb6577f6ab3b79d213c7de7ac",
+      "bytes": 10154
+    }
+  }
+}

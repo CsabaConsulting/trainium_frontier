@@ -1,0 +1,57 @@
+{
+  "capture_nc": "0-7",
+  "classification": "DIAGNOSTIC_ONLY",
+  "compiler_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+  "device_ranks": [
+    0
+  ],
+  "label": "fs-20260926-profile-recursive6ef7-trn21-r1",
+  "landmarks": {
+    "loop_line": 3953,
+    "statements": {
+      "3965": "existing_synchronize",
+      "3977": "forward",
+      "3980": "backward",
+      "3982": "data_fetch",
+      "4007": "gradient_unscale",
+      "4008": "clip_and_reduce",
+      "4027": "optimizer",
+      "4039": "weight_cache_refresh",
+      "4041": "existing_synchronize",
+      "4042": "record_boundary"
+    }
+  },
+  "quality_evidence": false,
+  "source_kind": "recursive6",
+  "source_path": "/home/ubuntu/trainium_profile_recursive6ef7_20260926_trn21_r1/train.py",
+  "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "target_step": 20,
+  "train_argv": [
+    "/home/ubuntu/trainium_profile_recursive6ef7_20260926_trn21_r1/train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "22",
+    "--out-dir",
+    "/home/ubuntu/trainium_profile_recursive6ef7_20260926_trn21_r1/out",
+    "--recursive-schedule"
+  ],
+  "wrapper_sha256": "eaad6aff2e18a825eb8ddca91aed5efa72c91a385eb02cbdaee36b01c2644f7d"
+}
