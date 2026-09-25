@@ -1,7 +1,7 @@
 {
   "schema": "trainium-workflow-v2-g1-facts-v1",
-  "observed_utc": "2026-09-24T21:07:42Z",
-  "status": "TRN22_FRESH_PUBLIC20M_CALIBRATION_PASS_TRN21_PENDING",
+  "observed_utc": "2026-09-25T00:03:00Z",
+  "status": "BOTH_HOSTS_FRESH_PUBLIC20M_CALIBRATION_PASS",
   "launch_authorized": false,
   "source": {
     "path": "prepare.py",
@@ -44,10 +44,14 @@
     "trusted_metric": "prepare.evaluate_bpb uses trusted CE from model(x), not model(x,y).",
     "import_layout": "Historical validated runs colocated train.py and unchanged prepare.py. Nested v2 train.py paths need the deployed repository root in PYTHONPATH for direct training; the actual absolute deployment path is not yet assigned.",
     "eval_args_verified": true,
-    "verification_scope": "trn22 only; trn21 has not undergone fresh retained-checkpoint calibration",
+    "verification_scope": "Both hosts independently reproduced their own retained-checkpoint public20M score; each calibration applies only to its host and reference checkpoint",
     "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
     "operator_receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
-    "independent_review": "research/agentic/verification/20260925-g1-trn22-calibration-review.md"
+    "independent_review": "research/agentic/verification/20260925-g1-trn22-calibration-review.md",
+    "trn21_operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json",
+    "trn21_operator_receipt_sha256": "a0896536999087e19f1f2e781b79763b9c6ec9adb9b971d452a1d16e095c2c12",
+    "trn21_independent_review": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+    "trn21_independent_review_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0"
   },
   "training_data": {
     "source_lines": [
@@ -128,18 +132,27 @@
     "candidate_local_guard": "excess = max(0.0, observed_startup + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS), margin 30s; startup is not a blanket exemption from wall-clock enforcement."
   },
   "calibration": {
-    "status": "PASS_TRN22_ONLY_TRN21_PENDING",
+    "status": "PASS_BOTH_HOSTS_SEPARATE_RETAINED_CHECKPOINTS",
     "tolerance_abs": 0.0002,
     "trn21": {
       "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
       "exists": true,
       "expected_checkpoint_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
-      "hash_reauthenticated_now": false,
+      "hash_reauthenticated_now": true,
       "known_public20m": 0.9918353324459732,
       "known_num_tokens": 20971520,
       "known_num_bytes": 83462186,
       "historical_eval_seconds": 719.2732106900075,
-      "evidence_path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/full20m.metrics.json"
+      "evidence_path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/full20m.metrics.json",
+      "fresh_public20m": 0.9918353324459732,
+      "fresh_num_tokens": 20971520,
+      "fresh_num_bytes": 83462186,
+      "fresh_eval_seconds": 718.4807509109378,
+      "fresh_command_returncode": 0,
+      "fresh_host_clean": true,
+      "fresh_calibration_verdict": "PASS_EXACT_HISTORICAL_SCORE_NOT_A_NEW_RESULT",
+      "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json",
+      "independent_result_review": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md"
     },
     "trn22": {
       "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
@@ -162,8 +175,8 @@
     }
   },
   "remaining": [
-    "Fresh trn21 retained-checkpoint calibration remains pending and trn21 remains disk-blocked.",
-    "Install host-specific host.json on trn22 only when piloting run_job.py; the template remains invalid and must not be deployed unchanged.",
+    "Each host still needs its own source/argv/G2/native/disk/authority gates before scored A0 training; calibration alone authorizes no training.",
+    "Install host-specific host.json only when piloting run_job.py; the template remains invalid and must not be deployed unchanged.",
     "No synthetic self-test rows or historical 2M results enter the new 20M ledger."
   ]
 }

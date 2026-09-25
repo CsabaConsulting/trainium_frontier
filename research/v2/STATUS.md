@@ -1,8 +1,17 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded; trn21 old-checkpoint calibration running; scored training on both hosts still HOLD; no new BPB result.**
+Status: **both guest disks expanded; trn21 G1 calibration independently PASS; scored training on both hosts still HOLD; no new BPB result.**
 
-Latest: trn21's one-label guarded G1 r2 public20M calibration [was authorized](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/request.guard-authorized.json) and launched at 23:41:16 UTC after fresh preflight; guard PID 2835264 remained alive with no disk stop at 23:44:31 UTC. Its output and independent result review are pending, so no G1 PASS or new score is claimed. trn22's exact-env CPU G2 r3 [passed independent numerical comparison](../agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-numeric-review.md); the c5c A0 r2 [final request passed static review](../agentic/verification/20260925-trn22-c5c-a0-r2-final-request-review.md) and [read-only prelaunch checks](authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json) passed. Native dispatch is [HOLD](authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json) on a missing reviewed continuous disk monitor; no A0 step or BPB exists. An Implementer is preparing the monitor for independent review. The repaired A2 native-smoke package [passed static review for staging only](../agentic/verification/20260925-v2-c5c-a2-native30-r2-static-review.md); its native and 50-step proof remain HOLD.
+Latest: trn21's [guarded G1 r2 Operator evidence](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json)
+passed [independent result review](../agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md):
+the old retained checkpoint reproduced 0.9918353324459732 at context 1024
+over exactly 20,971,520 tokens, and postflight was clean. This is not a new
+model score or A0 launch authority. The next trn21 c5c A0 control is
+conditionally ratified but awaits exact source stage/G2 and all live gates.
+trn22 A0 r2 remains held for a reviewed continuous disk monitor plus liveness
+response. Neither host has completed a new scored control.
+
+Historical: trn21's one-label guarded G1 r2 public20M calibration [was authorized](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/request.guard-authorized.json) and launched at 23:41:16 UTC after fresh preflight; guard PID 2835264 remained alive with no disk stop at 23:44:31 UTC. Its output and independent result review were pending at that time. trn22's exact-env CPU G2 r3 [passed independent numerical comparison](../agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-numeric-review.md); the c5c A0 r2 [final request passed static review](../agentic/verification/20260925-trn22-c5c-a0-r2-final-request-review.md) and [read-only prelaunch checks](authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json) passed. Native dispatch is [HOLD](authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json) for an unreviewed continuous disk monitor; no A0 step or BPB exists. The repaired A2 native-smoke package [passed static review for staging only](../agentic/verification/20260925-v2-c5c-a2-native30-r2-static-review.md); its native and 50-step proof remain HOLD.
 
 The proposed A2 table native smoke [failed independent static review](../agentic/verification/20260925-v2-c5c-a2-native30-static-review.md) before host use: its step-log parent was not authenticated, reproducing the class of trn22's CPU G2 failure. Its 30-step plan also does not satisfy the older 50-step rank-hash criterion. An Implementer is repairing the package; A2 still has no native or BPB result.
 

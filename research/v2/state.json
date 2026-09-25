@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T23:46:00Z",
+  "written_utc": "2026-09-25T00:05:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -49,10 +49,10 @@
   },
   "gates": {
     "G1": {
-      "status": "PASS_TRN22_FRESH_PUBLIC20M_TRN21_PENDING",
+      "status": "PASS_BOTH_HOSTS_FRESH_PUBLIC20M_CALIBRATION",
       "blocking": false,
-      "host_specific_blocking": {"trn21": true, "trn22": false},
-      "scope": "trn22 only; trn21 requires its own fresh calibration after disk unblock",
+      "host_specific_blocking": {"trn21": false, "trn22": false},
+      "scope": "Each host separately reproduced its own retained-checkpoint public20M score; this is not scored A0 control or new model quality evidence",
       "receipt": "research/v2/g1.json",
       "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
       "operator_receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
@@ -74,7 +74,7 @@
         "remaining": "Guest storage gate passed at 22:26:14 UTC. Fresh staged host source/checkpoint/tokenizer/cache/environment/breaker checks, finalized request, independent review and one-shot authorization remain. This is evaluator calibration only, not an advancement control."
       },
       "trn21_retry_r2": {
-        "status": "GUARDED_EVALUATOR_RUNNING_PENDING_RESULT_REVIEW",
+        "status": "PASS_FRESH_PUBLIC20M_INDEPENDENT_RESULT_REVIEW",
         "label": "fs-20260925-g1-public20m-calibration-trn21-r2",
         "package": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2",
         "source_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
@@ -89,7 +89,16 @@
         "guard_pid": 2835264,
         "started_utc": "2026-09-24T23:41:16Z",
         "last_operator_alive_utc": "2026-09-24T23:44:31Z",
-        "remaining": "Guarded evaluator output, protected-artifact and disk postflight, archived receipt, and independent numerical result review remain. This is old-checkpoint calibration, not a new model score."
+        "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json",
+        "operator_receipt_sha256": "a0896536999087e19f1f2e781b79763b9c6ec9adb9b971d452a1d16e095c2c12",
+        "independent_result_review": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+        "independent_result_review_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+        "fresh_public20m": 0.9918353324459732,
+        "fresh_eval_tokens": 20971520,
+        "fresh_eval_context": 1024,
+        "fresh_eval_seconds": 718.4807509109378,
+        "postflight_clean": true,
+        "remaining": "Calibration gate is complete. trn21 c5c A0 still requires its own exact source stage, four-rank exact-environment G2 and independent review, disk/observer/monitor preflight, and separate one-shot training authorization. This is old-checkpoint calibration, not a new model score."
       }
     },
     "G2": {
@@ -147,10 +156,10 @@
   },
   "hosts": {
     "trn21": {
-      "status": "G1_R2_GUARDED_EVALUATOR_RUNNING_NO_SCIENCE_SCORE",
+      "status": "G1_PASS_A0_STAGE_G2_PENDING_NO_SCIENCE_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T23:44:31Z",
-      "free_bytes_read_only_df": 58675974144,
+      "last_observed_utc": "2026-09-25T00:03:00Z",
+      "free_bytes_read_only_df": 58675847168,
       "root_disk_bytes": 268435456000,
       "root_partition_bytes": 267360648704,
       "root_ext4_total_bytes": 258906374144,
@@ -226,8 +235,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn21 G1 r2 guarded old-checkpoint public20M evaluator launched at 23:41:16 UTC and was alive at 23:44:31, pending archived output and independent review; this cannot establish a new model win. trn22 c5c A0 r2 passed independent final static review and fresh read-only prelaunch checks but is held before native dispatch for a separately reviewed continuous disk monitor. No native scored training, new BPB, or ready scored job on either host.",
-  "updated_utc": "2026-09-24T23:46:00Z",
+  "last_event": "trn21 G1 r2 old-checkpoint fresh public20M calibration independently PASS: exact 0.9918353324459732 at 1024/20,971,520 with clean postflight and preserved checkpoint; no new model result or A0 authority. trn22 c5c A0 r2 remains HOLD while the external continuous disk monitor and monitor-liveness mechanism receive independent review. Neither host has completed a new scored training run.",
+  "updated_utc": "2026-09-25T00:05:00Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -287,14 +296,16 @@
     "remaining": "A continuous <=1-second authenticated owned-guard root-disk monitor with 2-GiB reserve must be implemented and independently reviewed; then repeat fresh live checks, start the observer and monitor, and issue separate one-shot authorization. No native/scored launch has occurred; r2 science label unused."
   },
   "a0_trn21_control_package": {
-    "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
+    "status": "RATIFIED_STATIC_PASS_G1_PASS_SOURCE_STAGE_AND_G2_PENDING_DISPATCH_HOLD",
     "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
     "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1",
     "contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
     "verifier_receipt_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
+    "supervisor_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
+    "supervisor_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "trn21 G1 calibration and independent result review; exact-env G2; fresh host, source/cache/disk/staging checks; one-shot authorization. Storage-only gate passed; no launch is authorized."
+    "remaining": "G1 independently passed. A new clean exact-c5c source stage/commit must be authenticated; then exact-env four-rank G2 and independent numerical review, fresh host/cache/checkpoint/disk checks, reviewed continuous monitor and boundary observer, and a separate one-shot authorization. No scored training launch is authorized."
   },
   "submission_s0": {
     "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",
@@ -328,6 +339,7 @@
   "validation_only": {
     "cpu_g2": "PASS; four baseline/S0 exact-argv CPU/gloo probes, three identical comparisons, retrieved hashed receipts, no surviving processes or device holders.",
     "native_or_scored_training_authorized": "none; the one-shot fs-20260925-v2-c5c-a0-control-trn22-r1 authority was consumed by its terminal failed pre-step launch",
-    "calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn22-r1"
+    "calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn22-r1",
+    "trn21_calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn21-r2"
   }
 }

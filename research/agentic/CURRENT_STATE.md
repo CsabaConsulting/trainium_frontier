@@ -1,8 +1,27 @@
 # Current state
 
-Last reconciled: 2026-09-24 23:46 UTC
+Last reconciled: 2026-09-25 00:05 UTC
 
-## Current handoff: trn21 evaluator running; trn22 A0 monitor hold
+## Current handoff: trn21 G1 independently PASS; both scored controls pending
+
+The guarded trn21 G1 r2 retained-checkpoint calibration [archived its full
+Operator evidence](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json)
+and [passed independent result review](verification/20260925-g1-trn21-r2-calibration-result-review.md).
+Its fresh public20M/context-1024 BPB exactly reproduced the old checkpoint's
+0.9918353324459732; the guard returned 0, monitored disk with no stop, and
+two stable postflight checks found the host clean. This proves that trn21's
+scoring setup works; it is **not a new model result** or A0 training authority.
+Both hosts now have host-specific G1 calibration PASS. trn21's c5c A0 control
+is [conditionally ratified](../v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json)
+but still needs an exact clean source stage, four-rank G2, independent review,
+fresh preflight, safety monitor/observer, and one-shot authorization. An
+Implementer is preparing a non-dispatchable stage/G2 package; no trn21 native
+training has started. trn22's c5c A0 r2 remains held while the external disk
+monitor gains a fail-closed liveness mechanism and independent review. Neither
+host has a new scored control or BPB improvement; best public20M remains
+0.9918353324 single / 0.9919537735 mean.
+
+## Historical handoff: trn21 evaluator running; trn22 A0 monitor hold
 
 The one-label trn21 G1 r2 guarded public20M retained-checkpoint evaluator
 launched at 23:41:16 UTC after a fresh PASS preflight and the corrected
