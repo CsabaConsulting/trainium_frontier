@@ -1,12 +1,20 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 evidence archived, independent numeric review pending; trn21 enabled transfer final HOLD on late-label race; trn22 r3 disabled transfer static PASS but no enabled final request; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 enabled transfer final HOLD on late-label race; trn22 r3 enabled transfer request under independent final review; scored training on both hosts HOLD; no new BPB result.**
+
+At 04:44 UTC, trn21's archived CPU-only G2 attempt received
+[independent numeric PASS](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/INDEPENDENT_CPU_G2_RESULT_REVIEW.PASS.json):
+four ranks, three finite steps each, and exact agreement on the pinned c5c
+ownership plan, 62 final parameter digests, and rank-0 checkpoint check.
+The receipt notes an unarchived source-directory child behind a link-count
+change and no separate step-log byte archive. This PASS does not authorize
+native training or evaluation. A [new exact trn22 r3 enabled transfer request](authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.CONTINUITY_FINAL_R3.json)
+passed 23 local tests and is under separate final review; no PASS, assignment
+or host transfer exists yet.
 
 At 04:41 UTC, trn21's assigned four-rank three-step synthetic CPU G2 attempt
-has a complete [Operator terminal receipt](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/operator-evidence-20260925T042828Z/OPERATOR_TERMINAL_RECEIPT.md)
-and raw redacted journal with clean pre/run/postflight transport. The
-independent numerical verdict remains pending, and CPU evidence alone cannot
-authorize native training or evaluation. The trn21 r4 enabled transfer
+archived its [Operator terminal receipt](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/operator-evidence-20260925T042828Z/OPERATOR_TERMINAL_RECEIPT.md)
+and raw redacted journal with clean pre/run/postflight transport. The trn21 r4 enabled transfer
 [failed independent final review](authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md)
 because of a reproduced late science-label race; a separate Implementer is
 repairing it. The trn22 r3 disabled safety repair
