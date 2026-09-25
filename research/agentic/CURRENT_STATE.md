@@ -4,6 +4,15 @@ Last reconciled: 2026-09-25 22:09 UTC (26 September IST)
 
 ## Latest: Recursive source review accepted; next CPU slot assigned
 
+Update: trn21 training actually completed22:07:17UTC with3631steps and
+1789.216413641s charged through process exit; uncapped fifth805.080501866s,
+over_budgetFalse, checkpointb2962643 retained. Fresh20M began22:07:17.745234UTC
+under the same lifetime lock and fresh guard. Independent root audit61dcc0fa
+passes73checks normal/-O. No BPB yet; lower snapshot below is historical.
+Control fallback review14778ce6 passes175checks normal/-O, root replayed;
+both remain disabled/unassigned. K2 reporting34check replay passed; one fresh
+input-only successor review is requested, not yet an observed session.
+
 Fresh input-only Recursive reviewer completed22:03:36UTC with narrow PASS for
 the next full113M CPU qualification, not native/quality/adoption. Archives
 2133e43d/23e826f8 retain6263 own numerical checks and31 negative controls;

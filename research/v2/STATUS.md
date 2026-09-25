@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-## Current — 26 September 03:16 IST
+## Current — 26 September 03:42 IST
 
 The installation/staging snapshots below are historical, not current gates.
 Use `research/agentic/CURRENT_STATE.md`, `research/v2/state.json` and the latest
@@ -14,15 +14,21 @@ cross-host confirmation and clean submission preparation continue. The upload
 file is NOT ready: the exact-score clean116188 port still needs independent
 review, full-size identity, cold replay and human-mediated Claude audit.
 
-trn21's exact architecture repeat started at 02:54 IST and has reached960steps
-at266441tok/s. trn22's bcbd cold-five passed in493.34seconds; after a reported
-20m42s idle interval it launched exact3e79 LR0.012 at03:15:12IST. Both jobs have
-attached fresh20M evaluation and retain their original host locks. The separately
-prepared checkpoint-only diagnostic is under independent review. Clean source3f5035 has a
-fresh structural batch-routing REFUSE (527db181), despite zero numerical
-error in the small CPU tests. A separate synthetic trained-checkpoint test
-will investigate behavioural parity; fullCPU/cold/full/upload remain HOLD.
-No source patch, review relabelling or automatic bypass is authorized here.
+trn21's confirmation finished3631steps at03:37:17IST within the actual1800s
+budget; independent73check review61dcc0fa passes. Its fresh20M evaluation is
+running under the same original lock, with no new score yet. trn22 LR0.012
+remains training; at03:42:22IST it had1660steps/265629tok/s and985source seconds
+left. Disks28.78/30.69GiB free. No new launch or staging while these jobs run.
+
+Next trn21 is conditionally assigned exact Recursive-on-architecture full113M
+CPU qualification after current eval/retrieval/quiescence: fresh source review
+passed6263 numerical checks, binding99checks. Next trn22 remains the separately
+reviewed checkpoint-only CPU diagnostic after its train+eval. Clean3f5035's
+structural batch-routing REFUSE is unchanged; all small numeric tests passed,
+but fullCPU/cold/full/upload remain HOLD. No automatic source acceptance follows
+the behavioural diagnostics. Genuine newbase controls passed175mechanical tests
+but remain disabled lower-priority fallbacks. Stable-source cache pair is being
+prepared; K2 narrow reporting repair passed34tests and fresh review is requested.
 
 At 09:56 UTC, the disabled direct trn22 e65→r10 stage `3d26e963`
 received [independent HOLD](verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)
