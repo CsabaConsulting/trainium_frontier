@@ -1,13 +1,15 @@
-# trn21 r10 stage r3 pre-open timing r3 — DISABLED / READ-ONLY
+# trn21 r10 stage r3 pre-open timing — ENABLED READ-ONLY REQUEST / DISPATCH HOLD
 
-This is an Implementer-only feasibility probe, **not** a source-stage attempt.
+This is an Implementer-only request package for a future feasibility probe,
+**not** a source-stage attempt. `READONLY_ENABLEMENT.FINAL.json` requests one
+bounded read-only timing contact, but is not dispatch authority by itself.
 No trn21 contact, host file write, bundle/checkout creation, one-shot marker,
 training, evaluation, AWS action, breaker change or submission occurred.
-`REQUEST.HOLD.json` has host contact and every write/launch authority false.
-The three distinct future enablement, independent review and Supervisor
-assignment files are absent; `collect_readonly.py --capture` therefore exits
-before SSH. The previous source-stage r3 static PASS does **not** enable this
-probe or authorize the stage writer.
+The original `REQUEST.HOLD.json` remains disabled with every write/launch
+authority false. The distinct independent final read-only review and
+Supervisor one-attempt assignment are absent; the invocation therefore exits
+before SSH or a local result. Neither the source-stage r3 static PASS nor this
+request authorizes the stage writer or a native run.
 
 The r2 collector addressed the independent r1 static HOLD in
 `research/v2/verification/20260925-trn21-r10-stage-readonly-timing-r1-independent-static-HOLD.md`
@@ -23,8 +25,13 @@ disk/inode checks and additionally enforces remote monotonic chronology:
 microsecond allowance covers floating-point monotonic subtraction roundoff;
 it is negligible relative to the one-second freshness gate. The stage source,
 local stage operator, independent stage review, disabled request and remote
-timing source pins remain unchanged. This repair is still disabled and needs
-a new independent static review before any read-only enablement.
+timing source pins remain unchanged. The source remained disabled until its
+independent static review. That review is now
+[STATIC PASS, dispatch HOLD](../../verification/20260925-trn21-r10-stage-readonly-timing-r3-independent-static-PASS.md)
+at `adee3b47cbeb8d82b5b716ce6f5aafcd80a4aee3` (receipt SHA-256
+`78aab14b15c88431974322ad0bfe6e5ee96f1873dfb53266290c19db71f8de2c`).
+The collector's new authority, root and fixed-result gates need a separate
+final review of this exact committed request.
 
 ## Exact subject
 
@@ -37,8 +44,8 @@ a new independent static review before any read-only enablement.
   `47e2c28bd6fd735904398a48d6c91ef95b93454cef9558b121c26b0ee5b66a0b`.
   Exact local r3 operator SHA-256:
   `6ecad35400199b7c1cba41c78d5d4f14363d37180c40e8aab5e9b485846db74f`.
-  The collector checks these bytes and the review receipt before any future
-  contact; it never imports or calls the local stage operator.
+  The collector checks these bytes and both static review receipts before any
+  future contact; it never imports or calls the local stage operator.
 - The remote timing source separately pins trn21 hostname/UID/device, private
   e65 source, r10 target, bundle, stage label, existing host lock, e65/r10
   commits, 13,177,973,911-byte and 10,000-inode floors, and the one-second
@@ -62,14 +69,45 @@ actual `O_EXCL`/post-open behavior remain unmeasured and still subject to the
 r3 writer's live gates.
 
 The local collector checks STOP in active Desktop, legacy Documents and its
-own package checkout. It reads breaker and launch HOLD from **only** active
+own package checkout. The execution-root gate separately checks STOP in the
+clean trn21 stage-r3 worktree at
+`/home/poojith-devan/Desktop/Trainium-trn21-r10-stage-r3-active-root`, exact
+HEAD `7205abf5469edc616c4e4b58caee27bc1957bbd4`, clean Git status,
+science `train.py`/`prepare.py` and the three exact stage files. It rejects a
+wrong configured path, symlinked root, dirty root, changed HEAD/source or
+optimized Python. The collector repeats this gate before SSH and after contact, including
+when called directly. It reads breaker and launch HOLD from **only** active
 `/home/poojith-devan/Desktop/Trainium/research/v2/state.json` before SSH,
 again immediately before contact, and after contact. Any STOP, tripped
 global/trn21 breaker, launch-state change or state-hash drift is HOLD. A stale
 Documents state cannot enable contact; a Documents STOP can block it. Future
-raw output is bounded, credential-screened, hashed and saved only in a new
-exclusive local `OPERATOR_RAW_TRN21_R10_TIMING_<UTC>.json` receipt. A timeout
-or malformed/partial output is HOLD, not a timing PASS.
+raw output is bounded, credential-screened and hashed. One fixed local result,
+`OPERATOR_RAW_TRN21_R10_TIMING_RESULT.json` in the timing package worktree,
+is created with `O_EXCL` and a fsynced `HOLD_IN_PROGRESS` record before SSH.
+A preexisting or partial result consumes the attempt. Timeout, malformed or
+partial output, local-gate drift or root drift is HOLD, never timing PASS.
+
+## Exact future invocation — still HOLD
+
+The proposed Operator command is from the clean trn21 stage-r3 execution
+worktree, with the timing package in its separate clean checkout. It is
+documented for independent final review, not for execution now:
+
+```text
+cd /home/poojith-devan/Desktop/Trainium-trn21-r10-stage-r3-active-root
+/usr/bin/python3 -B /home/poojith-devan/Desktop/Trainium-trn21-r10-timing-enabled-r3-r1/research/v2/authorizations/trn21-r10-stage-readonly-timing-r1-hold/invoke_timing_readonly.py
+```
+
+The enabled request binds the exact trn21 endpoint, ED25519 fingerprint,
+known-hosts bytes, stage source/operator, reviewed timing source, clean local
+execution root and c5c science bytes. It permits only this read-only timing
+observation: host writes, process signals, a stage marker, training,
+evaluation and AWS actions remain false. The independent Verifier must review
+this final committed package and provide the exact
+`INDEPENDENT_READONLY_ENABLEMENT.PASS.json`; only a Supervisor may then provide
+the separate `SUPERVISOR_READONLY_ASSIGNMENT.json`. Both are absent. An
+Operator would still need fresh checks and a one-attempt assignment. Timing
+alone cannot prove actual `O_EXCL` latency or authorize stage/native work.
 
 ## Offline Implementer checks
 
@@ -79,8 +117,11 @@ python3 -B -m unittest discover -s research/v2/authorizations/trn21-r10-stage-re
 python3 -O -B -m unittest discover -s research/v2/authorizations/trn21-r10-stage-readonly-timing-r1-hold -p test_readonly.py -q
 ```
 
-`--check` reports `DISABLED_NO_HOST_CONTACT`; 11/11 normal and 11/11 `-O`
-offline tests pass. These checks are not independent verification. A separate
-Verifier must review the exact new package before anyone prepares the absent
-read-only enablement, and an Operator may only act after a separate Supervisor
-assignment. No source-stage or native run is implied by a timing receipt.
+`--check` reports `DISABLED_NO_HOST_CONTACT`; 19/19 normal and 19/19 `-O`
+offline tests pass. Synthetic tests include the contradictory-chronology
+parser and capture witness, exact request/refusal, wrong-root and optimized
+Python rejection, and the fixed pre-SSH result. These Implementer checks are
+not independent verification. No source-stage or native run is implied by a
+timing receipt.
+
+`sha256sum -c SHA256SUMS` is run from this package directory.
