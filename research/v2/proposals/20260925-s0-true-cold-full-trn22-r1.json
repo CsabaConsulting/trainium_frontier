@@ -1,0 +1,132 @@
+{
+  "proposal_id": "20260925-s0-true-cold-full-trn22-r1",
+  "status": "RESEARCH_COMPLETE_DISPATCH_HOLD",
+  "owner_role": "researcher",
+  "proposal_content_complete": true,
+  "launch_authorized": false,
+  "hypothesis": "After the two independently accepted startup discriminators pass, the exact review-clean S0 file can compile from demonstrably empty caches on trn22, finish a full 1800-second full-chip seed-42 training run, save a strictly loadable checkpoint and score in a fresh public-20M process without a correctness or budget failure.",
+  "single_causal_change": "Submission-safety replay of already prepared S0 source rather than a model improvement arm. Relative to the short S0 warm smoke, this uses a separate trn22 host, distinct truly empty compiler caches and S0's unmodified bare 1800-second launch; therefore no causal BPB delta is inferred from that smoke.",
+  "mechanism_class": "submission_safety_control",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "prediction_note": "No new BPB prediction is asserted. The only numerical reference is the historical two-run 116188 public20M mean 0.99195377346572045 on trn21; S0's CPU arithmetic/eval equivalence is not yet a Neuron result.",
+  "candidate_shortlist": [
+    {
+      "idea": "First separate full-budget S0 true-cold replay on trn22",
+      "mechanism_class": "submission_safety_control",
+      "predicted_bpb_delta": null,
+      "why_ranked": "S0 is the submission gate and has no accepted native cold replay after its trn21 r1 zero-step failure; the two short discriminators can clear startup risks before a full host slot is spent."
+    },
+    {
+      "idea": "A2 table screen after its own exact G2/native gates",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": null,
+      "why_ranked": "May have research upside but cannot certify the clean S0 submission; scheduling is controlled separately by Supervisor/queue, not this proposal."
+    }
+  ],
+  "selection_rationale": "Poojith explicitly requires S0 to remain the submission gate and to run a full, clean cold-cache replay only after startup discriminators pass. This proposal prepares that first full replay without asserting that either short smoke has passed or that trn22 is free.",
+  "p_improve": null,
+  "estimated_host_hours": 1.1,
+  "trainium_feasibility": "Exact S0 train.py SHA256 ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb; native full-chip LNC2 x four ranks, default seed 42, baked MAX_TRAIN_SECONDS=1800 and default out/final.pt. The exact bare launch has an archived four-rank CPU G2 PASS. S0 has no in-process public evaluation. The true-cold setup uses a new absent trn22 run root and seven new job-owned empty cache directories, including AWS-documented NEURON_COMPILE_CACHE_URL. Cold compiler startup is not capped by this proposal's estimated host hours; record the fifth-boundary startup allowance and the official charged time. No package installation or source/evaluator/data change is allowed.",
+  "cheapest_falsifier": "Before allocating a full slot, independent receipt review must establish PASS for both fs-20260925-s0-warm-compile-smoke-trn21-r1 and fs-20260925-116188-cold-compile-smoke-trn22-r1, with the latter proving effective empty-cache routing. If either failed or is inconclusive, HOLD for diagnosis. Then static exact-byte/argv/G2 review and fresh trn22 preflight can reject a bad source/cache/host setup before launch.",
+  "prior_result_refs": [
+    "fs-20260924-c595-matrixlr015-trn21-r1: 116188 source, 3635 steps, public20M 0.9920722144854677",
+    "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 116188 source, 3654 steps, public20M 0.9918353324459732; two-run mean 0.99195377346572045",
+    "fs-20260925-s0-cold-replay-trn21-r1: consumed zero-step RNG/NEFF failure, no checkpoint/BPB and not demonstrably cold",
+    "fs-20260925-s0-warm-compile-smoke-trn21-r1: future 120-second discriminator; PASS plus independent receipt review required",
+    "fs-20260925-116188-cold-compile-smoke-trn22-r1: future 120-second true-cold discriminator; PASS plus independent receipt review required"
+  ],
+  "evidence": [
+    "workflow/candidates/S0/EVIDENCE.md",
+    "workflow/evidence/lockstep3-S0-bare.json",
+    "workflow/evidence/lockstep3-116188-vs-S0.json",
+    "workflow/evidence/S0-eval-path-equivalence.txt",
+    "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-s0-bare-trn22-r1.json",
+    "research/v2/g1.json",
+    "research/v2/incidents/20260925-s0-cold-trn21-r1/READONLY_COMPILER_POSTMORTEM.md",
+    "research/v2/proposals/20260925-s0-warm-compile-smoke-trn21-r1.json",
+    "research/v2/proposals/20260925-116188-cold-compile-smoke-trn22-r1.json"
+  ],
+  "duplicate_search_terms": ["S0 true cold full trn22", "fs-20260925-s0-true-cold-full-trn22-r1", "review-clean dense cold replay", "S0 submission gate"],
+  "control": {
+    "git_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+    "run_label": "fs-20260924-c595-matrixlr015-confirm-trn21-r2",
+    "public_val_bpb": 0.9918353324459732,
+    "historical_two_run_mean_public20m": 0.99195377346572045,
+    "steps": 3654,
+    "box_constraint": "Historical trn21 116188 equivalence reference only, not a same-host advancement control; the trn22 c5c A0 control is a different source and cannot supply an S0 BPB win claim."
+  },
+  "candidate": {
+    "branch": "codex/20260925-s0-short-compile-smoke-proposals-r1",
+    "files_allowed": [],
+    "expected_diff": "None. Copy only the existing exact S0 train.py bytes to a unique trn22 sandbox. Do not edit a MAX_TRAIN_SECONDS constant, add a CLI budget flag, or change model/eval code.",
+    "source_path": "workflow/candidates/S0/train.py",
+    "source_sha256": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
+    "run_label": "fs-20260925-s0-true-cold-full-trn22-r1",
+    "run_root": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py"
+  },
+  "cache_policy": {
+    "fresh_cache_paths": {
+      "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/persistent",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/compiler",
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/neff_local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/hlo",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/debug",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/inductor"
+    },
+    "proof_required": "The root and all seven paths must be absent before staging. Privately create and prove all cache dirs empty before launch; pin documented NEURON_COMPILE_CACHE_URL to the new persistent path, with no inherited NEURON_CC_FLAGS --cache_dir override. Archive pre/post object counts and new compiler objects under that URL plus first relevant neuronx-cc logs. An empty NEURON_COMPILE_CACHE_DIR alone is not true-cold proof. Never delete or overwrite existing caches/checkpoints/artifacts."
+  },
+  "trusted_prepare": {
+    "host_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+    "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "policy": "Copy only exact S0 train.py by plain scp/rsync and SHA-256 verify it on host. Import the unchanged trusted prepare.py from its existing pinned checkout via PYTHONPATH; verify both host-file and fresh-process imported prepare.__file__/SHA before training and eval. Do not copy/edit prepare.py, data, tokenizer or evaluator."
+  },
+  "step_boundary_evidence": {
+    "environment": "NEURON_COMPETITION_R1_STEP_LOG=/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/receipts/step-boundaries-rank0.log",
+    "policy": "Create a unique private empty rank-0 append-mode step log before launch, as the official runner normally supplies one. No other NEURON_COMPETITION_R1_* override may alter seed, budget, model, out dir or data. Archive raw distinct rank-0 completed boundaries, torchrun/all-worker exit proof, startup-to-fifth-boundary duration, charged training time, checkpoint metadata/hash and quiescent postflight; the trusted function logs rank 0 only."
+  },
+  "evaluation": {
+    "after_full_checkpoint": true,
+    "fresh_process": true,
+    "command": "/home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py eval-public --train-py /home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/train.py --checkpoint /home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/out/final.pt --device neuron --batch-size 1 --seq-len 1024 --eval-tokens 20971520 --timeout-seconds 1200",
+    "metric": "public validation BPB at context 1024 over 20971520 tokens from the trusted evaluator; archive exact command, process identity, result JSON, checkpoint hash, token and timeout fields. This is the first cold-replay submission-safety score, not a leaderboard submission."
+  },
+  "hard_dependencies": [
+    "trn21 S0 warm 120-second smoke has a terminal PASS and independent postlaunch receipt review accepting exact source, >=20 distinct rank-0 boundaries plus all-worker success, finite checkpoint and effective populated-cache hit/path evidence; startup without a demonstrated hit is not a PASS of the warm-cache discriminator for this dependency.",
+    "trn22 known-good 116188 true-cold 120-second smoke has a terminal PASS and independent postlaunch receipt review accepting effective empty persistent-cache proof, >=20 distinct rank-0 boundaries plus all-worker success and finite checkpoint.",
+    "If either smoke fails or is inconclusive, do not launch this full replay; diagnose the actual compiler/cache/runtime evidence and issue a new reviewed plan.",
+    "A separately reviewed one-use Supervisor assignment and fresh trn22 Operator checks are still required; this proposal confers no launch authority."
+  ],
+  "required_prelaunch": [
+    "Independent proposal review and one-use Supervisor assignment bind this exact label, source SHA, bare command, trusted prepare SHA and distinct cold-cache paths after BOTH independently accepted smoke PASS receipts. Do not infer a PASS from an in-progress run.",
+    "trn22 116188 smoke and any intervening A2 job/training/evaluation must be fully terminal with quiescent postflight; one job per host, no Neuron process/device or host-lock holder and no dual launcher.",
+    "Verify unique S0 full label/root and all cache paths absent, disk free >=6.5 GiB plus projected headroom, no STOP/breaker, five authorized train shards/tokenizer, source/prepare SHA/import path, seed 42, default 1800-second budget and bare full-chip LNC2 x4 command.",
+    "Verify archived exact S0 bare-argv four-rank CPU G2 PASS; leave external NEURON_CC_FLAGS unset so S0 sets its baked optlevel-1/BF16 default. Pin only the documented fresh cache and rank-0 step-log instrumentation; no evaluator/data/optimizer override."
+  ],
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Fresh-process trusted public20M/context1024 BPB should be compared with the historical two-run 116188 mean 0.99195377346572045 using the S0 EVIDENCE.md absolute ±0.0008 safety tolerance; a mismatch is an investigation, not an improvement or submission-ready claim. This is the first of two required cold replays.",
+    "throughput": "Archive full training steps/tokens, startup-to-fifth-boundary duration <=840 s, charged 1800-second budget and compile-cache evidence; faster steps alone are not a BPB win.",
+    "correctness": "Exact unmodified S0 bytes and bare launch on all four ranks, distinct completed rank-0 boundaries with synchronized collective and all-worker exit proof, no crash/NaN/over_budget, finite model-only checkpoint that strict-loads the trained GPT, effective true-cold cache proof, fresh-process public20M finite score with exact token/context/timeout fields, and clean quiescent postflight. Any missing checkpoint, budget breach, scorer failure or cold-cache proof failure is a failed/inconclusive gate, never a win."
+  },
+  "submission_gates_remaining_after_this_first_replay": "A passing first cold replay alone does not authorize upload. Workflow S0 EVIDENCE.md still requires a second distinct true-cold full replay within its tolerance, native 100-step S0-versus-116188 lockstep, Neuron eval-path equivalence on an S0-trained checkpoint, independent reviewer checklist/audit and separate human submission approval.",
+  "abort_conditions": [
+    "Either short smoke lacks independent PASS, is failed/inconclusive, or trn22 remains occupied by train/eval/Neuron holder.",
+    "Disk free <6.5 GiB/projected need, STOP/breaker, source/prepare/G2/bare argv mismatch, unique label/root/cache collision or nonempty cold-cache path.",
+    "Inherited compiler cache override, unknown training env override, Neuron compile error, crash, NaN, missing checkpoint, nonzero all-worker/torchrun exit, over-budget or invalid fresh-process evaluation.",
+    "Any attempt to relaunch the consumed trn21 r1 or a smoke label, delete protected artifacts, alter prepare.py/data/evaluator/tokenizer, submit automatically or call an unscored/failed run a BPB gain."
+  ],
+  "human_approved_by": "Poojith direct S0 full-cold-after-short-discriminators instruction, 2026-09-25 IST; this proposal alone is not launch authorization",
+  "submission_authorized": false,
+  "verdict": null
+}
