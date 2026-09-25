@@ -1,4 +1,4 @@
-"""Read-only timing model of the exact disabled trn22 r4 stage boundary.
+"""Read-only timing model of the exact disabled trn22 r10 stage boundary.
 
 No writer is imported or called, and no bundle/checkout is opened or created.
 The would-open is a monotonic clock sample, not an O_EXCL syscall.  Even a
@@ -19,20 +19,20 @@ import sys
 import time
 
 
-SCHEMA = "trn22-r9-stage-r4-timing-v1"
+SCHEMA = "trn22-r10-stage-r1-timing-v1"
 HOST = "ip-172-31-32-253"
 UID = GID = 1000
 DEV = 66305
 ROOT = Path("/home/ubuntu")
 SOURCE = ROOT / "trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2"
-TARGET = ROOT / "trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r9_stage_r1"
-BUNDLE = ROOT / "trainium-c5c-e65-to-r9-20260925.trn22-stage-r1.bundle"
-LABEL = "fs-20260925-trn22-c5c-a0-r9-incremental-stage-r1"
+TARGET = ROOT / "trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r10_stage_r1"
+BUNDLE = ROOT / "trainium-c5c-e65-to-r10-20260925.trn22-stage-r1.bundle"
+LABEL = "fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1"
 BASE_COMMIT = "e65a3097a5b00f6178188a935bb2acb9a5042c6c"
-STAGE_R4_COMMIT = "19fbfdc88763b6b5762e219339dcd156e7977a30"
-STAGE_R4_REMOTE_SHA256 = "871fd00aa61d0db2df8597949c8cad43c4c0a9a94ffda218a44851d60091c9b7"
-STAGE_R4_OPERATOR_SHA256 = "64d0ed49261cd231b3193f315d114d43e39a94f3b3dea21833a37dd15c0c2d7e"
-STAGE_R4_HOLD_SHA256 = "8cd3b2debb0c309ab72faef78b057e344fc0525b1269332d3d46b13337797f56"
+STAGE_R10_COMMIT = "3d26e963df349f444cd560114400788bf572b062"
+STAGE_R10_REMOTE_SHA256 = "da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f"
+STAGE_R10_OPERATOR_SHA256 = "05da855712dca9d0e6bdaf8b81319557d4555a4f72cd81bb3554abeb329bb175"
+STAGE_R10_HOLD_SHA256 = "04cb85e352dc895e7b90eca1c1cd0f393551421a435451d2a83e6c47e970f38e"
 TRAIN_SHA256 = "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
 PREPARE_SHA256 = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
 SOURCE_INO = 2432738
@@ -47,7 +47,7 @@ LOCK_MODES = (0o700, 0o775, 0o664)
 STOP_PATHS = [ROOT / "research/agentic/STOP", ROOT / "research/v2/STOP",
               ROOT / "trainium_freshstart_20260918/research/agentic/STOP",
               ROOT / "trainium_freshstart_20260918/research/v2/STOP"]
-for _name in ("r1", "r2", "r3", "r4", "r9_stage_r1"):
+for _name in ("r1", "r2", "r3", "r4", "r9_stage_r1", "r10_stage_r1"):
     _checkout = ROOT / ("trainium_freshstart_20260925_v2_c5c_a0_control_trn22_" + _name)
     STOP_PATHS += [_checkout / "research/agentic/STOP", _checkout / "research/v2/STOP"]
 PROCESS_MARKERS = ("train.py", "torchrun", "eval-public", "prepare.py",
@@ -260,7 +260,7 @@ def _direct_stop_target():
 
 
 def _space_floor():
-    """Same pre-write byte/inode floor as r4, without reserving any space."""
+    """Same pre-write byte/inode floor as r10, without reserving any space."""
     fs = os.statvfs("/")
     free, inodes = fs.f_bavail * fs.f_frsize, fs.f_favail
     if free < MIN_FREE or free < 6_979_321_856 or inodes < MIN_INODES:
@@ -343,7 +343,7 @@ def _trial(index):
         post_activity_end = steps[-1]["ended_ns"]
         steps.append(_measure_step("space_post_would_open", _space_floor))
         post_space_end = steps[-1]["ended_ns"]
-        # On an actual r4 write the provisional bundle exists here; this
+        # On an actual r10 write the provisional bundle exists here; this
         # diagnostic instead requires both remote paths to remain absent.
         steps.append(_measure_step("direct_post_would_open", _direct_stop_target))
         would_payload = time.monotonic_ns()
@@ -368,7 +368,7 @@ def _compatible(prior, current):
     if stamp.tzinfo is None or not -5 <= age <= 180:
         _fail("read-only preflight pin is stale")
     for key in ("lock", "label", "bundle", "target", "stop_paths_absent",
-                "stage_r4"):
+                "stage_r10"):
         if prior[key] != current[key]:
             _fail("before/timing read-only identity drift: " + key)
     for key in ("hostname", "uid", "root_device", "boot_id", "mount_namespace", "source"):
@@ -387,7 +387,7 @@ def timing(prior):
                "utc": _utc(), "preflight_sha256": _sha(json.dumps(
                    prior, sort_keys=True, separators=(",", ":")).encode()),
                "identity": current["identity"], "lock": current["lock"],
-               "stage_r4": current["stage_r4"],
+               "stage_r10": current["stage_r10"],
                "process_identity": current["process_identity"]})
         done = 0
         misses = 0
@@ -424,8 +424,8 @@ def probe_without_nested_lock(lock):
     return {"schema": SCHEMA + "-probe", "utc": _utc(), "identity": after,
             "process_identity": process_identity, "lock": lock,
             "label": LABEL, "bundle": str(BUNDLE), "target": str(TARGET),
-            "stage_r4": {"commit": STAGE_R4_COMMIT,
-                         "remote_sha256": STAGE_R4_REMOTE_SHA256,
-                         "operator_sha256": STAGE_R4_OPERATOR_SHA256,
-                         "hold_sha256": STAGE_R4_HOLD_SHA256},
+            "stage_r10": {"commit": STAGE_R10_COMMIT,
+                         "remote_sha256": STAGE_R10_REMOTE_SHA256,
+                         "operator_sha256": STAGE_R10_OPERATOR_SHA256,
+                         "hold_sha256": STAGE_R10_HOLD_SHA256},
             "stop_paths_absent": True}
