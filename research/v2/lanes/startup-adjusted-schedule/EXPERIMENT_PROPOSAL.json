@@ -1,0 +1,86 @@
+{
+  "schema": "trn-proposal-v2",
+  "proposal_id": "20260926-arch3e79-startup-adjusted-schedule",
+  "status": "COMPLETED_PROPOSAL_IMPLEMENTATION_SELECTED_NATIVE_DISABLED",
+  "owner_role": "implementer",
+  "selection": "Supervisor selected the isolated schedule factor in 29bbb1cf; no native or independent-review authority delegated.",
+  "launch_authorized": false,
+  "hypothesis": "Removing capped excluded startup from the optimizer schedule clock will eliminate the demonstrated below-cap first-five LR/WD sensitivity to compile duration; quality effect is unknown.",
+  "single_causal_change": "Default-OFF startup-adjusted optimizer schedule elapsed, exact old-schedule3e79; no Recursive, model, optimizer formula, data, batch, compiler or timing-accounting change.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "forecast_status": "Unknown. Does not establish cause of the reported cross-host BPB spread or predict a gain.",
+  "candidate_shortlist": [
+    {"idea": "Selected capped-startup optimizer clock", "mechanism_class": "schedule", "why_ranked": "Two exact3e79 logs demonstrate step1 lrm0.760 versus0.767 before visible loss divergence."},
+    {"idea": "Retain original schedule", "mechanism_class": "control", "why_ranked": "Mandatory exact baseline/default/OFF counterfactual; original outcomes preserved."}
+  ],
+  "selection_rationale": "Concrete source-supported schedule mismatch; isolate it before any quality interpretation. Speculative throughput helper is explicitly excluded.",
+  "base": {
+    "commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "path": "workflow/proposals/research-v2/train.py",
+    "sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c"
+  },
+  "clock_contract": {
+    "off": "Exact existing elapsed; no new monotonic call.",
+    "on_before_fifth_boundary": "max(0, elapsed + (budget_started - _PROCESS_STARTED) + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS), using the existing step-start sample.",
+    "on_after_fifth_boundary": "Exact existing elapsed, which already includes the unchanged charged excess reset.",
+    "consumers": "lr_multiplier elapsed and wd_progress; existing momentum, beta2 and DEMON progress consumers use wd_progress. Step-number warmup unchanged.",
+    "not_consumers": "Official budget clock, stop/predictor, logging/accounting, batch ramp, EMA, data or evaluator.",
+    "scope": "Selected exact3e79 profile with batch ramp, EMA and dynamic loss scaling OFF. This is not a general schedule-stack experiment."
+  },
+  "invariants": [
+    "Unchanged source1800 declaration, official five startup boundaries and900-second allowance",
+    "Unchanged process start, budget origin/reset,30-second launch margin and charged excess",
+    "Unchanged step t0, cache priming, predictor clearing, stop checks,15-second checkpoint reserve and exit accounting",
+    "Unchanged prepare.py, scorer, evaluator, loader, data and seed42",
+    "Unchanged113256724-parameter architecture, LR0.015, batch131072, T1024/pack32/world4/LNC2",
+    "No new model parameters, buffers, checkpoint format or kernel"
+  ],
+  "control": {
+    "git_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "run_label": "fs-20260926-arch3e79-primed-trn22-r2-full",
+    "public_val_bpb": 0.9863403052402583,
+    "box_constraint": "Any future quality comparison requires same-host exact original control and unchanged fixed1800/public20M rules. The cross-host nonconfirmation is retained, not explained away."
+  },
+  "candidate": {
+    "branch": "codex/20260926-startup-adjusted-schedule",
+    "files_allowed": ["workflow/proposals/research-v2/train.py"],
+    "expected_diff": "One pure elapsed helper, default-OFF Boolean parser option, one shared schedule elapsed local, and two optimizer scalar input substitutions.",
+    "run_label": "fs-20260926-arch3e79-startup-adjusted-trn22-r1-diagnostic",
+    "argv_delta": ["--startup-adjusted-schedule"],
+    "launch_command": null,
+    "launch_status": "No executable native binding selected. Exact cold startup diagnostic and any full run remain separate future proposals after reviews/full-size CPU."
+  },
+  "evidence": [
+    "29bbb1cf:research/v2/analysis/20260926-arch3e79-startup-schedule-and-throughput/ANALYSIS.md",
+    "research/v2/operator/20260926-trn21-arch3e79-replicate/completed-training/training.log",
+    "research/v2/operator/20260926-trn22-arch3e79-full/completed-training/training.log"
+  ],
+  "duplicate_search_terms": ["startup LR", "optimizer schedule clock", "startup-adjusted-schedule", "excluded startup schedule"],
+  "trainium_feasibility": "Only Python scalar schedule values change. Existing device scalar staging remains; native compiler/cache/graph effects unknown and measured cold gate still required.",
+  "estimated_host_hours": 0,
+  "cheapest_falsifier": "Stdlib exact-source fake-clock replay and bounded sequential tiny CPU actual-loop default/OFF identity plus ON below-cap/capped-excess tests. No full model on laptop.",
+  "cpu_plan": "Single thread per rank, existing G2 machinery, reduced8x128 model, small synthetic microbatch, no real data/Neuron compile. Actual-source AST clock/block tests cover five-step reset and>900 excess; all shims and limits recorded. Full113M gate pending.",
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "fresh_independent_review": false,
+    "cpu_or_static_checks": false,
+    "default_off_identity": false,
+    "full_size_cpu_g2": false,
+    "native_correctness": false,
+    "cold_startup": false,
+    "operator_assignment": false
+  },
+  "success_criteria": {
+    "cpu": "Baseline/default/OFF exact losses, gradients/update/optimizer/checkpoint observations; ON scalar progress zero only while allowance covers startup and positive for excess; timing/accounting AST unchanged.",
+    "native": "No automatic launch; all current source/fullCPU/fresh-review/guard/cold gates first.",
+    "quality": "Unknown effect. Original numeric BPB thresholds/two-host replication remain unchanged; no result or source adoption from local tests.",
+    "throughput": "No claimed speedup; not a throughput optimization."
+  },
+  "abort_conditions": ["Default/OFF mismatch", "Unintended timing/data/eval/model change", "Capped excess lost", "Any nonfinite/missing gradient or checkpoint failure", "RAM/test bound exceeded"],
+  "verifier_receipt": null,
+  "verdict": null
+}
