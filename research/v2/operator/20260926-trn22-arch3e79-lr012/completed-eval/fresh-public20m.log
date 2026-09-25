@@ -1,0 +1,30 @@
+FRESH-PUBLIC20M_START_UTC=2026-09-25T22:28:32.699994+00:00
+ISOLATED_SUBMISSION {"mode": "eval", "sandbox": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/eval", "files": ["prepare.py", "train.py"], "train_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c", "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb", "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh", "fresh_empty_sdk_caches": {}}
+[W925 22:28:34.901851480 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+check passed
+REHEARSAL_COMMAND ["/home/ubuntu/workspace/native_venv/bin/python", "prepare.py", "eval-public", "--train-py", "train.py", "--checkpoint", "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/train/out/final.pt", "--device", "neuron", "--batch-size", "1", "--seq-len", "1024", "--eval-tokens", "20971520", "--timeout-seconds", "1200"]
+[W925 22:28:37.463408486 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+{
+  "eval_over_timeout": false,
+  "eval_seconds": 685.9513738000533,
+  "eval_timeout": 1200,
+  "num_bytes": 83462186,
+  "num_tokens": 20971520,
+  "total_nats": 57178204.0,
+  "val_bpb": 0.9883603019664198
+}
+SUBMISSION_REHEARSAL {"returncode": 0, "wall_seconds": 698.9054760469589, "step_boundaries": 0, "mode": "eval", "fresh_empty_sdk_caches": {}}
+FRESH-PUBLIC20M_END_UTC=2026-09-25T22:40:14.201351+00:00

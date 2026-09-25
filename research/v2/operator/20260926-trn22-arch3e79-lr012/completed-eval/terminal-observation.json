@@ -1,0 +1,191 @@
+{
+  "host": "trn22",
+  "rc": 0,
+  "data": {
+    "free_bytes": 32502661120,
+    "process_details": [],
+    "compiler_capture": [],
+    "old_queue_pid_checks": [
+      {
+        "pid": 3050509,
+        "exists": false,
+        "argv": null
+      },
+      {
+        "pid": 3053905,
+        "exists": false,
+        "argv": null
+      }
+    ],
+    "old_queue_command_lines": [],
+    "lock_inode": 832589,
+    "lock_device": 66305,
+    "host": "trn22",
+    "utc": "2026-09-25T22:41:39.703374+00:00",
+    "files": {
+      "under-lock-idle.json": {
+        "text": "{\n  \"ended_utc\": \"2026-09-25T21:45:12.574528+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3151669,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3151668,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3151669,\n      3151668\n    ],\n    \"returncode\": 0,\n    \"row_count\": 255,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"531f5313a1bafc665687f0e05bd37c36ec49b11b25713139e8fef4cbf969a153\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-25T21:45:12.515313+00:00\",\n  \"status\": \"PASS\"\n}\n",
+        "bytes": 1418,
+        "sha256": "6fa579a187e624ae4085a3fe2188b6d6c52d03f8cfa63a7da14a6d6ee1d33464"
+      },
+      "training-launch.json": {
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"2730s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/train\",\n    \"--mode\",\n    \"train\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/compiler\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/inductor\",\n    \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/debug\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/hlo\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/metrics-training\",\n    \"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/neff\",\n    \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/local\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c\",\n  \"utc\": \"2026-09-25T21:45:12.574738+00:00\"\n}\n",
+        "bytes": 3129,
+        "sha256": "813511087d355937bca1e70c05e2c1e43de9fe54770f349a5a847f2e65aafdfb"
+      },
+      "preflight.json": {
+        "text": "{\n  \"utc\": \"2026-09-25T21:45:12.463617+00:00\",\n  \"label\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\",\n  \"host\": \"trn22\",\n  \"free_bytes\": 33960312832,\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"staged_hashes\": {\n    \"package/train.py\": \"3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c\",\n    \"package/launch-command.txt\": \"de7a602fbf50a32031cffffc2844c4c037d1fb55ec046dace13e72d4717d1947\",\n    \"package/provenance.json\": \"7255b6413f771eefb4e297345d90495fca80bdfcb70df389142b96744dc7387e\",\n    \"EXPERIMENT_PROPOSAL.json\": \"ba4b029a315b60af3b5d99b6543cb0e820635474633e119a989a9c2917a47ba4\",\n    \"NATIVE_BINDING.disabled.json\": \"6e741a8d230ad35545ce90d6fdf25f797a975eed85abf30c0d5484ee4a2a5f17\",\n    \"host_driver.py\": \"a8766ba2598db28e2a05b1543883e0afefaeb6973ef6a40d9f63906523973600\",\n    \"SUPERVISOR_ASSIGNMENT.md\": \"4c60001e591ab2507fa7f662d0f8c14d620953fa4f2df3ad3fb7db37b7083535\",\n    \"idle_guard.py\": \"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737\",\n    \"dispatch_driver.py\": \"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a\"\n  },\n  \"ps_rc\": 0,\n  \"job_lines\": [],\n  \"neuron_ls\": [\n    {\n      \"instance_type\": \"trn2.3xlarge\",\n      \"instance_id\": \"i-0673e54d9d66e6a1e\",\n      \"neuron_device\": 0,\n      \"bdf\": \"0000:33:00.0\",\n      \"cpu_affinity\": \"0-11\",\n      \"numa_node\": \"0\",\n      \"connected_to\": null,\n      \"nc_count\": 4,\n      \"logical_neuroncore_config\": 2,\n      \"memory_size\": 103079215104,\n      \"neuroncore_ids\": [\n        0,\n        1,\n        2,\n        3\n      ],\n      \"neuron_processes\": []\n    }\n  ],\n  \"pause_sha256\": \"dc270ee4031645c690a0671dad53cc021daaa705ceaafb9c8a3f9828b46c4faf\",\n  \"source_sha256\": \"3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c\",\n  \"local_state\": {\n    \"utc\": \"2026-09-25T21:45:05.566651+00:00\",\n    \"controller_state_sha256\": \"12b63f974e32f398928501dc42b877ccb909c20cc2be3a245a038085866156b3\",\n    \"launch_authorized\": false,\n    \"host_launch_allowed\": {\n      \"trn21\": true,\n      \"trn22\": true\n    },\n    \"breaker_tripped\": {\n      \"global_correctness\": false,\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"local_stops_present\": []\n  },\n  \"old_queue_pids_absent\": [\n    3050509,\n    3053905\n  ],\n  \"lock_inode\": 832589,\n  \"lock_device\": 66305,\n  \"launch_guard\": \"Fresh actual common lifetime flock and in-lock ps/neuron-ls are enforced by exact driver; this staging check does not replace that guard.\"\n}\n",
+        "bytes": 2568,
+        "sha256": "9420bf18708654bbff9a474f27b12e6c57fc615d02405544ea8e48d8a8e504d1"
+      },
+      "operator-launch.json": {
+        "text": "{\n  \"utc\": \"2026-09-25T21:45:12.464195+00:00\",\n  \"label\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\",\n  \"dispatch_pid\": 3151667,\n  \"root\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet\",\n  \"status\": \"DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING\",\n  \"no_automatic_next_job\": true\n}\n",
+        "bytes": 368,
+        "sha256": "56d99b9d8672e49d793793b8e2ec05b59af4bf1f5619163ff350be9f5f693c9c"
+      },
+      "terminal.json": {
+        "text": "{\n  \"eval_exit_code\": 0,\n  \"label\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\",\n  \"no_automatic_next_job\": true,\n  \"status\": \"COMPLETE_PENDING_INDEPENDENT_REVIEW\",\n  \"submission_authorized\": false,\n  \"utc\": \"2026-09-25T22:40:14.201542+00:00\"\n}\n",
+        "bytes": 244,
+        "sha256": "7656b394b542298d219718d905ad982122f299960a9181a452ca09f2abb10c71"
+      },
+      "run-exit-code.txt": {
+        "text": "0\n",
+        "bytes": 2,
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      "outer-flock-exit.json": {
+        "text": "{\n  \"command\": [\n    \"/usr/bin/flock\",\n    \"-n\",\n    \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"/usr/bin/python3\",\n    \"-I\",\n    \"-B\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/host_driver.py\"\n  ],\n  \"driver_terminal_exists\": true,\n  \"ended_utc\": \"2026-09-25T22:40:14.207336+00:00\",\n  \"returncode\": 0,\n  \"started_utc\": \"2026-09-25T21:45:12.485097+00:00\",\n  \"status\": \"OUTER_COMMAND_EXITED\",\n  \"under_lock_receipt_exists\": true\n}\n",
+        "bytes": 535,
+        "sha256": "8cb6a2492f91437fadb23711b85a993c3ebdce72f8655c0951b49db820ce04fc"
+      },
+      "outer-flock.log": {
+        "text": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "dispatch.log": {
+        "text": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "train/rehearsal.json": {
+        "bytes": 280884,
+        "sha256": "0f3b861ec514ab98dd21447ccc41ecf4fcb4dc54f169acce215217ea8b44f244",
+        "summary": {
+          "returncode": 0,
+          "wall_seconds": 2597.3018926839577,
+          "step_boundaries": 3629,
+          "mode": "train",
+          "fresh_empty_sdk_caches": {},
+          "startup_allowance_observed": 807.8952129699755,
+          "charged_through_process_exit": 1789.4066797139822,
+          "checkpoint_bytes": 453048594,
+          "checkpoint_sha256": "4fc42f95dd6f597bb1b1f1c3854464a3db2088f1a5d151063d0dd28dd3356f26",
+          "charged_through_process_exit_within_budget": true
+        },
+        "observations_count": 3629,
+        "first_five": [
+          {
+            "step": 0,
+            "observed_seconds": 805.6362493180204
+          },
+          {
+            "step": 1,
+            "observed_seconds": 806.4396540669259
+          },
+          {
+            "step": 2,
+            "observed_seconds": 806.8911463769618
+          },
+          {
+            "step": 3,
+            "observed_seconds": 807.3926873909077
+          },
+          {
+            "step": 4,
+            "observed_seconds": 807.8952129699755
+          }
+        ],
+        "last_five": [
+          {
+            "step": 3624,
+            "observed_seconds": 2590.7529578829417
+          },
+          {
+            "step": 3625,
+            "observed_seconds": 2591.2558864519233
+          },
+          {
+            "step": 3626,
+            "observed_seconds": 2591.7600336449686
+          },
+          {
+            "step": 3627,
+            "observed_seconds": 2592.2630204400048
+          },
+          {
+            "step": 3628,
+            "observed_seconds": 2592.715412048972
+          }
+        ],
+        "complete_receipt_remains_remote": true
+      },
+      "checkpoint.json": {
+        "text": "{\n  \"bytes\": 453048594,\n  \"sha256\": \"4fc42f95dd6f597bb1b1f1c3854464a3db2088f1a5d151063d0dd28dd3356f26\",\n  \"utc\": \"2026-09-25T22:28:32.634202+00:00\"\n}\n",
+        "bytes": 150,
+        "sha256": "7b323728f0219f449f19bbe6c5972708f56702e5cf93b763727ea72984ca1103"
+      },
+      "eval-under-lock-idle.json": {
+        "text": "{\n  \"ended_utc\": \"2026-09-25T22:28:32.699663+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3151669,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3151668,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3151669,\n      3151668\n    ],\n    \"returncode\": 0,\n    \"row_count\": 253,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"96b6dd24e42af46e643057531bdf311102f90d735e70ce3a8c498e8ae0cfc9c9\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-25T22:28:32.637947+00:00\",\n  \"status\": \"PASS\"\n}\n",
+        "bytes": 1418,
+        "sha256": "08c55d9128093e3411039d2ae05bd9b26ba4943852d55acc5905e43f0e7abccb"
+      },
+      "fresh-public20m-launch.json": {
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"1800s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/eval\",\n    \"--mode\",\n    \"eval\",\n    \"--checkpoint\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/train/out/final.pt\",\n    \"--eval-tokens\",\n    \"20971520\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/compiler\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/inductor\",\n    \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/debug\",\n    \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/hlo\",\n    \"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/neff\",\n    \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval/local\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-arch3e79-lr012-trn22-r1-full\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c\",\n  \"utc\": \"2026-09-25T22:28:32.699889+00:00\"\n}\n",
+        "bytes": 3016,
+        "sha256": "277e660a6f465d48b475db999debae46be45562f36bee97d1fa872aefac7e230"
+      },
+      "eval-exit-code.txt": {
+        "text": "0\n",
+        "bytes": 2,
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      "eval/rehearsal.json": {
+        "text": "{\n  \"returncode\": 0,\n  \"wall_seconds\": 698.9054760469589,\n  \"step_boundaries\": 0,\n  \"mode\": \"eval\",\n  \"fresh_empty_sdk_caches\": {}\n}\n",
+        "bytes": 133,
+        "sha256": "55887b7dfe0459c52dd8efa9c550d10ae5174e379143a07c25b394dbb0a56d18"
+      }
+    },
+    "logs": {
+      "training.log": {
+        "bytes": 56127,
+        "sha256": "45303124f5659c501095d484cfab91c88b7c03404b077da55ff3b3a0a3d1dd1a",
+        "step_lines": [
+          "step 03550 | loss 2.7424 | lrm 0.088 | dt 0.49s | tok/s 267,969 | remaining_steps 996449 | remaining_time 54s | epoch 2",
+          "step 03560 | loss 2.7043 | lrm 0.085 | dt 0.49s | tok/s 266,367 | remaining_steps 996439 | remaining_time 49s | epoch 2",
+          "step 03570 | loss 2.6630 | lrm 0.081 | dt 0.49s | tok/s 266,898 | remaining_steps 996429 | remaining_time 44s | epoch 2",
+          "step 03580 | loss 2.7176 | lrm 0.078 | dt 0.49s | tok/s 267,330 | remaining_steps 996419 | remaining_time 39s | epoch 2",
+          "step 03590 | loss 2.6954 | lrm 0.074 | dt 0.49s | tok/s 266,398 | remaining_steps 996409 | remaining_time 34s | epoch 2",
+          "step 03600 | loss 2.6977 | lrm 0.071 | dt 0.49s | tok/s 265,961 | remaining_steps 996399 | remaining_time 29s | epoch 2",
+          "step 03610 | loss 2.6787 | lrm 0.067 | dt 0.49s | tok/s 268,423 | remaining_steps 996389 | remaining_time 24s | epoch 2",
+          "step 03620 | loss 2.6838 | lrm 0.064 | dt 0.49s | tok/s 269,210 | remaining_steps 996379 | remaining_time 19s | epoch 2"
+        ],
+        "tail": "remaining_steps 996759 | remaining_time 206s | epoch 2\nstep 03250 | loss 2.7891 | lrm 0.192 | dt 0.49s | tok/s 267,571 | remaining_steps 996749 | remaining_time 201s | epoch 2\nstep 03260 | loss 2.7650 | lrm 0.189 | dt 0.49s | tok/s 266,066 | remaining_steps 996739 | remaining_time 196s | epoch 2\nstep 03270 | loss 2.7526 | lrm 0.185 | dt 0.49s | tok/s 265,588 | remaining_steps 996729 | remaining_time 191s | epoch 2\nstep 03280 | loss 2.7257 | lrm 0.182 | dt 0.49s | tok/s 265,196 | remaining_steps 996719 | remaining_time 187s | epoch 2\nstep 03290 | loss 2.7036 | lrm 0.178 | dt 0.49s | tok/s 267,369 | remaining_steps 996709 | remaining_time 182s | epoch 2\nstep 03300 | loss 2.7221 | lrm 0.175 | dt 0.49s | tok/s 267,168 | remaining_steps 996699 | remaining_time 177s | epoch 2\nstep 03310 | loss 2.7060 | lrm 0.171 | dt 0.49s | tok/s 267,128 | remaining_steps 996689 | remaining_time 172s | epoch 2\nstep 03320 | loss 2.7606 | lrm 0.168 | dt 0.49s | tok/s 268,159 | remaining_steps 996679 | remaining_time 167s | epoch 2\nstep 03330 | loss 2.6796 | lrm 0.164 | dt 0.49s | tok/s 268,173 | remaining_steps 996669 | remaining_time 162s | epoch 2\nstep 03340 | loss 2.7327 | lrm 0.161 | dt 0.49s | tok/s 265,910 | remaining_steps 996659 | remaining_time 157s | epoch 2\nstep 03350 | loss 2.7367 | lrm 0.157 | dt 0.49s | tok/s 265,253 | remaining_steps 996649 | remaining_time 152s | epoch 2\nstep 03360 | loss 2.7524 | lrm 0.154 | dt 0.49s | tok/s 267,614 | remaining_steps 996639 | remaining_time 147s | epoch 2\nstep 03370 | loss 2.6991 | lrm 0.150 | dt 0.49s | tok/s 267,377 | remaining_steps 996629 | remaining_time 142s | epoch 2\nstep 03380 | loss 2.7292 | lrm 0.147 | dt 0.49s | tok/s 267,079 | remaining_steps 996619 | remaining_time 137s | epoch 2\nstep 03390 | loss 2.6945 | lrm 0.143 | dt 0.49s | tok/s 267,112 | remaining_steps 996609 | remaining_time 132s | epoch 2\nstep 03400 | loss 2.7121 | lrm 0.140 | dt 0.49s | tok/s 268,066 | remaining_steps 996599 | remaining_time 127s | epoch 2\nstep 03410 | loss 2.7264 | lrm 0.137 | dt 0.49s | tok/s 266,211 | remaining_steps 996589 | remaining_time 123s | epoch 2\nstep 03420 | loss 2.7342 | lrm 0.133 | dt 0.49s | tok/s 264,916 | remaining_steps 996579 | remaining_time 118s | epoch 2\nstep 03430 | loss 2.7398 | lrm 0.130 | dt 0.49s | tok/s 269,082 | remaining_steps 996569 | remaining_time 113s | epoch 2\nstep 03440 | loss 2.6903 | lrm 0.126 | dt 0.49s | tok/s 266,151 | remaining_steps 996559 | remaining_time 108s | epoch 2\nstep 03450 | loss 2.7262 | lrm 0.123 | dt 0.49s | tok/s 266,676 | remaining_steps 996549 | remaining_time 103s | epoch 2\nstep 03460 | loss 2.7636 | lrm 0.119 | dt 0.49s | tok/s 267,887 | remaining_steps 996539 | remaining_time 98s | epoch 2\nstep 03470 | loss 2.7648 | lrm 0.116 | dt 0.49s | tok/s 267,083 | remaining_steps 996529 | remaining_time 93s | epoch 2\nstep 03480 | loss 2.7544 | lrm 0.112 | dt 0.49s | tok/s 266,157 | remaining_steps 996519 | remaining_time 88s | epoch 2\nstep 03490 | loss 2.7428 | lrm 0.109 | dt 0.49s | tok/s 267,221 | remaining_steps 996509 | remaining_time 83s | epoch 2\nstep 03500 | loss 2.7235 | lrm 0.105 | dt 0.49s | tok/s 268,232 | remaining_steps 996499 | remaining_time 78s | epoch 2\nstep 03510 | loss 2.7625 | lrm 0.102 | dt 0.49s | tok/s 267,166 | remaining_steps 996489 | remaining_time 73s | epoch 2\nstep 03520 | loss 2.7837 | lrm 0.098 | dt 0.49s | tok/s 267,970 | remaining_steps 996479 | remaining_time 68s | epoch 2\nstep 03530 | loss 2.7418 | lrm 0.095 | dt 0.49s | tok/s 267,276 | remaining_steps 996469 | remaining_time 63s | epoch 2\nstep 03540 | loss 2.6862 | lrm 0.092 | dt 0.49s | tok/s 267,308 | remaining_steps 996459 | remaining_time 59s | epoch 2\nstep 03550 | loss 2.7424 | lrm 0.088 | dt 0.49s | tok/s 267,969 | remaining_steps 996449 | remaining_time 54s | epoch 2\nstep 03560 | loss 2.7043 | lrm 0.085 | dt 0.49s | tok/s 266,367 | remaining_steps 996439 | remaining_time 49s | epoch 2\nstep 03570 | loss 2.6630 | lrm 0.081 | dt 0.49s | tok/s 266,898 | remaining_steps 996429 | remaining_time 44s | epoch 2\nstep 03580 | loss 2.7176 | lrm 0.078 | dt 0.49s | tok/s 267,330 | remaining_steps 996419 | remaining_time 39s | epoch 2\nstep 03590 | loss 2.6954 | lrm 0.074 | dt 0.49s | tok/s 266,398 | remaining_steps 996409 | remaining_time 34s | epoch 2\nstep 03600 | loss 2.6977 | lrm 0.071 | dt 0.49s | tok/s 265,961 | remaining_steps 996399 | remaining_time 29s | epoch 2\nstep 03610 | loss 2.6787 | lrm 0.067 | dt 0.49s | tok/s 268,423 | remaining_steps 996389 | remaining_time 24s | epoch 2\nstep 03620 | loss 2.6838 | lrm 0.064 | dt 0.49s | tok/s 269,210 | remaining_steps 996379 | remaining_time 19s | epoch 2\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\n---\ncheckpoint_path:    out/final.pt\ntraining_seconds:  1784.9\nbudget_seconds:    1800\ntarget_steps:      1000000\nmax_train_seconds: 1800\nstartup_allowance_est: 805.6\ncharged_seconds_est:   1785.2\nover_budget:       False\ntotal_seconds:     2569.9\ncompiled:          True\nnki_relu2:         False\nnki_rope_norm:     True\nnki_softcap_ce:    True\ntransposed_linear: False\nnki_muon:          False\ncompile_muon:      True\nmuon_lr_fp32:      False\nngram_ve:          False tables=0 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False\nout_bigram:        False bf16=True gate_bias=-2.0 lr=0.0\noneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234\nengram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True\nbatch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1\nweight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0\nsched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95\nnum_steps:         3629\ntotal_tokens_M:    475.7\nworld_size:        4\nlnc:               2\nseq_len:           1024\nnum_params_M:      113.3\nSUBMISSION_REHEARSAL {\"returncode\": 0, \"wall_seconds\": 2597.3018926839577, \"step_boundaries\": 3629, \"mode\": \"train\", \"fresh_empty_sdk_caches\": {}, \"startup_allowance_observed\": 807.8952129699755, \"charged_through_process_exit\": 1789.4066797139822, \"checkpoint_bytes\": 453048594, \"checkpoint_sha256\": \"4fc42f95dd6f597bb1b1f1c3854464a3db2088f1a5d151063d0dd28dd3356f26\", \"charged_through_process_exit_within_budget\": true}\nTRAINING_END_UTC=2026-09-25T22:28:32.631553+00:00\n"
+      },
+      "fresh-public20m.log": {
+        "bytes": 3113,
+        "sha256": "0ba46357b9eb6378bb6fc2ef66784798afa8cf8215fa72f85cf589de9197dec9",
+        "step_lines": [],
+        "tail": "FRESH-PUBLIC20M_START_UTC=2026-09-25T22:28:32.699994+00:00\nISOLATED_SUBMISSION {\"mode\": \"eval\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/eval\", \"files\": [\"prepare.py\", \"train.py\"], \"train_sha256\": \"3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh\", \"fresh_empty_sdk_caches\": {}}\n[W925 22:28:34.901851480 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"/home/ubuntu/workspace/native_venv/bin/python\", \"prepare.py\", \"eval-public\", \"--train-py\", \"train.py\", \"--checkpoint\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-lr012-trn22-r1-full-packet/train/out/final.pt\", \"--device\", \"neuron\", \"--batch-size\", \"1\", \"--seq-len\", \"1024\", \"--eval-tokens\", \"20971520\", \"--timeout-seconds\", \"1200\"]\n[W925 22:28:37.463408486 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nNeuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.\n{\n  \"eval_over_timeout\": false,\n  \"eval_seconds\": 685.9513738000533,\n  \"eval_timeout\": 1200,\n  \"num_bytes\": 83462186,\n  \"num_tokens\": 20971520,\n  \"total_nats\": 57178204.0,\n  \"val_bpb\": 0.9883603019664198\n}\nSUBMISSION_REHEARSAL {\"returncode\": 0, \"wall_seconds\": 698.9054760469589, \"step_boundaries\": 0, \"mode\": \"eval\", \"fresh_empty_sdk_caches\": {}}\nFRESH-PUBLIC20M_END_UTC=2026-09-25T22:40:14.201351+00:00\n"
+      }
+    },
+    "inventory": [],
+    "neuron_ls_rc": 0,
+    "neuron_ls": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+    "neuron_ls_stderr": "",
+    "ps_rc": 0,
+    "job_lines": [],
+    "lock_competitor_rc": 0
+  },
+  "stderr": ""
+}
