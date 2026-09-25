@@ -37,7 +37,9 @@ assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
 source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
                 'research/fresh_start_host.py', 'research/fresh_start_guard.py',
                 'research/fresh_start_launch.py', 'research/fresh_start_backup.py',
-                'research/fresh_start_monitor_interlock.py']
+                'research/fresh_start_monitor_interlock.py',
+                'research/v2/disk-monitor/root_free_guard_monitor.py',
+                'research/v2/disk-monitor/paired_root_free_guard_monitor.py']
 dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
 new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
 assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
