@@ -6,4 +6,4 @@ Checkpoint remains on host:453048658bytes, SHAdc56b0b18487d644ddcdb2add32bd234e3
 
 This passes the measured startup ceiling only, pending independent authentication. No full run, BPB, parent-architecture adoption, eval or submission follows automatically. Parent architecture failed confirmation. The five printed losses and elapsed-based learning rates are retained without claiming numerical training identity.
 
-`results-bundle.json` preserves13 exact small remote files as UTF-8 text, size and SHA, plus postflight. No cache tree was copied or modified.
+`results-bundle.json` preserves12 exact small remote files as UTF-8 text, size and SHA, plus postflight. No cache tree was copied or modified.
