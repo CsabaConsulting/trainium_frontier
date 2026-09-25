@@ -200,9 +200,15 @@ class PairedGuardMonitor(base.GuardMonitor):
                     or info.st_uid != self.binding["expected_uid"]
                     or info.st_mode & 0o077 or info.st_size > 16384):
                 raise base.MonitorError("no-spawn receipt owner/type/mode invalid")
-            receipt = json.loads(os.read(fd, 16385))
+            raw = os.read(fd, 16385)
         finally:
             os.close(fd)
+        if len(raw) != info.st_size or not raw.endswith(b"\n"):
+            return False  # Writer has not finished its exclusive fsynced receipt.
+        try:
+            receipt = json.loads(raw)
+        except json.JSONDecodeError:
+            return False  # A concurrent write is not accepted as an abort proof.
         if (receipt.get("schema") != "paired-monitor-no-spawn-v1"
                 or receipt.get("status") != "NO_GUARD_SPAWNED"
                 or receipt.get("label") != self.label

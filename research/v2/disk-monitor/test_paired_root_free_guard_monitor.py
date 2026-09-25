@@ -238,6 +238,15 @@ class PairMonitorTest(unittest.TestCase):
         self.assertEqual(self.monitor.fail_closed(base.MonitorError("peer died")), 3)
         self.assertEqual(self.system.signals, [])
 
+    def test_incomplete_no_spawn_receipt_is_not_abort_proof(self):
+        self.bind_peer()
+        path = Path(self.pair["no_spawn_path"])
+        path.write_text('{"schema":"paired-monitor-no-spawn-v1"')
+        path.chmod(0o600)
+        self.system.files[path] = {}
+        self.assertFalse(self.monitor._no_spawn_receipt())
+        self.assertEqual(self.system.signals, [])
+
     def test_missing_process_and_no_abort_receipt_is_hold_not_signal(self):
         self.bind_peer()
         def fail_sleep(_seconds):
