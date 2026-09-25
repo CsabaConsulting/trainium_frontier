@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:56 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:58 UTC (26 September IST)
 
 ## Current: both hosts active; submission qualification separate
 
@@ -26,13 +26,23 @@ clean3f5035 were not changed. Raw reduced G2 receipts40e8b573 show default/OFF
 identity and finite intentionally different ON updates; not full-size evidence.
 Fresh input-only independent review actually started21:55:27.178088UTC,
 manifest75a0dbd970b2397c8ad7e75ad564cf1deb28f1a1eed5e4a51e0a288d952895dd.
-Its verdict is pending. FullCPUcff1dafe was bound totrn22; Implementer is making
-a distinct disabled trn21 rebind for that host's next free slot. Never dispatch
-the original to the wrong host. No source/native/adoption gate is waived.
+Its verdict is pending. Technical source/reduced audit3206a41b passed2835checks
+normal/-O, replayed by Supervisor; this is not the fresh review result.
+FullCPUcff1dafe was bound totrn22; distinct disabled trn21 successor9cb0d53e
+is now under independent mechanical review for that host's next free slot.
+Never dispatch the original to the wrong host. No gate is waived.
 Pending packets are not six ready queued jobs and must not be presented as such.
 Genuine architecture kind=control fallback packets are being prepared, because
 the original winner is an architecture_arm on c5c in the immutable ledger.
 Do not duplicate/relabel it or invent selector eligibility for later LR arms.
+
+Bounded read-only cache evidence0e783999 proves the nominally warm successful
+architecture full run recompiled its two principal graphs (202.390/477.604s)
+under changed graph keys despite shared cache roots and equal node counts.
+Exact full backward MLIR SHA equals its key and includes a unique source path.
+Missing matched cold MLIR means pathname churn is a hypothesis, not a proven
+sole cause or fixed reuse. Stable-path repeat testing is DESIGN ONLY; no job
+or compiler-input/cache edit is authorized by the note.
 
 A separate REVIEW-ONLY copy now exists in
 `/home/poojith-devan/Downloads/Trainium-architecture-REVIEW-ONLY-3f5035/`.
