@@ -23,6 +23,7 @@ import sys
 import time
 
 SOURCE_SHA = "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
+SCHEDULE_SHA = "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67"
 PREPARE_SHA = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
 CACHE_KEYS = {
     "TORCH_NEURONX_NEFF_CACHE_DIR": "neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "local",
@@ -30,6 +31,7 @@ CACHE_KEYS = {
     "NEURON_COMPILE_CACHE_DIR": "compiler", "TORCH_NEURONX_DEBUG_DIR": "debug",
 }
 LABEL_RE = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,159}\Z")
+SHA_RE = re.compile(r"[a-f0-9]{64}\Z")
 
 
 def utc():
@@ -107,26 +109,60 @@ def validate_manifest(cfg, run=False):
     require(cfg.get("stop_paths"), "STOP_PATHS_REQUIRED")
     for path in cfg["stop_paths"]:
         absolute(path)
-    require(isinstance(cfg.get("jobs"), list) and cfg["jobs"], "EMPTY_QUEUE")
+    if cfg.get("resolution_inbox"):
+        absolute(cfg["resolution_inbox"])
+    require(isinstance(cfg.get("jobs"), list) and (cfg["jobs"] or cfg.get("resolution_inbox")), "EMPTY_QUEUE")
+    for digest, entry in cfg.get("approved_sources", {}).items():
+        require(digest in (SOURCE_SHA, SCHEDULE_SHA), "UNAPPROVED_SOURCE: " + digest)
+        absolute(entry["path"])
     seen = set()
     for job in cfg["jobs"]:
         label, argv = job["label"], job["argv"]
         require(LABEL_RE.fullmatch(label) and label not in seen, "DUPLICATE_OR_BAD_LABEL")
         seen.add(label)
         require(job.get("readiness") == "READY_PENDING_HOST_PREFLIGHT", "JOB_NOT_READY")
-        require(job.get("base_sha256") == SOURCE_SHA, "JOB_BASE_PIN")
+        require(SHA_RE.fullmatch(job.get("base_sha256", "")), "JOB_BASE_ID")
+        digest = job.get("source_sha256", SOURCE_SHA)
+        require(digest == SOURCE_SHA or digest in cfg.get("approved_sources", {}), "UNAPPROVED_JOB_SOURCE")
         require(isinstance(argv, list) and all(isinstance(x, str) and "\0" not in x for x in argv), "ARGV_TYPE")
         require("--no-eval-public" in argv and "--eval-public" not in argv, "FRESH_EVAL_REQUIRED")
         for flag, value in (("--seed", "42"), ("--max-train-seconds", "1800"),
                             ("--num-steps", "1000000"), ("--out-dir", "out"), ("--seq-len", "1024")):
             require(flag_value(argv, flag) == value, "PINNED_FLAG: " + flag)
         require(job.get("same_host_control", {}).get("run_label"), "SAME_HOST_CONTROL_REQUIRED")
+        control_base = job["same_host_control"].get("base_sha256")
+        require(control_base is None or control_base == job["base_sha256"], "CONTROL_BASE_MISMATCH")
         require(isinstance(job.get("base_science_argv"), list) and job["base_science_argv"], "BASE_ARGV_REQUIRED")
         absolute(job["proposal"]["path"])
     if run:
         require(cfg.get("armed") is True, "QUEUE_UNARMED")
         require(all(job.get("armed") is True for job in cfg["jobs"]), "JOB_UNARMED")
     return cfg
+
+
+def source_for_job(cfg, job):
+    digest = job.get("source_sha256", SOURCE_SHA)
+    require(digest in (SOURCE_SHA, SCHEDULE_SHA), "UNAPPROVED_JOB_SOURCE")
+    entry = cfg.get("approved_sources", {}).get(digest)
+    if digest == SOURCE_SHA and entry is None:
+        entry = cfg["source"]
+    require(entry is not None, "MISSING_SOURCE_REGISTRY_ENTRY")
+    spec = {"path": entry["path"], "sha256": digest}
+    checked_file(spec)
+    if digest != SOURCE_SHA:
+        gates = entry.get("gates", {})
+        for name in ("diff_review", "flag_off_identity", "cpu_g2"):
+            receipts = gates.get(name)
+            receipts = receipts if isinstance(receipts, list) else [receipts]
+            matched = False
+            for receipt in receipts:
+                require(isinstance(receipt, dict) and receipt.get("passed") is True
+                        and receipt.get("source_sha256") == digest, "SOURCE_GATE_MISSING: " + name)
+                checked_file(receipt)
+                if name != "cpu_g2" or receipt.get("argv") == job["argv"]:
+                    matched = True
+            require(matched, "NO_EXACT_ARGV_SOURCE_GATE: " + name)
+    return spec
 
 
 def active_jobs():
@@ -197,6 +233,8 @@ class QueueRunner:
         self.cfg, self.manifest_sha = cfg, manifest_sha
         self.root = Path(cfg["run_root"])
         self.lock = None
+        self.bootstrap = cfg
+        self.source = cfg["source"]
 
     def guards(self, *, starting=False):
         require(socket.gethostname() == self.cfg["expected_hostname"], "HOSTNAME_MISMATCH")
@@ -206,7 +244,7 @@ class QueueRunner:
             require(not os.path.lexists(value), "STOP: " + value)
         require(not os.path.lexists(self.root / "STOP"), "QUEUE_STOP")
         require(shutil.disk_usage(self.root).free >= 6.5 * 1024**3, "DISK_BELOW_6_5_GIB")
-        checked_file(self.cfg["source"])
+        checked_file(self.source)
         checked_file(self.cfg["prepare"])
 
     def wait_idle(self, max_wait=None, *, starting=False):
@@ -267,6 +305,8 @@ class QueueRunner:
         append_json(ledger, record)
 
     def execute(self, job):
+        self.source = source_for_job(self.cfg, job)
+        source_sha = self.source["sha256"]
         directory = self.root / job["label"]
         digest = fingerprint(job)
         if (directory / "terminal.json").exists():
@@ -285,38 +325,41 @@ class QueueRunner:
         self.wait_idle(starting=True)
         proposal = json.loads(checked_file(job["proposal"]).read_text())
         binding = {k: job[k] for k in ("label", "argv", "kind", "arm_id", "base_sha256")}
-        binding.update(host=self.cfg["host"], source_sha256=SOURCE_SHA)
+        binding.update(host=self.cfg["host"], source_sha256=source_sha)
         require(proposal.get("queue_binding") == binding, "PROPOSAL_DOES_NOT_BIND_EXACT_JOB")
         require(proposal.get("status") == "READY_PENDING_HOST_PREFLIGHT", "PROPOSAL_NOT_READY")
         directory.mkdir()
         record = {"label": job["label"], "host": self.cfg["host"], "job_sha256": digest, "manifest_sha256": self.manifest_sha,
-                  "train_py_sha256": SOURCE_SHA, "prepare_sha256": PREPARE_SHA, "proposal_sha256": job["proposal"]["sha256"],
+                  "train_py_sha256": source_sha, "prepare_sha256": PREPARE_SHA, "proposal_sha256": job["proposal"]["sha256"],
                   "arm_id": job["arm_id"], "kind": job["kind"], "base_sha256": job["base_sha256"], "argv": job["argv"],
                   "base_science_argv": job["base_science_argv"], "base_argv_sha256": fingerprint(job["base_science_argv"]),
                   "same_host_control": job["same_host_control"],
                   "started_utc": utc(), "review_required": True}
         exclusive_json(directory / "attempt.started.json", record)
         try:
-            shutil.copyfile(self.cfg["source"]["path"], directory / "train.py")
-            require(sha(directory / "train.py") == SOURCE_SHA, "STAGED_SOURCE_MISMATCH")
+            shutil.copyfile(self.source["path"], directory / "train.py")
+            require(sha(directory / "train.py") == source_sha, "STAGED_SOURCE_MISMATCH")
             exclusive_json(directory / "proposal.json", proposal)
             commands = self.commands(job, directory)
             self.guards(starting=True)
             exclusive_json(directory / "preflight.json", {"utc": utc(), "disk_free_bytes": shutil.disk_usage(self.root).free,
-                           "train_sha256": SOURCE_SHA, "prepare_sha256": PREPARE_SHA, "idle": True, "device_lock_held": True})
+                           "train_sha256": source_sha, "prepare_sha256": PREPARE_SHA, "idle": True, "device_lock_held": True})
             self.phase(job, directory, "training", commands["training"], self.environment(job, directory, self.cfg["train_cache"]))
             metrics = training_metrics(directory / "training.log")
             require((directory / "out/final.pt").is_file(), "MISSING_CHECKPOINT")
             checkpoint_sha = sha(directory / "out/final.pt")
             self.guards()
-            require(sha(directory / "train.py") == SOURCE_SHA, "SOURCE_CHANGED_DURING_TRAINING")
+            require(sha(directory / "train.py") == source_sha, "SOURCE_CHANGED_DURING_TRAINING")
             self.phase(job, directory, "fresh-public20m", commands["fresh-public20m"], self.environment(job, directory, self.cfg["eval_cache"]))
-            require(sha(directory / "train.py") == SOURCE_SHA, "SOURCE_CHANGED_DURING_EVAL")
+            require(sha(directory / "train.py") == source_sha, "SOURCE_CHANGED_DURING_EVAL")
             require(sha(directory / "out/final.pt") == checkpoint_sha, "CHECKPOINT_CHANGED_DURING_EVAL")
             result = evaluation_metrics(directory / "fresh-public20m.log")
             record.update(status="evaluated_pending_review", metrics=metrics, evaluation=result, checkpoint_sha256=checkpoint_sha,
                           checkpoint_uri=str(directory / "out/final.pt"), public_20m=result["val_bpb"], steps=metrics["num_steps"],
                           eval_tokens=20971520, eval_seq_len=1024, utc=utc())
+            for key in ("throughput_exempt", "training_budget_seconds"):
+                if key in job:
+                    record[key] = job[key]
             self.record_terminal(directory, record)
         except Exception as error:
             record.update(status="failed", error=str(error), utc=utc())
@@ -324,9 +367,71 @@ class QueueRunner:
                 self.record_terminal(directory, record)
             raise
 
+    def read_resolution(self):
+        """Controller atomically publishes a pointer; no decision is made on this host."""
+        inbox = Path(self.bootstrap["resolution_inbox"])
+        if not inbox.exists():
+            return None
+        pointer = json.loads(inbox.read_text())
+        if pointer.get("hold") is True:
+            return None
+        path = checked_file({"path": pointer["manifest_path"], "sha256": pointer["manifest_sha256"]})
+        cfg = validate_manifest(json.loads(path.read_text()), run=True)
+        for key in ("host", "expected_hostname", "prepare", "python", "torchrun", "train_cache", "eval_cache",
+                    "run_root", "device_lock", "stop_paths", "freeze_utc", "source", "resolution_inbox"):
+            require(cfg.get(key) == self.bootstrap.get(key), "RESOLUTION_CHANGED_HOST_CONTRACT: " + key)
+        return cfg, pointer["manifest_sha256"]
+
+    def run_resolved(self):
+        last_resolution_sha = None
+        append_json(self.root / "queue-events.jsonl", {"utc": utc(), "status": "waiting_resolution",
+                    "inbox": self.bootstrap["resolution_inbox"], "bootstrap_sha256": self.manifest_sha})
+        while True:
+            self.guards(starting=True)
+            if (self.root / "PAUSE_NEXT").exists():
+                return "paused_between_jobs"
+            resolution = self.read_resolution()
+            if resolution is None:
+                time.sleep(5)
+                continue
+            self.cfg, self.manifest_sha = resolution
+            if self.manifest_sha != last_resolution_sha:
+                append_json(self.root / "queue-events.jsonl", {"utc": utc(), "status": "resolution_loaded",
+                            "manifest_sha256": self.manifest_sha, "labels": [job["label"] for job in self.cfg["jobs"]]})
+                last_resolution_sha = self.manifest_sha
+            # Completed labels remain immutable; a failed/partial label stops normally.
+            pending = []
+            for job in self.cfg["jobs"]:
+                terminal = self.root / job["label"] / "terminal.json"
+                if terminal.exists():
+                    record = json.loads(terminal.read_text())
+                    require(record["job_sha256"] == fingerprint(job), "CONSUMED_LABEL_CHANGED")
+                    self.record_once(record)
+                    require(record["status"] == "evaluated_pending_review", "PREVIOUS_JOB_FAILED: " + job["label"])
+                else:
+                    pending.append(job)
+            if not pending:
+                time.sleep(5)
+                continue
+            with open(self.cfg["device_lock"], "a") as self.lock:
+                try:
+                    fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    time.sleep(5)
+                    continue
+                # A result may have cancelled this tail while the existing run held the lock.
+                latest = self.read_resolution()
+                if latest is None or latest[1] != self.manifest_sha:
+                    continue
+                if (self.root / "PAUSE_NEXT").exists():
+                    return "paused_between_jobs"
+                self.execute(pending[0])
+
     def run(self):
         self.root.mkdir(parents=True, exist_ok=True)
         require(not self.root.is_symlink(), "RUN_ROOT_SYMLINK")
+        if self.cfg.get("resolution_inbox"):
+            return self.run_resolved()
         # The live manual A1/A2 drivers use this same lock over train AND eval.
         with open(self.cfg["device_lock"], "a") as self.lock:
             while True:
@@ -359,11 +464,11 @@ def main():
     runner = QueueRunner(cfg, args.manifest_sha256)
     try:
         status = runner.run()
-        append_json(runner.root / "queue-events.jsonl", {"utc": utc(), "status": status, "manifest_sha256": args.manifest_sha256})
+        append_json(runner.root / "queue-events.jsonl", {"utc": utc(), "status": status, "manifest_sha256": runner.manifest_sha})
         print(status, flush=True)
         return 0
     except Exception as error:
-        event = {"utc": utc(), "status": "queue_stopped", "error": str(error), "manifest_sha256": args.manifest_sha256}
+        event = {"utc": utc(), "status": "queue_stopped", "error": str(error), "manifest_sha256": runner.manifest_sha}
         if runner.root.is_dir():
             append_json(runner.root / "queue-events.jsonl", event)
         print(json.dumps(event), flush=True)

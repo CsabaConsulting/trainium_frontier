@@ -1,4 +1,5 @@
 """Local fake-process tests. No host contact, Neuron access, or model execution."""
+import copy
 import fcntl
 import json
 import multiprocessing
@@ -156,6 +157,116 @@ class QueueTests(unittest.TestCase):
         self.assertTrue((runner.root / "job-1/fresh-public20m-exit.json").exists())
         self.assertEqual(self.terminal("job-1")["status"], "evaluated_pending_review")
         self.assertFalse((runner.root / "job-2").exists())
+
+    def test_unapproved_or_hash_changed_per_job_source_is_rejected(self):
+        self.cfg["jobs"][0]["source_sha256"] = "b" * 64
+        with self.assertRaisesRegex(RuntimeError, "UNAPPROVED_JOB_SOURCE"):
+            self.runner()
+        candidate = self.root / "schedule.py"
+        candidate.write_text("# fake reviewed schedule source\n")
+        digest = q.sha(candidate)
+        with patch.object(q, "SCHEDULE_SHA", digest):
+            self.cfg["jobs"][0]["source_sha256"] = digest
+            self.cfg["approved_sources"] = {digest: {"path": str(candidate), "gates": {}}}
+            with self.assertRaisesRegex(RuntimeError, "SOURCE_GATE_MISSING"):
+                self.runner().run()
+            candidate.write_text("changed\n")
+            with self.assertRaisesRegex(RuntimeError, "HASH_MISMATCH"):
+                self.runner().run()
+
+    def test_approved_schedule_source_gates_and_composite_control_base(self):
+        candidate = self.root / "schedule.py"
+        candidate.write_text("# fake reviewed schedule source\n")
+        digest, job = q.sha(candidate), self.cfg["jobs"][0]
+        self.cfg["jobs"] = [job]
+        job.update(source_sha256=digest, base_sha256="b" * 64)
+        job["same_host_control"]["base_sha256"] = "b" * 64
+        proposal_path = Path(job["proposal"]["path"])
+        proposal = json.loads(proposal_path.read_text())
+        proposal["queue_binding"].update(source_sha256=digest, base_sha256=job["base_sha256"])
+        proposal_path.write_text(json.dumps(proposal))
+        job["proposal"]["sha256"] = q.sha(proposal_path)
+        gates = {}
+        for name in ("diff_review", "flag_off_identity", "cpu_g2"):
+            receipt = self.root / (name + ".json")
+            receipt.write_text(json.dumps({"passed": True, "source_sha256": digest}))
+            gates[name] = {"path": str(receipt), "sha256": q.sha(receipt), "passed": True, "source_sha256": digest}
+        gates["cpu_g2"]["argv"] = job["argv"]
+        self.cfg["approved_sources"] = {digest: {"path": str(candidate), "gates": gates}}
+        with patch.object(q, "SCHEDULE_SHA", digest):
+            gates["cpu_g2"]["argv"] = ["wrong-profile"]
+            with self.assertRaisesRegex(RuntimeError, "NO_EXACT_ARGV_SOURCE_GATE"):
+                self.runner().run()
+            gates["cpu_g2"]["argv"] = job["argv"]
+            self.assertEqual(self.runner().run(), "queue_complete")
+        self.assertEqual(self.terminal("job-1")["train_py_sha256"], digest)
+        self.assertEqual(self.terminal("job-1")["base_sha256"], "b" * 64)
+
+    def publish_resolution(self, cfg, name):
+        manifest = self.root / (name + ".json")
+        manifest.write_text(json.dumps(cfg))
+        inbox = Path(self.cfg["resolution_inbox"])
+        temporary = inbox.with_suffix(".incoming")
+        temporary.write_text(json.dumps({"manifest_path": str(manifest), "manifest_sha256": q.sha(manifest)}))
+        temporary.replace(inbox)
+
+    def wait_for_path(self, path):
+        deadline = time.monotonic() + 8
+        while not path.exists() and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertTrue(path.exists(), str(path))
+
+    def test_waits_for_resolution_without_holding_device_or_running_old_flags(self):
+        self.cfg["resolution_inbox"] = str(self.root / "resolution.json")
+        resolved = copy.deepcopy(self.cfg)
+        resolved["jobs"] = resolved["jobs"][:1]
+        self.cfg["jobs"] = []
+        runner = self.runner()
+        process = multiprocessing.get_context("fork").Process(target=runner.run)
+        process.start()
+        try:
+            self.wait_for_path(runner.root / "queue-events.jsonl")
+            self.assertFalse((runner.root / "job-1").exists())
+            with open(self.cfg["device_lock"], "a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(lock, fcntl.LOCK_UN)
+            self.publish_resolution(resolved, "resolved")
+            self.wait_for_path(runner.root / "job-1/terminal.json")
+            (runner.root / "PAUSE_NEXT").touch()
+            process.join(timeout=8)
+            self.assertEqual(process.exitcode, 0)
+            self.assertFalse((runner.root / "job-2").exists())
+        finally:
+            if process.is_alive():
+                process.terminate()
+                process.join(timeout=5)
+
+    def test_replaced_resolution_cancels_old_flag_bank_before_lock_release(self):
+        self.cfg["resolution_inbox"] = str(self.root / "resolution.json")
+        old, replacement = copy.deepcopy(self.cfg), copy.deepcopy(self.cfg)
+        old["jobs"] = old["jobs"][:1]
+        replacement["jobs"] = replacement["jobs"][1:]
+        self.cfg["jobs"] = []
+        self.publish_resolution(old, "old-flag-bank")
+        runner = self.runner()
+        with open(self.cfg["device_lock"], "a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            process = multiprocessing.get_context("fork").Process(target=runner.run)
+            process.start()
+            try:
+                self.wait_for_path(runner.root / "queue-events.jsonl")
+                self.assertFalse((runner.root / "job-1").exists())
+                self.publish_resolution(replacement, "table-resolution")
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                self.wait_for_path(runner.root / "job-2/terminal.json")
+                (runner.root / "PAUSE_NEXT").touch()
+                process.join(timeout=8)
+                self.assertEqual(process.exitcode, 0)
+                self.assertFalse((runner.root / "job-1").exists())
+            finally:
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
 
     def test_killed_driver_never_relaunches_or_overlaps_surviving_phase(self):
         self.cfg["fake_sleep"] = 0.5

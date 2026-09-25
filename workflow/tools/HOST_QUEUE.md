@@ -7,7 +7,9 @@ and fresh-process public-20M/context-1024 `prepare.py eval-public` command.
 It does not use the inactive autoloop or the newer `run_job.py` staging path.
 
 Only an Operator installs/starts it after independent code review. It supports
-the already-verified c5c source only. Model/evaluator bytes are never edited;
+the already-verified c5c source and the exact f9b6a9cb schedule candidate only
+when its independent review, exact-argv production CPU G2 and flag-off identity
+receipts pass and are pinned in the source registry. Model/evaluator bytes are never edited;
 the model is copied to a new per-label directory and hash-checked. All proposal
 files must be staged as regular files and each binds the exact host/label/argv.
 
@@ -39,6 +41,14 @@ never shell-evaluated. Use explicit `--seed 42 --max-train-seconds 1800
 --num-steps 1000000 --out-dir out --seq-len 1024 --no-eval-public`. The runner
 does not append or alter flags. No arbitrary environment/command override is
 accepted. The supplied manifest SHA pins all remaining flag values and paths.
+
+Each job may specify `source_sha256` independently of `base_sha256`. The latter
+is the comparison/control identity, which may be a composite SHA over the
+source plus baseline argv when a winning table profile becomes the base.
+If `same_host_control.base_sha256` is supplied, it must match that base ID.
+This prevents comparing a table-base follow-up to unrelated dense controls.
+Table records may carry the authorized `throughput_exempt: true` and
+`training_budget_seconds: 1800` metadata; the host never computes a verdict.
 
 Operator validates then starts detached, with the actual manifest SHA:
 
@@ -82,3 +92,53 @@ They exercise fake sequential training/eval, durable duplicate prevention,
 failed training, incomplete evaluation, changed bytes/STOP, proposal mismatch,
 pause-before-launch, and a real SIGKILL of the parent with a surviving phase
 that holds the lock. They require no host or Neuron access.
+
+## Install before the table decision, then resolve from the controller
+
+Add `resolution_inbox: /absolute/next-resolution.json` to the bootstrap
+manifest, use `jobs: []`, and set `armed: true`. This starts an idle detached
+waiter which holds no device lock while waiting for the controller's choice.
+It cannot silently fall through to the old flag bank. The controller retrieves
+both table results, resolves the user-approved branch, then stages a new
+immutable complete manifest with the same host configuration and selected
+ready jobs. Publish its pointer by writing a temporary file then atomically
+renaming it to the inbox:
+
+```json
+{"manifest_path":"/absolute/resolved-v1.json","manifest_sha256":"FULL_SHA256"}
+```
+
+The digest is a content pin, not a cryptographic signature. Only the authorized
+controller/Operator writes the inbox. It can publish `{"hold":true}` or leave
+the inbox absent to stop new starts while another decision is pending. Each
+resolved manifest keeps the bootstrap's source, evaluator, host, paths, cache,
+STOP and freeze configuration unchanged. Jobs and the source registry may
+change. Replacement tails are checked before every new job and again after
+acquiring the shared device lock, so a table win can cancel old flag jobs even
+while the waiter is blocked behind A1/A2. A running job always completes its
+train/eval/receipt sequence before a replacement is considered. Completed or
+started labels remain consumed across every replacement.
+
+For schedule-source jobs, the resolved manifest needs this explicit registry:
+
+```
+approved_sources:
+  FULL_SOURCE_SHA:
+    path: /absolute/exact-schedule-train.py
+    gates:
+      diff_review: {path, sha256, source_sha256, passed: true}
+      flag_off_identity: {path, sha256, source_sha256, passed: true}
+      cpu_g2: {path, sha256, source_sha256, passed: true, argv: [exact job argv]}
+```
+
+`cpu_g2` may instead be a list of these descriptors when several exact argv
+profiles have separate PASS receipts. Every receipt file is hash-checked;
+every declaration binds the selected source SHA. At least one CPU receipt
+must match the job's exact argv. The Supervisor supplies `passed: true` only
+after reviewing the real evidence; the runner does not generate that approval.
+A new SHA outside c5c/f9b6a9cb is rejected until separately integrated/reviewed.
+
+The regression suite also tests empty-inbox waiting without holding the device,
+replacement/cancellation before a lock becomes available, unapproved and
+changed source rejection, and exact source gates with a distinct scientific
+comparison base.
