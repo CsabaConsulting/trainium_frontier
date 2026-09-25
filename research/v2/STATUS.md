@@ -1,6 +1,13 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, while prior transfer attempts and trn22 A0 r5 native package remain HOLD; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, but trn22's first final enabled transfer request and A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result.**
+
+At 06:25 UTC, the [trn22 final transfer-only r1 candidate](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/TRANSFER_REQUEST.FIFO_FINAL_R1.json)
+received [independent HOLD](verification/20260925-trn22-fifo-final-r1-independent-HOLD.md):
+a persistent STOP arising during slow local authorization or source rehash
+could still reach one-attempt marker creation or write SSH spawn. Both were
+reproduced offline without host contact. A distinct r2 repair is being
+prepared; r1 has no final PASS or Supervisor assignment and must not dispatch.
 
 At 06:20 UTC, the distinct [trn21 r5 inode-floor repair](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R5_HOLD.json)
 received [independent disabled-only static PASS](verification/20260925-trn21-r5-inode-floor-disabled-independent-static-PASS.md).

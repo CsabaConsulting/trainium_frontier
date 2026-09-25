@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:20 UTC
+Last reconciled: 2026-09-25 06:25 UTC
 
 The distinct trn22 FIFO/nonblocking-lock transfer successor now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),
@@ -12,8 +12,11 @@ because a below-floor terminal inode observation could falsely PASS the
 preflight/postflight validator. Its distinct r5 repair now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn21-r5-inode-floor-disabled-independent-static-PASS.md),
 but no enabled request, final review or host transfer. A distinct trn22
-[final transfer-only candidate](../v2/authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/RUNBOOK.md)
-is under independent review, also without any assignment or host action.
+[final transfer-only r1 candidate](../v2/authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/RUNBOOK.md)
+received [independent HOLD](../v2/verification/20260925-trn22-fifo-final-r1-independent-HOLD.md):
+STOP could arise during slow local authorization/source rehash and still reach
+marker or write-spawn. A distinct r2 repair is being prepared. There is no
+assignment, host transfer, or scored work.
 The trn22 A0 r5 native package now has
 [independent static HOLD](../v2/verification/20260925-trn22-c5c-a0-r5-native-package-HOLD.md):
 optimized Python strips an assertion-based disabled dispatch check in the
