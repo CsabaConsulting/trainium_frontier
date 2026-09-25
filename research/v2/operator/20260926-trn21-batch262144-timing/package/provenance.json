@@ -1,0 +1,7 @@
+{
+  "label": "fs-20260926-batch262144-timing-trn21-r1",
+  "train_sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+  "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule --seed 42 --max-train-seconds 1800 --num-steps 105 --out-dir out --total-batch-size 262144",
+  "source_commit": "4e361d15baef94f041501f558620422c55ae8c88",
+  "scope": "BATCH_TIMING_ONLY_5PLUS100_NO_BPB_NO_FULL_AUTOLAUNCH"
+}
