@@ -1,0 +1,129 @@
+{
+  "schema": "trn21-c5c-a0-exactenv-cpu-g2-stage-r2-hold-v1",
+  "status": "IMPLEMENTER_DRAFT_PENDING_REPAIRED_CHECKOUT_INDEPENDENT_REVIEW_AND_NEW_CPU_ONLY_ASSIGNMENT_HOLD",
+  "prepared_by_role": "implementer",
+  "cpu_g2_dispatch_authorized": false,
+  "native_training_authorized": false,
+  "evaluation_authorized": false,
+  "submission_authorized": false,
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "source_checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+  "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+  "source_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "source_prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "source_checkout_required_mode": "0700",
+  "source_checkout_clean_shallow_one_commit_and_independently_reviewed": false,
+  "source_stage_lineage": {
+    "persistent_transfer_operator_terminal_receipt_sha256": "9ab90252e5e21812f5aad2af7fd0bfd1e71205e2f8f740f6f41faf6606fe6a2e",
+    "independent_transfer_result_review_sha256": "bfafcb56ff449708dc31a1ebbe9023448018ea505e37a15847ae78bc3a3a2916",
+    "frozen_extraction_contract_sha256": "cb034ffea544c560104a4d558a8a18119f50a4db5088045e0c5d711635bfbd65",
+    "frozen_extraction_code_sha256": "e66afb7a1e3368ed7854eaa679e2bad9a6b8529e3b793e0f8fff2c69c496785d",
+    "independent_extraction_implementation_review_sha256": "1a05c6dab4cbae6f49bd7e58760155d26562ba39df6a85524fe4a50289679df4",
+    "disabled_checkout_request_draft_commit": "5fc762f851534a61fd29b8ce2ec5af07ac9ca5cb",
+    "disabled_checkout_request_draft_sha256": "69e570f91ec337d680e721a8dc6ee2f178da09b969809ae89be6b7b1eb7ffdeb",
+    "disabled_checkout_request_independent_hold_review_sha256": "8656f59af4ca658d558525b69ed4c2a3b8d54a382ccc88d8603f8c20a0bb1678",
+    "disabled_checkout_request_draft_accepted_for_dispatch": false,
+    "repaired_checkout_request_and_independent_review_sha256": null,
+    "operator_checkout_terminal_receipt_sha256": null,
+    "independent_checkout_result_review_sha256": null,
+    "meaning": "The earlier disabled request is a hash-bound HOLD lineage item, not CPU-G2 authority. Bind the later independently reviewed repaired checkout request and result before any G2 assignment."
+  },
+  "selected_science": {
+    "proposal_sha256": "55c6d500fbc535a45ad3afb6ef32882e30726b8ec90ac412e2ba987b5c71c1b9",
+    "proposal_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
+    "science_contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
+    "trn21_g1_operator_receipt_sha256": "a0896536999087e19f1f2e781b79763b9c6ec9adb9b971d452a1d16e095c2c12",
+    "trn21_g1_independent_result_review_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+    "science_run_label_unconsumed": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "train_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "four_effective_environment_values": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    }
+  },
+  "persistent_cpu_tools": {
+    "preflight_path": "/home/ubuntu/trainium-v2-g2-preflight-dryrun-20260925-trn21-stage-r2.py",
+    "preflight_bytes": 23550,
+    "preflight_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "preflight_inode": 294946,
+    "contained_path": "/home/ubuntu/trainium-v2-g2-contained-20260925-trn21-stage-r2.py",
+    "contained_bytes": 9185,
+    "contained_sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d",
+    "contained_inode": 296647,
+    "required_uid": 1000,
+    "required_device": 66305,
+    "required_mode": "0600",
+    "required_nlink": 1,
+    "rehash_with_no_follow_before_and_after": true,
+    "tool_retransfer_or_substitution_authorized": false
+  },
+  "cpu_g2_isolation": {
+    "new_cpu_label": "fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2",
+    "one_attempt_per_label": true,
+    "root_must_be_absent": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2",
+    "root_parent_filesystem": "same root ext4 as the reviewed source checkout",
+    "root_mode_if_created": "0700",
+    "contained_process_dir_must_be_absent": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2/process-fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2",
+    "step_log_parent_required_before_launch": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2",
+    "step_log_must_be_absent_before_launch": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2.steps.jsonl",
+    "cpu_receipt": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2/c5c-g2.json",
+    "cpu_tempdir": "/home/ubuntu/trainium-v2-g2-20260925-trn21-stage-r2",
+    "g2_options": ["--steps", "3", "--nproc", "4", "--timeout", "900", "--keep"],
+    "expected_appended_train_argv": ["--device-type", "cpu", "--no-compile", "--num-steps", "3", "--out-dir", "<g2-temp-workdir>/out"],
+    "synthetic_data_only": true,
+    "real_data_option_allowed": false,
+    "native_neuron_work_or_public_evaluation_allowed": false,
+    "minimum_fresh_root_free_bytes": 10737418240
+  },
+  "exact_launch_argv_sha256": "1810cdcde05dbda9dea063f160ceb25563d01bc2eb61b70623163d945e432eeb",
+  "exact_wait_argv_sha256": "3a416123b7264585e23fbb3fcc75a1501a993d26fac9fe0580f7f47b2516c380",
+  "exact_stop_on_failure_argv_sha256": "9216b16faa88664f8d91bf80752351af25287134fb5ad635f06f960b55e17e10",
+  "exact_quiesce_argv_sha256": "c959acbee53e6743cf7f2a300d8d8ddb4477c0514c8313aa4596d9d1545e0edf",
+  "argv_digest_rule": "SHA-256 of UTF-8 JSON array with separators comma/colon and no spaces",
+  "draft_file_pins": {
+    "offline_builder_sha256": "74b1d49cda3b5898ccb66539239f7d3ab78f489e1ef23e80fbd7b616cc65f5eb",
+    "synthetic_tests_sha256": "0ee3965a19edc21753f9bd2b5c3d7d2e3c207ad78ff697e645826bb37d40ed8b",
+    "runbook_sha256": "0a2b0f33988a9f5f62d782977c8c8e4072dd389f6fac0883c86e305c31da9e9c"
+  },
+  "prior_c5c_cpu_anchor": {
+    "receipt_path": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-a0-research-v2-trn22-r1.json",
+    "receipt_sha256": "17ce1ec84ddc0d585ecd103237ecfcd86d3820cdd9aaf1c4fe8b60ed308b90e3",
+    "trn22_r3_independent_numeric_review_sha256": "e76654c7882c2ede9e382914aebb672b10841a083fc0eb2271e15b39965a1de4",
+    "cross_host_identity_is_test_not_assumption": true
+  },
+  "protected_host_assets": {
+    "historical_35c9_checkpoint_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+    "retained_116188_checkpoint_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+    "warm_cache_root_device": 66305,
+    "warm_cache_root_inode": 2945950,
+    "warm_cache_child_inodes": {
+      "neff": 2945951,
+      "local": 2945952,
+      "hlo": 2945953,
+      "inductor": 2945954,
+      "compiler": 2945955,
+      "debug": 2945956
+    },
+    "prune_copy_cleanup_or_relocation_authorized": false
+  },
+  "missing_gates": {
+    "repaired_exact_checkout_request_independent_review": null,
+    "new_checkout_operator_result": null,
+    "independent_checkout_result_review": null,
+    "independent_exact_cpu_g2_package_review": null,
+    "fresh_live_host_source_tools_assets_label_breaker_stop_disk_preflight": null,
+    "separate_supervisor_cpu_only_one_attempt_assignment": null,
+    "operator_cpu_g2_result_and_quiescence": null,
+    "independent_cpu_numeric_comparison": null
+  },
+  "on_any_failure": "HOLD; archive raw result and full read-only postflight, preserve source checkout, capsule, tools, both checkpoints, caches, and any partial G2 root. No cleanup, overwrite, same-label retry or native advancement.",
+  "forbidden_now": "No SSH, host write, CPU G2, native training, evaluation, AWS action, breaker reset, protected-artifact change, cleanup, deletion, adoption or submission under this draft."
+}
