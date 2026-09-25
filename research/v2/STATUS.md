@@ -1,6 +1,17 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22's distinct nonblocking-lock successor has disabled-only static PASS, while trn21 final-r4 transfer and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, while prior transfer attempts and trn22 A0 r5 native package remain HOLD; scored training on both hosts HOLD; no new BPB result.**
+
+At 06:20 UTC, the distinct [trn21 r5 inode-floor repair](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R5_HOLD.json)
+received [independent disabled-only static PASS](verification/20260925-trn21-r5-inode-floor-disabled-independent-static-PASS.md).
+The below-floor terminal inode counterexample now fails. A new enabled
+transfer-only request, separate final review, fresh host preflight and
+Supervisor assignment remain absent; no trn21 host transfer is authorized.
+The old r4 HOLD is retained.
+
+A [distinct trn22 final transfer-only request candidate](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/RUNBOOK.md)
+is under independent final review. It is for intermediate source transfer,
+not native training; no Supervisor assignment or host write exists.
 
 At 06:05 UTC, the [trn22 A0 r5 disabled native package](authorizations/trn22-c5c-a0-r5-native-hold/GATE_CONTRACT.json)
 received [independent HOLD](verification/20260925-trn22-c5c-a0-r5-native-package-HOLD.md):
