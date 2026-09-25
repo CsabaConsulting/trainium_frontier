@@ -10,6 +10,7 @@ fi
 
 repo=/home/poojith-devan/Desktop/Trainium
 assignment="$repo/research/v2/assignments/20260925-trn22-116188-cold-compile-smoke-r1.json"
+review="$repo/research/v2/verification/20260925-120s-compile-smokes-independent-pass-r2.md"
 source_file="$repo/submissions/dense6x1024_direct_review_matrixlr015/train.py"
 key=/home/poojith-devan/Desktop/Trainium/trn2.pem
 host=ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com
@@ -18,20 +19,42 @@ trusted=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1
 expected_source=116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d
 expected_prepare=5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb
 
-python3 - "$assignment" "$expected_source" "$root" <<'PY'
+python3 - "$assignment" "$review" "$expected_source" "$expected_prepare" "$root" "$trusted" <<'PY'
 import json, pathlib, sys
-p, source_sha, root = sys.argv[1:]
+p, review_path, source_sha, prepare_sha, root, trusted = sys.argv[1:]
 a = json.loads(pathlib.Path(p).read_text())
+repo = pathlib.Path(p).parents[3]
 assert a['schema'] == 'trainium-one-use-supervisor-assignment-v1'
 assert a['scope'] == 'TRN22_KNOWN_GOOD_116188_TRUE_COLD_120_SECOND_COMPILE_SMOKE_DIAGNOSTIC_ONLY'
 assert a['label'] == 'fs-20260925-116188-cold-compile-smoke-trn22-r1'
 assert a['host'] == 'trn22' and a['run_root'] == root
 assert a['train_sha256'] == source_sha
+assert a['source_path'] == 'submissions/dense6x1024_direct_review_matrixlr015/train.py'
+assert a['proposal'] == 'research/v2/proposals/20260925-116188-cold-compile-smoke-trn22-r1.json'
+assert a['trusted_prepare_host_path'] == trusted + '/prepare.py'
+assert a['trusted_prepare_sha256'] == prepare_sha
 assert a['step_log_path'] == root + '/receipts/step-boundaries-rank0.log'
+assert a['fresh_cache_paths'] == {
+    'NEURON_COMPILE_CACHE_URL': root + '/cache/persistent',
+    'NEURON_COMPILE_CACHE_DIR': root + '/cache/compiler',
+    'TORCH_NEURONX_NEFF_CACHE_DIR': root + '/cache/neff',
+    'TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR': root + '/cache/neff_local',
+    'TORCH_NEURONX_HLO_CACHE_DIR': root + '/cache/hlo',
+    'TORCH_NEURONX_DEBUG_DIR': root + '/cache/debug',
+    'TORCHINDUCTOR_CACHE_DIR': root + '/cache/inductor',
+}
 assert a['assignment_status'] == 'ASSIGNED' and a['launch_authorized'] is True
 assert a['submission_authorized'] is False
-g2 = json.loads((pathlib.Path(p).parents[3] / a['cpu_g2_base_pass']).read_text())
+assert a['cpu_g2_120s_argv_status'] == ('BREAK_GLASS_BASE_G2_PASS_PLUS_INDEPENDENTLY_CHECKED_SOLE_CLI_'
+    '--max-train-seconds_120_DELTA; NO_EXACT_120_SECOND_G2_RECEIPT')
+proposal_sha = __import__('hashlib').sha256((repo / a['proposal']).read_bytes()).hexdigest()
+assert proposal_sha == '5b8abb40c2584a2116207c3c850339c8987287ccda06636354dda9857f8404cf'
+review = pathlib.Path(review_path).read_text()
+assert 'trn22 116188 cold compile smoke: PASS' in review
+assert proposal_sha in review and '8e2bc57604902e5eca183c1895e9ebc78b398a9b29747f9456ad540cba992560' in review
+g2 = json.loads((repo / a['cpu_g2_base_pass']).read_text())
 assert g2['verdict'] == 'PASS' and g2['nproc'] == 4
+assert g2['train_py_sha256'] == source_sha
 assert a['training_command'] == ('NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone '
     '--nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift '
     '--compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 '
@@ -42,7 +65,7 @@ PY
 [[ ! -e "$repo/research/agentic/STOP" && ! -e "$repo/research/v2/STOP" ]]
 ssh_opts=(-i "$key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10)
 
-# Read-only fresh preflight; an A0 eval or any device/lock holder is a HOLD.
+# Non-destructive fresh preflight; an A0 eval or any device/lock holder is a HOLD.
 ssh "${ssh_opts[@]}" "$host" /bin/bash -s -- "$root" "$trusted" "$expected_prepare" <<'REMOTE_PREFLIGHT'
 set -euo pipefail
 root=$1; trusted=$2; expected_prepare=$3
@@ -52,6 +75,7 @@ grep -q '^EVALUATED_' "$trusted/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manu
 [[ $(sha256sum "$trusted/prepare.py" | awk '{print $1}') == "$expected_prepare" ]]
 [[ ! -e "$trusted/research/agentic/STOP" && ! -e "$trusted/research/v2/STOP" ]]
 [[ -e /dev/neuron0 ]]
+[[ -f /home/ubuntu/.cache/trainium_freshstart/device0.lock ]]
 if ps -eo comm=,args= | awk '$1 ~ /^(python|python3|torchrun)$/ && $0 ~ /(train.py|torchrun|prepare.py|submission_rehearsal.py)/ {print; found=1} END {exit found?0:1}'; then
   echo 'HOLD: training/eval process still active' >&2; exit 81
 fi
@@ -107,6 +131,7 @@ for name in persistent compiler neff neff_local hlo debug inductor; do
   [[ -z $(find "$root/cache/$name" -mindepth 1 -print -quit) ]]
 done
 [[ $(df -B1 / | awk 'NR==2 {print $4}') -ge 6979321856 ]]
+[[ -f /home/ubuntu/.cache/trainium_freshstart/device0.lock ]]
 if ps -eo comm=,args= | awk '$1 ~ /^(python|python3|torchrun)$/ && $0 ~ /(train.py|torchrun|prepare.py|submission_rehearsal.py)/ {print; found=1} END {exit found?0:1}'; then
   echo 'HOLD: training/eval process at final seam' >&2; exit 81
 fi
@@ -126,6 +151,7 @@ nohup /bin/bash -c '
       PATH=/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin \
       PYTHONPATH="$trusted" PYTHONUNBUFFERED=1 NKI_VENV_PATH=/home/ubuntu/workspace/native_venv \
       NEURON_LOGICAL_NC_CONFIG=2 \
+      TRN_EXP_LABEL=fs-20260925-116188-cold-compile-smoke-trn22-r1 \
       NEURON_COMPETITION_R1_STEP_LOG="$root/receipts/step-boundaries-rank0.log" \
       NEURON_COMPILE_CACHE_URL="$root/cache/persistent" \
       NEURON_COMPILE_CACHE_DIR="$root/cache/compiler" \
