@@ -1,0 +1,865 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/tmp/g2-tfchmhq_/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "128",
+    "--depth",
+    "6",
+    "--ngram-ve",
+    "--ngram-ve-layers=1,-1",
+    "--ngram-ve-table-mult",
+    "1",
+    "--ngram-ve-dim",
+    "16",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--no-recursive-schedule",
+    "--seed",
+    "42"
+  ],
+  "elapsed_s": 7.2,
+  "host": "poojith",
+  "lane_adapter": {
+    "adapted_preflight_sha256_before_provenance": "ca9e4b9d4f5d82dd6815686fda39ed14c892ba0febc401b9c321f9d26a009844",
+    "adapter_sha256": "8441557d1e59d9c862089f2f7cf24e3a0f0e1ee4059c90739dd06fb464c5b90c",
+    "canonical_preflight_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "synthetic_only": true,
+    "tuple_slice": "row[: ns.micro_rows, : ns.micro_tokens].contiguous()"
+  },
+  "micro_batch": [
+    1,
+    128
+  ],
+  "nproc": 4,
+  "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+  "prepare": {
+    "dir": "/tmp/trainium-table-gather-20260925/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.14.4",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-tfchmhq_/out"
+      ],
+      "checkpoint_check": {
+        "deterministic": true,
+        "logits_shape": [
+          1,
+          128,
+          8192
+        ],
+        "ok": true,
+        "path_exists": true
+      },
+      "cross_rank_mismatches": [],
+      "final_digests": {
+        "lm_head.weight": "e482748400df36ac",
+        "ngram_embeds.b1.weight": "3b1d6919c5f02a93",
+        "ngram_embeds.b5.weight": "53dbfca0cd198eb0",
+        "ngram_embeds.t1.weight": "220a075bd9fabc59",
+        "ngram_embeds.t5.weight": "eb9b756edcbcf531",
+        "ngram_proj.b1.weight": "b19e34bc89273a1f",
+        "ngram_proj.b5.weight": "8479d01055d68634",
+        "ngram_proj.t1.weight": "f27be99026cfea8f",
+        "ngram_proj.t5.weight": "ce0ff958bc227200",
+        "transformer.h.0.attn.c_k.weight": "6753c4d5273342e0",
+        "transformer.h.0.attn.c_proj.weight": "fb7f42a87c46b6a1",
+        "transformer.h.0.attn.c_q.weight": "3fe39166a59bbbdd",
+        "transformer.h.0.attn.c_v.weight": "f5c70f15781874b9",
+        "transformer.h.0.local_conv.weight": "59efb88c90d49ec7",
+        "transformer.h.0.mlp.c_fc.weight": "b47479b75351a4fe",
+        "transformer.h.0.mlp.c_proj.weight": "33671c9377cf756e",
+        "transformer.h.0.resid_lambda": "b3225fab0a4c019a",
+        "transformer.h.0.x0_lambda": "5d201cefcde835c9",
+        "transformer.h.1.attn.c_k.weight": "aadc2f6e2c5ac36b",
+        "transformer.h.1.attn.c_proj.weight": "1447394067903f9a",
+        "transformer.h.1.attn.c_q.weight": "d464d537b2dd98fb",
+        "transformer.h.1.attn.c_v.weight": "9ed049272b6e60a4",
+        "transformer.h.1.attn.ve_gate.weight": "46a95eb3254182bc",
+        "transformer.h.1.attn.ve_gate_bi.weight": "1e0d1afe455aae0a",
+        "transformer.h.1.attn.ve_gate_tri.weight": "684dcf70797939a1",
+        "transformer.h.1.local_conv.weight": "afbe60fd5b5ea120",
+        "transformer.h.1.mlp.c_fc.weight": "56f60f9788001f32",
+        "transformer.h.1.mlp.c_proj.weight": "d1dd34ee7a48db80",
+        "transformer.h.1.resid_lambda": "52efdfc4295ec6f8",
+        "transformer.h.1.x0_lambda": "cc224368839528fd",
+        "transformer.h.2.attn.c_k.weight": "401e095d3b9b74ab",
+        "transformer.h.2.attn.c_proj.weight": "71a08c43c3c9fb75",
+        "transformer.h.2.attn.c_q.weight": "a91358a93306cb9a",
+        "transformer.h.2.attn.c_v.weight": "39d550d59ec555a7",
+        "transformer.h.2.local_conv.weight": "2447e56ae8ec336a",
+        "transformer.h.2.mlp.c_fc.weight": "0dd8936bc904f477",
+        "transformer.h.2.mlp.c_proj.weight": "3fc32236591351d9",
+        "transformer.h.2.resid_lambda": "de70be2a5a355d1f",
+        "transformer.h.2.x0_lambda": "1cccebd7a51d8a4c",
+        "transformer.h.3.attn.c_k.weight": "91e364c6d4c4a268",
+        "transformer.h.3.attn.c_proj.weight": "390e6ba62cef5a61",
+        "transformer.h.3.attn.c_q.weight": "64255f72c36656a7",
+        "transformer.h.3.attn.c_v.weight": "451264288a1b42f3",
+        "transformer.h.3.attn.ve_gate.weight": "ebd7f76be3300bbe",
+        "transformer.h.3.local_conv.weight": "ad703a68c5a698c9",
+        "transformer.h.3.mlp.c_fc.weight": "91396dd923efdba3",
+        "transformer.h.3.mlp.c_proj.weight": "b766568a79168c90",
+        "transformer.h.3.resid_lambda": "06fd26e41fd91177",
+        "transformer.h.3.x0_lambda": "1d24bced0c0ee85c",
+        "transformer.h.4.attn.c_k.weight": "8e539b7f03ef20d6",
+        "transformer.h.4.attn.c_proj.weight": "5fa1cc07d58adbd7",
+        "transformer.h.4.attn.c_q.weight": "685cded70325fe16",
+        "transformer.h.4.attn.c_v.weight": "2e58a16fbad9cf1f",
+        "transformer.h.4.local_conv.weight": "0e11737b77807527",
+        "transformer.h.4.mlp.c_fc.weight": "1c30bae22de924d0",
+        "transformer.h.4.mlp.c_proj.weight": "0314f77b2d01553d",
+        "transformer.h.4.resid_lambda": "58ca2bad0c94a417",
+        "transformer.h.4.x0_lambda": "0bfe29abbc0b9fc8",
+        "transformer.h.5.attn.c_k.weight": "8d6b9bcebb9e5719",
+        "transformer.h.5.attn.c_proj.weight": "6fa60e159c88913c",
+        "transformer.h.5.attn.c_q.weight": "c0f19c0f83a48f6b",
+        "transformer.h.5.attn.c_v.weight": "e0bb91c51c0d4bec",
+        "transformer.h.5.attn.ve_gate.weight": "391015fd80e28664",
+        "transformer.h.5.attn.ve_gate_bi.weight": "90a7a24f7efd39eb",
+        "transformer.h.5.attn.ve_gate_tri.weight": "300bce5d0d9e71c8",
+        "transformer.h.5.local_conv.weight": "ff15dfa74f4600f2",
+        "transformer.h.5.mlp.c_fc.weight": "50c1ea89d985ae1c",
+        "transformer.h.5.mlp.c_proj.weight": "872b40e069edaf48",
+        "transformer.h.5.resid_lambda": "3dc6bfade2361b1a",
+        "transformer.h.5.x0_lambda": "1b683425e4eec0dc",
+        "transformer.wte.weight": "68baca977bdb8f78",
+        "value_embeds.1.weight": "f168ba609cdcc119",
+        "value_embeds.3.weight": "a5f8f7b289baae45",
+        "value_embeds.5.weight": "fb00ac12690e704a"
+      },
+      "losses": [
+        9.009622573852539,
+        9.023134231567383,
+        9.025936126708984
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 0,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.50062395632267e-09,
+            "max_abs_err_over_lr": 0.016815219064569422,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.704350769519806e-09,
+            "max_abs_err_over_lr": 0.0172407550187324,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.0884832590818405e-08,
+            "max_abs_err_over_lr": 0.017140511704609826,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2165401130914688e-08,
+            "max_abs_err_over_lr": 0.021958704387542296,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.28642737865448e-09,
+            "max_abs_err_over_lr": 0.019722521910870917,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.02312526547448784,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.450580596923828e-09,
+            "max_abs_err_over_lr": 0.02182963654747414,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.026068490717724272,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.13.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-tfchmhq_/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.009842872619629,
+        9.018924713134766,
+        9.01877212524414
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 1,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.50062395632267e-09,
+            "max_abs_err_over_lr": 0.016815219064569422,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.704350769519806e-09,
+            "max_abs_err_over_lr": 0.0172407550187324,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.0884832590818405e-08,
+            "max_abs_err_over_lr": 0.017140511704609826,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2165401130914688e-08,
+            "max_abs_err_over_lr": 0.021958704387542296,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.28642737865448e-09,
+            "max_abs_err_over_lr": 0.019722521910870917,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.02312526547448784,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.450580596923828e-09,
+            "max_abs_err_over_lr": 0.02182963654747414,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.026068490717724272,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.13.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-tfchmhq_/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010069847106934,
+        9.013200759887695,
+        9.000771522521973
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 2,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.50062395632267e-09,
+            "max_abs_err_over_lr": 0.016815219064569422,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.704350769519806e-09,
+            "max_abs_err_over_lr": 0.0172407550187324,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.0884832590818405e-08,
+            "max_abs_err_over_lr": 0.017140511704609826,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2165401130914688e-08,
+            "max_abs_err_over_lr": 0.021958704387542296,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.28642737865448e-09,
+            "max_abs_err_over_lr": 0.019722521910870917,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.02312526547448784,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.450580596923828e-09,
+            "max_abs_err_over_lr": 0.02182963654747414,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.026068490717724272,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.13.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-tfchmhq_/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010931015014648,
+        9.0170316696167,
+        9.007026672363281
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 3,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.50062395632267e-09,
+            "max_abs_err_over_lr": 0.016815219064569422,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.704350769519806e-09,
+            "max_abs_err_over_lr": 0.0172407550187324,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.0884832590818405e-08,
+            "max_abs_err_over_lr": 0.017140511704609826,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2165401130914688e-08,
+            "max_abs_err_over_lr": 0.021958704387542296,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.28642737865448e-09,
+            "max_abs_err_over_lr": 0.019722521910870917,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.02312526547448784,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.450580596923828e-09,
+            "max_abs_err_over_lr": 0.02182963654747414,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.026068490717724272,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.13.0+cpu",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    }
+  ],
+  "reason": "all ranks completed the real training loop consistently",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 1x128 tokens",
+    "lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "steps": 3,
+  "timed_out": false,
+  "torch": "2.13.0+cpu",
+  "torchrun_log_tail": [
+    "  \"n_head\": 1,",
+    "  \"n_embd\": 128,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=6,956,780 flops_per_token=4.174061e+07",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "/home/poojith-devan/venv/lib/python3.14/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/home/poojith-devan/venv/lib/python3.14/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/home/poojith-devan/venv/lib/python3.14/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/home/poojith-devan/venv/lib/python3.14/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "step 00000 | loss 9.0096 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 2 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0167 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00002 | loss 9.0201 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "---",
+    "checkpoint_path:    /tmp/g2-tfchmhq_/out/final.pt",
+    "training_seconds:  0.0",
+    "budget_seconds:    1800",
+    "target_steps:      3",
+    "max_train_seconds: 1800",
+    "startup_allowance_est: 0.0",
+    "charged_seconds_est:   0.0",
+    "over_budget:       False",
+    "total_seconds:     0.0",
+    "compiled:          False",
+    "nki_relu2:         False",
+    "nki_rope_norm:     True",
+    "nki_softcap_ce:    True",
+    "transposed_linear: False",
+    "nki_muon:          False",
+    "compile_muon:      True",
+    "muon_lr_fp32:      False",
+    "ngram_ve:          True tables=4 rows=8192 dim=16 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0",
+    "oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "num_steps:         3",
+    "total_tokens_M:    0.4",
+    "world_size:        4",
+    "lnc:               ",
+    "seq_len:           1024",
+    "num_params_M:      7.0",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/poojith-devan/Desktop/Trainium/workflow/proposals/research-v2/train.py",
+  "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "verdict": "PASS"
+}

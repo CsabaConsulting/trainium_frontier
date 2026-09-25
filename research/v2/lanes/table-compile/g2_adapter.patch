@@ -1,0 +1,14 @@
+--- /tmp/trainium-table-gather-20260925/workflow/tools/preflight_dryrun.py
++++ lane-local execution
+@@ -93 +93 @@
+-           str(Path(__file__).resolve()), "--worker", "--train-py", str(train_py), "--steps", str(ns.steps),
++           '/tmp/trainium-table-gather-20260925/research/v2/lanes/table-compile/preflight_rows.py', "--worker", "--train-py", str(train_py), "--steps", str(ns.steps),
+@@ -130,0 +131 @@
++        "lane_adapter": {'adapter_sha256': '8441557d1e59d9c862089f2f7cf24e3a0f0e1ee4059c90739dd06fb464c5b90c', 'canonical_preflight_sha256': '6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8', 'adapted_preflight_sha256_before_provenance': 'ca9e4b9d4f5d82dd6815686fda39ed14c892ba0febc401b9c321f9d26a009844', 'tuple_slice': 'row[: ns.micro_rows, : ns.micro_tokens].contiguous()', 'synthetic_only': True},
+@@ -314,0 +316,4 @@
++            if k.get("ngram_raw_rows") is not None:
++                k["ngram_raw_rows"] = tuple(
++                    row[: ns.micro_rows, : ns.micro_tokens].contiguous()
++                    for row in k["ngram_raw_rows"])
+@@ -321,0 +327 @@
++    shims.append('lane-local synthetic adapter slices ngram_raw_rows to the identical idx/targets prefix; eager gather/autograd retained')

@@ -1,0 +1,72 @@
+diff --git a/workflow/proposals/research-v2/train.py b/workflow/proposals/research-v2/train.py
+index 46ffaa08..d90f55ce 100644
+--- a/workflow/proposals/research-v2/train.py
++++ b/workflow/proposals/research-v2/train.py
+@@ -2110,2 +2110 @@ class GPT(nn.Module):
+-        tbl = self.ngram_embeds[key].weight
+-        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
++        out = self._ngram_raw_lookup(key, rows)
+@@ -2113,0 +2113,7 @@ class GPT(nn.Module):
++        return self._ngram_project(key, out)
++
++    def _ngram_raw_lookup(self, key: str, rows: torch.Tensor) -> torch.Tensor:
++        tbl = self.ngram_embeds[key].weight
++        return (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
++
++    def _ngram_project(self, key: str, out: torch.Tensor) -> torch.Tensor:
+@@ -2117,0 +2124,7 @@ class GPT(nn.Module):
++    def gather_ngram_rows(self, idx: torch.Tensor) -> tuple[torch.Tensor, ...]:
++        """Training caller's eager, autograd-connected rows in ModuleDict order."""
++        if self.engram is not None or not len(self.ngram_embeds):
++            raise ValueError('--ngram-gather-outside-compile requires n-gram tables and no Engram')
++        indices = self._ngram_hash_indices(idx)
++        return tuple(self._ngram_raw_lookup(key, indices[key]) for key in self.ngram_embeds)
++
+@@ -2226 +2239,8 @@ class GPT(nn.Module):
+-    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean'):
++    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean', *, ngram_raw_rows: tuple[torch.Tensor, ...] | None=None):
++        ngram_raw = None
++        if ngram_raw_rows is not None:
++            if self.engram is not None or not len(self.ngram_embeds):
++                raise ValueError('pre-gathered rows require n-gram tables and no Engram')
++            if len(ngram_raw_rows) != len(self.ngram_embeds):
++                raise ValueError('pre-gathered row count must match n-gram table keys')
++            ngram_raw = dict(zip(self.ngram_embeds, ngram_raw_rows))
+@@ -2234 +2254 @@ class GPT(nn.Module):
+-        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None
++        ngram_idx = self._ngram_hash_indices(idx) if ngram_raw is None and (len(self.ngram_embeds) or self.engram is not None) else None
+@@ -2241 +2261,6 @@ class GPT(nn.Module):
+-            if ngram_idx is not None:
++            if ngram_raw is not None:
++                if f'b{i}' in ngram_raw:
++                    ve_bi = self._ngram_project(f'b{i}', ngram_raw[f'b{i}'])
++                if f't{i}' in ngram_raw:
++                    ve_tri = self._ngram_project(f't{i}', ngram_raw[f't{i}'])
++            elif ngram_idx is not None:
+@@ -2273,0 +2299,16 @@ class GPT(nn.Module):
++def ngram_gather_training_forward(orig_model, core):
++    """Keep the caller eager; only ``core`` is passed to torch.compile.
++
++    The original model remains the optimizer/checkpoint/debug owner. Rows are
++    fresh non-leaf tensors each microstep; their dense gather backward updates
++    the original Parameters. With --no-compile this is the same CPU diagnostic
++    arithmetic, without a compiler-boundary or performance claim.
++    """
++    if orig_model.engram is not None or not len(orig_model.ngram_embeds):
++        raise ValueError('--ngram-gather-outside-compile requires n-gram tables and no Engram')
++
++    def forward(idx, targets=None):
++        rows = orig_model.gather_ngram_rows(idx)
++        return core(idx, targets, ngram_raw_rows=rows)
++    return forward
++
+@@ -3497,0 +3539 @@ def main() -> None:
++    parser.add_argument('--ngram-gather-outside-compile', action=argparse.BooleanOptionalAction, default=False, help='Gather raw n-gram rows in the eager training caller and pass autograd-connected rows to the compiled GPT core. Default OFF. Requires tables and no Engram; --no-compile exercises the same arithmetic for CPU diagnostics.')
+@@ -3863,0 +3906 @@ def main() -> None:
++    training_forward = ngram_gather_training_forward(orig_model, model) if args.ngram_gather_outside_compile else model
+@@ -3875 +3918 @@ def main() -> None:
+-            loss = model(synthetic_x, synthetic_y)
++            loss = training_forward(synthetic_x, synthetic_y)
+@@ -3977 +4020 @@ def main() -> None:
+-            loss = model(x, y)
++            loss = training_forward(x, y)

@@ -144,8 +144,11 @@ width1024/context1024/pack32 A2 profile**, where current startup is severe.
 1. Add one default-OFF flag in the research file. OFF must take the existing
    whole-model compiled route with no initialization/RNG/optimizer/state changes.
 2. ON supports the exact A1/A2 table configurations with Engram disabled. Fail
-   clearly for ON without n-gram tables, with Engram, or with `--no-compile`;
-   additional configurations can be separately tested later.
+   clearly for ON without n-gram tables or with Engram. ON with `--no-compile`
+   is a CPU diagnostic of the same pre-gathered-input arithmetic (required by
+   G2), with no boundary/performance claim; the separate compiled probe remains
+   mandatory. This reconciles the original wording with the selected FALSIFIER
+   and Supervisor implementation assignment.
 3. Use the original model object and table Parameters. An uncompiled training
    callable computes original hashes and a stable tuple of raw narrow rows,
    then calls a compiled core with `(idx, targets, raw_rows)`. No detach,

@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260925-table-gather-outside-compile-a2",
-  "status": "SELECTED_FOR_IMPLEMENTATION_ON_SHARED_TIMER_FIXED_BASE",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_REVIEW_AND_EXACT_SIZE_G2",
   "owner_role": "researcher",
   "launch_authorized": false,
   "hypothesis": "Passing unchanged, autograd-connected raw table rows from an uncompiled caller into the compiled GPT core reduces A2 cold startup enough to increase useful fixed-budget training while preserving exact training and evaluation arithmetic.",
@@ -58,6 +58,8 @@
   },
   "candidate": {
     "branch": "codex/table-gather-outside-compile-20260925",
+    "implementation_base_commit": "795ff5d4ad5a30a7cc8a2c669621c1499e81f8d1",
+    "train_sha256": "9bf9568d1b6fe861e4fca0826229e4644527fcd4a7296be982449a18617b85aa",
     "files_allowed": ["workflow/proposals/research-v2/train.py"],
     "base_train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
     "expected_diff": "One default-OFF parser flag; uncompiled raw-row training caller; optional stable row-tuple input to the shared GPT forward/projection path; both compile-only and training call sites wired. No optimizer, loader, timing, evaluator or SDK edit.",
@@ -65,6 +67,16 @@
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --no-recursive-schedule --seed 42 --max-train-seconds 1800 --ngram-gather-outside-compile --out-dir out/fs-20260925-table-gather-a2-on-trn22-r1-cold",
     "control_argv_difference": "Replace --ngram-gather-outside-compile with --no-ngram-gather-outside-compile and use the distinct OFF output/label.",
     "launch_status": "prospective_exact_argv_not_executable_until_implementation_hash_reviews_and_operator_preflight_are_bound"
+  },
+  "implementation_self_checks": {
+    "independent_review": false,
+    "exact_size_g2": false,
+    "native_or_cold_timing": false,
+    "cpu_arithmetic_and_graph_probe": "cpu_checks.json: implementer self-check PASS; original parent/default-OFF/ON losses, every dense gradient, parameters and RMS state exact for three steps with two microbatches; nonzero tables, distinct hash collisions, untouched rows, original IDs/keys, causal/stateless checkpoint eval; CPU AOT captures one forward and one backward across three calls, with no full table input/intermediate or table-index/scatter node.",
+    "reduced_four_rank_g2": "tiny-g2-{parent,off,on}.json: PASS with width128, depth6, multiplier1, dimension16, A2 layers1,-1, micro1x128, three CPU/gloo steps; flag_off_identity.json and flag_on_identity.json are exact for losses and 74 parameter digests; RMS traces identical on every rank.",
+    "g2_adapter": "preflight_rows.py/g2_adapter.patch: lane-local synthetic adapter slices each pre-gathered tensor by the same existing idx/targets prefix; canonical preflight, prepare.py and candidate arithmetic are unchanged. Adapter/source hashes and the shim are recorded in every G2 receipt. Torch2.13 native Gloo AVG is used.",
+    "no_compile_policy": "ON with --no-compile is allowed for the same gathered-input CPU arithmetic; no compiler-boundary or performance claim follows. The separate fullgraph CPU counting probe is required.",
+    "remaining_gates": "Independent diff and numeric review; exact production-size G2; native boundary/numerical/whole-step attribution; matched measured cold startup and valid cold fixed-budget public20M comparisons. No launch authorization is added."
   },
   "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": false, "numerical_equivalence": false, "causality": false, "smoke_run": false, "human_run_approval": false},
   "success_criteria": {

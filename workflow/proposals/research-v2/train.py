@@ -2107,13 +2107,26 @@ class GPT(nn.Module):
         its width -- i.e. it touches the whole table, not just the rows that were read.
         Advanced indexing is the only spelling that stays cheap at every shape.
         """
-        tbl = self.ngram_embeds[key].weight
-        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
+        out = self._ngram_raw_lookup(key, rows)
         if raw_out is not None:
             raw_out[key] = out
+        return self._ngram_project(key, out)
+
+    def _ngram_raw_lookup(self, key: str, rows: torch.Tensor) -> torch.Tensor:
+        tbl = self.ngram_embeds[key].weight
+        return (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
+
+    def _ngram_project(self, key: str, out: torch.Tensor) -> torch.Tensor:
         if key in self.ngram_proj:
             out = self.ngram_proj[key](out)
         return out
+
+    def gather_ngram_rows(self, idx: torch.Tensor) -> tuple[torch.Tensor, ...]:
+        """Training caller's eager, autograd-connected rows in ModuleDict order."""
+        if self.engram is not None or not len(self.ngram_embeds):
+            raise ValueError('--ngram-gather-outside-compile requires n-gram tables and no Engram')
+        indices = self._ngram_hash_indices(idx)
+        return tuple(self._ngram_raw_lookup(key, indices[key]) for key in self.ngram_embeds)
 
     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int=ROPE_BASE):
         device = self.transformer.wte.weight.device
@@ -2223,7 +2236,14 @@ class GPT(nn.Module):
                 group['initial_betas'] = tuple(group['betas'])
         return opt
 
-    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean'):
+    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean', *, ngram_raw_rows: tuple[torch.Tensor, ...] | None=None):
+        ngram_raw = None
+        if ngram_raw_rows is not None:
+            if self.engram is not None or not len(self.ngram_embeds):
+                raise ValueError('pre-gathered rows require n-gram tables and no Engram')
+            if len(ngram_raw_rows) != len(self.ngram_embeds):
+                raise ValueError('pre-gathered row count must match n-gram table keys')
+            ngram_raw = dict(zip(self.ngram_embeds, ngram_raw_rows))
         _b, t = idx.shape
         assert t <= self.config.sequence_len
         cos, sin = (self.cos[:, :t], self.sin[:, :t])
@@ -2231,14 +2251,19 @@ class GPT(nn.Module):
         x = norm(x)
         x0 = x
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
-        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None
+        ngram_idx = self._ngram_hash_indices(idx) if ngram_raw is None and (len(self.ngram_embeds) or self.engram is not None) else None
         engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None
         pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
         pool_buf: list[torch.Tensor] = []
         for i, block in enumerate(self.transformer.h):
             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
             ve_bi = ve_tri = None
-            if ngram_idx is not None:
+            if ngram_raw is not None:
+                if f'b{i}' in ngram_raw:
+                    ve_bi = self._ngram_project(f'b{i}', ngram_raw[f'b{i}'])
+                if f't{i}' in ngram_raw:
+                    ve_tri = self._ngram_project(f't{i}', ngram_raw[f't{i}'])
+            elif ngram_idx is not None:
                 if f'b{i}' in self.ngram_embeds:
                     ve_bi = self._ngram_lookup(f'b{i}', ngram_idx[f'b{i}'], engram_raw)
                 if f't{i}' in self.ngram_embeds:
@@ -2270,6 +2295,22 @@ class GPT(nn.Module):
         if targets is None:
             return LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
         return softcap_cross_entropy(logits, targets, loss_reduction)
+
+def ngram_gather_training_forward(orig_model, core):
+    """Keep the caller eager; only ``core`` is passed to torch.compile.
+
+    The original model remains the optimizer/checkpoint/debug owner. Rows are
+    fresh non-leaf tensors each microstep; their dense gather backward updates
+    the original Parameters. With --no-compile this is the same CPU diagnostic
+    arithmetic, without a compiler-boundary or performance claim.
+    """
+    if orig_model.engram is not None or not len(orig_model.ngram_embeds):
+        raise ValueError('--ngram-gather-outside-compile requires n-gram tables and no Engram')
+
+    def forward(idx, targets=None):
+        rows = orig_model.gather_ngram_rows(idx)
+        return core(idx, targets, ngram_raw_rows=rows)
+    return forward
 
 def build_config(depth: int | None=None) -> GPTConfig:
     """T0.2: depth and width are now independently settable.
@@ -3495,6 +3536,7 @@ def main() -> None:
     parser.add_argument('--tensor-lr-scalars', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_TENSOR_LR_SCALARS', '1' if USE_TENSOR_LR_SCALARS else '0') != '0', help='hold the per-step lr in a device tensor rather than a Python float, so a changing LR schedule stops forcing a fresh neuronx-cc compile every step')
     parser.add_argument('--foreach-optim', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_FOREACH_OPTIM', '1' if USE_FOREACH_OPTIM else '0') != '0', help="batch the optimizer's per-parameter work into torch._foreach_* calls instead of a Python loop of single-tensor ops. Bit-identical update math; targets the optimizer step's launch/dispatch overhead only.")
     parser.add_argument('--ngram-ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE', '1' if USE_NGRAM_VE else '0') != '0', help="T3.1: hashed bigram (all VE layers) and trigram (first/last VE layer) VALUE embeddings, mixed into attention's V through their own zero-init per-head gates on disjoint residual channels (unigram 0:32, bigram 32:64, trigram 64:96). Tables are zero-init, so this is an exact no-op at step 0 and the A/B runs from one identical binary. Strictly causal: a position's table row is a hash of tokens t-2..t only.")
+    parser.add_argument('--ngram-gather-outside-compile', action=argparse.BooleanOptionalAction, default=False, help='Gather raw n-gram rows in the eager training caller and pass autograd-connected rows to the compiled GPT core. Default OFF. Requires tables and no Engram; --no-compile exercises the same arithmetic for CPU diagnostics.')
     parser.add_argument('--ngram-ve-layers', type=str, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_LAYERS', NGRAM_VE_LAYERS), help="which layers get a bigram table, comma-separated, negatives counting from the end ('-1' = last layer at any DEPTH). Empty = every VE layer, Recursive's own allocation. The per-step cost of these tables depends on WHICH layer holds them and not on their size: one table on the last layer is FASTER than no table at all, while any second table anywhere costs ~50ms/micro-step. See NGRAM_VE_LAYERS for the measurement.")
     parser.add_argument('--ngram-ve-table-mult', type=int, default=NGRAM_VE_TABLE_MULT, help='rows per n-gram table = this x padded_vocab_size (8 => 65536 rows, 41.9M params per table at n_embd=640). Recursive went to 64x; start at 8x.')
     parser.add_argument('--ngram-ve-trigram', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_TRIGRAM', '1' if NGRAM_VE_TRIGRAM else '0') != '0', help='add a trigram table on the first and last VE layer as well as the bigram table every VE layer gets. --no-ngram-ve-trigram is the bigram-only arm.')
@@ -3861,6 +3903,7 @@ def main() -> None:
         compile_backend = 'neuron' if device_type == 'neuron' else 'inductor'
         model = torch.compile(model, backend=compile_backend, dynamic=False)
         print0(f'torch.compile enabled (backend={compile_backend})')
+    training_forward = ngram_gather_training_forward(orig_model, model) if args.ngram_gather_outside_compile else model
     world_tokens_per_micro = DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN * world_size
     if TOTAL_BATCH_SIZE % world_tokens_per_micro != 0:
         raise ValueError(f'TOTAL_BATCH_SIZE={TOTAL_BATCH_SIZE} must divide micro tokens={world_tokens_per_micro}')
@@ -3872,7 +3915,7 @@ def main() -> None:
         optimizer = model.setup_optimizer()
         model.zero_grad(set_to_none=True)
         for _ in range(grad_accum_steps):
-            loss = model(synthetic_x, synthetic_y)
+            loss = training_forward(synthetic_x, synthetic_y)
             (loss / grad_accum_steps).backward()
         clip_main, clip_ngram = split_clip_params(orig_model)
         clip_and_sync_gradients(model, clip_main, clip_ngram, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, foreach=args.clip_foreach)
@@ -3974,7 +4017,7 @@ def main() -> None:
             optimizer.zero_grad_selective(zero_adamw=False)
         last_loss = None
         for micro_index in range(grad_accum_now):
-            loss = model(x, y)
+            loss = training_forward(x, y)
             last_loss = loss.detach()
             debug_numerics(f'micro{micro_index}_forward', step, last_loss)
             ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
