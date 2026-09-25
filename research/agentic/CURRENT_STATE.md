@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:22 UTC
+Last reconciled: 2026-09-25 12:29 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
@@ -16,8 +16,11 @@ do not prove the one-second timing gate caused the failures. There has been
 no cleanup, retry, native run, eval, or new BPB. A separately labelled,
 disabled trn22 r6 repair (`7b250a74`) with bounded pre-open timing-only
 retry and nonsecret failure classification passed independent static review
-(`297a1097`), but remains operationally HOLD; a no-write diagnostic is being
-developed. Further write attempts
+(`297a1097`), but remains operationally HOLD. The first disabled trn22
+no-write diagnostic (`5b60d9ec`) received independent static HOLD
+(`d8e70c2b`) because its separate remote GNU-timeout identity probe came
+after, rather than before, a diagnostic phase. A narrow disabled repair and
+the trn21 diagnostic are being developed offline. Further write attempts
 are HOLD pending diagnosis and distinct independent authority. The human
 approved at most one new safe attempt per host **conditional on a read-only
 diagnosis identifying a fix and independent safety review**; see
@@ -31,6 +34,15 @@ launch-ready. The best confirmed local public20M/context-1024 result remains
 The A2 exact-size CPU-G2 tool-path repair has an independent **disabled-only**
 static PASS (`40d4661e`). Its prior r4 G2 HOLD is unchanged; no A2 host
 capture or table run is authorized by this review.
+
+Workflow v2 is only incrementally installed: `research/v2/state.json` still
+has `controller.enabled=false`, `launch_authorized=false`, and zero ready
+jobs on both hosts. The active launcher is checked one-off legacy machinery,
+not an unattended training scheduler. The v2 ledger has one failed trn22
+A0 control with zero training steps from the earlier disk-floor incident;
+the subsequent disk expansion removed that particular gate, but no new
+scored run has followed. G1's two old-checkpoint public20M calibrations
+passed; they are evaluator checks, not new model results.
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
