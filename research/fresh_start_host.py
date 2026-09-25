@@ -117,7 +117,27 @@ def session_processes(session):
     return result
 
 
-def cleanup_owned(label, child_session=None):
+def recent_processes(minimum_start_ticks, exclude_pids=()):
+    """Conservatively inventory same-UID post-child processes for HOLD only."""
+    if type(minimum_start_ticks) is not int or minimum_start_ticks <= 0:
+        return []
+    excluded = set(exclude_pids) | {os.getpid()}
+    result = []
+    for root in Path('/proc').iterdir():
+        if not root.name.isdigit() or int(root.name) in excluded:
+            continue
+        try:
+            record = process_record(int(root.name))
+            if (record and record['state'] != 'Z'
+                    and record['start_ticks'] >= minimum_start_ticks):
+                result.append(record)
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    return result
+
+
+def cleanup_owned(label, child_session=None, child_start_ticks=None,
+                  exclude_pids=()):
     """Inventory possible leftovers; public markers never authorize a signal.
 
     A previous run has no live authenticated pidfd anchor, and the guard may
@@ -128,6 +148,8 @@ def cleanup_owned(label, child_session=None):
     remaining = {(p['pid'], p['start_ticks']): p
                  for p in owned_processes(label)}
     for process in session_processes(child_session):
+        remaining[(process['pid'], process['start_ticks'])] = process
+    for process in recent_processes(child_start_ticks, exclude_pids):
         remaining[(process['pid'], process['start_ticks'])] = process
     return dict(actions=[], remaining=list(remaining.values()),
                 signal_policy='inventory_only_unproven_ownership_hold',
@@ -234,13 +256,18 @@ def health_failures(record, exclude_pids=()):
 
 def preflight(remote, label):
     previous = json.loads(HOST_STATE.read_text()) if HOST_STATE.exists() else None
-    pre_cleanup = cleanup_owned(previous['label'], previous.get('child_session')) if previous else dict(actions=[], remaining=[])
+    pre_cleanup = (cleanup_owned(previous['label'], previous.get('child_session'),
+                                 previous.get('child_start_ticks'),
+                                 exclude_pids=(os.getppid(),))
+                   if previous else dict(actions=[], remaining=[]))
     record = snapshot(remote, previous.get('completed_at') if previous else None)
     record.update(label=label, remote=str(remote), stage='preflight', previous_postflight=previous,
                   cleanup=pre_cleanup)
     record['failures'] = health_failures(record, (os.getpid(), os.getppid()))
     if previous and previous.get('host_clean') is not True:
         record['failures'].append('previous postflight was not host-clean')
+    if previous and type(previous.get('child_start_ticks')) is not int:
+        record['failures'].append('previous state lacks child birth inventory proof')
     if pre_cleanup['remaining']:
         record['failures'].append('previous run has unproven live processes; cleanup is HOLD-only')
     record['passed'] = not record['failures']

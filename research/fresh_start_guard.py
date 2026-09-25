@@ -10,7 +10,7 @@ import sys
 import time
 
 from fresh_start_host import (HOST_STATE, MARKER, cleanup_owned, health_failures,
-                              snapshot, utc_now, write_json)
+                              process_record, snapshot, utc_now, write_json)
 
 
 def contain_failed_child(process, child_pidfd):
@@ -77,6 +77,7 @@ def main():
     env[MARKER] = label
     process = None
     child_pidfd = None
+    child_start_ticks = None
     interrupted = []
     interrupted_signal_errors = []
     exception_containment = None
@@ -110,10 +111,17 @@ def main():
         process = subprocess.Popen(request['command'], cwd=remote, env=env,
                                    start_new_session=True, pass_fds=(args.lock_fd,))
         child_pidfd = os.pidfd_open(process.pid, 0)
+        child_record = process_record(process.pid)
+        if (child_record is None or child_record['session'] != process.pid
+                or child_record['process_group'] != process.pid
+                or type(child_record['start_ticks']) is not int):
+            raise RuntimeError('direct child birth/session identity unavailable')
+        child_start_ticks = child_record['start_ticks']
         if interrupted:
             term_bound_child()
         identity = dict(label=label, guard_pid=os.getpid(), child_pid=process.pid,
-                        child_session=process.pid, started_at=start, command=request['command'])
+                        child_session=process.pid, child_start_ticks=child_start_ticks,
+                        started_at=start, command=request['command'])
         write_json(remote / 'research/run-logs' / (label + '.process.json'), identity)
         returncode = process.wait()
     except BaseException as exc:
@@ -129,7 +137,8 @@ def main():
         # A public marker and a stale session number are inventory hints only.
         # The bound external monitor owns emergency escalation while live.
         time.sleep(2)
-        cleanup = cleanup_owned(label, process.pid if process is not None else None)
+        cleanup = cleanup_owned(label, process.pid if process is not None else None,
+                                child_start_ticks)
         try:
             post = snapshot(remote, start)
             failures = health_failures(post, (os.getpid(), os.getppid()))
@@ -137,13 +146,14 @@ def main():
             post = dict(snapshot_error=repr(exc))
             failures = ['postflight snapshot failed']
         if cleanup['remaining']:
-            failures.append('run-marker or child-session processes remain; cleanup is HOLD-only')
+            failures.append('run-marker, child-session, or post-child process remains; cleanup is HOLD-only')
         if error is not None or interrupted_signal_errors:
             failures.append('guard error or exact-child TERM forwarding failed')
         if exception_containment is not None and not exception_containment['quiescent']:
             failures.append('unreceipted direct child did not quiesce after bounded stop')
         record = dict(protocol_version=2, label=label, remote=str(remote), stage='postflight',
                       source_commit=request['expected_commit'], command_returncode=returncode,
+                      child_start_ticks=child_start_ticks,
                       guard_error=error, interrupted_signals=interrupted,
                       interrupted_signal_errors=interrupted_signal_errors,
                       exception_containment=exception_containment, cleanup=cleanup,
@@ -154,6 +164,7 @@ def main():
         write_json(path, record)
         write_json(HOST_STATE, dict(label=label, remote=str(remote), postflight=str(path),
                                    child_session=process.pid if process is not None else None,
+                                   child_start_ticks=child_start_ticks,
                                    host_clean=record['host_clean'], completed_at=record['completed_at']), replace=True)
         print('EXPERIMENT_POSTFLIGHT ' + json.dumps(dict(label=label, returncode=returncode,
               host_clean=record['host_clean'], cleanup_actions=len(cleanup['actions']),

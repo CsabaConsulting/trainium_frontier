@@ -102,6 +102,10 @@ class FakeSystem:
         return [proc for proc in self.procs.values()
                 if proc is not None and proc.session == session]
 
+    def recent_processes(self, minimum_birth_ticks):
+        return [proc for proc in self.procs.values()
+                if proc is not None and proc.birth_ticks >= minimum_birth_ticks]
+
     def has_marker(self, pid, _label):
         return pid in self.owned_pids
 

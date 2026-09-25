@@ -19,43 +19,91 @@ from fresh_start_sync import HOSTS, ROOT, SSH
 
 
 REMOTE_SCRIPT = r'''
-import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, subprocess, sys
+import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, stat, subprocess, sys
 m = json.load(sys.stdin)
-r = pathlib.Path(m['remote'])
-assert r.is_dir(), 'checkout missing'
-sys.path.insert(0, str(r / 'research'))
-from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, MIN_OPERATIONAL_FREE_BYTES, preflight, sufficient_free_space
-HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
-host_lock = HOST_LOCK.open('a')
-fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-# preflight first cleans only descendants of the previously completed marked
-# job, then checks all device holders. An early fuser assertion would prevent
-# that authorized cleanup if a stale owned descendant still held the device.
-free = shutil.disk_usage(r).free
-assert m.get('min_free_bytes') == MIN_OPERATIONAL_FREE_BYTES, 'request operational floor mismatch'
-assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
-source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
-                'research/fresh_start_host.py', 'research/fresh_start_guard.py',
-                'research/fresh_start_launch.py', 'research/fresh_start_backup.py',
-                'research/fresh_start_monitor_interlock.py',
-                'research/v2/disk-monitor/root_free_guard_monitor.py',
-                'research/v2/disk-monitor/paired_root_free_guard_monitor.py']
-dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
-new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
-assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
-commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()
-assert commit == m['expected_commit'], 'unexpected source commit: ' + commit
-fdir = r / 'research/run-logs'
-manifest = fdir / (m['label'] + '.launch.json')
-log = fdir / (m['label'] + '.log')
-assert not manifest.exists() and not log.exists(), 'label already exists'
-if m.get('runner_owns_manifest'):
-    log = fdir / (m['label'] + '.driver.log')
-assert not log.exists(), 'driver label already exists'
-from fresh_start_monitor_interlock import (require_live_pair, write_interlock_pass,
-                                           write_no_spawn)
-spawned = False
+stage = 'before_checkout'
 spawn_call_started = False
+
+def write_no_spawn_before_popen(stage, error):
+    # This source is sent by the pinned launcher and works even if the remote
+    # checkout is absent or its imports fail. It matches the paired monitor's
+    # exclusive, private, fsynced no-spawn receipt contract.
+    config = m['monitor_interlock']
+    path = pathlib.Path(config['no_spawn_path'])
+    if not path.is_absolute():
+        raise RuntimeError('no-spawn receipt path is not absolute')
+    parent = path.parent.stat(follow_symlinks=False)
+    if (not stat.S_ISDIR(parent.st_mode) or parent.st_uid != os.getuid()
+            or parent.st_mode & 0o022):
+        raise RuntimeError('no-spawn receipt directory is not privately owned')
+    payload = {
+        'schema': 'paired-monitor-no-spawn-v1', 'status': 'NO_GUARD_SPAWNED',
+        'label': m['label'], 'stage': stage,
+        'expected_commit': m.get('expected_commit'),
+        'pair_binding_path': config['pair_binding_path'],
+        'error_type': type(error).__name__, 'error': str(error)[:240],
+    }
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
+    fd = os.open(path, flags, 0o600)
+    try:
+        data = (json.dumps(payload, sort_keys=True, separators=(',', ':')) + '\n').encode()
+        while data:
+            data = data[os.write(fd, data):]
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
+
+try:
+    r = pathlib.Path(m['remote'])
+    assert r.is_dir(), 'checkout missing'
+    stage = 'checkout_import'
+    sys.path.insert(0, str(r / 'research'))
+    from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, MIN_OPERATIONAL_FREE_BYTES, preflight, sufficient_free_space
+    stage = 'host_lock'
+    HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    host_lock = HOST_LOCK.open('a')
+    fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    # Prior-run cleanup is inventory-only. A stale process causes HOLD; it is
+    # never an authorization to kill by marker or numeric PID.
+    stage = 'early_disk'
+    free = shutil.disk_usage(r).free
+    assert m.get('min_free_bytes') == MIN_OPERATIONAL_FREE_BYTES, 'request operational floor mismatch'
+    assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
+    stage = 'source_identity'
+    source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
+                    'research/fresh_start_host.py', 'research/fresh_start_guard.py',
+                    'research/fresh_start_launch.py', 'research/fresh_start_backup.py',
+                    'research/fresh_start_monitor_interlock.py',
+                    'research/v2/disk-monitor/root_free_guard_monitor.py',
+                    'research/v2/disk-monitor/paired_root_free_guard_monitor.py']
+    dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
+    new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
+    assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()
+    assert commit == m['expected_commit'], 'unexpected source commit: ' + commit
+    stage = 'label_identity'
+    fdir = r / 'research/run-logs'
+    manifest = fdir / (m['label'] + '.launch.json')
+    log = fdir / (m['label'] + '.log')
+    assert not manifest.exists() and not log.exists(), 'label already exists'
+    if m.get('runner_owns_manifest'):
+        log = fdir / (m['label'] + '.driver.log')
+    assert not log.exists(), 'driver label already exists'
+    stage = 'interlock_import'
+    from fresh_start_monitor_interlock import (require_live_pair, write_interlock_pass,
+                                               write_no_spawn)
+except BaseException as error:
+    try:
+        write_no_spawn_before_popen(stage, error)
+    except BaseException as receipt_error:
+        print('NO_SPAWN_RECEIPT_FAILURE ' + repr(receipt_error), file=sys.stderr)
+    raise
+spawned = False
 stage = 'before_preflight'
 try:
     # Preflight can take time; check before and immediately after it. A dying
@@ -96,8 +144,8 @@ try:
     # A signal can arrive after Popen has spawned the guard but before Python
     # assigns its return value. Never claim NO_GUARD_SPAWNED once this call
     # begins; ambiguity is a manual HOLD and the surviving monitor stays up.
-    spawn_call_started = True
     with log.open('x') as f:
+        spawn_call_started = True
         p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),
                               str(job), '--lock-fd', str(host_lock.fileno())],
                              cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,

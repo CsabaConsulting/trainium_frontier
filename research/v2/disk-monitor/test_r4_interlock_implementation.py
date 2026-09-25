@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import os
 from pathlib import Path
 import sys
@@ -196,15 +197,21 @@ class R4InterlockImplementationTest(unittest.TestCase):
         self.assertNotIn(("KILL", foreign_pid + 100000), system.signals)
 
         # KILL may not take effect on the same poll. The monitor remains live
-        # until all three authenticated processes have actually disappeared.
+        # until all three authenticated processes have disappeared; the
+        # unrelated same-UID post-child process is HOLD-only, never signaled.
         system.time += 0.25
         self.assertIsNone(monitor.tick())
         for pid in (worker_pid, case.child_pid, case.guard_pid):
             system.procs[pid] = None
-        system.time += 0.25
-        self.assertEqual(monitor.tick(), 3)
+        for _ in range(130):
+            system.time += 0.25
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
         self.assertEqual(monitor.state, "HOLD")
-        self.assertIn("QUIESCENT_HOLD", [event for event, _ in case.journal.events])
+        self.assertNotIn(("KILL", foreign_pid + 100000), system.signals)
+        self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
 
     def test_markerless_worker_in_live_child_session_is_reenumerated_and_killed(self):
         case = self.base_case()
@@ -282,6 +289,63 @@ class R4InterlockImplementationTest(unittest.TestCase):
         self.assertEqual(result, 3)
         self.assertEqual(monitor.state, "HOLD")
         self.assertIn("UNPROVEN_PROCESS_HOLD", [event for event, _ in case.journal.events])
+
+    def test_markerless_changed_session_orphan_at_low_free_blocks_base_clean(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        orphan_pid = 12352
+        system.procs[orphan_pid] = base.ProcInfo(
+            orphan_pid, os.getuid(), case.child.birth_ticks + 2,
+            1, orphan_pid, orphan_pid,
+            ("/usr/bin/sleep", "900"), "/usr/bin/sleep")
+        self.assertNotIn(orphan_pid, system.owned_pids)
+        system.procs[case.guard_pid] = None
+        system.procs[case.child_pid] = None
+        system.files[monitor.postflight_path] = {
+            "label": case.binding["label"], "host_clean": True,
+            "command_returncode": 0,
+        }
+        system.free = case.binding["stop_free_bytes"] - 1
+        system.time += 0.25
+        self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", orphan_pid + 100000), system.signals)
+        for _ in range(130):
+            system.time += 0.25
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
+        self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
+
+    def test_markerless_changed_session_orphan_at_low_free_blocks_pair_clean(self):
+        case = self.paired_case()
+        monitor, system = case.monitor, case.system
+        orphan_pid = 12353
+        system.procs[orphan_pid] = base.ProcInfo(
+            orphan_pid, os.getuid(), monitor.child.birth_ticks + 2,
+            1, orphan_pid, orphan_pid,
+            ("/usr/bin/sleep", "900"), "/usr/bin/sleep")
+        system.procs[monitor.guard.pid] = None
+        system.procs[monitor.child.pid] = None
+        system.files[monitor.postflight_path] = {
+            "label": case.binding["label"], "host_clean": True,
+            "command_returncode": 0,
+        }
+        system.free = case.binding["stop_free_bytes"] - 1
+        system.time += 0.25
+        case.sample["sample_monotonic"] = system.time
+        self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", orphan_pid + 100000), system.signals)
+        for _ in range(130):
+            system.time += 0.25
+            case.sample["sample_monotonic"] = system.time
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
+        self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
 
     def test_replaced_worker_pid_between_inventory_and_pidfd_is_not_killed(self):
         case = self.base_case()
@@ -365,6 +429,38 @@ class R4InterlockImplementationTest(unittest.TestCase):
                              and node.func.value.id == "os"
                              and node.func.attr in ("kill", "killpg")]
             self.assertEqual(numeric_calls, [], module.__name__)
+
+    def test_missing_no_spawn_proof_announces_bounded_hold_and_keeps_rescuing(self):
+        case = pairfixtures.PairMonitorTest(
+            methodName="test_no_spawn_receipt_ends_pre_guard_watch_without_signal")
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        case.bind_peer()
+        receipt_path = Path(case.pair["no_spawn_path"])
+        receipt = {
+            "schema": "paired-monitor-no-spawn-v1", "status": "NO_GUARD_SPAWNED",
+            "label": case.binding["label"],
+            "expected_commit": case.binding["expected_commit"],
+            "pair_binding_path": str(case.pair_path),
+        }
+        original_sleep = case.system.sleep
+        inserted = [False]
+
+        def late_receipt(seconds):
+            original_sleep(seconds)
+            if (not inserted[0]
+                    and case.system.time >= 0.25 + case.binding["bind_timeout_seconds"]):
+                inserted[0] = True
+                receipt_path.write_text(json.dumps(receipt) + "\n")
+                receipt_path.chmod(0o600)
+                case.system.files[receipt_path] = receipt
+
+        case.system.sleep = late_receipt
+        self.assertEqual(case.monitor.fail_closed(base.MonitorError("peer died")), 3)
+        self.assertTrue(inserted[0])
+        self.assertEqual(case.system.signals, [])
+        self.assertIn("RESCUE_UNRESOLVED_HOLD",
+                      [event for event, _ in case.journal.events])
 
     def test_term_and_kill_ignoring_guard_child_end_in_explicit_unresolved_hold(self):
         case = self.base_case()

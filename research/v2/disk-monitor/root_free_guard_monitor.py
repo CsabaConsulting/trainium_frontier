@@ -212,6 +212,43 @@ class RealSystem:
         return result
 
     @staticmethod
+    def recent_processes(minimum_birth_ticks: int) -> list[ProcInfo]:
+        """Find same-UID post-child processes as HOLD hints, not kill authority.
+
+        A descendant may leave the child's session and exec with a sanitized
+        environment. Such a process loses both strong session provenance and
+        the public marker. Birth-at/after the bound child is deliberately
+        overinclusive: unrelated new processes may cause HOLD, never a signal.
+        """
+        if type(minimum_birth_ticks) is not int or minimum_birth_ticks <= 0:
+            raise MonitorError("invalid child birth threshold for process inventory")
+        result = []
+        for root in Path("/proc").iterdir():
+            if not root.name.isdigit():
+                continue
+            pid = int(root.name)
+            if pid == os.getpid():
+                continue
+            try:
+                if root.stat().st_uid != os.getuid():
+                    continue
+                raw = (root / "stat").read_text()
+                end_comm = raw.rfind(")")
+                if end_comm < 2:
+                    raise MonitorError("malformed /proc stat during birth inventory")
+                fields = raw[end_comm + 2 :].split()
+                if len(fields) < 20:
+                    raise MonitorError("short /proc stat during birth inventory")
+                if fields[0] == "Z" or int(fields[19]) < minimum_birth_ticks:
+                    continue
+                proc = RealSystem.proc(pid)
+                if proc is not None and proc.uid == os.getuid():
+                    result.append(proc)
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+        return result
+
+    @staticmethod
     def close_pidfd(pidfd: int) -> None:
         os.close(pidfd)
 
@@ -482,14 +519,18 @@ class GuardMonitor:
             raise MonitorError("owned process roots are not bound")
         # A public environment marker is a discovery hint, not proof of
         # descent. Only a live, reauthenticated child can anchor its unique
-        # kernel session. Include markerless session members; anything not
-        # provably anchored remains HOLD-only.
+        # kernel session. Include markerless session members and every
+        # same-UID post-child process; anything not provably anchored remains
+        # HOLD-only. This may HOLD on unrelated same-UID work, but can never
+        # authorize a broad signal.
         child_anchor = self._bound_child()
         proven, unproven = [], []
         candidates = {}
         for proc in self.system.owned_processes(self.label):
             candidates[(proc.pid, proc.birth_ticks)] = proc
         for proc in self.system.session_processes(self.child.session):
+            candidates[(proc.pid, proc.birth_ticks)] = proc
+        for proc in self.system.recent_processes(self.child.birth_ticks):
             candidates[(proc.pid, proc.birth_ticks)] = proc
         for proc in candidates.values():
             if proc.pid == self.guard.pid:

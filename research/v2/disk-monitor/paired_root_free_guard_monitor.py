@@ -231,10 +231,29 @@ class PairedGuardMonitor(base.GuardMonitor):
         except OSError:
             print("paired monitor: rescue journal unavailable", file=sys.stderr, flush=True)
         poll = float(self.binding["poll_seconds"])
+        rescue_started = self.system.monotonic()
+        hold_announced = False
         while True:
             try:
-                free = self.system.free_bytes()
                 now = self.system.monotonic()
+                if (not hold_announced
+                        and now - rescue_started >= self.binding["bind_timeout_seconds"]):
+                    # A failed no-spawn write is not proof that no guard can
+                    # appear. Publish a bounded HOLD verdict but stay resident
+                    # to catch an authentic late receipt; never exit clean.
+                    hold_announced = True
+                    self.state = "RESCUE_UNRESOLVED_HOLD"
+                    self.hold_reason = "no authenticated guard or no-spawn proof within rescue deadline"
+                    self._emit_safety("RESCUE_UNRESOLVED_HOLD",
+                                      reason=self.hold_reason, elapsed_seconds=now - rescue_started)
+                    print("paired monitor: unresolved HOLD; continuing to watch for exact guard or no-spawn proof",
+                          file=sys.stderr, flush=True)
+                try:
+                    free = self.system.free_bytes()
+                except OSError as sample_error:
+                    free = None
+                    self._emit_safety("RESCUE_ROOT_SAMPLE_UNAVAILABLE",
+                                      reason=str(sample_error)[:240])
                 if self.system.exists(self.process_path):
                     self._bind()  # Verifies request/source, both PIDs, UID, birth, argv.
                     self._stop_owned_guard("PEER_MONITOR_FAILURE")
@@ -246,8 +265,10 @@ class PairedGuardMonitor(base.GuardMonitor):
                 if self._no_spawn_receipt():
                     self.journal.emit("INTERLOCK_NO_SPAWN_CONFIRMED", label=self.label)
                     return 3
-                self.journal.emit("ROOT_SAMPLE", free_bytes=free,
-                                  sample_monotonic=now, state="RESCUE_WAIT_FOR_GUARD",
+                self._emit_safety("ROOT_SAMPLE", free_bytes=free,
+                                  sample_monotonic=now,
+                                  state=("RESCUE_UNRESOLVED_HOLD" if hold_announced
+                                         else "RESCUE_WAIT_FOR_GUARD"),
                                   guard_pid=None)
                 self.system.sleep(poll)
             except (KeyboardInterrupt, SystemExit, base.MonitorError, OSError,

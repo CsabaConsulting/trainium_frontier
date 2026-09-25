@@ -56,7 +56,7 @@ class FakePopenChild:
 class R4HostCleanupImplementationTest(unittest.TestCase):
     def invoke_guard(self, child=None, *, pidfd_error=False,
                      process_receipt_error=False, marker_candidates=(),
-                     spawn_error=False):
+                     recent_candidates=(), spawn_error=False):
         with tempfile.TemporaryDirectory() as directory:
             remote = Path(directory)
             label = 'fs-synthetic-r4-guard-host'
@@ -95,8 +95,13 @@ class R4HostCleanupImplementationTest(unittest.TestCase):
                   patch.object(guard, 'snapshot', return_value={}),
                   patch.object(guard, 'health_failures', return_value=[]),
                   patch.object(guard, 'write_json', side_effect=write_json),
+                  patch.object(guard, 'process_record', return_value={
+                      'pid': 24680, 'session': 24680, 'process_group': 24680,
+                      'start_ticks': 88002,
+                  }),
                   patch.object(host, 'owned_processes', return_value=list(marker_candidates)),
                   patch.object(host, 'session_processes', return_value=[]),
+                  patch.object(host, 'recent_processes', return_value=list(recent_candidates)),
                   patch.object(host.os, 'kill', side_effect=AssertionError('numeric signal')),
                   patch('builtins.print')):
                 result = guard.main()
@@ -117,6 +122,18 @@ class R4HostCleanupImplementationTest(unittest.TestCase):
         self.assertEqual(signaled, [])
         self.assertNotIn(('terminate', None), child.actions)
         self.assertNotIn(('kill', None), child.actions)
+
+    def test_guard_postflight_markerless_changed_session_orphan_is_hold(self):
+        orphan = {'pid': 45680, 'start_ticks': 88003, 'session': 45680,
+                  'state': 'S', 'argv': ['/usr/bin/sleep', '900']}
+        child = FakePopenChild()
+        result, postflight, signaled = self.invoke_guard(
+            child, recent_candidates=[orphan])
+        self.assertEqual(result, 1)
+        self.assertFalse(postflight['host_clean'])
+        self.assertEqual(postflight['cleanup']['remaining'], [orphan])
+        self.assertEqual(postflight['child_start_ticks'], 88002)
+        self.assertEqual(signaled, [])
 
     def test_spawn_failure_never_signals_marker_spoof(self):
         spoof = {'pid': 45679, 'start_ticks': 88005, 'session': 45679,
@@ -210,6 +227,42 @@ class R4HostCleanupImplementationTest(unittest.TestCase):
                   'state': 'Z', 'argv': [],
               })):
             self.assertEqual(host.session_processes(24680), [])
+
+    def test_markerless_changed_session_process_is_in_birth_inventories(self):
+        orphan_pid = 45680
+        child_birth = 88002
+        orphan_birth = 88003
+        fields = ['S', '1', str(orphan_pid), str(orphan_pid)] + ['0'] * 15
+        fields.append(str(orphan_birth))
+
+        class ProcRoot:
+            name = str(orphan_pid)
+
+            def stat(self):
+                return SimpleNamespace(st_uid=os.getuid())
+
+            def __truediv__(self, child):
+                self_child = child
+                return SimpleNamespace(read_text=lambda: (
+                    f'{orphan_pid} (sleep) ' + ' '.join(fields)
+                    if self_child == 'stat' else ''))
+
+        class ProcDirectory:
+            def iterdir(self):
+                return [ProcRoot()]
+
+        proc = monitor.ProcInfo(
+            orphan_pid, os.getuid(), orphan_birth, 1,
+            orphan_pid, orphan_pid, ('/usr/bin/sleep', '900'), '/usr/bin/sleep')
+        with (patch.object(monitor, 'Path', return_value=ProcDirectory()),
+              patch.object(monitor.RealSystem, 'proc', return_value=proc)):
+            self.assertEqual(monitor.RealSystem.recent_processes(child_birth), [proc])
+        host_record = {'pid': orphan_pid, 'start_ticks': orphan_birth,
+                       'session': orphan_pid, 'state': 'S',
+                       'argv': ['/usr/bin/sleep', '900']}
+        with (patch.object(host, 'Path', return_value=ProcDirectory()),
+              patch.object(host, 'process_record', return_value=host_record)):
+            self.assertEqual(host.recent_processes(child_birth), [host_record])
 
 
 if __name__ == '__main__':
