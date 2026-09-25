@@ -1,4 +1,4 @@
-# trn21 r10 stage r3 pre-open timing r2 — DISABLED / READ-ONLY
+# trn21 r10 stage r3 pre-open timing r3 — DISABLED / READ-ONLY
 
 This is an Implementer-only feasibility probe, **not** a source-stage attempt.
 No trn21 contact, host file write, bundle/checkout creation, one-shot marker,
@@ -9,17 +9,22 @@ assignment files are absent; `collect_readonly.py --capture` therefore exits
 before SSH. The previous source-stage r3 static PASS does **not** enable this
 probe or authorize the stage writer.
 
-This r2 collector closes the independent r1 static HOLD in
+The r2 collector addressed the independent r1 static HOLD in
 `research/v2/verification/20260925-trn21-r10-stage-readonly-timing-r1-independent-static-HOLD.md`
 (commit `252d5610`; receipt SHA-256
 `1ea3a6967691574ebc57966462ec27a1adf0bacf68e7092deafa642f571287b2`).
-The r1 collector could label ordered but forged JSONL with 9,999-second sample
-ages or nonempty remote stderr as a positive timing observation. The r2
-collector requires empty stderr and exact start/trial/end fields, identity,
-finite nonnegative elapsed seconds, one-second-bounded label-scan and sample
-ages, and the pinned disk/inode floors. All other authority and remote timing
-source bytes remain unchanged. This repair is still disabled and needs a new
-independent static review before any read-only enablement.
+The independent r2 static HOLD at `ca3578e7` found that the individually
+bounded fields still allowed an impossible positive trial: zero seconds of
+pre-open time with a 0.4-second label scan and 0.3-second label age. This r3
+collector keeps r2's empty-stderr, exact-record, identity, finite-range and
+disk/inode checks and additionally enforces remote monotonic chronology:
+`preopen_seconds >= label_scan_duration_seconds + label_age_seconds` and
+`label_age_seconds >= activity_age_seconds >= space_age_seconds`. A one-
+microsecond allowance covers floating-point monotonic subtraction roundoff;
+it is negligible relative to the one-second freshness gate. The stage source,
+local stage operator, independent stage review, disabled request and remote
+timing source pins remain unchanged. This repair is still disabled and needs
+a new independent static review before any read-only enablement.
 
 ## Exact subject
 
@@ -74,7 +79,7 @@ python3 -B -m unittest discover -s research/v2/authorizations/trn21-r10-stage-re
 python3 -O -B -m unittest discover -s research/v2/authorizations/trn21-r10-stage-readonly-timing-r1-hold -p test_readonly.py -q
 ```
 
-`--check` reports `DISABLED_NO_HOST_CONTACT`; 9/9 normal and 9/9 `-O`
+`--check` reports `DISABLED_NO_HOST_CONTACT`; 11/11 normal and 11/11 `-O`
 offline tests pass. These checks are not independent verification. A separate
 Verifier must review the exact new package before anyone prepares the absent
 read-only enablement, and an Operator may only act after a separate Supervisor

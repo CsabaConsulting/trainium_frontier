@@ -52,6 +52,10 @@ PRE_FREE = 13_177_973_911
 MIN_INODES = 10_000
 MAX_AGE_SECONDS = 1.0
 MAX_REMOTE_SECONDS = 330.0
+# The remote fields subtract floating-point monotonic readings. One microsecond
+# covers subtraction roundoff even at long uptimes and is negligible beside
+# the one-second final freshness gate.
+CHRONOLOGY_TOLERANCE_SECONDS = 1e-6
 SENSITIVE = re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:AKIA|ASIA)[A-Z0-9]{16}\b|"
                        rb"(?i:AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|OPENAI_API_KEY|PRIVATE_KEY|BEARER_TOKEN|trn2\.pem|\.env(?:\b|/))")
 
@@ -341,6 +345,13 @@ def _parse_jsonl(raw):
                         ("label_scan_duration_seconds", "activity_age_seconds",
                          "label_age_seconds", "space_age_seconds"))):
                 raise RuntimeError("timing trial freshness or space malformed")
+            if (trial["preopen_seconds"] + CHRONOLOGY_TOLERANCE_SECONDS <
+                    trial["label_scan_duration_seconds"] + trial["label_age_seconds"] or
+                    trial["label_age_seconds"] + CHRONOLOGY_TOLERANCE_SECONDS <
+                    trial["activity_age_seconds"] or
+                    trial["activity_age_seconds"] + CHRONOLOGY_TOLERANCE_SECONDS <
+                    trial["space_age_seconds"]):
+                raise RuntimeError("timing trial remote monotonic chronology contradictory")
         elif trial.get("status") == "HOLD_NO_OPEN":
             if (set(trial) != {"schema", "kind", "index", "utc", "preopen_seconds",
                               "status", "error_type", "error"} or

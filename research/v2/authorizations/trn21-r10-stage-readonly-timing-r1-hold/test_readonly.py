@@ -44,7 +44,7 @@ def complete_records():
              "full_readonly_preflight_seconds": 0.5,
              "max_trials": collector.TRIALS, "actual_open": False}
     trials = [{"schema": collector.SCHEMA, "kind": "trial", "index": index,
-               "utc": utc, "preopen_seconds": 0.6,
+               "utc": utc, "preopen_seconds": 0.8,
                "status": "WITHIN_WINDOW_NO_OPEN",
                "label_scan_duration_seconds": 0.4,
                "activity_age_seconds": 0.2, "label_age_seconds": 0.3,
@@ -78,7 +78,7 @@ def fake_stage(final=None):
         if lock_value != {"pin": "synthetic"} or minimum != timing.EXPECTED["PRE_FREE"]:
             raise AssertionError("wrong exact-source preflight shape")
         return {"bundle_exists": False, "target_exists": False,
-                "boot_id": "synthetic-boot",
+                "boot_id": "30f90d95-224c-48d9-bb11-8ec18dd7c4fe",
                 "mount": {"namespace": "mnt:[1]"},
                 "identity_after": {"root_free_bytes": minimum + 1000,
                                    "root_free_inodes": 10001}}
@@ -88,7 +88,7 @@ def fake_stage(final=None):
         import time
         now = time.monotonic()
         return {"activity_at": now, "label_at": now, "space_at": now,
-                "label_scan_duration_seconds": 0.2,
+                "label_scan_duration_seconds": 0.0,
                 "root_space_before_open": {"root_free_bytes": 14_000_000_000,
                                            "root_free_inodes": 10001}}
 
@@ -136,6 +136,8 @@ class ReadonlyTimingTests(unittest.TestCase):
                           "exact_freshness_evidence"] * 3)
         self.assertTrue(all(item["actual_open"] is False
                             for item in (records[0], records[-1])))
+        self.assertEqual(len(collector._parse_jsonl(jsonl(records))),
+                         collector.TRIALS + 2)
         stage["_write_bundle"].assert_not_called()
 
     def test_failed_exact_helper_stops_after_one_trial(self):
@@ -204,10 +206,17 @@ class ReadonlyTimingTests(unittest.TestCase):
     def test_forged_ordered_jsonl_fails_numeric_identity_and_resource_gates(self):
         for kind, field, value in (
                 ("trial", "activity_age_seconds", 9999.0),
+                ("trial", "activity_age_seconds", float("inf")),
                 ("trial", "label_age_seconds", float("nan")),
-                ("trial", "space_age_seconds", float("inf")),
+                ("trial", "label_age_seconds", -0.001),
+                ("trial", "space_age_seconds", float("-inf")),
+                ("trial", "space_age_seconds", 1.001),
+                ("trial", "label_scan_duration_seconds", float("nan")),
                 ("trial", "label_scan_duration_seconds", 1.001),
                 ("trial", "preopen_seconds", -1),
+                ("trial", "preopen_seconds", float("nan")),
+                ("trial", "preopen_seconds", float("inf")),
+                ("trial", "preopen_seconds", collector.MAX_REMOTE_SECONDS + 1),
                 ("trial", "root_free_bytes", 1),
                 ("start", "identity", None),
                 ("start", "boot_id", "not-a-boot-id"),
@@ -217,6 +226,28 @@ class ReadonlyTimingTests(unittest.TestCase):
                 records[1 if kind == "trial" else 0][field] = value
                 with self.assertRaises(RuntimeError):
                     collector._parse_jsonl(jsonl(records))
+
+    def test_forged_ordered_jsonl_rejects_impossible_remote_chronology(self):
+        for field, value in (("preopen_seconds", 0.0),
+                             ("label_age_seconds", 0.19),
+                             ("activity_age_seconds", 0.09)):
+            with self.subTest(field=field):
+                records = complete_records()
+                records[1][field] = value
+                with self.assertRaisesRegex(RuntimeError, "chronology"):
+                    collector._parse_jsonl(jsonl(records))
+
+        # Subtracting large monotonic float readings can lose a few low bits.
+        # The allowance is one microsecond, never a material part of the window.
+        near_boundary = complete_records()
+        near_boundary[1]["preopen_seconds"] = (
+            0.7 - collector.CHRONOLOGY_TOLERANCE_SECONDS / 2)
+        self.assertEqual(len(collector._parse_jsonl(jsonl(near_boundary))),
+                         collector.TRIALS + 2)
+        near_boundary[1]["preopen_seconds"] = (
+            0.7 - 2 * collector.CHRONOLOGY_TOLERANCE_SECONDS)
+        with self.assertRaisesRegex(RuntimeError, "chronology"):
+            collector._parse_jsonl(jsonl(near_boundary))
 
     def test_forged_jsonl_archives_hold_not_positive_timing(self):
         forged = complete_records()
@@ -230,6 +261,15 @@ class ReadonlyTimingTests(unittest.TestCase):
             self.assertEqual(archived["status"], "HOLD")
             self.assertIsNone(archived["parsed"])
             self.assertIn("freshness", archived["parse_error"])
+
+    def test_impossible_remote_chronology_archives_hold_not_observation(self):
+        forged = complete_records()
+        forged[1]["preopen_seconds"] = 0.0
+        with tempfile.TemporaryDirectory(prefix="trn21-timing-chronology-") as temp:
+            archived = self._capture_mocked(jsonl(forged), b"", Path(temp))
+            self.assertEqual(archived["status"], "HOLD")
+            self.assertIsNone(archived["parsed"])
+            self.assertIn("chronology", archived["parse_error"])
 
     def test_nonempty_stderr_with_valid_jsonl_archives_hold(self):
         with tempfile.TemporaryDirectory(prefix="trn21-timing-stderr-") as temp:
