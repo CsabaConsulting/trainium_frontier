@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:03 UTC
+Last reconciled: 2026-09-25 08:02 UTC
 
 The disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38` received
 [independent HOLD](../v2/verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)

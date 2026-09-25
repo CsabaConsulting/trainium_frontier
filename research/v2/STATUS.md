@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-At 08:03 UTC, disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38`
+At 08:02 UTC, disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38`
 received [independent HOLD](verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)
 at `002fe8b9`: a late STOP or attempt label after its final slow scan can
 still reach exclusive bundle/target creation. No host transfer or one-shot
