@@ -1,25 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-25 11:26 UTC
+Last reconciled: 2026-09-25 11:45 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
-capacity. Trn22's corrected r10 stage received independent source-stage-only
-PASS (`ac012821`), a one-attempt Supervisor assignment (`62e9cba7`), and an
-independent assignment PASS (`e827fd2a`). The Operator's first fresh local
-check then stopped **before SSH or marker creation** (`532ded62`): this PC's
-`/usr/bin/timeout` is uutils 0.8.0, while the stage operator mistakenly
-requires local GNU even though its timeout command executes remotely. A
-separate disabled repair and review are required; the one-shot stage attempt
-was not consumed. Trn21's read-only stage-timing attempt (`c238fe24`) received
-independent HOLD (`228abbb5`): two broad scans took 1.161466714 seconds,
-exceeding the unchanged one-second pre-open freshness gate before any write.
-A disabled one-scan/post-open-check repair is in development. The same
-local-timeout assumption must also be repaired there. The trn22 r10 A0
-proposal is independently verified and Supervisor-selected (`6a3aa8e9`),
-but native launch remains HOLD; the trn21 r10 proposal is written (`96fcec98`)
-and awaiting independent review. Neither host has a new scored run or BPB.
-The best confirmed local public20M/context-1024 result remains 0.9918353324
-(single) / 0.9919537735 (two-run mean).
+capacity. Trn22's prior r4 one-attempt stage stopped locally **before SSH or
+marker creation** (`532ded62`) because it checked the local uutils `timeout`
+instead of the remote GNU command. The exact r5 repair (`7f5e0bd3`) received
+independent source-stage-only PASS (`66de5da3`), and the Supervisor issued a
+new one-attempt, stage-only assignment (`80de62ef`). An independent assignment
+check and fresh Operator preflight are pending; **no r5 host stage has run**.
+Trn21's previous read-only timing failed its strict one-second freshness gate
+at 1.161466714 seconds (`228abbb5`). Its distinct one-final-scan r4 repair
+(`826d1dc5`) received disabled static PASS (`b8c9c36b`), and an exact enabled
+stage-only request (`49f2941f`) is awaiting independent final review. No
+trn21 r4 host stage has run. Both r10 A0 control proposals are independently
+verified and Supervisor-selected (`6a3aa8e9`, `8aec974e`), but native launch
+remains HOLD on each host until source and native gates pass. Neither host has
+a new scored run or BPB. The best confirmed local public20M/context-1024
+result remains 0.9918353324 (single) / 0.9919537735 (two-run mean).
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
