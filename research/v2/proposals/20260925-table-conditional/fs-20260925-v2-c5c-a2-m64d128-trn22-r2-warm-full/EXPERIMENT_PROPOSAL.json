@@ -54,12 +54,8 @@
   "prediction_basis": "Unknown until a completed fixed-budget run. No gain claimed from the five-step attempt.",
   "candidate_shortlist": [
     {
-      "idea": "Warm A2 same-source full run",
-      "why_ranked": "Obtain missing valid A2 evidence and measure actual reuse"
-    },
-    {
-      "idea": "A1 cross-host replicate",
-      "why_ranked": "Preempts this unstarted run if A1 produces valid delta<=-0.003 first"
+      "idea": "Warm A2 same-source full rerun now",
+      "why_ranked": "Direct newest human instruction; useful quality and cache-reuse evidence, research-only"
     }
   ],
   "selection_rationale": "Latest human table-priority policy; diagnose and archive incomplete attempts, never count a startup-only result as a scientific negative.",
@@ -266,5 +262,9 @@
   },
   "throughput_exempt": true,
   "training_budget_seconds": 1800,
-  "conditional_on": "A2r1 eval terminal and archived; exactsource/cache/STOP/disk/device checks; A1 valid winning replicate takes priority if ready before launch."
+  "conditional_on": "Latest direct instruction: rerun A2 now on trn22 after current train/eval and device lock finish; ordinary machine/source/disk/STOP checks remain. Warm result RESEARCH_ONLY.",
+  "research_only": true,
+  "cold_startup_seconds": null,
+  "submission_eligible": false,
+  "cold_startup_status": "UNMEASURED_FOR_THIS_RESEARCH_RERUN"
 }
