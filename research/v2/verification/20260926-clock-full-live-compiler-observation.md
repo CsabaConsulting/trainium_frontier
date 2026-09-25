@@ -1,6 +1,6 @@
 # Bounded live compiler-input observation; no new job
 
-Supervisor selection2026-09-25 23:32 UTC. Sole Operator may collect read-only
+Supervisor selection2026-09-25 23:31 UTC. Sole Operator may collect read-only
 evidence while the already authorized full36a862 runs on trn22. Preserve its
 source, process, original lifetime lock, cache contents and all settings.
 This is not a second launcher, compiler invocation or permission for S1/S2.
