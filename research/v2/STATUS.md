@@ -2,14 +2,17 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
-At 03:13 UTC, trn21's
+At 03:21 UTC, trn21's
 [final exact checkout request](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.FINAL_PENDING_REVIEW.json)
 [passed independent offline review](authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json).
 The [Supervisor's one-attempt checkout-only assignment](authorizations/trn21-c5c-a0-stage-r2-checkout-request/SUPERVISOR_CHECKOUT_ONLY_ASSIGNMENT.json)
-passed local binding audit and has been given to a separate Operator for
-fresh host checks. CPU G2, native training and evaluation remain HOLD until
-the checkout result and mandatory separate postflight are independently
-accepted. No scored control or new BPB exists.
+passed local binding audit. The Operator's
+[one-attempt terminal receipt](authorizations/trn21-c5c-a0-stage-r2-checkout-result/OPERATOR_CHECKOUT_ONLY_TERMINAL_RECEIPT.md)
+reports exact clean source staged, preflight/stage/postflight all returning
+zero, protected assets intact and the fixed marker consumed. A separate
+Verifier is auditing raw evidence before this can count as an accepted
+stage result. CPU G2, native training and evaluation remain HOLD; no scored
+control or new BPB exists.
 
 At 03:12 UTC, trn22's
 [transfer-only draft](authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.HOLD.json)
