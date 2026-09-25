@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 08:57 UTC, the trn22 A2 CPU-only final-pending package `164cfcd8`
+received [independent HOLD](verification/20260925-a2-c5c-m64d128-trn22-r4-cpu-g2-final-independent-HOLD.md)
+at `bb4cc184`: its two hardcoded e65 tool paths lack Git-tree evidence and
+host presence is unknown. Read-only exact-path/hash proof must precede a
+one-attempt assignment; no A2 CPU host attempt or table BPB resulted. The
+disabled trn22 no-unlink r4 source-stage candidate `19fbfdc8` is pushed
+and under separate independent review, not authorized for host transfer.
+
 At 08:49 UTC, disabled trn22 r3 source stage `80c96851` received
 [independent HOLD](verification/20260925-trn22-r9-incremental-stage-r3-independent-HOLD.md)
 at `6e2e9878`: concrete r2 pre-open and O_EXCL-age defects are repaired,

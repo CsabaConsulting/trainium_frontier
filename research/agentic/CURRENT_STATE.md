@@ -1,6 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:49 UTC
+Last reconciled: 2026-09-25 08:57 UTC
+
+The A2 exact-size trn22 CPU-only G2 final-pending package `164cfcd8`
+received [independent HOLD](../v2/verification/20260925-a2-c5c-m64d128-trn22-r4-cpu-g2-final-independent-HOLD.md)
+at `bb4cc184`: it hardcodes two tools inside the clean e65 checkout even
+though neither tool is in that commit's Git tree. Their presence on the host
+is unknown. A separate read-only exact-path/hash proof is required before
+any one-shot marker; if absent, a new reviewed tool stage/request is needed.
+No A2 CPU host attempt or table BPB result occurred. A distinct disabled
+trn22 no-unlink source-stage r4 candidate `19fbfdc8` is pushed for
+independent review; neither its offline tests nor this handoff authorizes
+host staging or training.
 
 The disabled trn22 e65→r9 r3 small-bundle stage `80c96851` received
 [independent HOLD](../v2/verification/20260925-trn22-r9-incremental-stage-r3-independent-HOLD.md)
