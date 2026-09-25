@@ -1,5 +1,10 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**COMPILE CONSTRAINT CORRECTION:** Read
+`COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md`: A2 warm rerun is research-only;
+cold timing must be measured and paid before submission. Gather boundaries and
+graph count precede compiler flags. The stop-predictor fix must preserve charging.
+
 **LATER CORRECTION (21:11 IST):**
 `RESUME_AND_TABLE_CORRECTION_2026-09-25.md` resumes work, authorizes explicit
 fixed-budget A1/A2 step-window exemptions, replaces Fable builders with local

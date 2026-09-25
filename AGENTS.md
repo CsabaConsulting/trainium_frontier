@@ -4,6 +4,11 @@ This repository is an evidence-driven competition workspace. Read this file befo
 
 ## Latest correction (Poojith, 25 September 21:11 IST)
 
+The subsequent `workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md` also
+controls: rerun A2 warm as research-only, measure cold startup before any table
+submission, prioritize gather/graph-count compile fixes, and CPU-verify clearing
+excluded startup durations from the stop predictor without changing charging.
+
 Read `workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md` first. Work is resumed.
 The fixed-1800-second A1/A2 table arms are explicitly step-window exempt;
 all quality/budget/correctness gates remain. L1/L2 now use **local GPT-6 Astra**,
