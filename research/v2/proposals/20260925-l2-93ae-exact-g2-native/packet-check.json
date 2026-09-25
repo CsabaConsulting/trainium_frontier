@@ -1,0 +1,52 @@
+{
+  "verdict": "PASS_STATIC_PACKET_ONLY",
+  "candidate_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+  "ready": false,
+  "stage_authorized": false,
+  "cpu_g2_completed": false,
+  "native_launch_authorized": false,
+  "unique_labels_at_canonical_snapshot": 12,
+  "canonical_snapshot": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+  "source_reviews_hashed": [
+    {
+      "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+      "path": "research/v2/verification/20260925-l2-unet8x1024-independent-review.md",
+      "scope": "independent original52e2 source/reduced numeric PASS only",
+      "sha256": "3a4164165efd1e226fa42031995e30d73ac250e3aad0694b48bda0ace666b5db"
+    },
+    {
+      "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+      "path": "research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+      "scope": "independent93ae narrowtimer port PASS only",
+      "sha256": "e34fba15a49d64e4efb808a8fd5273e1424e6259b1be4986ecf91275a1ffc0f1"
+    }
+  ],
+  "memory_arithmetic": {
+    "dense_parameters_receipt_cross_checked": 117453580,
+    "architecture_parameters_static_estimate": 113256724,
+    "architecture_fp32_parameters_bytes_per_rank": 453026896,
+    "four_rank_parameter_plus_gradient_bytes_only": 3624215168,
+    "peak_ram_bytes": null,
+    "peak_hbm_bytes": null,
+    "minimum_available_ram_bytes_policy": 68719476736,
+    "prior_dense_preflight_available_ram_bytes": 131432075264,
+    "scope": "Arithmetic lower bound only; excludes optimizer/broadcast buffers, activations, cached weights, Python/runtime, checkpoint reload and eval masks. Prior availability is historical, not current headroom."
+  },
+  "limitations": [
+    "No exact-size model allocated or executed",
+    "No host access/staging/launch",
+    "Queue currently rejects 93ae until separately reviewed support exists"
+  ],
+  "files": {
+    "OPERATOR_RUNBOOK.md": "05eda0082c80f5799f52124c152f5997e3ab813749d90c7751d58fa5b961403e",
+    "README.md": "0521260695450b38af6e4e3d53c4a50a0f8f140ebdc45b58d40a93208a460b8f",
+    "check_packet.py": "b6346a5ae0457d4489ea5fc5b2dcdffa9f5029e1ad7441a0e5d2a3748d2a366f",
+    "sources.json": "2c2f6d26d80e4dacbfaf4ad1939780b9a0714978b72ffb1f0fa1f7d2d1ab10b9",
+    "trn21/EXPERIMENT_PROPOSAL.json": "ea8d9e9a00987dded27f911d074439bbfea50f40df706ac6d50dc7daccf96434",
+    "trn21/cpu-g2-plan.json": "b0a9f4478e2443ab39971e6e4025054ba102162763d9751c07ebf4e4fea94cf8",
+    "trn21/native-job.disabled.json": "26bcbc86b26910571273855a1a816fff7c09db4f693e928941a447656e456260",
+    "trn22/EXPERIMENT_PROPOSAL.json": "59e60a91883bedf427ba1fa0cae19be80e6b92920474128a7c52713fe99a77f0",
+    "trn22/cpu-g2-plan.json": "37a7cbf74506bf2a63e75594ff7ba616d9849873ce40a78a896904faa988c784",
+    "trn22/native-job.disabled.json": "e97f7007f73d7f2e55354da69175ffc8236227bd6d55e2739a3767c68bdc6733"
+  }
+}
