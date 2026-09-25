@@ -1,0 +1,18 @@
+{
+  "scope": "Preparation test lookup failures only; no scientific/native/host execution.",
+  "normal": {
+    "chunk_id": "600192",
+    "wall_time_seconds": 0.115659263,
+    "exit_code": 1,
+    "original_token_count": 269,
+    "output": "Traceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/proposals/20260926-k2-resident-native-binding/test_binding.py\", line 188, in <module>\n    main()\n    ~~~~^^\n  File \"/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/proposals/20260926-k2-resident-native-binding/test_binding.py\", line 99, in main\n    check(sha(actual.read_bytes()) == expected, 'support_pin_' + file)\n              ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 778, in read_bytes\n    with self.open(mode='rb', buffering=0) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 772, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/lanes/k2-resident-consumer/consumer_nki.py'\n"
+  },
+  "optimized": {
+    "chunk_id": "7c2b4f",
+    "wall_time_seconds": 0.767009611,
+    "exit_code": 1,
+    "original_token_count": 269,
+    "output": "Traceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/proposals/20260926-k2-resident-native-binding/test_binding.py\", line 188, in <module>\n    main()\n    ~~~~^^\n  File \"/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/proposals/20260926-k2-resident-native-binding/test_binding.py\", line 99, in main\n    check(sha(actual.read_bytes()) == expected, 'support_pin_' + file)\n              ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 778, in read_bytes\n    with self.open(mode='rb', buffering=0) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 772, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/home/poojith-devan/Desktop/Trainium-k2-resident-native-binding-20260926/research/v2/lanes/k2-resident-consumer/consumer_nki.py'\n"
+  },
+  "repair": "Test now reads the explicitly pinned 077481d0 Git blobs; older worktree need not contain source files. No candidate/kernel/checker change."
+}

@@ -1,0 +1,43 @@
+{
+  "proposal_id": "20260926-k2-resident-native-binding",
+  "status": "DISABLED_PENDING_GATES",
+  "role": "Implementer",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "experiment_kind": "Tiny native diagnostic, not training",
+  "hypothesis": "Supplied stable routing can be consumed through runtime loops and two indirect gathers while preserving exact FP32 token-order sums in resident SBUF.",
+  "single_factor": "Exact frozen 077481d0 module only; no implementation arithmetic or checker changes in this packet",
+  "candidate_commit": "077481d0476cebfd79ddc751f8f63e61c1fbf82f",
+  "label": "fs-20260926-k2-resident-consumer-trn22-r1",
+  "host": "trn22 proposed only",
+  "seed": 42,
+  "world_size": 4,
+  "lnc": 2,
+  "shape": {
+    "V": 256,
+    "C": 128,
+    "T": 256
+  },
+  "source_or_binding_changes": "Packet wrappers only",
+  "real_data": false,
+  "train_py_edited": false,
+  "prepare_or_evaluator_used": false,
+  "predicted_speedup": null,
+  "predicted_bpb_delta": null,
+  "quality_evidence": false,
+  "source_review": "PENDING",
+  "fresh_review": "PENDING",
+  "binding_review": "PENDING",
+  "operator_assignment": "NONE",
+  "success": "All source-checker prescribed observations exact and complete on all ranks; reports only tiny-diagnostic completion pending independent artifact review, no production/native model acceptance.",
+  "failure": "Any guard/hash/host/cache failure, child nonzero/timeout, incomplete receipt, nonfinite or nonexact result refuses. No threshold changes or automatic retries.",
+  "budget": "600-second timeout plus 60-second TERM grace for one synchronous diagnostic child; no 1800-second quality run or eval.",
+  "preflight": "Use original persistent common flock; fresh ps AND neuron-ls under it; required checks remain. Sole Operator only, after independent gates and separate assignment.",
+  "priority": "Architecture/CT decision-tree follow-up may preempt; existing jobs untouched.",
+  "night_mode": {
+    "recorded_utc": "2026-09-25 20:53:12 UTC",
+    "decision": "Prepare disabled exact micro-diagnostic binding in isolated worktree",
+    "reason": "Avoid host-slot preparation delay without authorizing a launch",
+    "undo": "Decline packet; no remote or production state changed."
+  }
+}
