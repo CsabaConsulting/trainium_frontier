@@ -1,0 +1,7 @@
+{
+  "scope": "Local stdlib implementation tests only; no host/tensor/candidate execution",
+  "attempts": [
+    {"exit_code": 1, "test": "test_strict_receipts_with_negative_cases", "error": "KeyError: final_digests", "cause": "Standard full-size G2 emits final_digests on rank0 only, unlike the draft validator assumption.", "repair": "Require all65 rank0 digests plus existing per-rank consistency checks; no harness or threshold changed."},
+    {"exit_code": 1, "test": "test_guard_parent_and_resource_checks_unchanged", "error": "Validator SHA mismatch after diagnostic edit", "cause": "Fail-closed host helper pin still named the previous validator bytes.", "repair": "Recomputed exact validator pin; final normal and optimized test runs pass."}
+  ]
+}

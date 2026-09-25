@@ -1,0 +1,234 @@
+{
+  "schema": "architecture-clean-full-parameter-cpu-qualification-v1",
+  "status": "PREPARED_DISABLED_PENDING_INDEPENDENT_REVIEW_AND_OPERATOR_ASSIGNMENT",
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "source_adoption": false,
+  "local_tensor_execution_prohibited": true,
+  "proposed_host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "host_reserved": false,
+  "stage_root": "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1",
+  "prepare_dir": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+  "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+  "minimum_available_ram_gib": 64,
+  "minimum_free_disk_gib": 6.5,
+  "ordering": [
+    "reference",
+    "candidate",
+    "standard-compare",
+    "strict-receipts",
+    "checkpoint-compare"
+  ],
+  "lock_scope": "One unchanged outer flock command retains original lock across entire sequential pair and bounded comparisons; shared ps+neuron-ls rechecks before each child.",
+  "source_global_tokens_per_update": 131072,
+  "source_grad_accum_steps": 1,
+  "diagnostic_tokens_per_rank_per_update": 512,
+  "diagnostic_tokens_all_ranks_per_update": 2048,
+  "production_update_equivalent": false,
+  "full_model": {
+    "depth": 8,
+    "width": 1024,
+    "vocabulary": 8192,
+    "parameters": 113256724,
+    "parameter_tensors": 65,
+    "context": 1024,
+    "pack_factor": 32,
+    "attention_layers": [
+      0,
+      2,
+      4,
+      6,
+      7
+    ],
+    "value_embedding_layers": [
+      7
+    ]
+  },
+  "nproc": 4,
+  "steps": 3,
+  "micro_batch": [
+    2,
+    256
+  ],
+  "timeout_seconds": 3600,
+  "checkpoint_compare_timeout_seconds": 600,
+  "seed": 42,
+  "max_train_seconds": 1800,
+  "expected_plan_sha256": "df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a",
+  "sources": {
+    "reference": {
+      "commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+      "git_path": "workflow/proposals/research-v2/train.py",
+      "sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+      "stage_path": "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/reference/train.py"
+    },
+    "candidate": {
+      "commit": "bd9e33eee671ee489a1201485faf748bf0a35dea",
+      "git_path": "workflow/candidates/architecture3e79-116188/train.py",
+      "sha256": "3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f",
+      "stage_path": "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/candidate/train.py"
+    },
+    "g2": {
+      "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+      "git_path": "workflow/tools/preflight_dryrun.py",
+      "sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+      "stage_path": "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/preflight_dryrun.py"
+    },
+    "prepare": {
+      "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "stage_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+      "unchanged_real_prepare": true
+    },
+    "idle_guard": {
+      "git_path": "research/v2/operator/20260926-common-host-idle-guard/idle_guard.py",
+      "sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737"
+    },
+    "dispatch": {
+      "git_path": "research/v2/operator/20260926-common-host-idle-guard/dispatch_driver.py",
+      "sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"
+    }
+  },
+  "probes": [
+    {
+      "name": "reference",
+      "label": "fs-20260926-arch3e79-clean-reference-trn22-g2-r1",
+      "request_path": "reference/request.json",
+      "command": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "-B",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/preflight_dryrun.py",
+        "--train-py",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/reference/train.py",
+        "--prepare-dir",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+        "--steps",
+        "3",
+        "--nproc",
+        "4",
+        "--micro-rows",
+        "2",
+        "--micro-tokens",
+        "256",
+        "--timeout",
+        "3600",
+        "--keep",
+        "--out",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/reference/g2.json",
+        "--",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--num-steps",
+        "1000000",
+        "--out-dir",
+        "out",
+        "--unet-8x1024",
+        "--attention-layers",
+        "0,2,4,6,7",
+        "--initial-cache-refresh"
+      ],
+      "request_sha256": "0a080d14fe2ed557ac183a58bb1a233ff80693f39c8d2656d9d864c98a005759",
+      "command_sha256": "8c0be683e41a76e54fa74a8c459e989414b883a7da7fd8d26ea7ec3f5409fad0"
+    },
+    {
+      "name": "candidate",
+      "label": "fs-20260926-arch3e79-clean-candidate-trn22-g2-r1",
+      "request_path": "candidate/request.json",
+      "command": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "-B",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/preflight_dryrun.py",
+        "--train-py",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/candidate/train.py",
+        "--prepare-dir",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+        "--steps",
+        "3",
+        "--nproc",
+        "4",
+        "--micro-rows",
+        "2",
+        "--micro-tokens",
+        "256",
+        "--timeout",
+        "3600",
+        "--keep",
+        "--out",
+        "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/candidate/g2.json",
+        "--",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public"
+      ],
+      "request_sha256": "baf1aa45ca2085158710e77ce77a42a5e20701b1ce09177cde0c6fa3fefd9ac8",
+      "command_sha256": "5dd4e731895967d870a515045241b85e1754217900d6a4d5742022918b1ce966"
+    }
+  ],
+  "expected_outer_command": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/host_driver.py"
+  ],
+  "detached_dispatch_command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1/dispatch_driver.py"
+  ],
+  "driver_derivation": {
+    "commit": "2cf504d9b763e98e7130447d52fc93799e26db50",
+    "path": "research/v2/proposals/20260926-base-cache-exact-cpu/candidate-on/host_driver.py",
+    "retained": "Exact checks() function, authenticated parent exclusion,64GiB,6.5GiB,fuser,STOP; same cleanENV/G2 Popen/inheritedFD pattern.",
+    "delta": "Fixed two-arm composition under one original outer lock, exact new source/argv/root/request pins, unchanged G2 comparison plus strict stdlib receipt validation and CPU actual-checkpoint comparison; no general launcher."
+  },
+  "checkpoint_semantics": "Both raw file hashes retained but not required equal: research payload includes architecture toggle fields absent from baked clean schema. Actual65 model tensors must be byte-equal and B1 CPU BF16 loader logits exactly equal.",
+  "acceptance": {
+    "all_arms": "exit0/PASS/no timeout/all ranks/all65updated/full113256724plan/finite3losses/reload; standard cross-rank parameter consistency checks pass",
+    "comparison": "12 losses, all65 rank0 final digests, ownership, strict reload shape, actual checkpoint state bytes and B1 synthetic1x256 logits match; standard G2 only emits final digests on rank0",
+    "not_claimed": "full nativeupdate, nativekernel/compile/coldtiming/quality or all fullsizegradients/optimizer state"
+  },
+  "required_gates": [
+    "independent source and fresh reference review",
+    "independent binding review",
+    "separate soleOperator assignment",
+    "current common inheritedFD guard + in-lock ps/neuron-ls and all protocol gates"
+  ],
+  "results": null,
+  "driver_sha256": "d35da6e3c5df8a8f9176414875042c69505b2eec064b46966d9d0a25d61300ee",
+  "command_hash_definition": "SHA256 compact JSON argv UTF-8, no newline",
+  "support_sha256": {
+    "validate_receipts.py": "1a01059cb5fe14b1b8aa965233b15fec22d0d495cb046b0d7135a674f101d6a0",
+    "compare_checkpoints.py": "3e987b4e0e8a6c223fdb8af49654438f1b1a4eafdea957639904a5450487a386"
+  }
+}
