@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 08:03 UTC, disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38`
+received [independent HOLD](verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)
+at `002fe8b9`: a late STOP or attempt label after its final slow scan can
+still reach exclusive bundle/target creation. No host transfer or one-shot
+attempt occurred. A distinct repair is required before enabling the stage;
+trn21 r10 staging and exact-size A2 CPU-only G2 preparation continue in
+parallel. Both hosts remain launch-disabled and unscored.
+
 At 07:50 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
 was archived at `7929cc2a` and received a [bounded independent PASS](verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
 at `9868d9a6` for the final host pair and ACL follow-up. Both

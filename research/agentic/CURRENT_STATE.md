@@ -1,6 +1,15 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:50 UTC
+Last reconciled: 2026-09-25 08:03 UTC
+
+The disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38` received
+[independent HOLD](../v2/verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)
+at `002fe8b9`: synthetic late STOP/label injection after its final slow scan
+still permits exclusive bundle and target creation; the label case can return
+success. No host write or attempt occurred. A distinct repair is required
+before any stage assignment. The trn21 r10 stage and exact-size A2 CPU-only G2
+packages are being prepared/reviewed in parallel. Both launch flags remain
+false; there is no new control, table score, S0 replay or BPB gain.
 
 The [07:33 UTC dual-host Operator snapshot](../v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
 is archived at `7929cc2a` and has a [bounded independent PASS](../v2/verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
