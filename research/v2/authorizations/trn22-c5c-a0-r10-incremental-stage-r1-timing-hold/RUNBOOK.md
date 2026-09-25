@@ -1,6 +1,6 @@
 # trn22 r10 direct-stage timing feasibility — DISABLED / READ-ONLY HOLD
 
-This Implementer-only diagnostic is bound to the corrected disabled [trn22 e65→r10 direct source-stage package](../trn22-c5c-a0-r10-incremental-stage-r1-hold/RUNBOOK.md) at commit `020bfa7ebd048f947d5207cbedaf028a29a4b159`. Its target training-source HEAD is `22bfbab5a77d6feb670d2d737504f8b70b08ddc1`. The predecessor stage package `3d26e963` had a mistyped inherited-review hash and remains historical HOLD. This timing diagnostic changes neither stage code nor its one-shot label, target, bundle or marker.
+This Implementer-only diagnostic is bound to the corrected disabled [trn22 e65→r10 direct source-stage package](../trn22-c5c-a0-r10-incremental-stage-r1-hold/RUNBOOK.md) at commit `b3ec7406f0e7a3df6848698876e2106305dd283f`. Its target training-source HEAD is `22bfbab5a77d6feb670d2d737504f8b70b08ddc1`. The predecessor stage package `3d26e963` had a mistyped inherited-review hash; its r2 successor `020bfa7e` read a potentially stale Documents controller state. Both remain historical HOLD. This branch includes a byte-identical cherry-pick of the separately pushed r3 correction so its pins resolve locally. The timing-specific change carries the r3 Desktop state pin and additionally checks the former Documents STOP paths. It changes neither the remote timing sequence nor the source stage's one-shot label, target, bundle or marker.
 
 No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, native training, evaluation, AWS action or submission occurred. `GATE_CONTRACT.HOLD.json` has `dispatch_authorized=false` and all remote-write/training permissions false. The absent distinct enabled timing request, independent final timing review and Supervisor one-attempt assignment are required before the collector can contact a host. Running `operator_timing_readonly.py` from these checked-in bytes refuses locally before SSH or a result file. Source-stage dispatch is a separate authority and remains HOLD.
 
@@ -8,13 +8,13 @@ No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, n
 
 | Item | SHA-256 |
 | --- | --- |
-| `remote_timing_readonly.py` | `a9bc253680403883dacc601b35cb1935c81672c512fc9a04cff9ce12e7944ed4` |
-| `operator_timing_readonly.py` | `4d35b139e2d1cd44e96afb25458b10415de94dd211791ed4172e2893f95e21ab` |
-| `GATE_CONTRACT.HOLD.json` | `bc5f5efc1fa86606c0dbdc03203ceb0dc4f3c0c197fa5bf696e0dd9ffbac98c2` |
-| `test_timing_readonly.py` | `cf5ba6b15128820ce60ecdff1e4f6232e155e980314ef47aa6c3c8d116016800` |
+| `remote_timing_readonly.py` | `c43fbe1224de291c31a797079ed9708db4ca7fa0d7fe785b3ff67274c835f3ca` |
+| `operator_timing_readonly.py` | `f16b609508aefadd9228a8688b56b6e63bfcda99f5746d3a6ab687f7a3743f5a` |
+| `GATE_CONTRACT.HOLD.json` | `4918f2cebc86c3934b57a020f9bc87035be6c983c6f4c222bb22d3e9461a2db8` |
+| `test_timing_readonly.py` | `f5240994a4f8424090b24f990cf845ebc6fd2977f984970b9854774ca40b0537` |
 | exact corrected-stage remote source | `da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f` |
-| exact corrected-stage operator source | `7c04b0288de04a514b3da0a6a9c01f525551f2cfc92f69d4ba63f8941aa2d0b5` |
-| exact corrected-stage disabled request | `625b4a53c0f67fba0a7b4ef5a6705f64f3935eb8f5841ef5e2212f6c8e820b6e` |
+| exact corrected-stage operator source | `a5fc2ebac3520f425d5ab0bdfb7ae0091a2e5db59b152dd8cd39eb67cff5beda` |
+| exact corrected-stage disabled request | `48e3ad5d0bb1d077dbf8304e3ddfe7e3263892e522dc277f32812eea5c8e111a` |
 
 The host/source pin is trn22 `ip-172-31-32-253`, UID/GID 1000, ext4 device 66305, accepted linked e65 checkout `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2` at `e65a3097a5b00f6178188a935bb2acb9a5042c6c`, and the exact source `train.py`/`prepare.py` hashes. The timed label is `fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1`; its target and bundle paths match the corrected-stage code. The existing private-cache lock is opened read-only and acquired nonblocking. This diagnostic checks source identity and activity but is intentionally narrower than the stage's full ACL/NSS/mount/protected-artifact preflight. Earlier host snapshots are not fresh stage preflights.
 

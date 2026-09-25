@@ -373,7 +373,32 @@ class PinnedAuthorityTests(unittest.TestCase):
                              (operator.REMOTE, operator.REMOTE_SHA256)):
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
         self.assertEqual(operator.STAGE_R10_COMMIT,
-                         "020bfa7ebd048f947d5207cbedaf028a29a4b159")
+                         "b3ec7406f0e7a3df6848698876e2106305dd283f")
+        stage_operator = load("trn22_r10_stage_operator_timing_pin",
+                              operator.STAGE_R10_OPERATOR)
+        self.assertEqual(operator.CONTROL_ROOT, stage_operator.CONTROL_ROOT)
+        self.assertEqual(operator.FORMER_CONTROL_ROOT,
+                         stage_operator.FORMER_CONTROL_ROOT)
+
+    def test_former_controller_stop_holds_before_timing_contact(self):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-timing-stop-") as temp:
+            root = Path(temp)
+            active = root / "Desktop"
+            former = root / "Documents"
+            package = root / "Package"
+            (active / "research/v2").mkdir(parents=True)
+            (former / "research/v2").mkdir(parents=True)
+            package.mkdir()
+            (former / "research/v2/STOP").write_text("synthetic stop\n", encoding="ascii")
+            with mock.patch.object(operator, "CONTROL_ROOT", active), \
+                 mock.patch.object(operator, "FORMER_CONTROL_ROOT", former), \
+                 mock.patch.object(operator, "CONTROL_STATE",
+                                   active / "research/v2/state.json"), \
+                 mock.patch.object(operator, "REPO", package), \
+                 mock.patch.object(operator, "_run_ssh") as ssh:
+                with self.assertRaisesRegex(RuntimeError, "local STOP present"):
+                    operator._local_gates()
+                ssh.assert_not_called()
 
     def test_disabled_package_exits_before_ssh_or_local_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:

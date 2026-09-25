@@ -31,17 +31,18 @@ REVIEW = HERE / "INDEPENDENT_TIMING_REVIEW.PASS.json"
 ASSIGNMENT = HERE / "SUPERVISOR_TIMING_ASSIGNMENT.json"
 OUTPUT = HERE / "OPERATOR_RAW_R10_TIMING_RESULT.json"
 CONTROL_ROOT = Path("/home/poojith-devan/Desktop/Trainium")
+FORMER_CONTROL_ROOT = Path("/home/poojith-devan/Documents/ChatGPT/Trainium")
 CONTROL_STATE = CONTROL_ROOT / "research/v2/state.json"
 KNOWN_HOSTS = Path("/home/poojith-devan/.ssh/known_hosts")
 IDENTITY_FILE = Path("/home/poojith-devan/Desktop/Trainium/trn2.pem")
 ENDPOINT = "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com"
 HOST_FINGERPRINT = "SHA256:bXvW4P20oehuJWPMDLUS72E1aPY58rq/kOqUybiB44U"
 KNOWN_HOSTS_SHA256 = "e42405d8dd82c56be05b849dbe1d050dafe2ebf2678ab197857174b44057cce3"
-STAGE_R10_COMMIT = "020bfa7ebd048f947d5207cbedaf028a29a4b159"
+STAGE_R10_COMMIT = "b3ec7406f0e7a3df6848698876e2106305dd283f"
 STAGE_R10_REMOTE_SHA256 = "da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f"
-STAGE_R10_OPERATOR_SHA256 = "7c04b0288de04a514b3da0a6a9c01f525551f2cfc92f69d4ba63f8941aa2d0b5"
-STAGE_R10_HOLD_SHA256 = "625b4a53c0f67fba0a7b4ef5a6705f64f3935eb8f5841ef5e2212f6c8e820b6e"
-REMOTE_SHA256 = "a9bc253680403883dacc601b35cb1935c81672c512fc9a04cff9ce12e7944ed4"
+STAGE_R10_OPERATOR_SHA256 = "a5fc2ebac3520f425d5ab0bdfb7ae0091a2e5db59b152dd8cd39eb67cff5beda"
+STAGE_R10_HOLD_SHA256 = "48e3ad5d0bb1d077dbf8304e3ddfe7e3263892e522dc277f32812eea5c8e111a"
+REMOTE_SHA256 = "c43fbe1224de291c31a797079ed9708db4ca7fa0d7fe785b3ff67274c835f3ca"
 TRIALS = 20
 MAX_AGE_NS = 1_000_000_000
 PRE_FREE = 13_177_973_911
@@ -114,7 +115,7 @@ def _exact_json(path):
 
 
 def _local_gates():
-    for root in (CONTROL_ROOT, REPO):
+    for root in (CONTROL_ROOT, FORMER_CONTROL_ROOT, REPO):
         for suffix in ("research/agentic/STOP", "research/v2/STOP"):
             if os.path.lexists(root / suffix):
                 raise RuntimeError("local STOP present")
@@ -128,7 +129,7 @@ def _local_gates():
         raise RuntimeError("local trn22 STOP/breaker/launch gate is unsafe")
     if _read_regular(CONTROL_STATE) != raw:
         raise RuntimeError("local controller state changed during gate")
-    for root in (CONTROL_ROOT, REPO):
+    for root in (CONTROL_ROOT, FORMER_CONTROL_ROOT, REPO):
         for suffix in ("research/agentic/STOP", "research/v2/STOP"):
             if os.path.lexists(root / suffix):
                 raise RuntimeError("local STOP appeared during gate")
