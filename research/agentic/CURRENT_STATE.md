@@ -1,6 +1,34 @@
 # Current state
 
-Last reconciled: 2026-09-25 19:39 UTC (26 September IST)
+Last reconciled: 2026-09-25 19:54 UTC (26 September IST)
+
+## Diagnostics completed — supersedes live-launch snapshots below
+
+Operator reports both jobs exited0 and hosts quiescent at19:54:57UTC:
+P/trn21 completed22steps with four runtime traces and a rank0 device trace;
+phase attribution, dtype checks and MFU remain unverified. Do not turn trace
+existence into a measured optimizer/embedding bottleneck claim.
+
+Cold architecture3e79/trn22 completedfive steps. Actual uncapped fifth boundary
+844.35300997796seconds passes the900 gate and870target; process wall848.824944s.
+Small raw receipts are being retrieved for root authentication. Prepare the
+full architecture run next; it has NOT launched yet and this is NOT a BPB win.
+
+The6ef7/trn21 repeat is now independently authenticated and in the quality
+ledger (65dc4b1e):0.9899528600562257,3662steps,source budgetpass. Same-config
+delta-0.00010323 is noise/reproducibility, not a new technique. Frozen confirmed
+base mean stays0.9901674436550496.
+
+K2-A fresh review is REFUSE: six CPU emulation cases show FP32 tile-regrouping
+rounding differences. Actual CPU path passes; native unexecuted. Archive
+2976cccd preserves all evidence. Keep e4d93 unmerged and native gateclosed.
+Full117MCPU packet exists but must not run on the RAM-constrained laptop.
+
+Batch262k has38 mechanical binding checks normal/-O and existing exact-size
+CPU receipts. NEW fresh-source Astra session01a0da21-3da3-7f12-a35a-25c0be650a72
+started19:53:26UTC; own reference/verdict pending. Batchlaunch remainsdisabled
+until source acceptance and one-shot Operator assignment. Both old queues
+staystopped; all next launches use the same lock and in-lock ps+neuron-ls.
 
 ## Active guarded launches — supersedes the pending snapshot below
 
