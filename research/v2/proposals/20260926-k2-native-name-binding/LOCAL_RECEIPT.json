@@ -1,0 +1,86 @@
+{
+  "status": "OWN_SCOPE_AND_SCALAR_REPLAY_PASS_INDEPENDENT_REVIEW_PENDING",
+  "proposal_first_commit": "378d7f4c",
+  "kernel_sha256": "4939265bf73b3d5f42276e72e48f022df338226a40a9be5b79ed63bde6a4f5b8",
+  "source_change": "One added outer global nl, nisa declaration; complete nested kernel tail bytes unchanged",
+  "commands": [
+    {
+      "label": "scope-normal",
+      "command": "python3 -B research/v2/proposals/20260926-k2-native-name-binding/test_name_binding.py",
+      "exit_code": 0,
+      "receipt": "scope-normal.json"
+    },
+    {
+      "label": "scope-optimized",
+      "command": "python3 -O -B research/v2/proposals/20260926-k2-native-name-binding/test_name_binding.py",
+      "exit_code": 0,
+      "receipt": "scope-optimized.json"
+    },
+    {
+      "label": "scalar-normal",
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python3 -B research/v2/lanes/k2-resident-consumer/test_reference.py",
+      "exit_code": 0,
+      "receipt": "scalar-normal.json"
+    },
+    {
+      "label": "scalar-optimized",
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python3 -O -B research/v2/lanes/k2-resident-consumer/test_reference.py",
+      "exit_code": 0,
+      "receipt": "scalar-optimized.json"
+    }
+  ],
+  "memory": {
+    "scalar_normal_peak_traced_bytes": 7603477,
+    "scalar_optimized_peak_traced_bytes": 7591445,
+    "limit_bytes": 8388608
+  },
+  "original_native_artifacts": {
+    "source_commit": "94fb52c4",
+    "bundle_sha256": "129b9e69352a63d49922dc386c849836ad829dcbb85ef3e33b50b28b64cf9e04",
+    "files": {
+      "terminal.json": {
+        "sha256": "23af523b221cd26eac6986af8a483d3df1984438200e55a699bfc16b4ee20498",
+        "bytes": 245
+      },
+      "receipts/rank3.json": {
+        "sha256": "07e2379d16eaa63d800cc8666e6c742bcdcf64276d951e542a1739fa27c1973c",
+        "bytes": 5944
+      },
+      "receipts/rank1.json": {
+        "sha256": "d62eba67277be986e05b643c2d155b3d50c7200cd9920a15a934c6f8797f82b5",
+        "bytes": 5943
+      },
+      "receipts/rank0.json": {
+        "sha256": "fb9a775ccffc3598776aaa243c615921351bfca0adb493d3f3a5964be404fcea",
+        "bytes": 5944
+      },
+      "receipts/rank2.json": {
+        "sha256": "1bc1f4817966448c021bb33c5527df791860f753d731686bd524988129ba1f11",
+        "bytes": 5944
+      }
+    }
+  },
+  "original_native_verdict": "REFUSE_PRESERVED",
+  "new_native_correctness": "UNPROVEN",
+  "native_run": false,
+  "host_actions": 0,
+  "production_train_changed": false,
+  "independent_review": "PENDING",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "preparation_attempts": [
+    {
+      "kind": "read_only_missing_filename",
+      "path": "research/v2/verification/20260926-k2-native-name-resolution/receipt-normal.json",
+      "exit_code": 2,
+      "error": "No such file or directory",
+      "resolution": "Listed directory; actual archived audit receipts are RESULT-normal.json and RESULT-optimized.json. No substitute evidence or candidate adjustment."
+    }
+  ],
+  "raw_scope_attempts": "Initial normal/-O scope tests passed before this identical captured rerun; no failing test attempts.",
+  "limitations": [
+    "Fake namespace fixture is ordinary Python only; actual installed NKI resolver was not imported or inspected.",
+    "Scalar replay is existing stdlib emulation, not actual Torch backward/native compilation.",
+    "Old lane and native-binding manifests remain frozen old-source records; they do not authorize this successor."
+  ]
+}

@@ -6,6 +6,7 @@ Native compilation, exact rounding, dynamic loops and allocation are UNPROVEN.
 
 
 def build_kernel(*, enabled=False):
+    global nl, nisa
     if not enabled:
         raise RuntimeError('EXPERIMENT_DISABLED: no native module imported')
     import nki

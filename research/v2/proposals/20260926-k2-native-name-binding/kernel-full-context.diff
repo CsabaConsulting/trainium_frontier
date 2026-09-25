@@ -1,0 +1,77 @@
+diff --git a/research/v2/lanes/k2-resident-consumer/consumer_nki.py b/research/v2/lanes/k2-resident-consumer/consumer_nki.py
+index ba5debea..499c473b 100644
+--- a/research/v2/lanes/k2-resident-consumer/consumer_nki.py
++++ b/research/v2/lanes/k2-resident-consumer/consumer_nki.py
+@@ -1,71 +1,72 @@
+ """EXPERIMENTAL supplied-metadata consumer only; disabled until explicit opt-in.
+ 
+ No production import or monkeypatch. The factory does not import NKI when OFF.
+ Native compilation, exact rounding, dynamic loops and allocation are UNPROVEN.
+ """
+ 
+ 
+ def build_kernel(*, enabled=False):
++    global nl, nisa
+     if not enabled:
+         raise RuntimeError('EXPERIMENT_DISABLED: no native module imported')
+     import nki
+     import nki.isa as nisa
+     import nki.language as nl
+ 
+     @nki.jit
+     def resident_consumer(gradient, counts, starts, positions, group_maximums):
+         # Only this tiny contract is implemented. Synthetic metadata is validated
+         # by the checker on CPU BEFORE transfer, not built by a training path.
+         assert gradient.shape == (256, 128)
+         assert counts.shape == starts.shape == positions.shape == (256, 1)
+         assert group_maximums.shape == (2, 1)
+         assert gradient.dtype == nl.bfloat16 or gradient.dtype == nl.float32
+         assert counts.dtype == starts.dtype == positions.dtype == group_maximums.dtype == nl.int32
+         output = nl.ndarray((256, 128), dtype=nl.float32, buffer=nl.shared_hbm)
+         for group in range(2):
+             first = group * 128
+             remaining = nl.ndarray((128, 1), dtype=nl.int32, buffer=nl.sbuf)
+             pointer = nl.ndarray((128, 1), dtype=nl.int32, buffer=nl.sbuf)
+             nisa.dma_copy(dst=remaining, src=counts[first:first + 128, :])
+             nisa.dma_copy(dst=pointer, src=starts[first:first + 128, :])
+             maximum = nl.ndarray((1, 1), dtype=nl.int32, buffer=nl.sbuf)
+             nisa.dma_copy(dst=maximum, src=group_maximums[group:group + 1, :])
+             limit = nisa.register_alloc(0)
+             nisa.register_load(limit, maximum)
+             accumulator = nl.full((128, 128), 0.0, dtype=nl.float32, buffer=nl.sbuf)
+             sentinel = nl.full((128, 1), 256, dtype=nl.int32, buffer=nl.sbuf)
+             active = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+             updated = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+             for _ in nl.dynamic_range(limit):
+                 nisa.tensor_scalar(dst=active, data=remaining, op0=nl.greater, operand0=0.0,
+                                    engine=nisa.engine.vector)
+                 address = nl.where(active, pointer, sentinel, dtype=nl.int32)
+                 # Skipped lanes retain a valid initialized sentinel, never stale
+                 # prior-iteration addresses. Both indirect reads skip inactive rows.
+                 token = nl.full((128, 1), 256, dtype=nl.int32, buffer=nl.sbuf)
+                 nisa.dma_copy(dst=token,
+                               src=positions.ap(pattern=[[1, 128], [1, 1]],
+                                                vector_offset=address, indirect_dim=0),
+                               oob_mode=nisa.oob_mode.skip, dge_mode=nisa.dge_mode.swdge)
+                 token_address = nl.where(active, token, sentinel, dtype=nl.int32)
+                 value = nl.full((128, 128), 0.0, dtype=nl.float32, buffer=nl.sbuf)
+                 nisa.dma_copy(dst=value,
+                               src=gradient.ap(pattern=[[128, 128], [1, 128]],
+                                               vector_offset=token_address, indirect_dim=0),
+                               oob_mode=nisa.oob_mode.skip, dge_mode=nisa.dge_mode.swdge)
+                 # Exactly one FP32 addition per occurrence, no gradient reduction
+                 # or tree/segment sum. Preserve inactive accumulator bits by select.
+                 nisa.tensor_tensor(dst=updated, data1=accumulator, data2=value,
+                                    op=nl.add, engine=nisa.engine.vector)
+                 selected = nl.where(active.ap(pattern=[[1, 128], [0, 128]]),
+                                     updated, accumulator, dtype=nl.float32)
+                 nisa.tensor_copy(dst=accumulator, src=selected)
+                 nisa.tensor_scalar(dst=pointer, data=pointer, op0=nl.add, operand0=1.0,
+                                    engine=nisa.engine.vector)
+                 nisa.tensor_scalar(dst=remaining, data=remaining, op0=nl.add, operand0=-1.0,
+                                    engine=nisa.engine.vector)
+             # Every row stored once, including positive-zero unused rows.
+             nisa.dma_copy(dst=output[first:first + 128, :], src=accumulator)
+         return output
+ 
+     return resident_consumer
