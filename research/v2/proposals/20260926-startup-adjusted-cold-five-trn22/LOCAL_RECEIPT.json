@@ -1,0 +1,48 @@
+{
+  "status": "OWN_STDLIB_PACKET_PASS_INDEPENDENT_BINDING_REVIEW_PENDING",
+  "proposal_first_commit": "3566c35c",
+  "source_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "published_branch": "origin/codex/20260926-startup-adjusted-schedule",
+  "published_tip": "225f27d13c25c9160f5fd2758cf016fb4c70bf0f",
+  "published_tip_verified_by_git_ls_remote": true,
+  "commands": [
+    {
+      "cmd": "python3 -B research/v2/proposals/20260926-startup-adjusted-cold-five-trn22/test_binding.py",
+      "exit_code": 0,
+      "receipt": "checks-normal.json",
+      "checks": 71
+    },
+    {
+      "cmd": "python3 -O -B research/v2/proposals/20260926-startup-adjusted-cold-five-trn22/test_binding.py",
+      "exit_code": 0,
+      "receipt": "checks-optimized.json",
+      "checks": 71
+    }
+  ],
+  "prior_check_reruns": "Initial68 checks passed normal/-O; added3 exact accepted-CPU-profile checks, reran all71 normally and under-O; no failed tests.",
+  "source_imported": false,
+  "tensor_allocations": false,
+  "host_actions": 0,
+  "staged": false,
+  "launch_authorized": false,
+  "read_only_lookup_failures": [
+    {
+      "exit_code": 2,
+      "lookup": "Assumed paths20260926-base-cache-cold-five-trn22 and20260926-trn22-arch3e79-cold-five did not exist",
+      "resolution": "Repository file inventory located exact2bdb9edf original CTdriver and9881a3c8 base packet; no substitute."
+    },
+    {
+      "exit_code": 128,
+      "lookup": "a288e3b5:research/v2/verification/20260926-startup-adjusted-fullcpu-independent/REVIEW.md did not exist",
+      "resolution": "git show --name-only located exact research/v2/verification/20260926-startup-adjusted-full-cpu-result/REVIEW.md; read before gate metadata."
+    }
+  ],
+  "limitations": [
+    "Own static receipt is not independent review or native qualification.",
+    "Runtime driver/harness use normal Python only; -O would remove inherited assertions.",
+    "Hostname equality belongs to explicit Operator preflight; no internal runtime hostname assertion added.",
+    "FullCPU three synthetic updates do not establish five-boundary/native behavior; accepted tiny evidence remains separate.",
+    "No causal attribution of architecture BPB spread or expected quality gain."
+  ]
+}
