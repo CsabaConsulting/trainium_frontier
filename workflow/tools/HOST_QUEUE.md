@@ -60,7 +60,9 @@ for the controller to retrieve and merge, not another scientific decision
 ledger. Successful records remain `evaluated_pending_review`; no causality
 check, adoption, score improvement or canonical verdict is invented. Failed
 train/eval, invalid budget/shape/loss/token count, source drift, STOP, low disk
-or freeze stops the queue. Logs and checkpoints are preserved, with no cleanup.
+stops the queue. Freeze blocks new training starts, while a job already in
+progress finishes its mandatory fresh evaluation and recording. Logs and
+checkpoints are preserved, with no cleanup.
 
 Restarting the same queue skips completed labels and repairs a missing spool
 append from their terminal receipts. A consumed label without a terminal

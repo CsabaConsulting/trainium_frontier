@@ -16,8 +16,8 @@ import host_queue as q
 
 
 class FakeRunner(q.QueueRunner):
-    def wait_idle(self, max_wait=None):
-        self.guards()
+    def wait_idle(self, max_wait=None, *, starting=False):
+        self.guards(starting=starting)
         return {"processes": [], "device_holders": []}
 
     def environment(self, job, directory, cache):
@@ -145,6 +145,17 @@ class QueueTests(unittest.TestCase):
         (runner.root / "PAUSE_NEXT").touch()
         self.assertEqual(runner.run(), "paused_between_jobs")
         self.assertFalse((runner.root / "job-1").exists())
+
+    def test_crossing_freeze_finishes_eval_but_does_not_start_next_job(self):
+        self.cfg["fake_sleep"] = 0.5
+        self.cfg["freeze_utc"] = (q.dt.datetime.now(q.dt.timezone.utc) + q.dt.timedelta(seconds=0.2)).isoformat()
+        runner = self.runner()
+        with self.assertRaisesRegex(RuntimeError, "RESEARCH_FREEZE"):
+            runner.run()
+        self.assertTrue((runner.root / "job-1/training-exit.json").exists())
+        self.assertTrue((runner.root / "job-1/fresh-public20m-exit.json").exists())
+        self.assertEqual(self.terminal("job-1")["status"], "evaluated_pending_review")
+        self.assertFalse((runner.root / "job-2").exists())
 
     def test_killed_driver_never_relaunches_or_overlaps_surviving_phase(self):
         self.cfg["fake_sleep"] = 0.5
