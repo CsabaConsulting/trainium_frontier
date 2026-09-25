@@ -8,6 +8,10 @@ under optimized Python, the frozen launcher strips its assertion-based
 dispatch refusal and can create a local receipt and reach the SSH seam.
 The reproduction used a fake subprocess with no host contact. A distinct
 fail-closed successor is needed; no r5 native dispatch is authorized.
+The [r6 refusal-only diagnostic packet](authorizations/trn22-c5c-a0-r6-optimization-hold/RUNBOOK.md)
+documents that the frozen remote launcher also uses assertions for safety
+checks. It remains disabled/HOLD; a narrow, separately reviewed operational
+launcher-source update is now being prepared before any native request.
 
 At 06:02 UTC, the [distinct trn22 nonblocking-lock successor](authorizations/trn22-c5c-a0-r4-transfer-lock-nonblock-hold/GATE_CONTRACT.HOLD.json)
 received [independent PASS for disabled static bytes only](verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md).

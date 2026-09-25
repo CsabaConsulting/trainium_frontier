@@ -15,6 +15,10 @@ The trn22 A0 r5 native package now has
 optimized Python strips an assertion-based disabled dispatch check in the
 frozen launcher. Its offline reproducer used a fake SSH seam, not the host.
 A distinct fail-closed successor is being prepared; r5 cannot launch.
+The [r6 diagnostic packet](../v2/authorizations/trn22-c5c-a0-r6-optimization-hold/RUNBOOK.md)
+also identifies assertion-based safety checks in the frozen remote launcher;
+it is disabled/HOLD and cannot launch. A separate narrow operational source
+update is underway, with model, data, evaluator and scoring bytes protected.
 Best confirmed public20M is unchanged at 0.9918353324 single /
 0.9919537735 two-run mean.
 
