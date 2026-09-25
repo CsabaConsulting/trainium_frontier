@@ -2,6 +2,14 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:48 UTC, trn22's
+[read-only source-stage feasibility](authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_READONLY_FEASIBILITY_20260925T024228Z.md)
+[passed independent planning review](authorizations/trn22-c5c-a0-r4-source-feasibility/INDEPENDENT_PLANNING_VERIFIER_RECEIPT.md).
+It is a point-in-time snapshot only. The transfer-only package must still be
+reviewed, then a fresh full preflight must archive raw transport details,
+old-path inventory, mount alias reconciliation, STOP/breaker and disk checks
+before any narrow assignment. No source transfer or new BPB.
+
 At 02:44 UTC, trn22's frozen r4
 [source capsule/plan](authorizations/trn22-c5c-a0-r4-source-stage/GATE_CONTRACT.json)
 [passed independent offline static review](authorizations/trn22-c5c-a0-r4-source-stage/INDEPENDENT_STATIC_VERIFIER_RECEIPT.md).
