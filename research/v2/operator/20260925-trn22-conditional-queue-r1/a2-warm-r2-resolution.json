@@ -1,0 +1,40 @@
+{
+  "observed_utc": "2026-09-25T16:01:48.655725+00:00",
+  "pointer_published_utc": "2026-09-25T16:00:23.363420+00:00",
+  "host": "trn22",
+  "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full",
+  "research_only": true,
+  "submission_eligible": false,
+  "pointer": {
+    "manifest_path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/resolved-a2-warm-r2.json",
+    "manifest_sha256": "8a43595eb59ad7ddc99f60f542f751f100d21adf1cccc94b4166345b8dac6aa4"
+  },
+  "proposal_sha256": "44f105107fe7ec543b5f0874626ad51321985c32ed95ae7a9a8059eccacfe3f4",
+  "queue_pid": 3050509,
+  "queue_alive": true,
+  "disk_free_bytes": 51518578688,
+  "queue_events": "{\"bootstrap_sha256\": \"092e0ba53863fe02758b5a4dc4c99423909d1c92438d99264d1b3c669eed781b\", \"inbox\": \"/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/next-resolution.json\", \"status\": \"waiting_resolution\", \"utc\": \"2026-09-25T15:55:44.024051+00:00\"}\n{\"labels\": [\"fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full\"], \"manifest_sha256\": \"8a43595eb59ad7ddc99f60f542f751f100d21adf1cccc94b4166345b8dac6aa4\", \"status\": \"resolution_loaded\", \"utc\": \"2026-09-25T16:00:24.099293+00:00\"}\n",
+  "queue_log": "",
+  "r2_attempt_started": false,
+  "r1_eval_exitcode": null,
+  "r1_eval_tail": ")\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"/home/ubuntu/workspace/native_venv/bin/python\", \"prepare.py\", \"eval-public\", \"--train-py\", \"train.py\", \"--checkpoint\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full-work/train/out/final.pt\", \"--device\", \"neuron\", \"--batch-size\", \"1\", \"--seq-len\", \"1024\", \"--eval-tokens\", \"20971520\", \"--timeout-seconds\", \"1200\"]\n[W925 15:46:16.432855277 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nWARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.\n",
+  "r1_eval_pid_alive": true,
+  "cache_counts": {
+    "train_cache": {
+      "neff": 251,
+      "local": 252,
+      "hlo": 633,
+      "inductor": 0,
+      "compiler": 0,
+      "debug": 138
+    },
+    "eval_cache": {
+      "neff": 51,
+      "local": 51,
+      "hlo": 153,
+      "inductor": 0,
+      "compiler": 0,
+      "debug": 0
+    }
+  }
+}
