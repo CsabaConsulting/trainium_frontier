@@ -1,6 +1,32 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:58 UTC (26 September IST)
+Last reconciled: 2026-09-25 22:10 UTC (26 September IST)
+
+## Latest: Recursive source review accepted; next CPU slot assigned
+
+Fresh input-only Recursive reviewer completed22:03:36UTC with narrow PASS for
+the next full113M CPU qualification, not native/quality/adoption. Archives
+2133e43d/23e826f8 retain6263 own numerical checks and31 negative controls;
+Supervisor read the full report/spec and replayed154 archive checks normal/-O.
+Separate trn21 binding9969a7f7 passed99 independent mechanical checks, replayed.
+Conditional assignment `research/v2/verification/20260926-architecture-recursive-trn21-cpu-assignment.md`
+permits one exact4-arm CPU sequence AFTER current confirmation train+fresh20M,
+receipt retrieval, driver exit and fresh quiescence. No native authority follows.
+
+At22:05:21UTC both research jobs were still active: trn21 step3400,266401tok/s,
+129 source seconds remaining; trn22 LR0.012 step810,267995tok/s,1403seconds
+remaining. Both original locks/four workers/disks healthy. Actual terminal and
+score receipts are pending; preserve attached evals. Best score remains.986340.
+trn22's next conditional task remains checkpoint-only CPU30d27e8c.
+
+K2 narrow reporting repair passed independent34 own1x1 tensor checks normal/-O
+inb047da31, preserving nonfinite refusal and signed-zero comparisons. This is
+not native acceptance; old checker binding8555 remains invalid for the repair.
+Stable-source cache pair S1/S2 is being prepared disabled; no host assignment.
+Genuine newbase control fallbacks a50e6802 exist disabled and are independently
+reviewed next. They are not fabricated/relabelled historical observations.
+These updates supersede pending source/binding statements below. Clean3f5035
+REFUSE, cold/full validation and upload HOLD remain unchanged.
 
 ## Current: both hosts active; submission qualification separate
 
