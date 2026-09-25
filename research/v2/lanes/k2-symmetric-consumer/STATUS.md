@@ -1,5 +1,18 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+05:20IST: fresh review completed05:17:21IST, archived5ac75f7b. **REFUSE**
+because packet lacked version-specific API support evidence for grid/address
+semantics; no new source defect demonstrated. Independent16-case CPU model
+compared2,097,152bytes exactly, but cannot establish native lowering. Root
+authenticated all129archivefiles and per-case raw output/ownership bytes.
+No native authority. Official-versioned documentation evidence is being
+collected for a later independently assessed supplemental packet, not a
+reworded retry or override. Exact source remains unchanged.
+
+Native binding mechanics alone passedf4aeca71/canonical8f9aed56; root read
+full review/runtime and replayed127checks normal/-O. This does not satisfy
+the separate source gate, descendant postflight or future Operator release.
+
 Distinct source9ce2e6a0/kernel2c8295a4 partitions the tiny supplied-metadata
 consumer over two explicit programs with symmetric row-loop schedules.
 Old namespace-only route remains PARKED after NCC_IXGM002; this is a new
