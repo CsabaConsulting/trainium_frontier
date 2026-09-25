@@ -1,5 +1,14 @@
 # Current state
 
+## 22:56 UTC: full schedule-stack experiment released ontrn21
+
+New assignment20260926-architecture-recursive-full-trn21-assignment.md permits
+exact75b944 full1800+fresh20M after prior CPU quiescence/freshguards. Binding7172
+passed107independent mechanics checks; rootread/replayed bothmodes. Actual launch
+not yet observed at this snapshot. Prior clock36a862 CPU finished22:52:10UTC;
+raw1d83f3d0 passes root249own checks, full113M scope but only3syntheticupdates.
+No automatic clocknative release. trn22 stable-sourceS1 stillrunning.
+
 ## 22:50 UTC update: cold gate passed, LR loss authenticated, next CPU assigned
 
 75b944 schedule-on-architecture cold-five completed831.421556s through the actual
