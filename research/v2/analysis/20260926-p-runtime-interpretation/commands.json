@@ -1,0 +1,95 @@
+{
+  "schema": "completed-local-probe-record-v1",
+  "record_scope": "Compact commands/input filters/calculations from the completed Analyst turn, not a verbatim full terminal transcript",
+  "persistence_followup": "No runtime trace was reopened during persistence; only four small phase files and the retrieval manifest were hashed for documentation pins",
+  "interpreter": "python3 (stdlib only; no torch import)",
+  "probes": [
+    {
+      "purpose": "Runtime integrity and event/category inventory",
+      "command": ["python3", "-"],
+      "input": "Each retrieved[].local_path in completed/runtime-trace-retrieval.json, one rank at a time",
+      "executed_expressions": [
+        "raw=p.read_bytes(); sha=hashlib.sha256(raw).hexdigest(); assert sha==r['sha256'] and len(raw)==r['bytes']",
+        "d=json.loads(raw); events=d['traceEvents']",
+        "collections.Counter(e.get('cat','') for e in events)",
+        "sum(e['device_ms_if_profiler_attributed'] is not None for e in phase_rows)",
+        "sum(e['cpu_self_ms']<0 for e in phase_rows)"
+      ],
+      "exit_code": 0,
+      "note": "Verbose event-name inventory output was truncated by the tool; subsequent targeted probes returned the needed fields without relying on that truncated text."
+    },
+    {
+      "purpose": "Separate host/runtime/device-labeled trace layers",
+      "command": ["python3", "-"],
+      "input": "rank0-trace.json",
+      "event_filters": [
+        "cat in ('privateuse1_driver','privateuse1_runtime','ac2g','cpu_op','')",
+        "ph == 'M' for process_labels and thread_name metadata",
+        "cat != 'python_function' and regex matmul|aten::mm|aten::bmm|sdpa|scaled_dot|embedding|scatter|einsum on name"
+      ],
+      "exit_code": 0
+    },
+    {
+      "purpose": "All-rank compiled graph correlation and Muon intervals",
+      "command": ["python3", "-"],
+      "input": "rank0/1/2/3-trace.json and matching profile.json",
+      "event_filters": [
+        "cpu_op keyed by args['External id']",
+        "privateuse1_driver && name == 'model_default'",
+        "user_annotation && name.startswith('P/')",
+        "privateuse1_runtime && name == 'model_default'"
+      ],
+      "executed_calculations": [
+        "duration_ms = event['dur']/1000",
+        "Match External id to CPU event; same-thread CPU launch timestamp inside P annotation identifies forward/Muon launch context",
+        "CompiledFunctionBackward plus External id571 identifies backward graph even though autograd uses another CPU thread",
+        "Report args.nrt_sequence_id, neff_cache_key and xu_type; do not add runtime/driver duplicates",
+        "Sum only three separate Muon privateuse1_driver graph intervals per rank; do not label as exclusive hardware-active time"
+      ],
+      "exit_code": 0
+    },
+    {
+      "purpose": "All-rank data-fetch overlap and skew",
+      "command": ["python3", "-"],
+      "input": "rank0/1/2/3-trace.json",
+      "event_filters": [
+        "P/forward, P/backward, P/data_fetch, P/clip_and_reduce, P/optimizer",
+        "Same-thread cpu_op entirely inside P/data_fetch, sorted by dur descending",
+        "Second privateuse1_driver model_default graph (independently correlated to CompiledFunctionBackward)"
+      ],
+      "executed_calculations": [
+        "overlap_ms=max(0,min(back['ts']+back['dur'],fetch['ts']+fetch['dur'])-max(back['ts'],fetch['ts']))/1000",
+        "Report baseTimeNanoseconds and P/forward.ts from every rank",
+        "Relative phase start/end milliseconds use P/forward.ts as origin"
+      ],
+      "exit_code": 0
+    },
+    {
+      "purpose": "Exact rank0 blocking-copy correlation",
+      "command": ["python3", "-"],
+      "input": "rank0-trace.json",
+      "executed_expressions": [
+        "related=[e for e in es if e.get('args',{}).get('External id')==332]",
+        "copy=[e for e in es if e.get('name')=='neuron::copy::cpu_to_neuron' and fetch['ts']<=e.get('ts',0)<=fetch['ts']+fetch['dur']]",
+        "Print same-thread python_function spans within P/data_fetch, largest dur first",
+        "Enumerate traceEvents indices for P/data_fetch, privateuse1_driver model_default, and CPU External id8/332/571"
+      ],
+      "derived_arithmetic": "(7398158590451.136-7398158322562.547)/1000 = 267.888589 ms enqueue-to-dispatch wait",
+      "exit_code": 0
+    },
+    {
+      "purpose": "Phase-report scope and attribution check",
+      "command": ["python3", "-"],
+      "input": "profile/rank0/1/2/3/profile.json",
+      "fields": ["profiled_step", "world_size", "tokens_this_update", "grad_accum", "phase_cpu_annotations", "phase_sum_warning"],
+      "exit_code": 0
+    },
+    {
+      "purpose": "Documentation input pins during persistence only",
+      "command": ["sha256sum", "completed/profile/rank0/profile.json", "completed/profile/rank1/profile.json", "completed/profile/rank2/profile.json", "completed/profile/rank3/profile.json", "completed/runtime-trace-retrieval.json"],
+      "path_note": "The actual command used absolute paths under /home/poojith-devan/Desktop/Trainium/research/v2/operator/20260926-trn21-profile-recursive6ef7/",
+      "exit_code": 0
+    }
+  ],
+  "not_executed": ["host commands", "training", "model or tensor allocation", "device NTFF read/decode", "hardware FLOP or MFU calculation", "source/ledger/launcher edits"]
+}

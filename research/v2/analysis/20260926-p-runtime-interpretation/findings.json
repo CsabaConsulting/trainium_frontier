@@ -1,0 +1,110 @@
+{
+  "schema": "p-runtime-analyst-interpretation-v1",
+  "role": "Analyst; existing local interpretation, not a fresh source review",
+  "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "profiled_step": 20,
+  "world_size": 4,
+  "grad_accum": 1,
+  "tokens_this_update": 131072,
+  "runtime_directory": "/home/poojith-devan/Desktop/Trainium-trn22-queue-operator/out/p-runtime-traces-20260926-r1",
+  "phase_directory": "/home/poojith-devan/Desktop/Trainium/research/v2/operator/20260926-trn21-profile-recursive6ef7/completed/profile",
+  "retrieval_manifest": {
+    "path": "/home/poojith-devan/Desktop/Trainium/research/v2/operator/20260926-trn21-profile-recursive6ef7/completed/runtime-trace-retrieval.json",
+    "sha256": "0ba2cc056c48be8d2392f8ff002e199120b19f1c520ce372ef6b971e458b3694"
+  },
+  "inputs": [
+    {
+      "rank": 0,
+      "runtime_file": "rank0-trace.json",
+      "runtime_bytes": 10181471,
+      "runtime_sha256": "2c4b3aaed7a1d810937eb0c3d3c44f7f853f3d53cc335237c8d7ae611dd445e9",
+      "runtime_size_and_sha_independently_verified": true,
+      "phase_file": "rank0/profile.json",
+      "phase_sha256": "e88bbed33ee56663d127738076faf6a49eef0f7232492d5f27ce314ca9b76a6d"
+    },
+    {
+      "rank": 1,
+      "runtime_file": "rank1-trace.json",
+      "runtime_bytes": 16029891,
+      "runtime_sha256": "7f0cd37e094d0b01e8f9d00b7e4f6ecfb33e2b8977e386ea75d5f4da8a271b77",
+      "runtime_size_and_sha_independently_verified": true,
+      "phase_file": "rank1/profile.json",
+      "phase_sha256": "f565dfcee936117628e27c2a66dd9f9111d52488b6a4c41401a4d5148dd0fc0c"
+    },
+    {
+      "rank": 2,
+      "runtime_file": "rank2-trace.json",
+      "runtime_bytes": 17269103,
+      "runtime_sha256": "4ba95d95c90a2254078a78918caf4acb4c324d0a551a716809d344b58a730256",
+      "runtime_size_and_sha_independently_verified": true,
+      "phase_file": "rank2/profile.json",
+      "phase_sha256": "113574a808b3fd465c4aa3316df30678401ecfb62442e4ba69a987840e1d9362"
+    },
+    {
+      "rank": 3,
+      "runtime_file": "rank3-trace.json",
+      "runtime_bytes": 13547941,
+      "runtime_sha256": "14553ef6f1c113dda5d405d6482f37ad99089a9a49fadc6b913577e87ca1db04",
+      "runtime_size_and_sha_independently_verified": true,
+      "phase_file": "rank3/profile.json",
+      "phase_sha256": "508212c8cdab3e8fb3c7d1420cb0e62b7ddf78c8254cdcb74e0e9f245e7fd094"
+    }
+  ],
+  "timing_attribution": {
+    "host_annotations": "Inclusive dispatch/wait; no exclusive device attribution",
+    "all_phase_device_ms_fields_null": true,
+    "negative_cpu_self_rows_by_rank": [11, 10, 11, 8],
+    "runtime_device_labeled_graphs": "privateuse1_driver, NeuronDevice N / Compute; runtime-observed intervals correlated by External id, nrt_sequence_id and NEFF cache keys",
+    "decoded_instruction_or_engine_active_times": "NOT ESTABLISHED",
+    "do_not_sum_nested_or_cross_layer_durations": true
+  },
+  "rank0_fetch_wait": {
+    "trace_event_indices": {"fetch_annotation": 253, "blocking_cpu_copy": 334, "compiled_backward_cpu": 1520, "backward_driver_graph": 32388},
+    "external_id": 332,
+    "nrt_sequence_id": 1846,
+    "input_dims": [[1, 32768], [1, 32768], []],
+    "input_types": ["int", "int", "Scalar"],
+    "nonblocking": false,
+    "fetch_ms": 275.838232,
+    "cpu_copy_ms": 268.582190,
+    "enqueue_ms": 0.000946,
+    "enqueue_to_dispatch_start_ms": 267.888589,
+    "tensorop_dispatch_ms": 0.488441,
+    "driver_copy_ms": 0.193672,
+    "backward_graph_ms": 273.642050,
+    "backward_fetch_overlap_ms": 271.682841796875,
+    "interpretation": "Strong synchronization/queue-wait evidence in blocking H2D copy; not an established disk or loader-CPU bottleneck"
+  },
+  "per_rank": [
+    {"rank": 0, "runtime_forward_ms": 138.108883, "runtime_backward_ms": 273.642050, "runtime_muon_graph_ms": [0.217864, 3.537816, 3.818947], "runtime_muon_total_ms": 7.574627, "host_optimizer_ms": 32.891054, "host_clip_reduce_ms": 22.428792, "host_fetch_ms": 275.838232, "host_loop_ms": 502.0967680029571, "forward_annotation_ts_us": 7398158161186.69, "raw_device_capture_enabled": true},
+    {"rank": 1, "runtime_forward_ms": 137.073180, "runtime_backward_ms": 272.255578, "runtime_muon_graph_ms": [3.424214, 3.309758, 4.254596], "runtime_muon_total_ms": 10.988568, "host_optimizer_ms": 31.164747, "host_clip_reduce_ms": 1268.148260, "host_fetch_ms": 275.177286, "host_loop_ms": 1747.2485690377653, "forward_annotation_ts_us": 7398156916500.117, "raw_device_capture_enabled": false},
+    {"rank": 2, "runtime_forward_ms": 141.857117, "runtime_backward_ms": 281.910434, "runtime_muon_graph_ms": [3.871049, 3.281815, 4.458375], "runtime_muon_total_ms": 11.611239, "host_optimizer_ms": 31.152157, "host_clip_reduce_ms": 1251.301259, "host_fetch_ms": 282.378753, "host_loop_ms": 1745.156034012325, "forward_annotation_ts_us": 7398156918039.942, "raw_device_capture_enabled": false},
+    {"rank": 3, "runtime_forward_ms": 141.687720, "runtime_backward_ms": 281.273465, "runtime_muon_graph_ms": [4.297254, 3.258870, 13.741601], "runtime_muon_total_ms": 21.297725, "host_optimizer_ms": 20.362889, "host_clip_reduce_ms": 1255.640321, "host_fetch_ms": 281.702138, "host_loop_ms": 1744.044544058852, "forward_annotation_ts_us": 7398156919071.113, "raw_device_capture_enabled": false}
+  ],
+  "dtype_and_operator_coverage": {
+    "forward_compiled_function_inputs_each_rank": {"c10::BFloat16": 42, "float": 22, "int": 1, "long int": 1},
+    "individual_matmul_sdpa_embedding_scatter_events_outside_python_frames": 0,
+    "every_matmul_sdpa_bf16": "UNKNOWN",
+    "embedding_backward_device_ms": null,
+    "internal_accumulation_dtype": "UNKNOWN",
+    "graph_boundary_dtype_is_not_internal_operator_dtype_proof": true
+  },
+  "skew": {
+    "common_baseTimeNanoseconds": 1782967788000000000,
+    "rank0_later_forward_start_than_rank1_ms": 1244.686573,
+    "rank0_later_forward_start_than_rank2_ms": 1243.146748,
+    "rank0_later_forward_start_than_rank3_ms": 1242.115577,
+    "interpretation": "Consistent with collective waiting from capture-start skew; exact cause not proved",
+    "clean_matched_throughput_comparison": false
+  },
+  "priority_interpretation": {
+    "K1": "Three compiled Muon group calls per rank; supports targeted residual dispatch/scalar investigation, not a demonstrated unbatched-launch bottleneck or >=5% win",
+    "K2": "Backward is visible only as a coarse graph; embedding cost and quantitative priority against K1 remain unresolved"
+  },
+  "mfu": null,
+  "mfu_estimated": false,
+  "device_ntff_opened_or_decoded": false,
+  "device_ntff_bytes_from_existing_metadata_only": 4130966280,
+  "unresolved": ["decoded-device engine coverage", "event-cap completeness", "internal operator and dtype attribution", "hardware FLOP counts", "causal optimization speedup"],
+  "mutations": {"hosts": false, "candidate_source": false, "training": false, "ledger": false, "launchers": false, "documentation_packet_only": true}
+}
