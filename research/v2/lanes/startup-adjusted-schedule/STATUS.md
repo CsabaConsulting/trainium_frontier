@@ -1,5 +1,11 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+05:01IST update: actual cold-five accepted55c773fc/root130checks,
+uncappedfifth845.6273377500474s. Full36a862+fresh20M releasedc8882640 and
+ACTUALLY launched04:59:53IST, raw127aed26, fourworkers/originalflock.
+NoRecursive/seed42/MAX1800, exact59d21dde packet unchanged. Research cache
+reuse nottruecoldfull; BPB pending, no gain or adoption yet.
+
 04:51IST update: cold still compiling; actualfifth pending. Disabled full
 packet59d21dde mechanicallyPASS0ed34633,132independentchecks and8preparation
 groups replayed normal/-O by root. Exact36a862/noRecursive/seed42 unchanged.

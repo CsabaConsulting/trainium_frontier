@@ -1,5 +1,24 @@
 # Current state
 
+## 23:31 UTC: both full experiments actually live
+
+trn21 full75b944+Recursive reached step2590/epoch2 at23:31:30,266884tok/s,
+526sremaining, attachedfresh20M pending. trn22 full36a862 startup-clock began
+23:29:53.434078UTC with fourworkers3191056–59 and original lifetime lock.
+Actuallaunch127aed26/canonical1ef631df, releasec8882640. Prior cold-fifth
+845.6273377500474 accepted55c773fc/root130normal/-O checks. Full is research
+cache reuse, not a cold submission replay or established cache hit.
+
+P saved-trace decoder8429c1a2/canonical9d3a5fdf has16 tiny Implementer tests;
+independent containment review running, no host decode authorized yet. New
+symmetric two-program K2 design is CPU-first only; old route stays PARKED.
+Bounded live compiler-input observation00eae655 uses the current full run,
+not an extra cold test; S1 original pair remains refused/noS2.
+
+Confirmedpublicmean.9901674436550496 remains. Original.986340 did not confirm;
+no upload-ready candidate. Both active runs will score separately. GoalACTIVE,
+no duplicate launcher or six-ready-job claim. Newest hosts/queue fields updated.
+
 ## 23:21 UTC: both jobs live; next clock full packet independently checked
 
 Operator's latest observation: trn21 full75b944+Recursive step1320,
