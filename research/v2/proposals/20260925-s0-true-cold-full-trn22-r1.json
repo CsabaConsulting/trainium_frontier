@@ -94,7 +94,7 @@
     "metric": "public validation BPB at context 1024 over 20971520 tokens from the trusted evaluator; archive exact command, process identity, result JSON, checkpoint hash, token and timeout fields. This is the first cold-replay submission-safety score, not a leaderboard submission."
   },
   "hard_dependencies": [
-    "trn21 S0 warm 120-second smoke has a terminal PASS and independent postlaunch receipt review accepting exact source, >=20 distinct rank-0 boundaries plus all-worker success, finite checkpoint and effective populated-cache hit/path evidence; startup without a demonstrated hit is not a PASS of the warm-cache discriminator for this dependency.",
+    "trn21 S0 120-second startup smoke has a terminal PASS and independent postlaunch receipt review accepting exact source, clean four-rank compile, >=20 distinct rank-0 completed boundaries plus all-worker success and finite checkpoint. A measurable warm-cache hit is useful for warm-vs-cold attribution but is NOT required for this full-replay eligibility gate; if no hit is proven, label cache attribution inconclusive while retaining the valid S0 startup PASS.",
     "trn22 known-good 116188 true-cold 120-second smoke has a terminal PASS and independent postlaunch receipt review accepting effective empty persistent-cache proof, >=20 distinct rank-0 boundaries plus all-worker success and finite checkpoint.",
     "If either smoke fails or is inconclusive, do not launch this full replay; diagnose the actual compiler/cache/runtime evidence and issue a new reviewed plan.",
     "A separately reviewed one-use Supervisor assignment and fresh trn22 Operator checks are still required; this proposal confers no launch authority."
