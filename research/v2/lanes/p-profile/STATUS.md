@@ -1,5 +1,32 @@
 # P status — 2026-09-26 IST
 
+## Native capture and bounded analysis completed (01:45 IST update)
+
+Exact6ef7 P ran on trn21 from19:38:22 to19:52:38UTC,22steps,exit0.
+Four runtime traces were retrieved with verified hashes; rank0's4.13GB raw
+device trace remains on the host, undecoded. Independent local interpretation
+is archived in `research/v2/analysis/20260926-p-runtime-interpretation/`
+(04c6ff92). This is not a new source review or a performance win.
+
+Coarse runtime-observed forward graphs span137.073–141.857ms and backward
+graphs272.256–281.910ms. Three already-batched Muon graphs per rank total
+7.575–21.298ms. These are runtime graph intervals, not per-instruction active
+times. Embedding backward and internal matmul/SDPA dtypes remain unresolved.
+No MFU, K1/K2 speedup or claim of every matmul being BF16 follows.
+
+Rank0's275.838ms data-fetch annotation overlaps backward by271.683ms; its
+blocking token copy waits267.889ms before dispatch, while the correlated
+device-labeled copy lasts0.194ms. Do not label this a275ms loader-I/O bottleneck.
+Capture-start rank skew also makes the profiled loop unsuitable as a clean
+throughput comparison. Both findings and exact event identities are retained.
+
+Next analysis: bounded installed-tool capability and correct NEFF/NTFF pairing
+before any device decode, on a non-competing CPU slot. Do not disturb the
+running batch timing/full architecture jobs or copy/parse the large trace on
+the RAM-limited laptop. Preserve UNKNOWN until decoded evidence is available.
+
+The earlier pending-launch/source snapshots below are historical.
+
 Latest handoff, 19:27 UTC: fresh independent session
 `01a0da02-1e9c-7771-8c4e-22560f61836f` completed source/CPU-only PASS for
 exact6ef7 and this wrapper, including its own 22-step FP32/BF16 reference.

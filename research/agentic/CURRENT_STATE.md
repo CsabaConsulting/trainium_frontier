@@ -1,6 +1,49 @@
 # Current state
 
-Last reconciled: 2026-09-25 20:10 UTC (26 September IST)
+Last reconciled: 2026-09-25 20:29 UTC (26 September IST)
+
+## Current: architecture and seed43 running; batch screen below threshold
+
+The safeguard timebox is satisfied, and historical queue processes are stopped,
+not merely starved. Only the assigned Operator launches jobs, retaining each
+original common host lock through training and attached fresh20M evaluation.
+Both hosts were observed active at20:26:19UTC with no errors or old queues.
+
+trn21 batch105-step diagnostic completed20:21:47UTC. The precommitted printed
+median is282266.5tokens/s versus268831control: **4.9977495155%**, just below
+the exact5% threshold282272.55. Do not round this to PASS. No full/cold batch
+run or BPB claim follows. Startup794.928467s was warm-intended, not cold proof;
+actual wall893.182708s and charged98.254241s. Raw archive8c3e2779 is under
+`research/v2/operator/20260926-trn21-batch262144-timing/completed/`;
+independent final-result authentication is underway.
+
+The already-reviewed conditional seed43 fallback actually started trn21 at
+20:23:59.044191UTC /01:53:59IST,2m11s after batch completion. Exact6ef7,
+driver3015275, workers3015321–3015324, original lock inode596823; fresh
+in-lock ps AND neuron-ls PASS. Launch evidence49edfdf7 is under
+`research/v2/operator/20260926-trn21-recursive-seed43-guarded/launch/`.
+This is a seed-sensitivity diagnostic, not a new model or submission seed.
+
+trn22 architecture remains active under its original lifetime lock: step1230,
+loss3.0698,266730tokens/s at20:26:19UTC, no active compiler at that observation.
+Final steps, official-accounting totals and public20M remain pending. The
+separate true-cold five-step gate844.353s already passed; this full run uses
+primed caches and cannot be relabeled a full cold replay.
+
+P runtime interpretation is archived04c6ff92. The apparent long data-fetch
+span is mainly waiting on queued backward work, not demonstrated loader I/O.
+Existing batched Muon graphs total7.575–21.298ms by rank; per-embedding cost,
+internal matmul/SDPA dtype and MFU are still unknown. Large device trace is
+not decoded. No new K1/K2 speed claim is supported.
+
+Base-cache CPU qualification packet2cf504d9 has independent mechanical PASS
+(74checks normal/-O), after preserving its original false-parent-refusal.
+Exactbcbd source is not adopted. Full117M G2 and fresh source review remain
+pending; no native/cold/full follow-up is authorized. K2 resident-row routing
+is research-only; original e4d93 remains REFUSE.
+
+No new confirmed BPB improvement. Confirmed schedule-base mean stays
+0.9901674436550496. Snapshots below are historical, not current launch authority.
 
 ## Guard working within timebox; full architecture running
 
