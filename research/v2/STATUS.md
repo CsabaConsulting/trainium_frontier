@@ -1,6 +1,14 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 lock repair static HOLD on host mode/hash; trn21 disabled lock repair independent static PASS only; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 lock repair static HOLD on host mode/hash; trn21 disabled lock repair independent static PASS only; read-only lock/ACL observations archived; scored training on both hosts HOLD; no new BPB result.**
+
+At 05:37 UTC, trn21's [read-only lock/group observation](authorizations/trn21-c5c-a0-r4-source-feasibility/OPERATOR_LOCK_READONLY_FEASIBILITY_20260925T053029Z.md)
+found `.cache` `0700`, lock parent `0775`, lock file `0664`; the r3 probe
+rejects the latter modes and ACL/alternate traversal are still unknown.
+trn22's separate [read-only ACL observation](authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_GROUP_ACL_READONLY_20260925T053454Z.md)
+found no POSIX ACL on its private `.cache` ancestry and no other local
+GID-1000 account. This bounded evidence does not override the static HOLD or
+authorize either transfer. Separate disabled repairs are underway.
 
 At 05:28 UTC, trn21's disabled final-r3 lock repair received
 [independent static PASS](authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_R3_DISABLED_STATIC_REVIEW.md)

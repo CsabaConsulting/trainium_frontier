@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:28 UTC
+Last reconciled: 2026-09-25 05:37 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -37,8 +37,13 @@ did acquire and release the existing lock without a metadata change, but
 does not clear that policy HOLD. On trn21, a separate
 [disabled final-r3 repair](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R3_HOLD.json)
 received [independent static PASS for its disabled form only](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_R3_DISABLED_STATIC_REVIEW.md).
-Its live lock-parent modes remain unknown; no enabled request, host transfer,
-or native launch follows from that review.
+Its [read-only lock/group observation](../v2/authorizations/trn21-c5c-a0-r4-source-feasibility/OPERATOR_LOCK_READONLY_FEASIBILITY_20260925T053029Z.md)
+found private `.cache` mode `0700`, but the lock parent `0775` and lock file
+`0664` cause r3 to fail closed; ACL and alternate traversal remain unknown.
+trn22's separate [read-only ACL observation](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_GROUP_ACL_READONLY_20260925T053454Z.md)
+found no POSIX ACL grant on its private `.cache` ancestry and no other local
+GID-1000 account; that is bounded evidence for a new repair, not authority.
+Neither review authorizes an enabled request, host transfer, or native launch.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at
 0.9918353324 single / 0.9919537735 two-run mean. The Sep 25 noon-IST S0
