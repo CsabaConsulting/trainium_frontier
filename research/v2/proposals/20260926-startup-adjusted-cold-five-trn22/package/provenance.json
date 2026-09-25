@@ -1,0 +1,8 @@
+{
+  "label": "fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1",
+  "train_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 5 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+  "source_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "scope": "DISABLED_STARTUP_ADJUSTED_COLD_FIVE_ONLY_NO_EVAL_NO_AUTOMATIC_FULL"
+}
