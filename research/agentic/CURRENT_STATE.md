@@ -1,6 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:36 UTC
+Last reconciled: 2026-09-25 02:44 UTC
+
+## Current handoff: trn22 exact-source capsule static PASS; host stage HOLD
+
+The trn22 r4 [exact-source capsule plan](../v2/authorizations/trn22-c5c-a0-r4-source-stage/GATE_CONTRACT.json)
+has [independent offline static PASS](../v2/authorizations/trn22-c5c-a0-r4-source-stage/INDEPENDENT_STATIC_VERIFIER_RECEIPT.md)
+for the frozen 446b source and 6,368-member capsule only. The plan's Git
+commit is on a divergent branch, so a future transfer must authenticate the
+capsule HEAD and pinned file hashes directly, not substitute the package
+commit. A read-only trn22 feasibility check and a separate disabled
+transfer-only implementation are in progress. There has been no host transfer,
+checkout, G2, native control or new BPB. Native dispatch remains HOLD.
 
 ## Current handoff: trn21 checkout request independently HOLD; repair required
 

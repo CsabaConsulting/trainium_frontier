@@ -2,6 +2,14 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:44 UTC, trn22's frozen r4
+[source capsule/plan](authorizations/trn22-c5c-a0-r4-source-stage/GATE_CONTRACT.json)
+[passed independent offline static review](authorizations/trn22-c5c-a0-r4-source-stage/INDEPENDENT_STATIC_VERIFIER_RECEIPT.md).
+The 6,368-member archive matches the frozen 446b source; the package commit
+is not a source substitute. Read-only host feasibility and a separate
+transfer-only package are in progress. No transfer, checkout, scored control
+or BPB result follows from this review; native launch remains HOLD.
+
 At 02:36 UTC, trn21's disabled stage-r2
 [checkout request](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
 received an [independent HOLD](authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_REQUEST_REVIEW.md):
