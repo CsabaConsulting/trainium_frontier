@@ -1,0 +1,123 @@
+{
+  "schema": "trn21-c5c-a0-r1-source-stage-cpu-g2-pending-v1",
+  "status": "IMPLEMENTER_PREPARED_DISPATCH_HOLD",
+  "prepared_by_role": "implementer",
+  "source_stage_authorized": false,
+  "cpu_probe_authorized": false,
+  "native_training_authorized": false,
+  "fresh_evaluation_authorized": false,
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "science_run_label_unconsumed": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "cpu_g2_label_new": "fs-20260925-g2-a0-c5c-exactenv-trn21-r1",
+  "authority_and_evidence": {
+    "supervisor_conditional_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
+    "supervisor_conditional_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
+    "science_proposal": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1/EXPERIMENT_PROPOSAL.json",
+    "science_proposal_sha256": "55c6d500fbc535a45ad3afb6ef32882e30726b8ec90ac412e2ba987b5c71c1b9",
+    "science_contract": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1/GATE_CONTRACT.json",
+    "science_contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
+    "trn21_g1_independent_pass_review": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+    "trn21_g1_independent_pass_review_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+    "trn21_g1_operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json",
+    "trn21_g1_operator_receipt_sha256": "a0896536999087e19f1f2e781b79763b9c6ec9adb9b971d452a1d16e095c2c12",
+    "trn21_readonly_feasibility_receipt": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json",
+    "trn21_readonly_feasibility_receipt_sha256": "90b77b5f220da9e72dbe1932b27b87b953ba85865793ea9ebc3318997f330df1",
+    "trn21_readonly_feasibility_review": "PENDING_INDEPENDENT_VERIFIER",
+    "meaning": "G1 independently PASSed an old retained-checkpoint evaluator calibration; it is neither a new c5c control nor stage/G2/native authority. The feasibility receipt is read-only and must pass independent review."
+  },
+  "source_stage": {
+    "reason_for_transfer": "A read-only trn21 inventory found pinned commit e65a3097 absent from all 144 one-level /home/ubuntu Git repositories; do not substitute another host source or fetch an unreviewed remote branch.",
+    "local_capsule": "/dev/shm/trainium-c5c-e65-one-commit-20260925.tar.gz",
+    "local_capsule_bytes": 104005787,
+    "local_capsule_sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264",
+    "local_capsule_mode_required": "0600",
+    "host_capsule": "/dev/shm/trainium-c5c-e65-one-commit-20260925.trn21.tar.gz",
+    "new_checkout_must_be_absent": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r1",
+    "pinned_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "expected_reachable_commit_count": 1,
+    "expected_shallow_repository": true,
+    "expected_remote_count": 0,
+    "expected_object_alternates": false,
+    "expected_clean_worktree_including_untracked": true,
+    "expected_root_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "expected_prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "local_capsule_extraction_test": "Locally extracted to an isolated tmpfs directory; exact HEAD, one reachable shallow commit, clean status, empty remotes, no alternates and git fsck connectivity PASS. Host must repeat these checks and independently archive its own receipt.",
+    "source_stage_receipt": null
+  },
+  "immutable_science": {
+    "train_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "four_effective_environment_values": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    },
+    "topology": "Full-chip LNC2 / four ranks; CPU G2 only appends CPU, no-compile, three-step and isolated out-dir options. No new science arm or model/evaluator change."
+  },
+  "retained_host_assets_to_reauthenticate_without_modification": {
+    "warm_cache_root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train",
+    "warm_cache_children": ["neff", "local", "hlo", "inductor", "compiler", "debug"],
+    "historical_35c9_checkpoint": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/sandbox/out/final.pt",
+      "bytes": 469834849,
+      "sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535"
+    },
+    "retained_116188_g1_checkpoint": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+      "bytes": 469831009,
+      "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9"
+    },
+    "cache_cleanup_or_substitution_authorized": false,
+    "checkpoint_prune_authorized": false
+  },
+  "cpu_only_g2": {
+    "g2_root_must_be_absent_before_create": "/dev/shm/trainium-v2-g2-20260925-trn21-r1",
+    "g2_root_required_mode": "0700",
+    "tool_root_must_be_absent_before_stage": "/dev/shm/trainium-v2-g2-tools-20260925-trn21-r1",
+    "preflight_tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "containment_tool_sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d",
+    "step_log_parent_must_exist_before_launch": "/dev/shm/trainium-v2-g2-20260925-trn21-r1",
+    "step_log_must_be_absent_before_launch": "/dev/shm/trainium-v2-g2-20260925-trn21-r1/fs-20260925-g2-a0-c5c-exactenv-trn21-r1.steps.jsonl",
+    "g2_receipt": "/dev/shm/trainium-v2-g2-20260925-trn21-r1/c5c-g2.json",
+    "g2_tool_options": ["--steps", "3", "--nproc", "4", "--timeout", "900", "--keep"],
+    "expected_g2_appended_train_argv": ["--device-type", "cpu", "--no-compile", "--num-steps", "3", "--out-dir", "<new-g2-temp-workdir>/out"],
+    "science_output_must_remain_absent": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r1/out/fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "prior_c5c_cpu_pass_receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-a0-research-v2-trn22-r1.json",
+    "prior_c5c_cpu_pass_receipt_sha256": "17ce1ec84ddc0d585ecd103237ecfcd86d3820cdd9aaf1c4fe8b60ed308b90e3",
+    "operator_g2_receipt": null,
+    "independent_numeric_review": null
+  },
+  "safety_gates": {
+    "minimum_fresh_root_free_bytes_before_cpu_or_native": 10737418240,
+    "native_operational_floor_bytes": 6979321856,
+    "fresh_root_free_bytes_verified_for_stage_or_g2": false,
+    "host_idleness_lock_and_neuron_holder_verified_for_stage_or_g2": false,
+    "cache_device_inode_and_checkpoint_identity_verified_for_stage_or_g2": false,
+    "source_and_tool_stage_verified": false,
+    "independent_package_review_pass": false,
+    "separate_supervisor_cpu_assignment": false,
+    "read_only_external_optimizer_boundary_observer_staged_and_live": false,
+    "continuous_root_free_monitor_and_stop_interlock_reviewed": false,
+    "separate_native_request_and_one_shot_authorization": false
+  },
+  "required_sequence": [
+    "Independent Verifier reviews this complete package, one-commit archive provenance/safety, G1/read-only host evidence, unique labels and unchanged science contract; any uncertain breaker remains HOLD for human disposition.",
+    "Supervisor separately assigns source stage/CPU G2 only. An Operator performs live read-only host, disk, process/device, cache, checkpoint, label and tmpfs checks before any host write.",
+    "Operator transfers only the SHA-bound one-commit source archive and two SHA-bound CPU G2 tools using the existing pinned SSH transport; stage into new absent paths; validate exact commit, source/prepare hashes, clean tree, fsck, no remotes/alternates and no suspicious Git config. Archive a source-stage receipt and obtain independent stage review.",
+    "Operator runs the distinct-label four-rank CPU G2 only after its own assignment and preflight. Use exact env -i settings and an existing isolated step-log parent; never create a step-log parent inside the clean checkout.",
+    "Operator waits, stops only the authenticated owned G2 label if needed, proves quiescence even on failure, archives all raw rank/process/step/receipt artifacts and hashes, and checks source, assets, disk and science-output absence after the probe.",
+    "A different Verifier requires four-rank PASS, three finite per-rank losses, identical parameter state, checkpoint/load-for-eval check, step lines 0/1/2 and built-in --compare identical true against the prior c5c CPU PASS receipt.",
+    "Even after G2 PASS, native A0 remains HOLD until a separately reviewed exact request, fresh host preflight, live read-only external optimizer-boundary observer, continuous root-free monitoring with an owned-guard stop interlock above the 6.5-GiB floor, and one-attempt Supervisor authorization."
+  ],
+  "forbidden_actions": [
+    "No host action from this Implementer package alone; it contains no dispatch request or launch_authorized=true.",
+    "No host Git fetch, source substitution, source/prepare/evaluator/data edit, native training, public evaluation, AWS mutation, breaker reset, protected deletion, cache cleanup, adoption or submission.",
+    "No reuse of this CPU G2 label after an attempted probe; diagnose and reauthorize a new label. The science A0 label stays separate and unconsumed."
+  ]
+}
