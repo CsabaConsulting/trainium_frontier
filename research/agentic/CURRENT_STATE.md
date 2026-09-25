@@ -1,6 +1,25 @@
 # Current state
 
-Last reconciled: 2026-09-25 10:30 UTC
+Last reconciled: 2026-09-25 10:50 UTC
+
+At 10:42–10:43 UTC the one-attempt **read-only** trn22 r10 staging-timing
+observation completed and its raw result (`23d704cf`) and before/after host
+snapshots (`c129bf60`) were pushed. An independent result review (`02f02d7b`)
+recomputed the raw evidence: 20/20 clock-only trials fit the one-second model,
+but the slowest pair of broad label scans left only 19.642 ms margin. This is
+feasibility evidence, **not** source-stage or native-training authority. The
+reviewer recommends considering a separately reviewed bounded retry before
+any write; the current r3 stage remains fail-closed and one-shot. Its exact
+enabled request is being prepared. Trn21's repaired disabled timing source
+(`3aa258d3`) received independent static-only PASS (`adee3b47`); its own
+read-only enabled request and live timing are still pending. A separate
+disabled trn22 r10 A0 native package (`8bdc727b`) received independent
+static-only PASS (`ae718458`), not launch authority. A2 exact-tool-path
+read-only proof is being repaired in parallel. Both r10 source stages remain
+unrun, both scored A0 controls remain unrun, and there is no new BPB result.
+The earliest quality evidence still requires both exact r10 stages, fresh
+same-HEAD dual-host preflight, full 1800-second controls and fresh public-20M
+evaluation; the source branches and independent receipts must be preserved.
 
 The trn22 r10 stage's mistyped receipt pin was corrected at `020bfa7e` and
 received source-only static PASS at `aff8762e`, but a later
