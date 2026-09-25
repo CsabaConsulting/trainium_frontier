@@ -108,6 +108,22 @@ class FixedBudgetTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "INSUFFICIENT")
         self.assertIn("no valid same-host control", result["why"])
 
+    def test_explicit_charged_time_cannot_contradict_over_budget_false(self):
+        for field in ("charged_through_exit_seconds", "harness_charged_through_exit_s", "charged_seconds_est"):
+            for value in (1800.0001, -1, float("nan"), float("inf"), "1800", True, [], {}):
+                with self.subTest(field=field, value=value):
+                    result = self.result(**{field: value})
+                    self.assertEqual(result["verdict"], "INSUFFICIENT")
+                    self.assertIn("charged-time evidence", result["invalid_runs"]["arm"])
+            for value in (None, 0, 1784.8, 1800):
+                with self.subTest(field=field, value=value):
+                    self.assertEqual(self.result(**{field: value})["verdict"], "NOMINATE")
+        # Neither a null preferred field nor a lower measured value hides another contradiction.
+        self.assertEqual(self.result(charged_through_exit_seconds=None,
+                                     harness_charged_through_exit_s=1801)["verdict"], "INSUFFICIENT")
+        self.assertEqual(self.result(charged_through_exit_seconds=1790,
+                                     charged_seconds_est=1801)["verdict"], "INSUFFICIENT")
+
     def test_correctness_and_incomplete_status_still_invalid(self):
         for change in ({"over_budget": True}, {"over_budget": None}, {"causality_passed": False},
                        {"eval_tokens": 2097152}, {"eval_seq_len": 2048}, {"git_dirty": True},
@@ -139,11 +155,13 @@ class FixedBudgetTests(unittest.TestCase):
         self.assertEqual(decide.decide_arm(rows, "A1")["verdict"], "DISCARD")
 
     def test_startup_unknown_not_zero_and_cold_gate_not_bpb_gate(self):
-        result = self.result(startup_s=900, startup_allowance_s=900)
+        result = self.result(startup_s=900, startup_allowance_s=900, startup_allowance_est=817.9)
         diagnostic = result["run_diagnostics"]["arm"]
         self.assertEqual(result["verdict"], "NOMINATE")
         self.assertIsNone(diagnostic["startup_measured_seconds"])
         self.assertEqual(diagnostic["legacy_startup_s_untyped"], 900)
+        self.assertEqual(diagnostic["startup_allowance_source_estimate_seconds"], 817.9)
+        self.assertEqual(diagnostic["startup_allowance_seconds"], 900)
         self.assertEqual(diagnostic["cold_startup_submission_gate"], "HOLD_MISSING_PROVEN_COLD_STARTUP")
         result = self.result(startup_measured_seconds=1000, startup_allowance_seconds=900,
                              charged_seconds_est=1784.9, cold_startup_seconds=1000,

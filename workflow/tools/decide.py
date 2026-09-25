@@ -109,6 +109,13 @@ def invalid_reason(r: dict) -> str | None:
         return f"status={r.get('status')}"
     if r.get("over_budget") is not False:
         return "over_budget not False"
+    for field in ("charged_through_exit_seconds", "harness_charged_through_exit_s", "charged_seconds_est"):
+        charged = r.get(field)
+        if charged is not None:
+            if not finite_nonnegative(charged):
+                return f"invalid charged-time evidence: {field}"
+            if charged > TRAINING_BUDGET:
+                return f"charged-time evidence exceeds 1800 seconds: {field}"
     if (r.get("kind") in {"diagnostic", "smoke", "timing", "compile_smoke", "native_smoke"}
             or ("run_purpose" in r and r["run_purpose"] != "quality")):
         return "diagnostic/smoke is not a quality run"
@@ -179,6 +186,7 @@ def run_diagnostics(rows, run):
             "charged_source_estimate_seconds": run.get("charged_seconds_est"),
             "startup_measured_seconds": measured,
             "startup_allowance_seconds": run.get("startup_allowance_seconds", run.get("startup_allowance_s")),
+            "startup_allowance_source_estimate_seconds": run.get("startup_allowance_est"),
             "startup_source_estimate_seconds": run.get("startup_source_estimate_seconds"),
             "legacy_startup_s_untyped": run.get("startup_s"),
             "cold_startup_seconds": cold,
