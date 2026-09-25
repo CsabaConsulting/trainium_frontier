@@ -1,4 +1,17 @@
-# trn22 e65 → r10 direct incremental source stage r1, package correction r2 — DISABLED / HOLD
+# trn22 e65 → r10 direct incremental source stage r1, package correction r3 — DISABLED / HOLD
+
+The r3 correction changes only the local wrapper's controller-state root from
+`/home/poojith-devan/Documents/ChatGPT/Trainium` to the active
+`/home/poojith-devan/Desktop/Trainium`. The two worktrees have different
+`research/v2/state.json` histories; the former can be stale and must not mask
+a tripped breaker in the active Desktop state. STOP checks still cover the
+former Documents root as well as the active Desktop and package roots. The
+disabled request now states both local roots, and an offline regression makes
+a stale safe Documents state plus tripped Desktop breaker HOLD before SSH or
+the one-attempt marker. The r1 and r2 commits remain immutable in history.
+Neither r3 nor an earlier revision has contacted trn22. The remote stage bytes,
+unused label, target, bundle and marker are unchanged. A different Verifier
+must review this exact wrapper and pin before any later enablement.
 
 The original disabled package commit `3d26e963df349f444cd560114400788bf572b062`
 remains in history but had a mistyped SHA-256 pin for the inherited r4 static
@@ -42,6 +55,8 @@ No finite userspace scan is atomic against a same-UID/root actor or alias path. 
 ## Independent gates before any host action
 
 1. A different Verifier reviews this **exact r10 package** and its bundle, normal and `-O` tests, target file hashes, no-cleanup policy, stale-evidence behavior and residual risks. Record an exact disabled static verdict. Do not reuse the r4 verdict as if it covered r10.
+   Include the active Desktop controller-state pin and retained Documents STOP
+   coverage in that review; the prior r2 review cannot cover this changed wrapper.
 2. Obtain separately authorized read-only live r10 timing evidence and its independent review. No timing attempt follows from this disabled file.
 3. If proceeding, create the absent `REQUEST.ENABLED_PENDING_FINAL_REVIEW.json` with the exact schema and fields checked by `operator_once.py::_authority`; independently review that final request/source; then obtain `INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW.PASS.json` and `SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT.json`. The checked-in HOLD request is **not** an enabling artifact.
 4. The Operator must freshly check host identity, source/target absence, source and protected assets, STOP/breaker/lock/process/Neuron/label state, byte/inode floors, known-host identity and one-attempt marker absence before any stage. The marker is consumed once; failures are retained and reported, not cleaned or retried.
@@ -63,4 +78,4 @@ python3 -O -B research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-h
 ```
 
 Both entrypoint commands must refuse with `HOLD` before SSH or a marker.
-The Implementer suite passed **36/36** under normal Python and **36/36** under `-O` in disposable local fixtures. These are not independent verification, live host feasibility, or a BPB result.
+The Implementer suite passed **37/37** under normal Python and **37/37** under `-O` in disposable local fixtures. These are not independent verification, live host feasibility, or a BPB result.
