@@ -22,8 +22,10 @@ At 03:12 UTC, trn22's
 received an [independent static HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_IMPLEMENTATION_REVIEW.md)
 for unpinned SSH host identity, ignored local STOP, self-attested review
 approval and an unproven root-device alias. An Implementer repaired the
-disabled package at `e07781f2`; independent re-review is pending. No
-transfer or training is authorized.
+disabled package at `e07781f2`, and it [passed independent static re-review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_REPAIRED_STATIC_REVIEW.md).
+A new enabled transfer-only request, separate review, fresh preflight and
+Supervisor one-attempt assignment are still needed. No transfer or training
+is authorized.
 
 At 02:57 UTC, trn21's
 [repaired disabled checkout draft](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)

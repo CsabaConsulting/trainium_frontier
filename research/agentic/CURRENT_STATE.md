@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 03:30 UTC
+Last reconciled: 2026-09-25 03:31 UTC
 
 ## Current handoff: trn21 checkout assigned once; no training authorization
 
@@ -26,8 +26,10 @@ The trn22 [r4 transfer-only draft](../v2/authorizations/trn22-c5c-a0-r4-transfer
 received an [independent static HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_IMPLEMENTATION_REVIEW.md):
 SSH host identity was not explicitly pinned, local STOP was ignored, review
 approval was self-attested, and the root-device alias needs read-only
-reconciliation. A separate Implementer repaired the disabled package; its
-independent re-review is pending.
+reconciliation. A separate Implementer repaired the disabled package; it
+[passed independent static re-review](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_REPAIRED_STATIC_REVIEW.md).
+A new exact enabled transfer-only request, separate final review, fresh host
+preflight and Supervisor assignment are still required. No transfer occurred.
 No trn22 transfer, checkout or training is authorized. Both scored A0
 controls remain pending; best confirmed public20M remains `0.9918353324`
 single / `0.9919537735` two-run mean.
