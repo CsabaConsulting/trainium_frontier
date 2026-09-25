@@ -5,7 +5,7 @@ different Verifier checks it. This Researcher neither runs nor verifies it.
 
 ## Stage 0: reject the wrong boundary before hardware
 
-Review exact f9b6-parent diff. OFF must preserve the prior route, RNG draws,
+Review exact shared6ef7 timer-fixed parent diff. OFF must preserve the prior route, RNG draws,
 model/parameter ordering and optimizer. ON must gather original narrow table
 rows with autograd enabled in an uncompiled caller, using unchanged on-device
 int32 hashes, and pass them into one compiled core. No detached leaf, copied
@@ -50,7 +50,10 @@ means reject or repair the boundary; do not relax to a convenient tolerance.
 Save the normal model-only checkpoint and reload with the unmodified eval hook.
 Require identical ON/OFF eval logits, repeated-call identity, prefix causality,
 batch decomposition, and no state/RNG mutation. Test that ON is rejected with
-Engram/no-tables/no-compile, and OFF preserves those existing configurations.
+Engram/no-tables, and OFF preserves those existing configurations. CPU G2 appends
+--no-compile: allow ON in that diagnostic mode so the real pre-gathered-input
+arithmetic is exercised without a compiler. It makes no boundary/performance
+claim. Keep the separate counting-backend compiled graph probe mandatory.
 
 Positive result: independent diff review + CPU G2 + three-step OFF identity
 make a native diagnostic eligible for Supervisor scheduling and Operator

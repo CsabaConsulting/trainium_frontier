@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260925-table-gather-outside-compile-a2",
-  "status": "completed_research_proposal_pending_independent_review_and_implementation",
+  "status": "SELECTED_FOR_IMPLEMENTATION_ON_SHARED_TIMER_FIXED_BASE",
   "owner_role": "researcher",
   "launch_authorized": false,
   "hypothesis": "Passing unchanged, autograd-connected raw table rows from an uncompiled caller into the compiled GPT core reduces A2 cold startup enough to increase useful fixed-budget training while preserving exact training and evaluation arithmetic.",
@@ -46,8 +46,8 @@
   "duplicate_search_files": ["research/v2/ledger.jsonl", "research/experiment-log.jsonl", "research/trn2-experiment-results.md", "research/agentic/DECISION_LOG.md", "reports/2026-09-24-frontier-research-program.md", "submissions/research_v2/train.py", "workflow/proposals/research-v2/train.py"],
   "duplicate_finding": "Exact eager-gather/compiled-inner idea was proposed September12 but no implementing experiment found. Existing prof_driver --ngram-hoist/--ngram-merge-gather keep gathers inside whole-model compile and had null results. September15 four-rank static-vs-dynamic experiment closed the steady-state reshard mechanism (0.0 +/-1.6ms), so only current cold compiler cost is reopened. Advanced indexing is already ON; sparse optimizer candidate was rejected.",
   "control": {
-    "git_commit": "e273b97c42a2d9cc86124e1c5cbbe2a54c75bab1",
-    "train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "git_commit": "a4aa4351",
+    "train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
     "schedule_flag": "--no-recursive-schedule",
     "run_label": "fs-20260925-table-gather-a2-off-trn22-r1-cold",
     "run_status": "planned_not_launched_no_eligible_matched_cold_control_exists",
@@ -59,7 +59,7 @@
   "candidate": {
     "branch": "codex/table-gather-outside-compile-20260925",
     "files_allowed": ["workflow/proposals/research-v2/train.py"],
-    "base_train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "base_train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
     "expected_diff": "One default-OFF parser flag; uncompiled raw-row training caller; optional stable row-tuple input to the shared GPT forward/projection path; both compile-only and training call sites wired. No optimizer, loader, timing, evaluator or SDK edit.",
     "run_label": "fs-20260925-table-gather-a2-on-trn22-r1-cold",
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --no-recursive-schedule --seed 42 --max-train-seconds 1800 --ngram-gather-outside-compile --out-dir out/fs-20260925-table-gather-a2-on-trn22-r1-cold",
