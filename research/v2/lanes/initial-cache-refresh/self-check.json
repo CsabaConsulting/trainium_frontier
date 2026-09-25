@@ -1,0 +1,29 @@
+{
+  "scope": "Implementer self-check only; tensor runs normal Python, static/receipt assertions normal and -O",
+  "runs": [
+    {
+      "variant": "recursive",
+      "command": "python3 -B research/v2/lanes/initial-cache-refresh/test_initial_cache.py",
+      "exit_code": 0,
+      "output": "test_actual_guard_refreshes_once_and_is_noop_when_disabled (__main__.SourceTests.test_actual_guard_refreshes_once_and_is_noop_when_disabled) ... ok\ntest_only_four_lines_added_and_original_bytes_recoverable (__main__.SourceTests.test_only_four_lines_added_and_original_bytes_recoverable) ... ok\ntest_parser_default_off_explicit_off_on_no_other_default_change (__main__.SourceTests.test_parser_default_off_explicit_off_on_no_other_default_change) ... ok\ntest_receipts_all_gradients_updates_optimizer_and_checkpoint_identical (__main__.SourceTests.test_receipts_all_gradients_updates_optimizer_and_checkpoint_identical) ... ok\ntest_refresh_placement_after_timer_and_before_micro_loop (__main__.SourceTests.test_refresh_placement_after_timer_and_before_micro_loop) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.364s\n\nOK\n"
+    },
+    {
+      "variant": "recursive",
+      "command": "python3 -O -B research/v2/lanes/initial-cache-refresh/test_initial_cache.py",
+      "exit_code": 0,
+      "output": "test_actual_guard_refreshes_once_and_is_noop_when_disabled (__main__.SourceTests.test_actual_guard_refreshes_once_and_is_noop_when_disabled) ... ok\ntest_only_four_lines_added_and_original_bytes_recoverable (__main__.SourceTests.test_only_four_lines_added_and_original_bytes_recoverable) ... ok\ntest_parser_default_off_explicit_off_on_no_other_default_change (__main__.SourceTests.test_parser_default_off_explicit_off_on_no_other_default_change) ... ok\ntest_receipts_all_gradients_updates_optimizer_and_checkpoint_identical (__main__.SourceTests.test_receipts_all_gradients_updates_optimizer_and_checkpoint_identical) ... ok\ntest_refresh_placement_after_timer_and_before_micro_loop (__main__.SourceTests.test_refresh_placement_after_timer_and_before_micro_loop) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.258s\n\nOK\n"
+    },
+    {
+      "variant": "architecture",
+      "command": "CACHE_TEST_VARIANT=architecture CACHE_TEST_SOURCE=/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py python3 -B research/v2/lanes/initial-cache-refresh/test_initial_cache.py",
+      "exit_code": 0,
+      "output": "test_actual_guard_refreshes_once_and_is_noop_when_disabled (__main__.SourceTests.test_actual_guard_refreshes_once_and_is_noop_when_disabled) ... ok\ntest_only_four_lines_added_and_original_bytes_recoverable (__main__.SourceTests.test_only_four_lines_added_and_original_bytes_recoverable) ... ok\ntest_parser_default_off_explicit_off_on_no_other_default_change (__main__.SourceTests.test_parser_default_off_explicit_off_on_no_other_default_change) ... ok\ntest_receipts_all_gradients_updates_optimizer_and_checkpoint_identical (__main__.SourceTests.test_receipts_all_gradients_updates_optimizer_and_checkpoint_identical) ... ok\ntest_refresh_placement_after_timer_and_before_micro_loop (__main__.SourceTests.test_refresh_placement_after_timer_and_before_micro_loop) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.239s\n\nOK\n"
+    },
+    {
+      "variant": "architecture",
+      "command": "CACHE_TEST_VARIANT=architecture CACHE_TEST_SOURCE=/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py python3 -O -B research/v2/lanes/initial-cache-refresh/test_initial_cache.py",
+      "exit_code": 0,
+      "output": "test_actual_guard_refreshes_once_and_is_noop_when_disabled (__main__.SourceTests.test_actual_guard_refreshes_once_and_is_noop_when_disabled) ... ok\ntest_only_four_lines_added_and_original_bytes_recoverable (__main__.SourceTests.test_only_four_lines_added_and_original_bytes_recoverable) ... ok\ntest_parser_default_off_explicit_off_on_no_other_default_change (__main__.SourceTests.test_parser_default_off_explicit_off_on_no_other_default_change) ... ok\ntest_receipts_all_gradients_updates_optimizer_and_checkpoint_identical (__main__.SourceTests.test_receipts_all_gradients_updates_optimizer_and_checkpoint_identical) ... ok\ntest_refresh_placement_after_timer_and_before_micro_loop (__main__.SourceTests.test_refresh_placement_after_timer_and_before_micro_loop) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.240s\n\nOK\n"
+    }
+  ]
+}

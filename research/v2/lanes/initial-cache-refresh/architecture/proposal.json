@@ -1,0 +1,147 @@
+{
+  "schema": "trn-proposal-v2",
+  "proposal_id": "fs-20260926-arch93ae-initial-cache-trn22-r1-full",
+  "label": "fs-20260926-arch93ae-initial-cache-trn22-r1-full",
+  "arm_id": "ARCH93AE-INITIAL-CACHE",
+  "kind": "throughput_arm",
+  "status": "PENDING_INDEPENDENT_REVIEW_FULLSIZE_CPU_NATIVE",
+  "owner_role": "implementer",
+  "author_session": "local Codex L1; Supervisor selected mechanism",
+  "launch_authorized": false,
+  "base": {
+    "path": "workflow/proposals/research-v2/train.py",
+    "sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+    "commit": "1e21c3d797eed764f108c41546b270065ad5650c"
+  },
+  "causal_change": "Initialize the existing differentiable Linear weight caches once in normal grad mode inside step0 after t0 and before its first forward; preserve every later refresh and all arithmetic/accounting.",
+  "argv_delta": [
+    "--initial-cache-refresh"
+  ],
+  "patch": "architecture/train.patch",
+  "mechanism": "Hypothesis: avoid the empty-cache first forward/backward specialization and directly use the steady-state cached-weight path. Two model specializations exist in exact93ae graph_stats; causality and startup benefit unproven.",
+  "evidence": [
+    "IMPLEMENTATION.md",
+    "graph-inventory.json",
+    "c2c47f7dcc1717eb3d176b1bb01622efe891c09f:research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/completed-training/metrics-training/",
+    "research/trn2-experiment-results.md:2013"
+  ],
+  "ledger_search": {
+    "aliases": [
+      "weight-cache",
+      "initial cache",
+      "cache priming",
+      "refresh before first forward"
+    ],
+    "files": [
+      "research/v2/ledger.jsonl",
+      "research/experiment-log.jsonl",
+      "research/trn2-experiment-results.md",
+      "research/agentic/DECISION_LOG.md",
+      "Git history"
+    ],
+    "duplicates_found": [
+      "T1.10 batched per-step refresh was tested; initial priming was not found."
+    ]
+  },
+  "expected_delta": 0,
+  "interval80": [
+    -0.003,
+    0.003
+  ],
+  "p_improve": 0.2,
+  "host_hours": 1,
+  "ev_per_host_hour": 0,
+  "forecast_status": "Uncalibrated, deliberately neutral planning prior; not an empirical BPB/speed prediction. Host-hour estimate is one full run plus eval; does not reserve or authorize it.",
+  "trainium_feasibility": {
+    "ownership_plan_change": false,
+    "sbuf_assert_risk": false,
+    "world_size": 4,
+    "graph_change": "First model specialization may disappear; not native-proven.",
+    "cold_startup_risk": "May reduce duplicate compilation; could fail or only move work. No caches/flags altered or hits assumed.",
+    "memory": "Same steady-state caches; initial lifetime moves before first forward. Exact full-size CPU/native peak memory pending."
+  },
+  "control": {
+    "git_commit": "1e21c3d797eed764f108c41546b270065ad5650c",
+    "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+    "run_label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Same host/profile/base/seed; startup provenance must be comparable for a compile-saving claim.",
+    "binding_status": "Existing exact93ae control raw training/graph evidence available; fresh20M independent result binding pending."
+  },
+  "candidate": {
+    "branch": "codex/20260925-architecture-initial-cache-refresh",
+    "commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "files_allowed": [
+      "workflow/proposals/research-v2/train.py"
+    ],
+    "expected_diff": "Exactly four inserted executable lines; original bytes reconstructible.",
+    "run_label": "fs-20260926-arch93ae-initial-cache-trn22-r1-full",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out",
+      "--unet-8x1024",
+      "--attention-layers",
+      "0,2,4,6,7",
+      "--initial-cache-refresh"
+    ],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS=1800 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh"
+  },
+  "environment": "Use the existing reviewed manual route and exact profile environment. Capture compiler flags, all SDK-consumed cache paths, cold provenance and actual startup. No invented cache setting, source shim or external prewarming.",
+  "hosts": {
+    "screen": "trn22",
+    "replicate": "trn21"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": "IMPLEMENTER_TINY_SELF_CHECK_PASS_ONLY",
+    "numerical_equivalence": "TINY_FIXED_CLOCK_PASS_ONLY",
+    "full_size_cpu_g2": false,
+    "native_correctness": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "cheapest_falsifier": "The tiny fixed-input/clock gradient/cache/update/checkpoint comparator (passed). Next independent source and full-size CPU checks; native graph/startup evidence must show whether the duplicate model specialization disappears.",
+  "success_criteria": {
+    "quality": "Official1800 budget, fresh public20971520/context1024, comparable controls, unchanged numeric BPB/two-host/HOLD rules. No step-window veto.",
+    "throughput": "No speedup claimed. Test model-specialization count and measured startup/charged excess; zero SDK compile_us never means hit.",
+    "correctness": "No crash/nonfinite/missing checkpoint; native gradient/eval correctness remains pending; over_budgetFalse plus consistent measured charged-through-exit<=1800."
+  },
+  "startup_accounting": "All initial refresh work stays after first-step t0. Record measured startup, capped900 allowance and source estimates separately; charge excess unchanged. No fixed870 rejection. Warm research never proves cold submission.",
+  "wallclock_caveat": "Faster startup can change actual elapsed-based LR/WD; fixed-clock CPU identity does not promise native first50-step identity.",
+  "priority": "Immediate architecture compile-cut lane per newest Supervisor/human instruction; retry condition/result review and independent gates still apply.",
+  "if_positive": "Independent Analyst assesses startup and final quality; replicate as required. Submission is human-only and needs true-cold acceptance.",
+  "if_negative": "Archive failure/null; do not bypass correctness, change timing, or infer a cache hit.",
+  "abort_conditions": [
+    "Any correctness or budget failure",
+    "Source/argv/prepare mismatch",
+    "Non-idle host or another job/device/lock holder",
+    "Insufficient disk/memory or STOP/role/preflight refusal"
+  ],
+  "verifier_receipt": null,
+  "verdict": null
+}
