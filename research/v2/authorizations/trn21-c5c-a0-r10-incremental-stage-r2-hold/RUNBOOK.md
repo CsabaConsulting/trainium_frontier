@@ -1,4 +1,4 @@
-# trn21 e65 → r10 small-bundle source stage r2 — DISABLED / HOLD
+# trn21 e65 → r10 small-bundle source stage r3 local-gate repair — DISABLED / HOLD
 
 This is an Implementer-only, stage-only candidate. No enabled request,
 independent final **stage** PASS, one-attempt Supervisor assignment, host
@@ -11,6 +11,17 @@ enabled request is absent. This package is a distinct successor to the held
 accepted e65 checkout remain untouched. Do not substitute held full-capsule
 writers or treat the r10 source PASS as native authority.
 
+This r3 source repair descends from the independently static-PASSed r2
+`3e846589` package, but that PASS does **not** cover the changed local
+operator bytes. The previous operator read breaker state from the stale
+Documents checkout. This version reads breaker/launch state only from the
+active `/home/poojith-devan/Desktop/Trainium/research/v2/state.json`, while
+STOP files in active Desktop, Documents, and this package worktree all hold
+before SSH. A regression exercises stale Documents-clear versus active
+Desktop-tripped and asserts no SSH identity check or subprocess is reached.
+The remote source, bundle, stage label, target, and one-attempt marker are
+unchanged. Independent review of this exact r3 source is still required.
+
 ## Frozen local subject
 
 | Item | Exact value |
@@ -22,9 +33,9 @@ writers or treat the r10 source PASS as native authority.
 | Local one-shot marker | `/home/poojith-devan/Desktop/Trainium-source-artifacts/trn21-c5c-a0-r10-incremental-stage-r2.one-attempt.jsonl` (absent in this package) |
 | Git bundle | `e65-to-r10.bundle`, 109,800 B, SHA-256 `b191ba0b5272d062c61ed9e35cfbb7efcb67e1df49cbe3959be28c906073d20e` |
 | Remote source | `remote_incremental.py`, SHA-256 `47e2c28bd6fd735904398a48d6c91ef95b93454cef9558b121c26b0ee5b66a0b` |
-| Local entry | `operator_once.py`, SHA-256 `cdfdd5c731a73dd190268108a6234579f7547379006d51f1bcac5ef160cdacf7` |
-| Disabled request | `REQUEST.HOLD.json`, SHA-256 `7d8d0bda4269f0863b828c1a284c2046adca1e4ba139a006cb786cbe954fa78e` |
-| Offline tests | `test_incremental_stage.py`, SHA-256 `ccf51f57599f69ee49751185a578ae8f94dbd3ac758d0f452db1726d912a4506`; `test_final_boundary_r2.py`, SHA-256 `e3ff8f1057dfd83ea88533a86662c5240025059deec12d20bbf6281a85876c91` |
+| Local entry | `operator_once.py`, SHA-256 `6ecad35400199b7c1cba41c78d5d4f14363d37180c40e8aab5e9b485846db74f` |
+| Disabled request | `REQUEST.HOLD.json`, SHA-256 `4c48243b7a5bee3f5aa6333e8ec5e81e5d7d434d926cbce18af907bc5ddfdd7c` |
+| Offline tests | `test_incremental_stage.py`, SHA-256 `4d23b06b984d1226d4fd33ee08dc47dafde3f0e3d7e458bfa0a18129f84bc304`; `test_final_boundary_r2.py`, SHA-256 `e3ff8f1057dfd83ea88533a86662c5240025059deec12d20bbf6281a85876c91` |
 
 The bundle verifies with e65 as its only prerequisite and r10 as its only
 HEAD. The `e65..r10` inventory is 141 Git objects: 15 commits, 61 trees,
@@ -157,6 +168,7 @@ Implementer-local checks:
 
 `TMPDIR=/dev/shm python3 -O -B -m unittest discover -s research/v2/authorizations/trn21-c5c-a0-r10-incremental-stage-r2-hold -p 'test_*.py' -q`
 
-Both returned 26/26 PASS offline; `git bundle verify` passed. These are
+Both returned 27/27 PASS offline; `git bundle verify` passed again and the
+bundle bytes are unchanged. These are
 Implementer regression checks, not independent verification. No host was
 contacted.
