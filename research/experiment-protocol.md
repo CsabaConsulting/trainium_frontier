@@ -64,11 +64,18 @@ an odd compile failure, retry once, then escalate.
 - **Rate comparisons** (steps/s, tok/s) only between back-to-back runs on
   the SAME box, same day, same code — the foreach ON/OFF rows are the
   template (paired, non-overlapping step counts).
-- **Quality comparisons** (bpb) require comparable step counts: a full run
-  >10% short on steps vs the record is CONFOUNDED, not negative
-  (bf16-full 1449 vs 2135 — voided, not closed).
-- **Warm vs cold compile** affects wall time, never step rate; the budget
-  clock resets past startup (`startup_allowance_est`), so cold cache does
-  not bias scored runs — but verify with `training_seconds`, not wall.
+- **Quality comparisons** use final fresh-process public-20M/context-1024
+  BPB at the official 1,800-second budget, with `over_budget=False` and
+  comparable same-host controls. Step count is reported, never gated.
+  Below 60% of control, spikes or stalls require a hang/recompile check,
+  not an automatic verdict. The former >10% step-window rule is superseded
+  for every arm by `workflow/FIXED_BUDGET_SELECTION_2026-09-25.md`.
+- **Warm vs cold compile** can change scored training work: the official
+  startup allowance is capped at 900 seconds, and excess startup consumes
+  the 1,800-second budget. Record actual startup, capped allowance and
+  source estimates distinctly; unknown is not zero. About 870 seconds is
+  a planning warning, not a different cap. Genuine cold startup and its
+  charged excess must be measured before submission; a warm-cache score
+  does not establish cold-run equivalence.
 - **Crash cascades**: any kill (OOM, ENOSPC, SIGTERM) triggers the full
   §1 hygiene before the next launch on that box, no exceptions.
