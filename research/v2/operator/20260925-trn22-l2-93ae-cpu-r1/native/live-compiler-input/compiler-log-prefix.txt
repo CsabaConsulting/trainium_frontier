@@ -1,0 +1,736 @@
+2026-09-25T17:43:00Z INFO 3079933 [root]: /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff
+2026-09-25T17:43:00Z INFO 3079933 [root]: NeuronX Compiler version 2.26.6360.0+6f180f47 Python version 3.12.3 HWM version 2.26.0.6360++6f180f47 NumPy version 2.5.1
+2026-09-25T17:43:00Z INFO 3079935 [root]: XLA detected
+2026-09-25T17:43:00Z INFO 3079935 [root]: Pipeline: HLOToTensorizer Frontend StaticIOTranspose WalrusDriver NeffWrapper
+2026-09-25T17:43:00Z INFO 3079935 [root]: Intermediate files stored in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug/neuronx-cc/59a975ee31a371234dda493c9ec9b940/neuronxcc-8bf_qw4u, output in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug/neuronx-cc/59a975ee31a371234dda493c9ec9b940
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Job Pipeline len(in_states) 1
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Processing input #0
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Running pipeline Pipeline.0
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Starting job job.HLOToTensorizer.0
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: Job HLOToTensorizer len(in_states) 1
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: Processing input #0
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: Executing: /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/hlo2penguin --input /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug/neuronx-cc/59a975ee31a371234dda493c9ec9b940/module.mlir --out-dir ./ --output penguin.py --remat --target-instance=trn2 --logical-nc-config=2 --verbose=error --logfile=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug/neuronx-cc/59a975ee31a371234dda493c9ec9b940/log-neuron-cc.txt --ml-dtypes-version=0.5.4 --logfile-verbose=info --modular-flow-mac-target=200000000000 --partition --emit-tensor-level-dropout-ops --native-to-custom-softmax --partitioner-opts='--transformer'
+2026-09-25 17:43:00.342186: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 3386590101504 threshold 200000000000 num non-trivial Ops 341
+2026-09-25 17:43:00.342338: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Histogram before graph level optimizations - Total HLO instructions: 740
+             reshape       140  18.92% ################################################################
+           broadcast       102  13.78% ##############################################
+             convert        83  11.22% #####################################
+           transpose        76  10.27% ##################################
+           parameter        69   9.32% ###############################
+                 add        52   7.03% #######################
+                 dot        38   5.14% #################
+            multiply        37   5.00% ################
+               power        23   3.11% ##########
+         custom-call        21   2.84% #########
+   get-tuple-element        17   2.30% #######
+              divide        16   2.16% #######
+              reduce        16   2.16% #######
+               rsqrt        15   2.03% ######
+            constant        10   1.35% ####
+             maximum         8   1.08% ###
+              negate         5   0.68% ##
+                 log         5   0.68% ##
+              gather         2   0.27% 
+            logistic         1   0.14% 
+               slice         1   0.14% 
+               tuple         1   0.14% 
+              select         1   0.14% 
+             compare         1   0.14% 
+
+
+2026-09-25 17:43:00.343443: I hilo/hlo_passes/NeuronHloVerifier.cc:1357] [WARNING] /home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/train.py:2281 Operands of 32-bit integer type are implicitly converted to floating point types. This may cause accuracy issues.
+2026-09-25 17:43:00.344219: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 17:43:00.344244: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 17:43:00.344305: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Pre-Opt Histogram - Total HLO instructions: 727
+             reshape       139  19.12% ################################################################
+             convert        83  11.42% ######################################
+           broadcast        78  10.73% ###################################
+           transpose        76  10.45% ##################################
+            multiply        76  10.45% ##################################
+           parameter        69   9.49% ###############################
+                 add        52   7.15% #######################
+                 dot        38   5.23% #################
+            constant        22   3.03% ##########
+         custom-call        21   2.89% #########
+   get-tuple-element        17   2.34% #######
+              reduce        16   2.20% #######
+               rsqrt        15   2.06% ######
+             maximum         8   1.10% ###
+              negate         5   0.69% ##
+                 log         5   0.69% ##
+              gather         2   0.28% 
+             compare         1   0.14% 
+            logistic         1   0.14% 
+               slice         1   0.14% 
+               tuple         1   0.14% 
+              select         1   0.14% 
+
+
+2026-09-25 17:43:00.344406: I hilo/hlo_passes/IoStatistics.cc:69] [INFO] IoStatistics: total inputs: 69
+2026-09-25 17:43:00.344408: I hilo/hlo_passes/IoStatistics.cc:70] [INFO] IoStatistics: total outputs: 223
+2026-09-25 17:43:00.344411: I hilo/hlo_passes/IoStatistics.cc:71] [INFO] IoStatistics: total passthrough tensors: 21
+2026-09-25 17:43:00.344413: I hilo/hlo_passes/IoStatistics.cc:72] [INFO] IoStatistics: total outputs read from: 208
+2026-09-25 17:43:00.344415: I hilo/hlo_passes/IoStatistics.cc:73] [INFO] IoStatistics: total redundant outputs: 12
+2026-09-25 17:43:00.344418: I hilo/hlo_passes/IoStatistics.cc:74] [INFO] IoStatistics: total ifmap size (KiB): 443049
+2026-09-25 17:43:00.344420: I hilo/hlo_passes/IoStatistics.cc:75] [INFO] IoStatistics: total ofmap size (KiB): 10689172
+2026-09-25 17:43:00.344422: I hilo/hlo_passes/IoStatistics.cc:76] [INFO] IoStatistics: total must-alias size (KiB): 128
+2026-09-25 17:43:00.344424: I hilo/hlo_passes/IoStatistics.cc:77] [INFO] IoStatistics: total may-alias size (KiB): 0
+2026-09-25 17:43:00.346664: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 3386590101504
+2026-09-25 17:43:00.346712: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 11399263912
+2026-09-25 17:43:00.346724: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 594.177
+2026-09-25 17:43:00.346751: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Histogram after graph level optimizations - Total HLO instructions: 725
+             reshape       123  16.97% ################################################################
+           broadcast        92  12.69% ###############################################
+             convert        83  11.45% ###########################################
+           transpose        76  10.48% #######################################
+            multiply        76  10.48% #######################################
+           parameter        69   9.52% ###################################
+                 add        52   7.17% ###########################
+                 dot        38   5.24% ###################
+            constant        22   3.03% ###########
+         custom-call        21   2.90% ##########
+   get-tuple-element        17   2.34% ########
+              reduce        16   2.21% ########
+               rsqrt        15   2.07% #######
+             maximum         8   1.10% ####
+              negate         5   0.69% ##
+                 log         5   0.69% ##
+              gather         2   0.28% #
+             compare         1   0.14% 
+            logistic         1   0.14% 
+               slice         1   0.14% 
+               tuple         1   0.14% 
+              select         1   0.14% 
+
+
+2026-09-25 17:43:00.347079: I hilo/hlo2penguin/lowering_utils/FrontendDriver.cc:1024] [INFO] Found compute bound graph
+2026-09-25 17:43:00.347103: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 3386590101504 threshold 200000000000 num non-trivial Ops 341
+2026-09-25 17:43:00.347126: I hilo/partition/Partition.cc:808] [INFO] Partitioner configs:ModularFlow BO LBL SA ConcatGraphs: 1 MaxDisj:2 MaxSep:4 LPM:1
+2026-09-25 17:43:00.347389: I hilo/partition/Partition.cc:670] [INFO] Attempting to start Hierarchy splitter ...
+[INFO] Could not start Hierarchy splitter, falling back...
+[INFO] Markers NOT detected
+2026-09-25 17:43:00.347453: I hilo/partition/SplitFinder.cc:195] [INFO] Potential split-points stats: #CC 0 #AR 0 #AG 0 #BN 0 #Clamp 0 #Dot 38 #Conv 0 #fsdpAG 0
+2026-09-25 17:43:00.347456: I hilo/partition/Partition.cc:116] [INFO] needsModular_SplitFinder? Yes.
+2026-09-25 17:43:00.347459: I hilo/partition/SplitFinder.cc:272] [INFO] #splitCodes 1 #potentialSplitInsts 0
+2026-09-25 17:43:00.347614: I hilo/partition/SplitFinder.cc:433] Number of split insts 38
+2026-09-25 17:43:00.348479: I hilo/partition/SplitFinder.cc:494] [INFO] Num of unique Module Definitions: 14
+2026-09-25 17:43:00.348485: I hilo/partition/SplitFinder.cc:501] [INFO] DefMap: 0 1 1 3 4 5 6 7 8 1 1 11 4 7 6 7 16 1 1 11 4 7 22 7 16 1 1 11 4 7 16 1 1 33 34 4 7 37
+2026-09-25 17:43:00.348581: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 31 len 2 NumReps: 2 macs 68719476736
+2026-09-25 17:43:00.348585: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 3386590101504 nLayers: 2 layerMac: 34359738368 cliFlag? 0
+2026-09-25 17:43:00.348587: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 17:43:00.348590: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 25 len 2 NumReps: 2 macs 68719476736
+2026-09-25 17:43:00.348593: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 3386590101504 nLayers: 2 layerMac: 34359738368 cliFlag? 0
+2026-09-25 17:43:00.348595: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 17:43:00.348597: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 17 len 2 NumReps: 2 macs 68719476736
+2026-09-25 17:43:00.348599: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 3386590101504 nLayers: 2 layerMac: 34359738368 cliFlag? 0
+2026-09-25 17:43:00.348601: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 17:43:00.348602: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 9 len 2 NumReps: 2 macs 68719476736
+2026-09-25 17:43:00.348604: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 3386590101504 nLayers: 2 layerMac: 34359738368 cliFlag? 0
+2026-09-25 17:43:00.348606: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 17:43:00.348608: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 1 len 2 NumReps: 2 macs 68719476736
+2026-09-25 17:43:00.348609: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 3386590101504 nLayers: 2 layerMac: 34359738368 cliFlag? 0
+2026-09-25 17:43:00.348611: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 17:43:00.348613: I hilo/partition/SplitFinder.cc:580] [INFO] Attempting to identify and split optimizer at end
+2026-09-25 17:43:00.348675: I hilo/partition/Partition.cc:693] [INFO] Number of splitPoints: 7
+2026-09-25 17:43:00.350571: I hilo/partition/AttrsSplitter.cc:150] [INFO] Alias legality verification of partitions PASSED.
+2026-09-25 17:43:00.350599: I hilo/partition/AttrsSplitter.cc:336] [INFO] No transposable_weight_idx attrs found
+2026-09-25 17:43:00.350683: I hilo/partition/Partition.cc:469] [INFO] Generating intermediate IO report..
+2026-09-25 17:43:00.350833: I hilo/partition/MemoryAnalysis.cc:174] [INFO] Peak intermediate memory demand is at Partition 3. Num live intermediates at peak is 13 and memory usage is 940048384 bytes.
+2026-09-25 17:43:00.350837: I hilo/partition/MemoryAnalysis.cc:182] [INFO] Please refer to LiveRangeReport_PostHloPart.txt for detailed intermediate lifetime info.
+2026-09-25 17:43:00.350844: I hilo/partition/Partition.cc:472] [INFO] Generating intermediate IO report.. Done.
+2026-09-25 17:43:00.351692: I hilo/partition/Netlister.cc:201] [INFO] DefMap: 0 1 1 3 1 1 6
+2026-09-25 17:43:00.354265: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 541
+             reshape        82  15.16% ################################################################
+           broadcast        66  12.20% ###################################################
+            multiply        56  10.35% ###########################################
+             convert        55  10.17% ##########################################
+           parameter        49   9.06% ######################################
+           transpose        49   9.06% ######################################
+                copy        47   8.69% ####################################
+                 add        37   6.84% ############################
+                 dot        25   4.62% ###################
+            constant        16   2.96% ############
+         custom-call        12   2.22% #########
+               rsqrt        11   2.03% ########
+              reduce        11   2.03% ########
+   get-tuple-element         9   1.66% #######
+             maximum         6   1.11% ####
+              negate         3   0.55% ##
+                 log         3   0.55% ##
+             compare         1   0.18% 
+               tuple         1   0.18% 
+              select         1   0.18% 
+              gather         1   0.18% 
+
+
+2026-09-25 17:43:00.354316: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 17:43:00.354331: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 17:43:00.355049: I hilo/hlo_passes/NeuronHloVerifier.cc:1357] [WARNING] /home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/train.py:2281 Operands of 32-bit integer type are implicitly converted to floating point types. This may cause accuracy issues.
+2026-09-25 17:43:00.357515: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 2231235510272
+2026-09-25 17:43:00.357542: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 7943262298
+2026-09-25 17:43:00.357548: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 561.793
+2026-09-25 17:43:00.357569: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 464
+             reshape        82  17.67% ################################################################
+            multiply        56  12.07% ###########################################
+             convert        55  11.85% ##########################################
+           parameter        49  10.56% ######################################
+           transpose        49  10.56% ######################################
+           broadcast        46   9.91% ###################################
+                 add        37   7.97% ############################
+                 dot        25   5.39% ###################
+         custom-call        12   2.59% #########
+               rsqrt        11   2.37% ########
+              reduce        11   2.37% ########
+   get-tuple-element         9   1.94% #######
+             maximum         6   1.29% ####
+            constant         6   1.29% ####
+              negate         3   0.65% ##
+                 log         3   0.65% ##
+             compare         1   0.22% 
+               tuple         1   0.22% 
+              select         1   0.22% 
+              gather         1   0.22% 
+
+
+2026-09-25 17:43:00.357682: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 7
+           parameter         2  28.57% ################################################################
+           broadcast         1  14.29% ################################
+           transpose         1  14.29% ################################
+               tuple         1  14.29% ################################
+             convert         1  14.29% ################################
+                 dot         1  14.29% ################################
+
+
+2026-09-25 17:43:00.357693: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 17:43:00.357697: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 17:43:00.357843: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 34359738368
+2026-09-25 17:43:00.357848: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 140509184
+2026-09-25 17:43:00.357852: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 489.075
+2026-09-25 17:43:00.357860: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 7
+           parameter         2  28.57% ################################################################
+           broadcast         1  14.29% ################################
+           transpose         1  14.29% ################################
+               tuple         1  14.29% ################################
+             convert         1  14.29% ################################
+                 dot         1  14.29% ################################
+
+
+2026-09-25 17:43:00.357932: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 120
+             reshape        20  16.67% ################################################################
+           parameter        17  14.17% ######################################################
+           broadcast        12  10.00% ######################################
+           transpose        11   9.17% ###################################
+            multiply        10   8.33% ################################
+             convert        10   8.33% ################################
+                 add         8   6.67% #########################
+                copy         8   6.67% #########################
+            constant         5   4.17% ################
+                 dot         4   3.33% ############
+         custom-call         4   3.33% ############
+   get-tuple-element         3   2.50% #########
+               rsqrt         2   1.67% ######
+              reduce         2   1.67% ######
+              negate         1   0.83% ###
+                 log         1   0.83% ###
+             maximum         1   0.83% ###
+               tuple         1   0.83% ###
+
+
+2026-09-25 17:43:00.357952: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 17:43:00.357958: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 17:43:00.358936: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 388694540288
+2026-09-25 17:43:00.358951: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 2480812058
+2026-09-25 17:43:00.358957: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 313.361
+2026-09-25 17:43:00.358977: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 109
+             reshape        20  18.35% ################################################################
+           parameter        17  15.60% ######################################################
+           transpose        11  10.09% ###################################
+            multiply        10   9.17% ################################
+             convert        10   9.17% ################################
+           broadcast        10   9.17% ################################
+                 add         8   7.34% #########################
+                 dot         4   3.67% ############
+            constant         4   3.67% ############
+         custom-call         4   3.67% ############
+   get-tuple-element         3   2.75% #########
+               rsqrt         2   1.83% ######
+              reduce         2   1.83% ######
+              negate         1   0.92% ###
+                 log         1   0.92% ###
+             maximum         1   0.92% ###
+               tuple         1   0.92% ###
+
+
+2026-09-25 17:43:00.359097: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 168
+           parameter        37  22.02% ################################################################
+                copy        21  12.50% ####################################
+             reshape        21  12.50% ####################################
+             convert        14   8.33% ########################
+           broadcast        12   7.14% ####################
+           transpose        12   7.14% ####################
+            multiply        10   5.95% #################
+                 add         7   4.17% ############
+            constant         7   4.17% ############
+         custom-call         5   2.98% ########
+   get-tuple-element         5   2.98% ########
+                 dot         5   2.98% ########
+              reduce         3   1.79% #####
+               rsqrt         2   1.19% ###
+            logistic         1   0.60% #
+               tuple         1   0.60% #
+             maximum         1   0.60% #
+               slice         1   0.60% #
+              negate         1   0.60% #
+                 log         1   0.60% #
+              gather         1   0.60% #
+
+
+2026-09-25 17:43:00.359117: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 17:43:00.359124: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 17:43:00.360241: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 629221097472
+2026-09-25 17:43:00.360259: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 2830513768
+2026-09-25 17:43:00.360264: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 444.599
+2026-09-25 17:43:00.360283: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 144
+           parameter        37  25.69% ################################################################
+             reshape        21  14.58% ####################################
+             convert        14   9.72% ########################
+           transpose        12   8.33% ####################
+            multiply        10   6.94% #################
+           broadcast        10   6.94% #################
+                 add         7   4.86% ############
+            constant         6   4.17% ##########
+         custom-call         5   3.47% ########
+   get-tuple-element         5   3.47% ########
+                 dot         5   3.47% ########
+              reduce         3   2.08% #####
+               rsqrt         2   1.39% ###
+            logistic         1   0.69% #
+             maximum         1   0.69% #
+               tuple         1   0.69% #
+               slice         1   0.69% #
+              negate         1   0.69% #
+                 log         1   0.69% #
+              gather         1   0.69% #
+
+
+2026-09-25 17:43:00.368678: I hilo/MLIRPasses/Transforms/RemoveOptBarriers.cc:25] [INFO] [CollectiveMetrics:post-schedule] --- module 0: main ---
+[INFO] [CollectiveMetrics:post-schedule] --- module 1: main ---
+[INFO] [CollectiveMetrics:post-schedule] --- module 2: main ---
+[INFO] [CollectiveMetrics:post-schedule] --- module 3: main ---
+[INFO] Invoking RemoveOptimizationBarriers pass
+2026-09-25 17:43:00.369858: I hilo/MLIRPasses/Analysis/MLIRInstructionHistogram.cc:124] [INFO] 
+╔══════════════════════════════════════════════════════════════╗
+║                   MLIR Operation Histogram                   ║
+╚══════════════════════════════════════════════════════════════╝
+Operations: 560
+
+Operation                      Count Percent Distribution
+--------------------------- -------- ------- ----------------------------------------
+mhlo.copy                        132  23.57% ########################################
+stablehlo.reshape                 82  14.64% ########################
+stablehlo.convert                 56  10.00% ################
+stablehlo.multiply                56  10.00% ################
+stablehlo.transpose               49   8.75% ##############
+stablehlo.add                     48   8.57% ##############
+stablehlo.broadcast_in_dim        46   8.21% #############
+stablehlo.dot_general             13   2.32% ###
+stablehlo.custom_call             12   2.14% ###
+stablehlo.dot                     12   2.14% ###
+stablehlo.rsqrt                   11   1.96% ###
+stablehlo.reduce                  11   1.96% ###
+stablehlo.get_tuple_element        9   1.61% ##
+stablehlo.constant                 6   1.07% #
+stablehlo.maximum                  6   1.07% #
+stablehlo.negate                   3   0.54% 
+stablehlo.log                      3   0.54% 
+builtin.module                     1   0.18% 
+stablehlo.select                   1   0.18% 
+func.func                          1   0.18% 
+stablehlo.gather                   1   0.18% 
+stablehlo.compare                  1   0.18% 
+
+
+2026-09-25 17:43:00.375871: I hilo/MLIRPasses/Transforms/RemoveOptBarriers.cc:25] [INFO] Invoking RemoveOptimizationBarriers pass
+2026-09-25 17:43:00.375959: I hilo/MLIRPasses/Analysis/MLIRInstructionHistogram.cc:124] [INFO] 
+╔══════════════════════════════════════════════════════════════╗
+║                   MLIR Operation Histogram                   ║
+╚══════════════════════════════════════════════════════════════╝
+Operations: 7
+
+Operation                     Count Percent Distribution
+-------------------------- -------- ------- ----------------------------------------
+stablehlo.dot_general             1  14.29% ########################################
+stablehlo.convert                 1  14.29% ########################################
+func.func                         1  14.29% ########################################
+stablehlo.transpose               1  14.29% ########################################
+builtin.module                    1  14.29% ########################################
+mhlo.copy                         1  14.29% ########################################
+stablehlo.broadcast_in_dim        1  14.29% ########################################
+
+
+2026-09-25 17:43:00.379846: I hilo/MLIRPasses/Transforms/RemoveOptBarriers.cc:25] [INFO] Invoking RemoveOptimizationBarriers pass
+2026-09-25 17:43:00.380212: I hilo/MLIRPasses/Analysis/MLIRInstructionHistogram.cc:124] [INFO] 
+╔══════════════════════════════════════════════════════════════╗
+║                   MLIR Operation Histogram                   ║
+╚══════════════════════════════════════════════════════════════╝
+Operations: 121
+
+Operation                      Count Percent Distribution
+--------------------------- -------- ------- ----------------------------------------
+mhlo.copy                         26  21.49% ########################################
+stablehlo.reshape                 20  16.53% ##############################
+stablehlo.transpose               11   9.09% ################
+stablehlo.convert                 10   8.26% ###############
+stablehlo.broadcast_in_dim        10   8.26% ###############
+stablehlo.multiply                10   8.26% ###############
+stablehlo.add                     10   8.26% ###############
+stablehlo.constant                 4   3.31% ######
+stablehlo.custom_call              4   3.31% ######
+stablehlo.get_tuple_element        3   2.48% ####
+stablehlo.dot_general              2   1.65% ###
+stablehlo.dot                      2   1.65% ###
+stablehlo.rsqrt                    2   1.65% ###
+stablehlo.reduce                   2   1.65% ###
+builtin.module                     1   0.83% #
+func.func                          1   0.83% #
+stablehlo.log                      1   0.83% #
+stablehlo.maximum                  1   0.83% #
+stablehlo.negate                   1   0.83% #
+
+
+2026-09-25 17:43:00.385271: I hilo/MLIRPasses/Transforms/RemoveOptBarriers.cc:25] [INFO] Invoking RemoveOptimizationBarriers pass
+2026-09-25 17:43:00.385907: I hilo/MLIRPasses/Analysis/MLIRInstructionHistogram.cc:124] [INFO] 
+╔══════════════════════════════════════════════════════════════╗
+║                   MLIR Operation Histogram                   ║
+╚══════════════════════════════════════════════════════════════╝
+Operations: 156
+
+Operation                      Count Percent Distribution
+--------------------------- -------- ------- ----------------------------------------
+mhlo.copy                         43  27.56% ########################################
+stablehlo.reshape                 21  13.46% ###################
+stablehlo.convert                 16  10.26% ##############
+stablehlo.transpose               12   7.69% ###########
+stablehlo.broadcast_in_dim        10   6.41% #########
+stablehlo.multiply                10   6.41% #########
+stablehlo.add                     10   6.41% #########
+stablehlo.constant                 6   3.85% #####
+stablehlo.get_tuple_element        5   3.21% ####
+stablehlo.custom_call              5   3.21% ####
+stablehlo.dot_general              3   1.92% ##
+stablehlo.reduce                   3   1.92% ##
+stablehlo.dot                      2   1.28% #
+stablehlo.rsqrt                    2   1.28% #
+stablehlo.slice                    1   0.64% 
+stablehlo.logistic                 1   0.64% 
+func.func                          1   0.64% 
+stablehlo.log                      1   0.64% 
+stablehlo.gather                   1   0.64% 
+stablehlo.maximum                  1   0.64% 
+builtin.module                     1   0.64% 
+stablehlo.negate                   1   0.64% 
+
+
+
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790358180.341079 3079936 main.cc:735] IR signature: e1e6c39cba1089659f8f9c33a0386452f92f05c32b72998c4c9722309f120dec for module.mlir
+ModuleSplitter initial partitioning... #parts 38
+ModuleSplitter initial partitioning... Done.
+First non-zero-mac/used part from the end is 37
+ModuleSplitter initial partitioning... #parts 7
+ModuleSplitter initial partitioning... Done.
+Remat: selectCompareIota 0 matches, 0 ops rematted
+    added outputCopy copy output: output39 copy: intermediate2
+    added outputCopy copy output: output40 copy: intermediate3
+    added outputCopy copy output: output57 copy: intermediate4
+    added outputCopy copy output: output146 copy: intermediate5
+    added outputCopy copy output: output148 copy: intermediate6
+    added outputCopy copy output: output179 copy: intermediate10
+    added outputCopy copy output: output181 copy: intermediate11
+Wrote HLO netlist to hlo_netlist.json
+Wrote graph partitions in debug_info_hlo_partitions.json
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: add broadcast compare constant convert custom-call dot gather get-tuple-element log maximum multiply negate parameter reduce reshape rsqrt select transpose tuple 
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: broadcast convert dot parameter transpose tuple 
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: add broadcast constant convert custom-call dot get-tuple-element log maximum multiply negate parameter reduce reshape rsqrt transpose tuple 
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: add broadcast constant convert custom-call dot gather get-tuple-element log logistic maximum multiply negate parameter reduce reshape rsqrt slice transpose tuple 
+Processing partition 0
+W0000 00:00:1790358180.362292 3079936 DumpDebugInfo.cc:52] Truncating long HLO operator name %tuple = tuple(%reshape.92, %convert.95, %convert.110, %convert.111, %add.120, %convert.135, %transpose.1, %convert.142, %reshape.155, %reshape.156, %reshape.156, %reshape.157, %reshape.157, %transpose.163, %convert.146, %reshape.160, %transpose.164, %convert.150, %transpose.165, %reshape.179, %reshape.181, %convert.182, %add.187, %reshape.205, %convert.203, %convert.204, %add.215, %add.215, %add.224, %reshape.242, %convert.240, %convert.241, %add.252, %add.261, %convert.276, %transpose.3, %convert.283, ... to 512 characters in the compiler's debug metadata
+Processing partition 1
+Processing partition 2
+Processing partition 3
+W0000 00:00:1790358180.383207 3079936 DumpDebugInfo.cc:52] Truncating long HLO operator name %tuple = tuple(%transpose.9, %reshape.712, %transpose.718, %reshape.715, %transpose.719, %slice.699, %convert.700, %logistic.704, %reshape.698, %transpose.720, %reshape.734, %reshape.736, %convert.737, %add.742, %reshape.760, %convert.758, %convert.759, %add.770, %convert.785, %convert.786, %reshape.706, %transpose.767, %reshape.143, %reshape.144, %reshape.791, %reshape.61, %get-tuple-element.796, %multiply.38, %reshape.733, %p16, %p17, %p18, %p19, %p20, %p21, %p22, %p23, %p24, %p25, %p26, %p27, %p28, %p... to 512 characters in the compiler's debug metadata
+
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: IR signature: 09be2f14ec4d6f370afc2fc2163ca4241691d30f4b3ba717bd93c9690d7da6a2 for sg0000/HLOToTensorizer
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: IR signature: 154574bbdc0f34104d0abb62f4a45a9dd2895dd1d878ae5fec54b41e6d25d496 for sg0001/HLOToTensorizer
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: IR signature: 038c1a6c9de27275350ff3e49d6da5e832f686e7cc6521ea4fffd9847f4d99a6 for sg0002/HLOToTensorizer
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: IR signature: a7c09cd5bef56e61d394f1778ebaa42f6c37497cb60a7d3ccc197cbc719366cd for sg0003/HLOToTensorizer
+2026-09-25T17:43:00Z INFO 3079935 [job.HLOToTensorizer.0]: Job #0 finished
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Finished job job.HLOToTensorizer.0
+2026-09-25T17:43:00Z INFO 3079935 [pipeline.Pipeline.0]: Starting job job.Frontend.0
+2026-09-25T17:43:00Z INFO 3079935 [job.Frontend.0]: Job Frontend len(in_states) 1
+2026-09-25T17:43:00Z INFO 3079935 [job.Frontend.0]: Processing input #0
+2026-09-25T17:43:00Z INFO 3079935 [job.Frontend.0]: Start model loading
+2026-09-25T17:43:00Z INFO 3079935 [job.Frontend.0]: Start tensorization
+2026-09-25T17:43:00Z INFO 3079935 [job.Frontend.0]: Num jobs: 12
+2026-09-25T17:43:00Z USER 3079935 [root/Tensorizer/Tensorizer]: Running Tensorizer
+2026-09-25T17:43:00Z INFO 3079935 [Tensorizer]: Max workers: 4
+2026-09-25T17:43:00Z INFO 3079949 [Tensorizer]: Building model from Penguin script "penguin.py.000000"...
+2026-09-25T17:43:00Z INFO 3079950 [Tensorizer]: Building model from Penguin script "penguin.py.000001"...
+2026-09-25T17:43:00Z INFO 3079951 [Tensorizer]: Building model from Penguin script "penguin.py.000002"...
+2026-09-25T17:43:00Z INFO 3079952 [Tensorizer]: Building model from Penguin script "penguin.py.000003"...
+2026-09-25T17:43:00Z INFO 3079950 [Tensorizer]: Tensorizer options: --run-pg-layout-and-tiling --disable-concat-delinearizer --internal-disable-fma-on-ios --num-neuroncores-per-sengine=2 --num-neuroncores-per-sengine=2 --internal_dynamic_dma_scratch_size_per_partition=16384 --disable-bitcasted-transpose --dont-verify-after-all --fp32-cast=matmult-bf16 --mm-transpose-type=fp32 --disable-expensive-checks --disable-max-stride-tiling --hbm-scratchpad-page-size-in-bytes=536870912 --enable-replication --max-local-tensor-tile-size-in-bytes=32768 --tensor-layout-p-order=0 --tensor-layout-b-order=1 --enable-advanced-delinearization --weight-coalescing-threshold=512 --enable-bir-converter=enable --accumulate-on-alu-dtype --enable-tritium-loopfusion --enable-softmax-kernel --model-type-transformer --enable-isl-in-injective-check --enable-dge-on-io-dma --enable-dge-on-spill-reload-dma --enable-dge-on-indirect-dma --enable-dge-on-vector-indirect-dma --enable-dge-on-dst-reduce --keep-rng-tensor-op
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: Running DoNothing
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: DoNothing finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeOpLevelAlias]: Running LegalizeOpLevelAlias
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeOpLevelAlias]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeOpLevelAlias]: LegalizeOpLevelAlias finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/OptimizeAliasedCopyChain]: Running OptimizeAliasedCopyChain
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/OptimizeAliasedCopyChain]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/OptimizeAliasedCopyChain]: OptimizeAliasedCopyChain finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: AliasDependencyInduction finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TransformConvOp]: Running TransformConvOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TransformConvOp]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TransformConvOp]: TransformConvOp finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LowerTensorOp]: Running LowerTensorOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LowerTensorOp]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LowerTensorOp]: LowerTensorOp finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyReset]: Running AliasDependencyReset
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: Running AliasDependencyElimination
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: AliasDependencyElimination finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: AliasDependencyInduction finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyReset]: AliasDependencyReset finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeCCOpLayout]: Running LegalizeCCOpLayout
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeCCOpLayout]: Finished (changed=False instance_count_change=+0)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LegalizeCCOpLayout]: LegalizeCCOpLayout finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpSimplifier]: Running TensorOpSimplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpSimplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpSimplifier]: TensorOpSimplifier finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CanonicalizeIR]: Running CanonicalizeIR
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CanonicalizeIR]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CanonicalizeIR]: CanonicalizeIR finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ResolveComplicatePredicates]: Running ResolveComplicatePredicates
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ResolveComplicatePredicates]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ResolveComplicatePredicates]: ResolveComplicatePredicates finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AffinePredicateResolution]: Running AffinePredicateResolution
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AffinePredicateResolution]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AffinePredicateResolution]: AffinePredicateResolution finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/EliminateDivs]: Running EliminateDivs
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/EliminateDivs]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/EliminateDivs]: EliminateDivs finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PerfectLoopNest]: Running PerfectLoopNest
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PerfectLoopNest]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PerfectLoopNest]: PerfectLoopNest finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_1
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_1 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_2
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_2 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.004 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/GenericAccessSimplifier]: Running GenericAccessSimplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/GenericAccessSimplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/GenericAccessSimplifier]: GenericAccessSimplifier finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ExpandBatchNorm]: Running ExpandBatchNorm
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ExpandBatchNorm]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ExpandBatchNorm]: ExpandBatchNorm finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: Running TCTransform
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: TCTransform finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CommuteConcat]: Running CommuteConcat
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CommuteConcat]: Running CommuteConcat_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CommuteConcat]: CommuteConcat_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CommuteConcat]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/CommuteConcat]: CommuteConcat finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: Running TensorOpTransform
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: Running TensorOpTransform_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [Tensorizer]: Tensorizer options: --run-pg-layout-and-tiling --disable-concat-delinearizer --internal-disable-fma-on-ios --num-neuroncores-per-sengine=2 --num-neuroncores-per-sengine=2 --internal_dynamic_dma_scratch_size_per_partition=16384 --disable-bitcasted-transpose --dont-verify-after-all --fp32-cast=matmult-bf16 --mm-transpose-type=fp32 --disable-expensive-checks --disable-max-stride-tiling --hbm-scratchpad-page-size-in-bytes=536870912 --enable-replication --max-local-tensor-tile-size-in-bytes=32768 --tensor-layout-p-order=0 --tensor-layout-b-order=1 --enable-advanced-delinearization --weight-coalescing-threshold=512 --enable-bir-converter=enable --accumulate-on-alu-dtype --enable-tritium-loopfusion --enable-softmax-kernel --model-type-transformer --enable-isl-in-injective-check --enable-dge-on-io-dma --enable-dge-on-spill-reload-dma --enable-dge-on-indirect-dma --enable-dge-on-vector-indirect-dma --enable-dge-on-dst-reduce --keep-rng-tensor-op
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: TensorOpTransform_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: Running TensorOpTransform_iteration_1
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: TensorOpTransform_iteration_1 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TensorOpTransform]: TensorOpTransform finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LateLowerTensorOp]: Running LateLowerTensorOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LateLowerTensorOp]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LateLowerTensorOp]: LateLowerTensorOp finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyReset]: Running AliasDependencyReset
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: Running AliasDependencyElimination
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyElimination]: AliasDependencyElimination finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyInduction]: AliasDependencyInduction finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AliasDependencyReset]: AliasDependencyReset finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: Running MemcpyElimination
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: Running MemcpyElimination_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/DoNothing]: Running DoNothing
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/DoNothing]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/DoNothing]: DoNothing finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LegalizeOpLevelAlias]: Running LegalizeOpLevelAlias
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: MemcpyElimination_iteration_0 finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: Running MemcpyElimination_iteration_1
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: MemcpyElimination_iteration_1 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MemcpyElimination]: MemcpyElimination finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LegalizeOpLevelAlias]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LegalizeOpLevelAlias]: LegalizeOpLevelAlias finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/OptimizeAliasedCopyChain]: Running OptimizeAliasedCopyChain
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/OptimizeAliasedCopyChain]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/OptimizeAliasedCopyChain]: OptimizeAliasedCopyChain finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079952 [Tensorizer]: Tensorizer options: --run-pg-layout-and-tiling --disable-concat-delinearizer --internal-disable-fma-on-ios --num-neuroncores-per-sengine=2 --num-neuroncores-per-sengine=2 --internal_dynamic_dma_scratch_size_per_partition=16384 --disable-bitcasted-transpose --dont-verify-after-all --fp32-cast=matmult-bf16 --mm-transpose-type=fp32 --disable-expensive-checks --disable-max-stride-tiling --hbm-scratchpad-page-size-in-bytes=536870912 --enable-replication --max-local-tensor-tile-size-in-bytes=32768 --tensor-layout-p-order=0 --tensor-layout-b-order=1 --enable-advanced-delinearization --weight-coalescing-threshold=512 --enable-bir-converter=enable --accumulate-on-alu-dtype --enable-tritium-loopfusion --enable-softmax-kernel --model-type-transformer --enable-isl-in-injective-check --enable-dge-on-io-dma --enable-dge-on-spill-reload-dma --enable-dge-on-indirect-dma --enable-dge-on-vector-indirect-dma --enable-dge-on-dst-reduce --keep-rng-tensor-op
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Rematerialization]: Running Rematerialization
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Rematerialization]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Rematerialization]: Rematerialization finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyInduction]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyInduction]: AliasDependencyInduction finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/TransformConvOp]: Running TransformConvOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Running Delinearization
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Delinearization finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DeadStoreElimination]: Running DeadStoreElimination
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DeadStoreElimination]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DeadStoreElimination]: DeadStoreElimination finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/TransformConvOp]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/TransformConvOp]: TransformConvOp finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LowerTensorOp]: Running LowerTensorOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Running LICM
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/DoNothing]: Running DoNothing
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/DoNothing]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: LICM finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/DoNothing]: DoNothing finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Running Delinearization
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/LegalizeOpLevelAlias]: Running LegalizeOpLevelAlias
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Delinearization finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/LegalizeOpLevelAlias]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/LegalizeOpLevelAlias]: LegalizeOpLevelAlias finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/OptimizeAliasedCopyChain]: Running OptimizeAliasedCopyChain
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Running LICM
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: LICM finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/OptimizeAliasedCopyChain]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/OptimizeAliasedCopyChain]: OptimizeAliasedCopyChain finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ValueNumbering]: Running ValueNumbering
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ValueNumbering]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/ValueNumbering]: ValueNumbering finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Running LICM
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: LICM finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PadElimination]: Running PadElimination
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PadElimination]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/PadElimination]: PadElimination finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Running Delinearization
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Delinearization]: Delinearization finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Running LoopFusion_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LoopFusion]: LoopFusion finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/AliasDependencyInduction]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/AliasDependencyInduction]: AliasDependencyInduction finished after 0.002 seconds
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/TransformConvOp]: Running TransformConvOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Running LICM
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/LICM]: LICM finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: Running TCTransform
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/TCTransform]: TCTransform finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/RecognizeOpIdiom]: Running RecognizeOpIdiom
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/RecognizeOpIdiom]: Running RecognizeOpIdiom_iteration_0
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/TransformConvOp]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/TransformConvOp]: TransformConvOp finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079952 [sg0003/Tensorizer/LowerTensorOp]: Running LowerTensorOp
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/RecognizeOpIdiom]: RecognizeOpIdiom_iteration_0 finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/RecognizeOpIdiom]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/RecognizeOpIdiom]: RecognizeOpIdiom finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MaskPropagation]: Running MaskPropagation
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MaskPropagation]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MaskPropagation]: MaskPropagation finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Recompute]: Running Recompute
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LowerTensorOp]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/LowerTensorOp]: LowerTensorOp finished after 0.007 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Recompute]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Recompute]: Recompute finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [Tensorizer]: After optimization: 2 statements
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: Running DoNothing
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: Finished (changed=True)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/DoNothing]: DoNothing finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyReset]: Running AliasDependencyReset
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MutateDataType]: Running MutateDataType
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyElimination]: Running AliasDependencyElimination
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyElimination]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyElimination]: AliasDependencyElimination finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MutateDataType]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/MutateDataType]: MutateDataType finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079951 [sg0002/Tensorizer/AliasDependencyInduction]: Running AliasDependencyInduction
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AutoCastTCInputs]: Running AutoCastTCInputs
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AutoCastTCInputs]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/AutoCastTCInputs]: AutoCastTCInputs finished after 0.000 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Running Simplifier_iteration_0
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier_iteration_0 finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Finished (changed=False)
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Tensorizer/Simplifier]: Simplifier finished after 0.001 seconds
+2026-09-25T17:43:00Z INFO 3079950 [sg0001/Te
