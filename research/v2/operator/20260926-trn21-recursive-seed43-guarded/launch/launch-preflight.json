@@ -1,0 +1,147 @@
+{
+  "utc": "2026-09-25T20:23:58.929701+00:00",
+  "label": "fs-20260926-recursive6ef7-seed43-trn21-r1-full",
+  "host": "trn21",
+  "free_bytes": 34178613248,
+  "staged_hashes": {
+    "package/train.py": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "package/launch-command.txt": "558409791abf3c188f545f4b870d5b356a2832cff797a3327a71eb04dfd4fb96",
+    "package/provenance.json": "97386eeb1fb18c851452ace5e4484e1bc995d909bb9bbedcd562a71fa3b3a9fc",
+    "EXPERIMENT_PROPOSAL.json": "d71ed1281913ebccbb0896979235a06d6b82d60477a6ad0aeadb123c24ac13b4",
+    "SEED_BINDING.disabled.json": "52e11b652a82a2c139287d48c7e85684e7e1dc2b7b92386176e8dcb7aa1fc662",
+    "host_driver.py": "abc5ca596bdf35eda58b50a1841b55bc615ebf53dd2ee3c2e8b1a9f6f7428faf",
+    "SUPERVISOR_ASSIGNMENT.md": "c584680920eb7409a5312d1dd83c7a4af2c0655754169490b86464750adc3480",
+    "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+    "dispatch_driver.py": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"
+  },
+  "ps_rc": 0,
+  "job_lines": [],
+  "neuron_ls": [
+    {
+      "instance_type": "trn2.3xlarge",
+      "instance_id": "i-0329acb9a6244986b",
+      "neuron_device": 0,
+      "bdf": "0000:33:00.0",
+      "cpu_affinity": "0-11",
+      "numa_node": "0",
+      "connected_to": null,
+      "nc_count": 4,
+      "logical_neuroncore_config": 2,
+      "memory_size": 103079215104,
+      "neuroncore_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "neuron_processes": []
+    }
+  ],
+  "pause_sha256": "bf40ce3bbce8470e7dd392859c5cf056d14f816d52a41f35d10b2dc8f5f2fc4f",
+  "local_state": {
+    "utc": "2026-09-25T20:23:53.640065+00:00",
+    "controller_state_sha256": "1c8655151421814fb7f6ff7b68216252d9ecb9c0468884494c46ce1eace3f1ea",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": true,
+      "trn22": true
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  },
+  "batch_screen": {
+    "status": "SPEED_SCREEN_BELOW_THRESHOLD",
+    "control_median_tok_s": 268831,
+    "threshold_tok_s": 282272.55,
+    "candidate_median_tok_s": 282266.5,
+    "median_relative_gain": 0.04997749515494876,
+    "candidate_observed_100step_seconds": 93.12771701195743,
+    "candidate_observed_100step_tok_s": 281488.70004656207,
+    "aggregate_comparison": "Sanity diagnostic only; no speed veto against historical printed median. A matched control aggregate is unavailable.",
+    "aggregate_vs_printed_candidate_ratio": 0.9972444482308813,
+    "sanity_flags": [],
+    "observed_uncapped_startup_seconds": 794.928466952988,
+    "cold_proven": false,
+    "window": [
+      {
+        "step": 10,
+        "loss": 6.3849,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 283074
+      },
+      {
+        "step": 20,
+        "loss": 5.776,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.92,
+        "tok_s": 283401
+      },
+      {
+        "step": 30,
+        "loss": 5.4683,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 282159
+      },
+      {
+        "step": 40,
+        "loss": 5.204,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 280619
+      },
+      {
+        "step": 50,
+        "loss": 4.9202,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 281868
+      },
+      {
+        "step": 60,
+        "loss": 4.6095,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 282398
+      },
+      {
+        "step": 70,
+        "loss": 4.3662,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 282273
+      },
+      {
+        "step": 80,
+        "loss": 4.1443,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 282975
+      },
+      {
+        "step": 90,
+        "loss": 4.0164,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 281831
+      },
+      {
+        "step": 100,
+        "loss": 3.9044,
+        "lrm": 1,
+        "rounded_dt_seconds": 0.93,
+        "tok_s": 282260
+      }
+    ],
+    "quality_evidence": false,
+    "automatic_full_run": false
+  },
+  "batch_archive_commit": "6c00343d",
+  "supervisor_scope": "01be9b28 + direct proceed message; no higher-priority release",
+  "note": "Fresh actual common lifetime flock and in-lock ps/neuron-ls are enforced next by exact driver; these read-only preliminary checks do not replace them."
+}
