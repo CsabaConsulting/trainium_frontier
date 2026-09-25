@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+At 07:03 UTC, the distinct trn22 final-r3 transfer-only candidate
+`d571ea61` received [independent HOLD](verification/20260925-trn22-fifo-final-r3-independent-HOLD.md)
+at `cbc2c03e`. Its post-label safety repair passed offline tests, but three
+serial subprocess checks plus other gates have not been shown to fit the
+one-second final-scan-to-open window on trn22; a safe timeout would consume
+the one-shot attempt without transferring the capsule. No assignment or host
+write occurred. A separately scoped read-only timing study is being prepared.
+The launcher r8 source repair `d3f39dd8` is under independent review. There
+is still no scored A0 control, table run, S0 cold replay or new BPB.
+
 Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both disabled transfer repairs passed static review, but the trn21 and trn22 enabled transfer requests and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
 
 At 06:48 UTC, the narrow launcher-source successor `e74f9995` received
