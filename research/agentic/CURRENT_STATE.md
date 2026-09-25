@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 10:09 UTC
+Last reconciled: 2026-09-25 10:17 UTC
 
 The trn22 r10 stage's mistyped receipt pin was corrected at `020bfa7e` and
 received source-only static PASS at `aff8762e`, but a later
@@ -10,11 +10,18 @@ operators read breaker state from an older Documents worktree rather than
 the active Desktop controller. The two state files demonstrably differed.
 Final staging from either r2 source is HOLD; neither contacted a host. Two
 distinct disabled r3 repairs (`7205abf5` for trn21 and `b3ec7406` for
-trn22) bind the active state and add stale-state regressions; each needs
-its own independent exact-byte review. A separate trn22 timing package is
-static-only and must be rebound after its operator hash changes. No new
-scored control/table run or BPB exists. Priority remains common-r10
-staging, matched A0 controls, then A1/A2 tables.
+trn22) now bind the active state and have independent [trn21](../v2/verification/20260925-trn21-r10-incremental-stage-r3-active-root-independent-static-PASS.md)
+and [trn22](../v2/verification/20260925-trn22-r10-incremental-stage-r3-controller-root-independent-static-PASS.md)
+static-only PASS receipts. Both remain **dispatch HOLD** pending exact clean
+execution-root binding, live timing, final enablement review, and fresh
+Operator preflight. The trn22 r3 read-only timing rebind received
+[independent HOLD](../v2/verification/20260925-trn22-r10-timing-r3-independent-static-HOLD.md):
+its post-probe could skip a new local STOP before SSH. A narrow disabled
+repair is under implementation; trn21 timing is in a separate lane. Clean
+local source worktrees exist for both stage candidates and a matching r10
+science checkout; the controller's archival source copies are not launch
+roots. No new scored control/table run or BPB exists. Priority remains
+common-r10 staging, matched A0 controls, then A1/A2 tables.
 
 The disabled trn21 e65→r10 r2 source-stage repair `3e846589` received
 [independent STATIC PASS only](../v2/verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)
