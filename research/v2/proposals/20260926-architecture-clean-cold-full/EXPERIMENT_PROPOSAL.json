@@ -1,0 +1,139 @@
+{
+  "proposal_id": "20260926-architecture-clean-cold-full",
+  "status": "DISABLED_FRESH_SOURCE_REVIEW_REFUSE_PENDING_ROUTE_EVIDENCE_AND_ALL_GATES",
+  "owner_role": "implementer",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "source_adoption": false,
+  "full_run_automatic": false,
+  "authority": "Supervisor preparation-only assignment; no host contact, launch, source adoption or submission authority.",
+  "hypothesis": "Exact clean port may retain scored architecture quality under its own genuine cold1800 run; unmeasured, not guaranteed.",
+  "single_causal_change": "Clean116188 vehicle port of existing scored architecture and initial cache refresh; frozen source, old schedule/LR0.015/batch131072/seed42 unchanged. This packet makes no production edit.",
+  "mechanism_class": "submission_vehicle_qualification",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "source_commit": "bd9e33eee671ee489a1201485faf748bf0a35dea",
+  "source_git_path": "workflow/candidates/architecture3e79-116188/train.py",
+  "source_sha256": "3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f",
+  "label": "fs-20260926-arch3e79-clean-cold-trn22-r1",
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-clean-cold-trn22-r1-packet",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "argv": [
+    "torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "world_size": 4,
+  "lnc": 2,
+  "seed": 42,
+  "sequence_length": 1024,
+  "pack_factor": 32,
+  "max_train_seconds": 1800,
+  "num_steps": null,
+  "parameters": 113256724,
+  "parameter_tensors": 65,
+  "operator_assignment": "NOT_ASSIGNED",
+  "source_review": "REFUSE reported by fresh reviewer: ordinary clean GPT B>1 joint route differs from research per-row eval route; no observed tiny CPU mismatch. No source edit or waiver; diagnostic scope pending.",
+  "fullsize_cpu": "PENDING; exact packet e96bcfe3 imported54dda2fa; no fullmodel laptop run",
+  "independent_binding_review": "PENDING",
+  "native_checkpoint_diagnostic": "PENDING_SEPARATE_SCOPE: trained checkpoint B1/B2 source parity, causality, batch independence; no wrapper or evaluator changes.",
+  "control": {
+    "label": "fs-20260926-arch3e79-primed-trn22-r2-full",
+    "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "public20m_bpb": 0.9863403052402583,
+    "limitation": "Warm research full after separate cold5; new clean run true cold. Different compiler/startup/elapsed-LR trajectory possible; not a matched-cache speed comparison and not clean-file score."
+  },
+  "candidate_shortlist": [
+    {
+      "idea": "Frozen clean architecture source",
+      "why_ranked": "User requested scored architecture artifact; qualify without introducing new science."
+    },
+    {
+      "idea": "Recursive schedule stack",
+      "why_ranked": "Separate research, explicitly excluded from this scored-artifact port."
+    }
+  ],
+  "selection_rationale": "Prepare immutable guarded packets while preserving all unresolved source, CPU, native and submission gates.",
+  "success_criteria": {
+    "cold": "Separate exact clean cold5 gate required before full; this full starts fresh again",
+    "budget": "Source1800; measured charged through training process exit<=1800",
+    "quality": "Unchanged fresh-process public20M/context1024; preserve exact metric and checkpoint, independent analysis",
+    "correctness": "Pending separately bound native checkpoint/source-parity/causality/batch-independence diagnostic; no implicit PASS"
+  },
+  "gates": {
+    "source_review": false,
+    "fresh_review": false,
+    "fullsize_cpu": false,
+    "binding_review": false,
+    "operator_assignment": false,
+    "native_correctness": false
+  },
+  "preflight": [
+    "All pending gates resolved and exact single-shot assignment",
+    "Correct trn22; unique root and phase sandboxes absent; all source/support/package hashes",
+    "Original exclusive persistent flock; authenticated inherited FD; fresh ps AND neuron-ls checks fail closed before every child",
+    "STOP/breakers and disk>=6.5GiB plus compile/checkpoint headroom; no automatic deletion",
+    "Six absent empty per-phase SDK cache directories created before child; compiler URL equals compiler DIR; unchanged data cache"
+  ],
+  "abort_conditions": [
+    "Any unresolved gate or busy/unknown/lock failure: do not launch",
+    "Hash/host/STOP/disk/cache mismatch: refuse and retain evidence",
+    "Crash, NaN, missing boundary/checkpoint, invalid/over budget: fail/hold",
+    "No automatic retry, next job, adoption or submission"
+  ],
+  "budget": "Outer train2730+60s and eval1800+60s safety; source1800. Child-clock charged-through-exit<=1800. Fresh eval cost separate.",
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "seq_len": 1024,
+    "batch_size": 1,
+    "device": "neuron",
+    "prepare_unchanged": true,
+    "same_lifetime_lock": true,
+    "new_guard_before_eval": true
+  },
+  "required_artifacts": [
+    "immutable source/support/package hashes",
+    "outer-flock and under-lock idle receipts",
+    "exact command/environment; train/rehearsal.json and steps.jsonl",
+    "raw training log and terminal exit",
+    "all-rank graph_stats/caches routing evidence",
+    "checkpointSHA",
+    "fresh eval log/rehearsal/metric/checkpoint binding"
+  ],
+  "prior_result_refs": [
+    "research/v2/operator/20260926-trn22-arch3e79-full/",
+    "research/v2/operator/20260926-ct-architecture-startup-only/",
+    "workflow/candidates/architecture3e79-116188/",
+    "research/v2/proposals/20260926-architecture-clean-exact-cpu/"
+  ],
+  "duplicate_search_terms": [
+    "3f5035",
+    "clean architecture cold",
+    "116188 long launch"
+  ],
+  "preservation": "No train.py/prepare/data/evaluator edits, host action, queue or ledger mutation, Downloads overwrite, submission or automatic launch.",
+  "human_approved_by": null,
+  "verdict": null,
+  "driver_sha256": "0b0f34cba9757f9371ab9c0b6e2b33adc6294023f5ea7f61464eaf96f2b9a511",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "harness_sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"
+}
