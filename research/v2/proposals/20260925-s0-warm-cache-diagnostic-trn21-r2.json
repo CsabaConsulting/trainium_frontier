@@ -1,0 +1,70 @@
+{
+  "proposal_id": "20260925-s0-warm-cache-diagnostic-trn21-r2",
+  "status": "RESEARCH_COMPLETE_DISPATCH_HOLD",
+  "owner_role": "researcher",
+  "proposal_content_complete": true,
+  "launch_authorized": false,
+  "hypothesis": "The exact review-clean S0 source can pass Neuron initialization and train when run against an authenticated populated trn21 research cache; the zero-step r1 failure may therefore be specific to cache state or startup rather than S0's model arithmetic.",
+  "single_causal_change": "Compared with failed S0 r1, keep source SHA, bare argv, topology, seed, budget, host and trusted prepare.py fixed; change only the cache-state family from empty job-owned paths to the known populated trn21 research cache, with the persistent cache path explicitly pinned. This is a diagnostic, not a quality arm.",
+  "mechanism_class": "startup_cache_diagnostic",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.002, 0.002],
+  "candidate_shortlist": [
+    {"idea": "Warm S0 on trn21 after A0", "mechanism_class": "startup_cache_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Directly tests whether unchanged S0 can get past pre-model Neuron initialization on the same host."},
+    {"idea": "Known-good 116188 true-cold contrast on trn22", "mechanism_class": "startup_cache_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Independent second arm probes whether a verified older file also fails under isolated cold compilation."}
+  ],
+  "selection_rationale": "Poojith directly ordered S0 warm-cache diagnosis as trn21's next slot after its c5c A0 control. S0 is the submission gate and remains unscored after r1's zero-step failure.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.2,
+  "trainium_feasibility": "Existing S0 source SHA256 ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb; full-chip LNC2/four ranks; seed 42 and 1800 s baked into file. Use a new unique sandbox /home/ubuntu/trainium_s0_warm_20260925_trn21_r2. The September 24 trn21 research train cache under /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/ contains ~193 MiB NEFFs and populated HLO/debug dirs. Only use it after the current A0 job fully exits; no concurrent cache writer. Set documented NEURON_COMPILE_CACHE_URL to the existing /var/tmp/neuron-compile-cache (273 MiB observed), leaving NEURON_CC_FLAGS unset externally so train.py applies its optlevel-1 defaults. Pin native TORCH_NEURONX_NEFF_CACHE_DIR/LOCAL/HLO/DEBUG and any documented cache path in the final Operator launch receipt. `NEURON_COMPILE_CACHE_DIR` alone is not proof of an effective persistent cache. Verify actual cache hit/path from compiler log or before/after cache objects; absent proof makes cache-state comparison inconclusive.",
+  "cheapest_falsifier": "Same-host idle/disk/source and known-populated-cache preflight, then successful first Neuron initialization and first five finite steps. If initialization repeats the same failure, capture earliest compiler/journal evidence; do not rerun this label.",
+  "prior_result_refs": [
+    "fs-20260925-s0-cold-replay-trn21-r1: 2026-09-25 13:17:43Z zero-step NKI RNG/NEFF failure",
+    "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 3654 steps, public20M 0.9918353324459732",
+    "fs-20260925-v2-c5c-a0-control-trn21-r1: currently assigned/running; wait for terminal receipt"
+  ],
+  "evidence": [
+    "research/v2/incidents/20260925-s0-cold-trn21-r1/READONLY_COMPILER_POSTMORTEM.md",
+    "research/v2/proposals/20260925-s0-cold-replay-trn21-r1.json",
+    "workflow/candidates/S0/train.py",
+    "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-s0-bare-trn22-r1.json",
+    "workflow/evidence/lockstep3-S0-bare.json",
+    "research/v2/assignments/20260925-trn21-a0-breakglass-r1.json"
+  ],
+  "duplicate_search_terms": ["S0 warm", "warm-cache diagnostic", "trn21 S0 r2", "fs-20260925-s0-warm-diagnostic-trn21-r2"],
+  "control": {
+    "git_commit": "135f9dc4",
+    "run_label": "fs-20260925-s0-cold-replay-trn21-r1",
+    "public_val_bpb": null,
+    "steps": 0,
+    "box_constraint": "Same trn21 host, same exact S0 source and bare argv. Binary train-start comparison only; failed r1 has no BPB comparator."
+  },
+  "candidate": {
+    "branch": "codex/20260925-s0-cold-cache-diagnostics",
+    "files_allowed": [],
+    "expected_diff": "No train.py edit. Copy exact S0 bytes into new sandbox; source SHA must match ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb on host.",
+    "run_label": "fs-20260925-s0-warm-diagnostic-trn21-r2",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py"
+  },
+  "evaluation": "After a complete checkpoint, a separate fresh process must run trusted prepare.py eval-public at context 1024 over 20971520 public tokens; archive exact command, log, checkpoint hash and parsed BPB. This is mandatory before using the result.",
+  "required_prelaunch": [
+    "Supervisor issues a one-use assignment for this unique label after trn21 A0 is fully terminal and its crash/normal postflight is complete",
+    "Operator verifies new sandbox and label absent, host source/prepare SHA256, 5 train shards/tokenizer/public shard, at least 6.5 GiB free, no Neuron job/device holder and no STOP or breaker",
+    "Operator records exact effective environment, selected populated research-cache identity, prelaunch object counts/hash sample and postrun cache-hit/path evidence; leaves NEURON_CC_FLAGS unset externally and does not add logging flags to the compiler invocation",
+    "Operator must not modify evaluator/data/tokenizer or delete any prior cache, run, checkpoint or log"
+  ],
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": true, "numerical_equivalence": true, "causality": false, "smoke_run": false, "human_run_approval": true},
+  "success_criteria": {
+    "quality": "Informational public20M only; no win/adoption claim from r1 because it is unscored. Compare to historical S0/116188 mean only after receipt review.",
+    "throughput": "Record first-step latency, full 1800 s training steps, cache hits/misses and charged time; do not treat a warm run as submission cold-cache proof.",
+    "correctness": "Full-chip four-rank train completes 1800 s with finite checkpoint, no NaN/crash/budget breach, a valid fresh-process public20M evaluation and retrieved evidence. If cache-state evidence is absent, mark diagnostic inconclusive even if training succeeds."
+  },
+  "abort_conditions": [
+    "Same-host A0 is still running, or any Neuron/device holder or STOP is present",
+    "Disk free <6.5 GiB, source/prepare SHA mismatch, label/root already exists, or warm cache identity is not authenticated",
+    "Any launch/source change beyond the declared cache-state family, or undocumented assumption that NEURON_COMPILE_CACHE_DIR alone makes a cache warm",
+    "Crash, NaN, budget failure, missing checkpoint or failed fresh-process eval"
+  ],
+  "human_approved_by": "Poojith direct S0 cache-diagnostic instruction, 2026-09-25 IST; this proposal alone is not launch authority",
+  "verdict": null
+}
