@@ -1,0 +1,183 @@
+{
+  "utc": "2026-09-25T23:44:02.363233+00:00",
+  "files": [
+    "SUPERVISOR_ASSIGNMENT.md",
+    "under-lock-idle.json",
+    "outer-flock.log",
+    "dispatch.log",
+    "MANIFEST.sha256.json",
+    "NATIVE_BINDING.disabled.json",
+    "training-launch.json",
+    "training.log",
+    "preflight.json",
+    "operator-launch.json",
+    "EXPERIMENT_PROPOSAL.json",
+    "train/steps.jsonl"
+  ],
+  "job_lines": [
+    "3191008       1 3191008 3191008     848 python3         /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/dispatch_driver.py",
+    "3191009 3191008 3191008 3191008     848 flock           /usr/bin/flock -n /home/ubuntu/.cache/trainium_freshstart/device0.lock /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/host_driver.py",
+    "3191010 3191009 3191008 3191008     848 python3         /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/host_driver.py",
+    "3191026 3191010 3191008 3191008     848 timeout         /usr/bin/timeout --foreground --signal=TERM --kill-after=60s 2730s /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train --mode train",
+    "3191027 3191026 3191008 3191008     848 python          /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train --mode train",
+    "3191041 3191027 3191008 3191008     846 pt_elastic      /home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+    "3191056 3191041 3191056 3191056     844 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+    "3191057 3191041 3191057 3191057     844 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+    "3191058 3191041 3191058 3191058     844 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+    "3191059 3191041 3191059 3191059     844 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule"
+  ],
+  "workers": [
+    {
+      "pid": 3191056,
+      "ppid": 3191041,
+      "pgid": 3191056,
+      "sid": 3191056,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule ",
+      "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+        "RANK": "0",
+        "WORLD_SIZE": "4",
+        "LOCAL_RANK": "0"
+      }
+    },
+    {
+      "pid": 3191057,
+      "ppid": 3191041,
+      "pgid": 3191057,
+      "sid": 3191057,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule ",
+      "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+        "RANK": "1",
+        "WORLD_SIZE": "4",
+        "LOCAL_RANK": "1"
+      }
+    },
+    {
+      "pid": 3191058,
+      "ppid": 3191041,
+      "pgid": 3191058,
+      "sid": 3191058,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule ",
+      "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+        "RANK": "2",
+        "WORLD_SIZE": "4",
+        "LOCAL_RANK": "2"
+      }
+    },
+    {
+      "pid": 3191059,
+      "ppid": 3191041,
+      "pgid": 3191059,
+      "sid": 3191059,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule ",
+      "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+        "RANK": "3",
+        "WORLD_SIZE": "4",
+        "LOCAL_RANK": "3"
+      }
+    }
+  ],
+  "parsed": {
+    "training-launch.json": {
+      "command": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "--signal=TERM",
+        "--kill-after=60s",
+        "2730s",
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+        "--package",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/package",
+        "--sandbox",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train",
+        "--mode",
+        "train"
+      ],
+      "environment": {
+        "HOME": "/home/ubuntu",
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+        "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+        "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONUNBUFFERED": "1",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+        "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+        "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/metrics-training",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+        "TRN_EXP_LABEL": "fs-20260926-arch36a8-startup-clock-trn22-r1-full"
+      },
+      "harness_sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+      "label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
+      "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "utc": "2026-09-25T23:29:53.434078+00:00"
+    }
+  },
+  "logs": {
+    "outer-flock.log": "",
+    "dispatch.log": "",
+    "training.log": "MIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27262976, 28315914, 27269130, 30408704], \"estimated_ms_by_owner\": [11.902383616666665, 11.901154315065611, 11.905213318837584, 12.116303749999998], \"shard_elements\": 30408704, \"total_padded_bytes\": 486539264}\nSUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27262976, 28315914, 27269130, 30408704], \"estimated_ms_by_owner\": [11.902383616666665, 11.901154315065611, 11.905213318837584, 12.116303749999998], \"shard_elements\": 30408704, \"total_padded_bytes\": 486539264}\nmuon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]\nmuon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]\nmuon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]\nstep 00000 | loss 9.0101 | lrm 1.000 | dt 783.64s | tok/s 167 | remaining_steps 999999 | remaining_time 1016s | epoch 1\nstep 00001 | loss 8.7779 | lrm 1.000 | dt 0.49s | tok/s 270,250 | remaining_steps 999998 | remaining_time 1016s | epoch 1\nstep 00002 | loss 8.4047 | lrm 1.000 | dt 0.49s | tok/s 267,442 | remaining_steps 999997 | remaining_time 1015s | epoch 1\nstep 00003 | loss 8.0711 | lrm 1.000 | dt 0.49s | tok/s 265,379 | remaining_steps 999996 | remaining_time 1015s | epoch 1\nstep 00004 | loss 7.7681 | lrm 1.000 | dt 0.49s | tok/s 265,225 | remaining_steps 999995 | remaining_time 1800s | epoch 1\nstep 00010 | loss 6.6293 | lrm 1.000 | dt 0.49s | tok/s 265,615 | remaining_steps 999989 | remaining_time 1797s | epoch 1\nstep 00020 | loss 5.9820 | lrm 1.000 | dt 0.49s | tok/s 267,153 | remaining_steps 999979 | remaining_time 1792s | epoch 1\nstep 00030 | loss 5.6940 | lrm 1.000 | dt 0.49s | tok/s 266,828 | remaining_steps 999969 | remaining_time 1787s | epoch 1\nstep 00040 | loss 5.4756 | lrm 1.000 | dt 0.49s | tok/s 265,568 | remaining_steps 999959 | remaining_time 1782s | epoch 1\nstep 00050 | loss 5.2341 | lrm 1.000 | dt 0.49s | tok/s 267,369 | remaining_steps 999949 | remaining_time 1777s | epoch 1\nstep 00060 | loss 5.0245 | lrm 1.000 | dt 0.49s | tok/s 265,254 | remaining_steps 999939 | remaining_time 1772s | epoch 1\nstep 00070 | loss 4.8918 | lrm 1.000 | dt 0.49s | tok/s 266,337 | remaining_steps 999929 | remaining_time 1767s | epoch 1\nstep 00080 | loss 4.7234 | lrm 1.000 | dt 0.49s | tok/s 266,815 | remaining_steps 999919 | remaining_time 1763s | epoch 1\n"
+  },
+  "free_bytes": 28557078528,
+  "lock_competitor_rc": 1,
+  "neuron_ls": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": [\n            {\n                \"pid\": 3191056,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3191057,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3191058,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3191059,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            }\n        ]\n    }\n]",
+  "old_queue_pids": [
+    {
+      "pid": 3050509,
+      "exists": false
+    },
+    {
+      "pid": 3053905,
+      "exists": false
+    }
+  ]
+}
