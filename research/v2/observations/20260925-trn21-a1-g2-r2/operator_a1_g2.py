@@ -84,7 +84,15 @@ def check():
         assert R.is_dir() and R.stat().st_uid == 1000 and R.stat().st_mode & 0o777 == 0o700, "RUN_ROOT"
         assert all(p.is_dir() and p.stat().st_uid == 1000 and p.stat().st_mode & 0o777 == 0o700 for p in (S.parent, T.parent, TMP)), "PRIVATE_CHILDREN"
         assert sha(S) == C["source_sha"] and sha(T) == C["tool_sha"], "STAGED_SHA"
-        assert not any(TMP.iterdir()), "TMPDIR_NOT_EMPTY"
+        # The clean Torch import in the poststage probe may create its empty,
+        # job-private inductor directory. It is not a G2 attempt or result.
+        tmp_entries = list(TMP.iterdir())
+        assert len(tmp_entries) <= 1, "TMPDIR_UNEXPECTED_ENTRY"
+        if tmp_entries:
+            torch_cache = tmp_entries[0]
+            assert (torch_cache.name == "torchinductor_ubuntu" and torch_cache.is_dir()
+                    and not torch_cache.is_symlink() and torch_cache.stat().st_uid == 1000
+                    and not any(torch_cache.iterdir())), "TMPDIR_UNEXPECTED_CONTENT"
         assert all(not os.path.lexists(p) for p in (pathlib.Path(C["attempt_marker"]), pathlib.Path(C["g2_out"]), pathlib.Path(C["launcher_log"]), R / "launch.json", R / "run-exit-code.txt")), "ATTEMPT_ALREADY_PRESENT"
         envlist = ["PATH=/home/ubuntu/workspace/native_venv/bin:/usr/bin:/bin", "HOME=/home/ubuntu", "TMPDIR=" + str(TMP), "PYTHONDONTWRITEBYTECODE=1"]
         probe = run(["/usr/bin/env", "-i", *envlist, C["cpu_python"], "-B", "-c", "import json,sys,tempfile,torch; print(json.dumps({'python':sys.executable,'torch':torch.__version__,'tmpdir':tempfile.gettempdir()}))"], timeout=60)
