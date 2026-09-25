@@ -1,0 +1,17 @@
+{
+  "candidate_source_commit": "50a901374ae6f76b35b8556d32fd72b1ece28fc6",
+  "original_checker_sha256": "7ba967b06834071f33cf9158c1f2a76555e9850d0abc988421b4b870ce1e3bc0",
+  "files": {
+    "workflow/proposals/research-v2/train.py": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+    "research/v2/lanes/fp8-projections/check_native.py": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+    "research/v2/lanes/fp8-projections/test_native_diagnostic_cpu.py": "62313338a415f71baa74bf290b204160a5c248efb9b31038eaba4976879683b1",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "driver_reference": "a26b7414894e4a0e01f7d3a5984cd82c1cd0d33e:research/v2/operator/20260925-trn21-l1-fp8-native-r1/component_manual.py",
+  "driver_policy": "Reuse existing detached manual pattern with independently checked new label/path/hash/command/timeout and diagnostic-only receipt binding; do not run the old hard-coded component-PASS predicate. No driver or launcher is added or modified by this packet.",
+  "argv": ["torchrun", "--standalone", "--nproc_per_node=4", "<staged-check_native.py>", "--train-py", "<exact921271-train.py>", "--out-dir", "<fresh-diagnostic-receipts>", "--diagnose-first-case", "--label", "fs-20260925-l1-921271-vjpdiag-r1"],
+  "required_topology": {"NEURON_LOGICAL_NC_CONFIG": "2", "world_size": 4},
+  "environment_policy": "Operator binds the existing checked native SDK/compiler/cache/power settings and absolute paths on exactly one free host; no environment change is requested.",
+  "original_failure_archive": "c1ac162c",
+  "acceptance_status": "Diagnostic-only proposal, pending distinct review and Operator binding; no launch or component approval."
+}

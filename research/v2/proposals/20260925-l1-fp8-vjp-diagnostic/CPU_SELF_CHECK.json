@@ -1,0 +1,25 @@
+{
+  "verdict": "PASS_BOUNDED_IMPLEMENTER_CPU_SELF_CHECK_ONLY",
+  "runtime": "/home/poojith-devan/venv/bin/python",
+  "torch": "2.13.0+cpu",
+  "environment": {"OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1", "PYTHONDONTWRITEBYTECODE": "1"},
+  "test": "research/v2/lanes/fp8-projections/test_native_diagnostic_cpu.py",
+  "normal": {"tests": 3, "exit_code": 0, "unittest_seconds": 2.244, "elapsed_seconds": 3.71, "max_rss_kib": 420660},
+  "optimized_minus_O": {"tests": 3, "exit_code": 0, "unittest_seconds": 4.244, "elapsed_seconds": 6.82, "max_rss_kib": 431908},
+  "checks": [
+    "Exact candidate SHA and unchanged original RMS threshold/PASS spelling",
+    "Missing/nonfinite gradients remain diagnostic failures; JSON contains no NaN",
+    "Exact first-shape oracle and CPU aot_eager bound/enclosing/eager/replay forward and VJP equality",
+    "Actual gradient maxima4.875/326 and nonzero counts65536, separately named error maxima",
+    "Actual saved autograd context inspection with no assumed tensor ordering",
+    "Original uninspected path runs first; inspected replay is separately marked",
+    "Deliberately zeroed CPU VJP retains RMS1.0 and zero actual maxima while manual control matches",
+    "Every result remains diagnostic-only; native/full-component/performance booleans false"
+  ],
+  "initial_selfcheck_note": "An initial CPU adapter run exposed same-device to() aliasing: fresh clones were non-leaf. Fresh test/diagnostic comparison inputs now detach before cloning; no production source change. Final normal and optimized checks pass.",
+  "limitations": "Exact source functions are AST-extracted. Packing/project adapters and compiler injection are explicitly CPU-only; no torch-neuronx/NKI import or native emulation claim. Host torch2.11/Neuron behavior remains unknown. No model, data, optimizer or checkpoint is allocated.",
+  "native_kernel_executed": false,
+  "independent_review": false,
+  "hardware_accessed": false,
+  "candidate_changed": false
+}

@@ -1,0 +1,70 @@
+{
+  "proposal_id": "20260925-l1-fp8-vjp-diagnostic",
+  "status": "PREPARED_PENDING_INDEPENDENT_REVIEW_AND_OPERATOR_BINDING",
+  "owner_role": "Supervisor-requested diagnostic; Implementer-authored packet, not self-approval",
+  "run_purpose": "diagnostic",
+  "hypothesis": "The first-shape native gradient mismatch arises at the custom-autograd/compiler/saved-operand boundary rather than ordinary FP8 operand rounding; a matched original/wrapped/eager/manual comparison can localize it.",
+  "single_causal_change": "Diagnostic checker instrumentation and call-boundary contrast only. Exact production train.py source921271, kernels, VJP formulas, 1 percent RMS ceiling, environment, data and evaluator remain unchanged.",
+  "mechanism_class": "correctness_diagnostic",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {"idea": "One first-shape boundary diagnostic", "why_ranked": "Smallest contrast that preserves the original failure and distinguishes native matmul, saved operands and custom backward capture."},
+    {"idea": "Whole-step timing", "why_ranked": "Blocked by the existing native correctness failure; not authorized here."},
+    {"idea": "Change candidate autograd registration", "why_ranked": "Premature before observing the failing boundary; no candidate edit in this proposal."},
+    {"idea": "Relax numerical threshold", "why_ranked": "Rejected; RMS 1.0 is not ordinary rounding and the original ceiling stays unchanged."}
+  ],
+  "selection_rationale": "Direct bounded Supervisor assignment after archive c1ac162c. CPU algebra and AOT tests agree with the checker reference; native context and actual gradient statistics are missing.",
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "host_time_note": "One full-chip four-rank invocation, first256-cube only, hard 300-second wall timeout plus existing 60-second termination grace. This is a diagnostic ceiling, not a speed estimate; a timeout is archived as incomplete, with no automatic retry.",
+  "trainium_feasibility": "Existing first shape compiled and reached the RMS gate on all four ranks. This mode adds one enclosing-wrapper compiler entry point, one eager call, one inspected replay of the original compiled callable, and four ordinary BF16 GEMMs. No model, optimizer, data, tables or checkpoint allocation. Native compiler behavior remains unproven.",
+  "cheapest_falsifier": "Retain original bound-apply result; compare same seed42 operands through enclosing-wrapper/eager/manual VJP and inspect actual saved autograd tensors only in marked cases.",
+  "prior_result_refs": [
+    "c1ac162c:research/v2/operator/20260925-trn21-l1-fp8-native-r1/component/component.log",
+    "357ba6e28e13e57c5178868fcb730cb15cd11598 independent read-only failure audit",
+    "50a901374ae6f76b35b8556d32fd72b1ece28fc6 exact candidate source",
+    "a26b7414894e4a0e01f7d3a5984cd82c1cd0d33e existing component manual driver"
+  ],
+  "evidence": ["RUNBOOK.md", "SOURCE_MANIFEST.json", "CPU_SELF_CHECK.json"],
+  "duplicate_search_terms": ["FP8 VJP", "compiled bound apply", "saved_context", "check_native.py"],
+  "control": {
+    "git_commit": "50a901374ae6f76b35b8556d32fd72b1ece28fc6",
+    "run_label": "fs-20260925-l1-921271-component-trn21-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Same immutable source/seed/first shape. This is a correctness contrast, never a throughput comparison."
+  },
+  "candidate": {
+    "branch": "codex/20260925-l1-fp8-vjp-diagnostic",
+    "files_allowed": ["research/v2/lanes/fp8-projections/check_native.py", "research/v2/lanes/fp8-projections/test_native_diagnostic_cpu.py", "research/v2/proposals/20260925-l1-fp8-vjp-diagnostic/"],
+    "train_sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+    "expected_diff": "New opt-in checker diagnostic branch. Default original component branch and its threshold remain. No train.py or driver source change.",
+    "run_label": "fs-20260925-l1-921271-vjpdiag-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 <staged-check_native.py> --train-py <exact921271-train.py> --out-dir <fresh-diagnostic-receipts> --diagnose-first-case --label fs-20260925-l1-921271-vjpdiag-r1",
+    "argv_tail": ["--diagnose-first-case", "--label", "fs-20260925-l1-921271-vjpdiag-r1"]
+  },
+  "host_selection": "Supervisor/Operator bind exactly one next free host after its currently running work; no interruption, dual launch or queue edit is authorized. Preserve checked SDK/compiler/cache/power/topology settings and seed42. Record exact absolute argv/environment and hashes before launch.",
+  "wall_timeout_seconds": 300,
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "cpu_scope": "Implementer three tiny CPU self-checks, normal and -O; not independent or native approval.",
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "launch_authorized": false
+  },
+  "success_criteria": {
+    "quality": "Not evaluated; no quality selection, checkpoint, BPB or full-run authorization.",
+    "throughput": "Not measured; no component or whole-step speed claim.",
+    "correctness": "Diagnostic completeness only: four source-bound diagnostic-rank receipts and raw logs/terminal/postflight. Every result remains DIAGNOSTIC_ONLY_NOT_COMPONENT_PASS, even if all observed comparisons fall within the unchanged 0.01 RMS ceiling. Original failure is retained; no full component acceptance."
+  },
+  "abort_conditions": ["Source/checker/support hash mismatch", "Host busy, STOP, insufficient disk or another launcher/job", "Timeout or fatal runtime error: preserve partial logs and mark incomplete, do not retry", "Any proposed SDK/cache/power/kernel/candidate change", "Attempt to treat exit0 or diagnostic receipt as component, performance or quality PASS"],
+  "human_approved_by": "Diagnostic direction assigned by Supervisor under newest Poojith priority; this packet does not self-approve launch",
+  "verdict": null,
+  "submission_eligible": false,
+  "research_only": true
+}
