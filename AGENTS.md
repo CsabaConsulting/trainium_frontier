@@ -2,6 +2,14 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Newest priority correction after A1 (25 September, about22:00 IST)
+
+Read `workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md` first. Poojith
+stopped A2 warm-r2 and deprioritized tables. Schedule, checked8x1024
+architecture and FP8 whole-step timing now lead; one later epoch2-freeze
+table diagnostic only. The earlier table-first conditional branch below is
+OVERRIDDEN. Preserve cache/timer investigation and all unchanged legal gates.
+
 ## Latest correction (Poojith, 25 September 21:11 IST)
 
 The subsequent `workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md` also

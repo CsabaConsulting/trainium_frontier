@@ -1,5 +1,10 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**NEWEST POST-A1 PRIORITY:** Read `POST_A1_PRIORITY_CORRECTION_2026-09-25.md`
+first. Stop A2 warm-r2; tables are low priority. Schedule, checked8x1024
+architecture and FP8 whole-step timing lead. Only one later epoch2-freeze
+table test. Earlier table-first queue branches below are OVERRIDDEN.
+
 **COMPILE CONSTRAINT CORRECTION:** Read
 `COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md`: A2 warm rerun is research-only;
 cold timing must be measured and paid before submission. Gather boundaries and
