@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 01:23 UTC
+Last reconciled: 2026-09-25 01:43 UTC
 
 ## Current handoff: trn21 transfer-only r2 assigned; trn22 r4 still unsafe
 
@@ -15,9 +15,11 @@ result has been retrieved yet. The prior `/dev/shm` target is not retried.
 On trn22, two frozen r4 interlock revisions received independent
 [999b FAIL](../v2/disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md)
 and [f8fe FAIL](../v2/disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md)
-receipts. The remaining problems are unrelated-process signaling through the
-guard's marker-only cleanup and a false clean finish with a markerless live
-worker. An Implementer is repairing both. No native dispatch is authorized.
+receipts. The next frozen 11379083 source passed 63 local tests but also
+[failed independent review](../v2/disk-monitor/R4_11379083_INDEPENDENT_VERIFIER_RECEIPT.md):
+a markerless changed-session worker can yield a false clean finish, and early
+launcher refusal lacks a durable no-spawn receipt. An Implementer is repairing
+these gaps. No native dispatch is authorized.
 There is no new scored control or BPB result; best confirmed public20M remains
 0.9918353324 single / 0.9919537735 two-run mean.
 

@@ -10,7 +10,11 @@ preflight and must prove each in later distinct SSH sessions. There is no
 retrieved transfer result yet; checkout/extraction, CPU G2, training and eval
 remain HOLD. trn22's frozen r4 [999b](disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md)
 and [f8fe](disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md) reviews both
-failed safety gates; the latest repair is not reviewed or dispatched. No new BPB.
+failed safety gates. The subsequent 11379083 source also
+[failed independent review](disk-monitor/R4_11379083_INDEPENDENT_VERIFIER_RECEIPT.md)
+despite 63/63 intended local tests: a detached markerless worker could be
+certified clean, and an early launcher refusal lacked no-spawn proof. No repair
+or native run is approved. No new BPB.
 
 At 00:44:23 UTC, the assigned trn21 c5c A0 source transfer reported an exact
 104,005,787-byte SHA-verified capsule inside its SSH process, but the exact
