@@ -6,6 +6,15 @@ are both frozen tool files actually present inside the clean e65 checkout?
 The e65 Git tree has no `workflow/tools` paths. That is evidence of a likely
 absence, **not** a measurement of the host's untracked/ignored files.
 
+This r2 local-gate repair descends from disabled r1 `ab978507`. Before each
+future SSH read, it checks STOP in the active Desktop controller, legacy
+Documents checkout, and package worktree, then reads **only** the active
+`/home/poojith-devan/Desktop/Trainium/research/v2/state.json` for the
+global/trn22 breaker and launch HOLD. It rechecks after capture and records
+HOLD if state or STOP changed. A stale Documents state cannot enable contact.
+The two exact remote tool paths, remote probe, and read-only scope are unchanged.
+This new collector requires fresh independent review before any enablement.
+
 The request pins these exact paths and hashes:
 
 | Tool | Host path suffix under the fixed e65 checkout | SHA-256 required |
@@ -55,7 +64,8 @@ python -B -m unittest discover -s research/v2/authorizations/trn22-a2-toolpath-r
 python -OB -m unittest discover -s research/v2/authorizations/trn22-a2-toolpath-readonly-hold -p test_readonly.py -v
 ```
 
-Each ran 8/8 PASS. Tests include a no-SSH disabled capture, no-follow
+Each ran 9/9 PASS. Tests include a no-SSH disabled capture, stale-Documents
+versus active-Desktop STOP/breaker HOLD-before-SSH, no-follow
 regular/missing/symlink/oversize cases, clean-vs-dirty/occupied/low-memory
 planning decisions, and sensitive-output suppression. These are **offline
 source tests only**, not host observations.

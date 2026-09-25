@@ -16,12 +16,15 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
+ACTIVE_CONTROL = Path("/home/poojith-devan/Desktop/Trainium")
+LEGACY_CONTROL = Path("/home/poojith-devan/Documents/ChatGPT/Trainium")
 REQUEST = HERE / "REQUEST.HOLD.json"
 ENABLED = HERE / "READONLY_ENABLEMENT.FINAL.json"
 REVIEW = HERE / "INDEPENDENT_READONLY_ENABLEMENT.PASS.json"
@@ -115,10 +118,52 @@ def require_future_authority(raw: dict[str, bytes]) -> dict:
 
 
 def local_stops() -> list[str]:
-    roots = (REPO, Path("/home/poojith-devan/Documents/ChatGPT/Trainium"))
+    roots = (ACTIVE_CONTROL, LEGACY_CONTROL, REPO)
     paths = [root / name for root in roots
              for name in ("research/agentic/STOP", "research/v2/STOP")]
-    return [str(path) for path in paths if path.exists() or path.is_symlink()]
+    return [str(path) for path in paths if os.path.lexists(path)]
+
+
+def active_controller_gate() -> dict:
+    """Desktop state alone governs read-only contact; legacy state never enables it."""
+    if local_stops():
+        raise RuntimeError("local STOP present before read-only SSH")
+    path = ACTIVE_CONTROL / "research/v2/state.json"
+    named = os.lstat(path)
+    if (not stat.S_ISREG(named.st_mode) or named.st_nlink != 1 or
+            named.st_uid != os.getuid() or named.st_size > 1024 * 1024):
+        raise RuntimeError("active controller state metadata unsafe")
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+    try:
+        opened = os.fstat(fd)
+        if (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns) != (
+                named.st_dev, named.st_ino, named.st_size, named.st_mtime_ns):
+            raise RuntimeError("active controller state changed during open")
+        raw = os.read(fd, 1024 * 1024 + 1)
+        after, named_after = os.fstat(fd), os.lstat(path)
+        if (len(raw) != opened.st_size or
+                any((item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns) !=
+                    (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns)
+                    for item in (after, named_after))):
+            raise RuntimeError("active controller state changed during read")
+    finally:
+        os.close(fd)
+    state = json.loads(raw, object_pairs_hook=unique_json)
+    breakers = state.get("breakers") if isinstance(state, dict) else None
+    host = state.get("hosts") if isinstance(state, dict) else None
+    if (not isinstance(breakers, dict) or
+            any(not isinstance(breakers.get(name), dict) or
+                breakers[name].get("tripped") is not False
+                for name in ("global_correctness", "trn22")) or
+            not isinstance(host, dict) or
+            not isinstance(host.get("trn22"), dict) or
+            state.get("launch_authorized") is not False or
+            host["trn22"].get("launch_allowed") is not False):
+        raise RuntimeError("active Desktop controller breaker/launch gate is unsafe")
+    if local_stops():
+        raise RuntimeError("local STOP appeared during controller check")
+    return {"active_state_sha256": sha(raw), "breakers_clear": True,
+            "trn22_launch_allowed": False, "local_stops_absent": True}
 
 
 def redacted_stream(raw: bytes) -> dict:
@@ -152,8 +197,7 @@ def one_probe(transport, name: str, source: bytes, schema: str) -> tuple[dict, d
     argv[-1] = "exec python3 -B - trn22"
     redacted_argv = argv.copy()
     redacted_argv[redacted_argv.index("-i") + 1] = "<private-key-path-redacted>"
-    if local_stops():
-        raise RuntimeError("local STOP present before read-only SSH")
+    active_controller_gate()
     started = utc()
     try:
         done = subprocess.run(argv, input=source, capture_output=True, timeout=120, check=False)
@@ -303,8 +347,7 @@ def write_receipt(record: dict, started: str) -> Path:
 def capture() -> Path:
     request, raw = pinned_sources()
     authority = require_future_authority(raw)
-    if local_stops():
-        raise RuntimeError("local STOP present; no host contact")
+    controller_before = active_controller_gate()
     transport, identity = load_transport()
     started = utc()
     probes = []
@@ -329,6 +372,12 @@ def capture() -> Path:
     if stop_after:
         decision = {"status": "HOLD", "reasons": decision["reasons"] +
                     ["local_STOP_present_after_readonly_capture"]}
+    try:
+        controller_after = active_controller_gate()
+    except (OSError, RuntimeError, ValueError, KeyError) as error:
+        controller_after = {"status": "HOLD", "error": type(error).__name__}
+        decision = {"status": "HOLD", "reasons": decision["reasons"] +
+                    ["active_controller_gate_failed_after_readonly_capture"]}
     record = {
         "schema": "trn22-a2-toolpath-operator-readonly-raw-v1",
         "scope": "point_in_time_planning_only_no_preflight_or_cpu_or_native_authority",
@@ -337,6 +386,8 @@ def capture() -> Path:
         "pinned_source_sha256": {name: sha(value) for name, value in raw.items()},
         "host_key": identity, "probes": probes, "remote": parsed,
         "planning_decision": decision,
+        "active_controller_before": controller_before,
+        "active_controller_after": controller_after,
         "local_stops_after": stop_after,
     }
     return write_receipt(record, started)

@@ -7,6 +7,7 @@ import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import types
 import unittest
 from unittest import mock
 
@@ -145,6 +146,45 @@ class CollectorTests(unittest.TestCase):
         with mock.patch.object(collector.subprocess, "run", side_effect=AssertionError("SSH touched")):
             with self.assertRaisesRegex(RuntimeError, "enablement/assignment absent"):
                 collector.capture()
+
+    def test_active_desktop_stop_or_breaker_holds_before_ssh_despite_stale_documents(self):
+        self.assertEqual(collector.ACTIVE_CONTROL,
+                         Path("/home/poojith-devan/Desktop/Trainium"))
+        with tempfile.TemporaryDirectory(prefix="a2-active-controller-") as temp:
+            root = Path(temp)
+            desktop = root / "Desktop/Trainium"
+            documents = root / "Documents/ChatGPT/Trainium"
+            package = root / "probe-package"
+            for checkout in (desktop, documents, package):
+                (checkout / "research/v2").mkdir(parents=True)
+            clear = {"launch_authorized": False,
+                     "breakers": {"global_correctness": {"tripped": False},
+                                  "trn22": {"tripped": False}},
+                     "hosts": {"trn22": {"launch_allowed": False}}}
+            (documents / "research/v2/state.json").write_text(json.dumps(clear))
+            (desktop / "research/v2/state.json").write_text(json.dumps(clear))
+            endpoint = "ubuntu@example.invalid"
+            transport = types.SimpleNamespace(
+                ENDPOINT=endpoint,
+                build_ssh_argv=lambda _operation: [
+                    "ssh", "BatchMode=yes", "StrictHostKeyChecking=yes",
+                    "IdentitiesOnly=yes", "-i", "<test-key-path>",
+                    endpoint, "old-command"])
+            stop = desktop / "research/v2/STOP"
+            with mock.patch.object(collector, "ACTIVE_CONTROL", desktop), \
+                 mock.patch.object(collector, "LEGACY_CONTROL", documents), \
+                 mock.patch.object(collector, "REPO", package), \
+                 mock.patch.object(collector.subprocess, "run") as process:
+                stop.touch()
+                with self.assertRaisesRegex(RuntimeError, "local STOP"):
+                    collector.one_probe(transport, "tools", b"test", "schema")
+                stop.unlink()
+                tripped = json.loads(json.dumps(clear))
+                tripped["breakers"]["trn22"]["tripped"] = True
+                (desktop / "research/v2/state.json").write_text(json.dumps(tripped))
+                with self.assertRaisesRegex(RuntimeError, "active Desktop controller"):
+                    collector.one_probe(transport, "tools", b"test", "schema")
+                process.assert_not_called()
 
     def test_exact_planning_witness_then_missing_tool_hold(self):
         snapshot, gitdir, tools = clean_planning_fixture()
