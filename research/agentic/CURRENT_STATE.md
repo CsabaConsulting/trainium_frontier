@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:37 UTC
+Last reconciled: 2026-09-25 05:39 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -39,7 +39,10 @@ does not clear that policy HOLD. On trn21, a separate
 received [independent static PASS for its disabled form only](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_R3_DISABLED_STATIC_REVIEW.md).
 Its [read-only lock/group observation](../v2/authorizations/trn21-c5c-a0-r4-source-feasibility/OPERATOR_LOCK_READONLY_FEASIBILITY_20260925T053029Z.md)
 found private `.cache` mode `0700`, but the lock parent `0775` and lock file
-`0664` cause r3 to fail closed; ACL and alternate traversal remain unknown.
+`0664` cause r3 to fail closed. Its separate
+[read-only ACL observation](../v2/authorizations/trn21-c5c-a0-r4-source-feasibility/OPERATOR_GROUP_ACL_READONLY_20260925T053728Z.md)
+found no POSIX ACL grants along the private ancestry and no other local
+GID-1000 account; alternate privileged paths remain unproved.
 trn22's separate [read-only ACL observation](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_GROUP_ACL_READONLY_20260925T053454Z.md)
 found no POSIX ACL grant on its private `.cache` ancestry and no other local
 GID-1000 account; that is bounded evidence for a new repair, not authority.
