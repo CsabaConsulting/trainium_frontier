@@ -1,0 +1,15 @@
+{
+  "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full",
+  "host": "trn22",
+  "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers 1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+  "source_path": "submissions/research_v2/train.py",
+  "proposal_path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/EXPERIMENT_PROPOSAL.json",
+  "cpu_g2_review_commit": "1c24f3babcc6992737174777b75ace16091b123b",
+  "control_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+  "control_public20m": 0.991513958330512,
+  "dispatch_authority": "Poojith FINAL PUSH directive plus Supervisor direct dispatch 2026-09-25; verified flag-only full run, old native-smoke and one-use prelaunch ceremony overridden; independently review results before use",
+  "fresh_eval_tokens": 20971520,
+  "fresh_eval_seq_len": 1024
+}
