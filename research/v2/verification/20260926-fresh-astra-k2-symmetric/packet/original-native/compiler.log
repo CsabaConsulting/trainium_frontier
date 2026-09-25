@@ -1,0 +1,61 @@
+2026-09-25T23:07:13Z INFO 3184611 [root]: /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O1 --model-type transformer --auto-cast=none --internal-disable-fma-on-ios --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff
+2026-09-25T23:07:13Z INFO 3184611 [root]: NeuronX Compiler version 2.26.6360.0+6f180f47 Python version 3.12.3 HWM version 2.26.0.6360++6f180f47 NumPy version 2.5.1
+2026-09-25T23:07:13Z INFO 3184612 [root]: XLA detected
+2026-09-25T23:07:13Z INFO 3184612 [root]: Pipeline: HLOToTensorizer Frontend StaticIOTranspose WalrusDriver NeffWrapper
+2026-09-25T23:07:13Z INFO 3184612 [root]: Intermediate files stored in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-name-binding-trn22-r3-packet/caches/debug/neuronx-cc/493cb6c5fdd9ec22c0a638cabf5f8a22/neuronxcc-z83pd6d6, output in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-name-binding-trn22-r3-packet/caches/debug/neuronx-cc/493cb6c5fdd9ec22c0a638cabf5f8a22
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Job Pipeline len(in_states) 1
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Processing input #0
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Running pipeline Pipeline.0
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Starting job job.HLOToTensorizer.0
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: Job HLOToTensorizer len(in_states) 1
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: Processing input #0
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: Executing: /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/hlo2penguin --input /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-name-binding-trn22-r3-packet/caches/debug/neuronx-cc/493cb6c5fdd9ec22c0a638cabf5f8a22/module.mlir --out-dir ./ --output penguin.py --remat --target-instance=trn2 --logical-nc-config=2 --verbose=error --logfile=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-name-binding-trn22-r3-packet/caches/debug/neuronx-cc/493cb6c5fdd9ec22c0a638cabf5f8a22/log-neuron-cc.txt --ml-dtypes-version=0.5.4 --logfile-verbose=info --modular-flow-mac-target=200000000000 --partition --emit-tensor-level-dropout-ops --native-to-custom-softmax --partitioner-opts='--transformer'
+2026-09-25 23:07:13.442994: I hilo/partition/Partition.cc:84] [INFO] needsModular? No. macCnt 0 num non-trivial Ops 1
+2026-09-25 23:07:13.443030: I hilo/hlo2penguin/lowering_utils/FrontendDriver.cc:1359] [INFO] Switching to single-module compile. PrePartitionPipe skipped.
+2026-09-25 23:07:13.443068: I hilo/hlo2penguin/lowering_utils/FrontendDriver.cc:1021] [INFO] Found memory bound graph
+2026-09-25 23:07:13.443100: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 6
+           parameter         5  83.33% ################################################################
+         custom-call         1  16.67% ############
+
+
+2026-09-25 23:07:13.443115: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 23:07:13.443119: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 23:07:13.443393: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 0
+2026-09-25 23:07:13.443402: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 137232
+2026-09-25 23:07:13.443410: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 0
+2026-09-25 23:07:13.443417: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 6
+           parameter         5  83.33% ################################################################
+         custom-call         1  16.67% ############
+
+
+2026-09-25 23:07:13.443517: I hilo/hlo2penguin/utils/DumpDebugInfo.cc:89] [WARNING] Could not open file debug_info_hlo_partitions.json
+2026-09-25 23:07:13.444178: I hilo/MLIRPasses/Transforms/RemoveOptBarriers.cc:25] [INFO] Invoking RemoveOptimizationBarriers pass
+2026-09-25 23:07:13.444256: I hilo/MLIRPasses/Analysis/MLIRInstructionHistogram.cc:124] [INFO] 
+╔══════════════════════════════════════════════════════════════╗
+║                   MLIR Operation Histogram                   ║
+╚══════════════════════════════════════════════════════════════╝
+Operations: 3
+
+Operation                Count Percent Distribution
+--------------------- -------- ------- ----------------------------------------
+stablehlo.custom_call        1  33.33% ########################################
+func.func                    1  33.33% ########################################
+builtin.module               1  33.33% ########################################
+
+
+
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790377633.442908 3184614 main.cc:735] IR signature: c88b7c5e21aecd0e9e029041e2cf0e5a641ffcb5060bcf4013e081ec9478dd2f for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: custom-call parameter 
+
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: IR signature: 8c74992425634755568317f726543c91e6b8fdc30023decfccd2b202451bbebd for sg0000/HLOToTensorizer
+2026-09-25T23:07:13Z INFO 3184612 [job.HLOToTensorizer.0]: Job #0 finished
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Finished job job.HLOToTensorizer.0
+2026-09-25T23:07:13Z INFO 3184612 [pipeline.Pipeline.0]: Starting job job.Frontend.0
+2026-09-25T23:07:13Z INFO 3184612 [job.Frontend.0]: Job Frontend len(in_states) 1
+2026-09-25T23:07:13Z INFO 3184612 [job.Frontend.0]: Processing input #0
+2026-09-25T23:07:13Z INFO 3184612 [job.Frontend.0]: Start model loading
+2026-09-25T23:07:13Z INFO 3184612 [job.Frontend.0]: Start tensorization
