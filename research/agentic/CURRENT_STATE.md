@@ -1,6 +1,42 @@
 # Current state
 
-Last reconciled: 2026-09-25 14:40 UTC
+Last reconciled: 2026-09-25 15:12 UTC
+
+## Laptop restart recovery and Final Push directive, 15:12 UTC
+
+The controlling goal is now `workflow/codex_directive_final_push.txt`, installed
+verbatim with the external lane prompts at `e3932291` and clarified at
+`bdb2e534`. Its precedence is recorded at the top of both AGENTS files. Older
+S0-first, one-use review and acknowledgement requirements below are historical
+where they conflict. Exact proposal/source, host preflight, one job per host,
+fresh public-20M evaluation, result review and competition legality remain.
+
+The laptop booted at 20:36:27 IST after the reported freeze. Fresh Operator SSH
+checks at 20:38–20:39 IST found **both hosts idle**, with no training, evaluation,
+Neuron-device holder or surviving run driver. All previously launched jobs were
+already terminal: both A0 controls and their fresh public-20M evals succeeded;
+both 120-second smokes exited zero with only five steps; both exact-size table
+CPU G2 checks finished. **Neither full A1 nor full A2 had launched.** No pending
+evaluation needed recovery, and no duplicate run was started during diagnosis.
+The idle time is an operational incident, not a model-quality result.
+
+A2 CPU evidence has independent numeric PASS (`927e584f`, original `1c24f3ba`).
+A1 raw evidence is archived at `246285b5` (original `4030f4b7`), with separate
+numeric review in progress. The Supervisor assigned one Operator per host to
+launch A1/trn21 and A2/trn22 under the newer verified-flag-only manual policy,
+using a host-detached train-to-fresh-eval driver. At this handoff the launches
+are being prepared; do not infer a launch or score until host process evidence
+is archived.
+
+The obsolete `trainium-autoloop.service` automatically returned after reboot
+but was in `auto-restart`, PID 0, exit status 3. It has been stopped and disabled
+to prevent the retired launcher returning on the next reboot. This did not stop
+host training or change an AWS resource. The existing 15-minute Codex heartbeat
+`trainium-safety-gated-controller` is ACTIVE with the Final Push instructions and
+the canonical Desktop controller path. Live supervision has resumed in this
+task; no unattended six-job host queue is claimed ready yet.
+
+## Historical handoffs below
 
 ## Newest human leaderboard/table override, 14:40 UTC
 

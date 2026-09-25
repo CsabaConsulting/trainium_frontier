@@ -1,6 +1,24 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T14:08:47Z",
+  "written_utc": "2026-09-25T15:12:00Z",
+  "active_standing_directive": {
+    "path": "workflow/codex_directive_final_push.txt",
+    "sha256": "dd3a2d852f9d9b546aa891f11b3e27c0654d45833c4814aff4a7f3e1d846050c",
+    "overrides": "Older missions and conflicting priorities, including the app goal's stale MOONSHOT wording; legality and human-only actions remain",
+    "lane_prompts": "workflow/parallel_ai_lanes.md"
+  },
+  "laptop_restart_recovery_20260925_1512z": {
+    "local_boot_ist": "2026-09-25T20:36:27+05:30",
+    "trn21_observed_utc": "2026-09-25T15:08:36Z",
+    "trn22_observed_utc": "2026-09-25T15:09:41Z",
+    "hosts": "BOTH_IDLE_NO_TRAIN_EVAL_NEURON_HOLDER_OR_RUN_DRIVER",
+    "prior_jobs": "A0_CONTROLS_AND_EVALS_COMPLETE_SMOKES_COMPLETE_TABLE_CPU_G2_COMPLETE",
+    "a1_a2_full": "NOT_LAUNCHED_BEFORE_REBOOT_OPERATORS_PREPARING_EXACT_FLAG_ONLY_FULL_RUNS_NOW",
+    "pending_eval_recovery_needed": false,
+    "obsolete_local_service": "STOPPED_DISABLED_MAINPID_0",
+    "active_supervision": "CURRENT_TASK_PLUS_UPDATED_15_MINUTE_CODEX_HEARTBEAT",
+    "unattended_six_job_host_queues_ready": false
+  },
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -355,9 +373,9 @@
     "lease": null
   },
   "codex_heartbeat": {
-    "status": "ACTIVE_HOURLY_SAFETY_CHECK_ONLY",
+    "status": "ACTIVE_15_MINUTE_FINAL_PUSH_SUPERVISION",
     "automation_id": "trainium-safety-gated-controller",
-    "purpose": "Read-only check and meaningful-change notification while hosts are blocked; not an unattended EC2/Bedrock job scheduler or launch authorization"
+    "purpose": "Resume current-task supervision under the latest Final Push directive, verify live host processes, recover exact pending evals and dispatch authorized checked jobs; not an independent second launcher"
   },
   "selection": {
     "fresh_process": true,
@@ -367,7 +385,7 @@
     "decision_rules": "v2-2026-09-24",
     "screen_eval_tokens": 2097152,
     "adoption_mean_delta_max": -0.001,
-    "adoption_human_ack_required": true
+    "adoption_human_ack_required": false
   },
   "gates": {
     "G1": {
@@ -727,7 +745,8 @@
     "service": "trainium-autoloop.service",
     "prior_state": "activating/auto-restart",
     "restart_count": 20,
-    "action": "local service stopped to prevent concurrent legacy/v2 dispatch",
+    "action": "local obsolete service stopped and disabled after laptop reboot to prevent concurrent legacy/v2 dispatch",
+    "unit_file_state": "disabled",
     "confirmed_state": "inactive/dead",
     "main_pid": 0,
     "aws_instance_action": false,
