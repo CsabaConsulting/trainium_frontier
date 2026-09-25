@@ -1,6 +1,16 @@
 # Current state
 
-Last reconciled: 2026-09-25 09:51 UTC
+Last reconciled: 2026-09-25 09:56 UTC
+
+The disabled trn22 direct e65→r10 stage `3d26e963` received
+[independent HOLD](../v2/verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)
+at `3a7cda68`: the pinned r4 review-receipt SHA is mistyped (60 rather
+than 64 hex characters). Its bundle and inherited offline safety checks
+otherwise passed. A distinct disabled r2 commit is correcting only this
+binding, with regression coverage, before new independent review. No host
+contact or attempt occurred. This exact pin failure and the separate A2
+tool-path HOLD explain why no new scored control/table run is launchable;
+priority remains common-r10 staging, matched controls, then tables.
 
 The disabled trn21 e65→r10 r2 source-stage repair `3e846589` received
 [independent STATIC PASS only](../v2/verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)

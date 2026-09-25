@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 09:56 UTC, the disabled direct trn22 e65→r10 stage `3d26e963`
+received [independent HOLD](verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)
+at `3a7cda68` for a mistyped r4-review SHA pin. A different Implementer
+is making a narrow disabled r2 correction before re-review. No host attempt
+or scored run occurred. The operational critical path is still common-r10
+staging → native A0 controls → full A1/A2 table tests; the A2 tool-path
+probe and read-only stage-timing design are separate parallel work.
+
 At 09:51 UTC, disabled trn21 e65→r10 r2 source-stage `3e846589`
 received [independent STATIC PASS only](verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)
 at `fd4bd470`. The matching trn22 e65→r10 disabled candidate `3d26e963`
