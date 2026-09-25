@@ -1,0 +1,169 @@
+{
+  "proposal_id": "20260926-architecture-recursive-stack",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_SOURCE_CPU_NATIVE_COLD_AND_QUALITY_GATES",
+  "owner_role": "implementer",
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "source_adoption": false,
+  "submission_eligible": false,
+  "hypothesis": "The already adopted Recursive schedule package may improve the scored cache-primed8x1024 architecture within the same1800-second budget; transfer is unmeasured.",
+  "single_causal_change": "Enable the exact previously validated Recursive package on frozen3e79 architecture/cache source; no LR base value, batch, model, timing, data, optimizer implementation or compiler-flag change beyond schedule scalar transport.",
+  "mechanism_class": "schedule_stack_confirmation",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "source_commit": "fe0969fd311d654e143dc6113614416c8970a424",
+  "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "schedule_reference": {
+    "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "adoption": "research/v2/adoptions/20260925-recursive-schedule.json",
+    "old6x_mean_delta": -0.00132653250692355,
+    "not_new_architecture_evidence": true
+  },
+  "candidate_shortlist": [
+    {
+      "idea": "Exact adopted schedule stack",
+      "why_ranked": "Supervisor selected after architecture score cleared its decision tree; minimal causal addition, existing schedule arithmetic."
+    },
+    {
+      "idea": "New schedule hyperparameters",
+      "why_ranked": "Not authorized; avoid changing already measured component."
+    },
+    {
+      "idea": "New architecture/FP8/table stack",
+      "why_ranked": "Excluded from this one-factor port."
+    }
+  ],
+  "selection_rationale": "Apply only the selected previously adopted schedule package to scored architecture research bytes; keep old-schedule clean upload candidate isolated.",
+  "trainium_feasibility": "Identical model/ownership/parameter shapes; beta2 uses existing device-scalar slot. Neuron optimizer graph signature can change with ON and cold/steady cost unmeasured; no no-recompile claim. Four-rank/full-size CPU then independent native/cold gates remain.",
+  "cheapest_falsifier": "Exact arithmetic/static patch-identity checks then tiny three-step default/OFF identity and ON finite live-loop check; later exact113256724-parameter G2 on sufficient-RAM host.",
+  "control": {
+    "git_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "run_label": "fs-20260926-arch3e79-primed-trn22-r2-full",
+    "public_val_bpb": 0.9863403052402583,
+    "charged_through_exit_seconds": 1789.2084840420866,
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out",
+      "--unet-8x1024",
+      "--attention-layers",
+      "0,2,4,6,7",
+      "--initial-cache-refresh"
+    ],
+    "box_constraint": "Same-host/same-profile/caches must be explicitly bound; historical warm full is not a cold throughput control.",
+    "second_host_result": "PENDING_ROOT_INDEPENDENT_ANALYSIS; not invented"
+  },
+  "candidate": {
+    "branch": "codex/20260926-architecture-recursive-stack",
+    "files_allowed": [
+      "workflow/proposals/research-v2/train.py",
+      "research/v2/lanes/architecture-recursive-stack/"
+    ],
+    "expected_diff": "35 added and3 removed lines; exact existing schedule patch payload. Default OFF; extra false toggle metadata means checkpoint file bytes need not match.",
+    "run_labels": {
+      "trn22": "fs-20260926-arch3e79-recursive-trn22-r1",
+      "trn21": "fs-20260926-arch3e79-recursive-trn21-r1"
+    },
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out",
+      "--unet-8x1024",
+      "--attention-layers",
+      "0,2,4,6,7",
+      "--initial-cache-refresh",
+      "--recursive-schedule"
+    ],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --recursive-schedule"
+  },
+  "parameters": 113256724,
+  "parameter_tensors": 65,
+  "world_size": 4,
+  "lnc": 2,
+  "seed": 42,
+  "total_batch_size": 131072,
+  "sequence_length": 1024,
+  "pack_factor": 32,
+  "matrix_lr": 0.015,
+  "max_train_seconds": 1800,
+  "gates": {
+    "rules_review": "Existing restrictions unchanged",
+    "diff_review": false,
+    "cpu_or_static_checks": "Own8 groups normal/-O PASS; tiny tensor checks pending shared slot",
+    "numerical_equivalence": false,
+    "fullsize_cpu": false,
+    "causality": false,
+    "smoke_run": false,
+    "cold_native": false,
+    "quality": false,
+    "operator_assignment": false
+  },
+  "success_criteria": {
+    "quality": "Apply unchanged controlling fixed1800 selector numeric thresholds/two-host replication/big-win HOLD after retrieved fresh public20M/context1024. Stepcount diagnostic only, not verdict gate.",
+    "correctness": "No crash/NaN; finite updates, rank consistency, strict checkpoint reload/causality, actual charged-through-exit<=1800. No weakening of any source/submission gate.",
+    "cold": "Independent true-cold startup qualification required; architecture hard first-five<=900s, target870s; no automatic full.",
+    "throughput": "Measure if assigned; no local speed prediction or required step-window verdict."
+  },
+  "abort_conditions": [
+    "Any source/CPU/correctness/cold/budget gate fails",
+    "No independent review or sole-Operator assignment",
+    "Failed original common flock/ps/neuron-ls/STOP/resource/hash checks",
+    "No automatic retries or source promotion; preserve failures"
+  ],
+  "prior_result_refs": [
+    "research/v2/adoptions/20260925-recursive-schedule.json",
+    "research/v2/operator/20260926-trn22-arch3e79-full/",
+    "research/v2/operator/20260926-ct-architecture-startup-only/"
+  ],
+  "duplicate_search_terms": [
+    "recursive-schedule",
+    "3e79",
+    "8x1024 Recursive stack"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}
