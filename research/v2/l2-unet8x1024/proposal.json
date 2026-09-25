@@ -1,0 +1,61 @@
+{
+  "proposal_id": "20260925-l2-unet8x1024-r2",
+  "status": "implemented_pending_independent_review_and_exact_size_g2",
+  "owner_role": "supervisor_selected_human_lane_2",
+  "implementer_role": "local_codex_l2",
+  "hypothesis": "The explicitly requested eight-layer U-Net partial-attention architecture improves final fixed-budget public-20M BPB versus same-host c5c A0.",
+  "single_causal_change": "Explicit architecture-stack package: 8x1024, scalar zero-init U-Net skips, five attention layers 0,2,4,6,7 and three MLP-only layers.",
+  "mechanism_class": "architecture_stack_confirmation",
+  "predicted_bpb_delta": -0.002,
+  "predicted_bpb_interval": [-0.012, 0.012],
+  "prediction_status": "Uncalibrated planning assumption, not a measured or independently reviewed forecast.",
+  "candidate_shortlist": [
+    {"idea": "Requested L2 architecture package", "mechanism_class": "architecture", "predicted_bpb_delta": -0.002, "why_ranked": "Explicit newest human priority following table tests; public write-up supplies qualitative motivation."},
+    {"idea": "Skip-only ablation", "mechanism_class": "per_step_quality", "predicted_bpb_delta": 0.0, "why_ranked": "Lower priority: older standalone skip arm lost; requires separate proposal if isolated attribution is later needed."},
+    {"idea": "Partial-attention-only ablation", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Separate lower-priority attribution experiment, not selected by this lane."},
+    {"idea": "FP8 plus architecture S-B", "mechanism_class": "stack_confirmation", "predicted_bpb_delta": -0.004, "why_ranked": "Separate future combination after L1 independently passes; not included here."}
+  ],
+  "selection_rationale": "Poojith's exact Lane 2 task selects this combined architecture; Implementer is not independently authorizing a run.",
+  "p_improve": 0.4,
+  "estimated_host_hours": 1.5,
+  "trainium_feasibility": "Existing MLP/kernel dimensions stay width1024/MLPratio4; eight MLPs and five attention blocks change graph and optimizer grouping. Fewer VE sites reduce parameters; skips extend encoder activation lifetimes. Existing LNC2/world4 ownership preserved. Native compile time and memory are unmeasured.",
+  "cheapest_falsifier": "Independent diff review plus exact-size four-rank CPU G2/flag-OFF lockstep. Then bounded native compile/correctness check before a separately authorized full-budget comparison.",
+  "prior_result_refs": ["research/agentic/DECISION_LOG.md: 20260923-unet-skip-zero-init-r2", "research/agentic/experiments/20260923-unet-skip-zero-init-r2/full-verdict.json"],
+  "evidence": ["workflow/codex_directive_final_push.txt", "workflow/parallel_ai_lanes.md: Lane 2", "https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html"],
+  "duplicate_search_terms": ["unet", "U-Net", "partial attention", "8x1024", "depth 8"],
+  "control": {
+    "git_commit": "b18fb3586494c21f10008a9c63fd2056d1e6c00a",
+    "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "run_label": "host-specific accepted c5c A0 selected by Supervisor at dispatch",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Same-host, same-day comparable c5c A0, refreshed if required by unchanged decide.py. No host is assigned by this implementation packet."
+  },
+  "candidate": {
+    "branch": "codex/l2-unet8x1024-20260925",
+    "files_allowed": ["workflow/proposals/research-v2/train.py"],
+    "expected_diff": "Default-OFF architecture preset, scalar skips and validated configurable partial attention, table/VE allocation matching actual forward use.",
+    "train_sha256": "52e234e90f33fc2ccfcc22edb7afe101be25089020a58c352afda4470ac5a7c1",
+    "run_label": "fs-20260925-l2-unet8x1024-full-r1-unassigned",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --unet-8x1024"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": true,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "gate_scope": "CPU/numerical/causality booleans describe reduced-size Implementer self-checks only. Exact 8x1024 G2 and independent review are not complete.",
+  "launch_authorized": false,
+  "success_criteria": {
+    "quality": "Use unchanged workflow/tools/decide.py with same-host public-20M/context1024 controls; honor newest provisional-research-base directive separately.",
+    "throughput": "Report steps and charged time, with unchanged decide.py step comparability checks; no throughput or BPB claim from CPU tests.",
+    "correctness": "Finite loss, pure causal/batch-independent strict checkpoint reload, clean source/host, full chip and 1800-second budget."
+  },
+  "abort_conditions": ["Any correctness gate fails", "Exact-size G2 or independent review is absent", "Host preflight fails or another job is active", "Changed source bytes or non-unique final label", "Non-finite loss, native compile failure, missing checkpoint, causality or budget failure"],
+  "human_approved_by": "Poojith selected implementation in Final Push/Lane 2; no run or submission approval is represented by this packet.",
+  "verdict": null
+}

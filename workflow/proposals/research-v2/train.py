@@ -233,8 +233,8 @@ USE_VE = True
 VE_GATE_CHANNELS = 32
 
 def has_ve(layer_idx: int, n_layer: int) -> bool:
-    """Alternating layers get a value embedding; the last layer always does."""
-    return layer_idx % 2 == (n_layer - 1) % 2
+    """Alternating attention layers get a value embedding; MLP-only layers never do."""
+    return layer_idx % 2 == (n_layer - 1) % 2 and has_attention(layer_idx, n_layer)
 USE_NGRAM_VE = True
 NGRAM_VE_LAYERS = '1,-1'
 NGRAM_VE_TABLE_MULT = 128
@@ -283,15 +283,24 @@ USE_QKV_NORM_CSE = False
 USE_X0_GATE = False
 USE_UNET_SKIP = False
 USE_PARTIAL_ATTN_8 = False
-PARTIAL_ATTN_8_PATTERN = 'AAMAMAMA'  # Keep all depth-8 value-embedding/table sites (1, 3, 5, 7).
+ATTENTION_LAYERS = '0,2,4,6,7'
+
+def attention_layer_set(n_layer: int) -> frozenset[int]:
+    if n_layer != 8:
+        raise ValueError('--partial-attn-8 requires --depth 8')
+    try:
+        layers = tuple(int(token.strip()) for token in ATTENTION_LAYERS.split(','))
+    except (ValueError, AttributeError):
+        raise ValueError('--attention-layers must be a comma-separated list of integers') from None
+    if not layers or len(set(layers)) != len(layers) or any(i < 0 or i >= n_layer for i in layers):
+        raise ValueError('--attention-layers must contain distinct layer indices in [0, 7]')
+    return frozenset(layers)
 
 def has_attention(layer_idx: int, n_layer: int) -> bool:
-    """S-B's fixed eight-block pattern; default-off retains every attention block."""
+    """L2 partial attention; default-off retains every attention block."""
     if not USE_PARTIAL_ATTN_8:
         return True
-    if n_layer != len(PARTIAL_ATTN_8_PATTERN):
-        raise ValueError('--partial-attn-8 requires --depth 8')
-    return PARTIAL_ATTN_8_PATTERN[layer_idx] == 'A'
+    return layer_idx in attention_layer_set(n_layer)
 
 def head_gate_slice(n_embd: int, n_layer: int) -> tuple[int, int]:
     """(start, stop) residual channels the T3.6 head gate reads.
@@ -1924,6 +1933,16 @@ class GPT(nn.Module):
 
     def __init__(self, config: GPTConfig):
         super().__init__()
+        if USE_UNET_SKIP and (config.n_layer < 2 or config.n_layer % 2):
+            raise ValueError('--unet-skip requires an even depth >= 2')
+        if USE_PARTIAL_ATTN_8:
+            attention_layer_set(config.n_layer)
+            if USE_NGRAM_VE and USE_VE:
+                unused_layers = sorted(i for i in ngram_layer_set(config.n_layer)
+                                       if i % 2 == (config.n_layer - 1) % 2
+                                       and not has_attention(i, config.n_layer))
+                if unused_layers:
+                    raise ValueError(f'n-gram table layers {unused_layers} are MLP-only; change --ngram-ve-layers or --attention-layers')
         self.config = config
         padded_vocab_size = (config.vocab_size + 63) // 64 * 64
         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
@@ -1966,10 +1985,12 @@ class GPT(nn.Module):
             self.out_bigram_gate = None
             self.out_bigram_gate_bias = None
         self.out_pool_lambdas = nn.Parameter(torch.zeros(min(OUT_POOL_LAYERS, config.n_layer))) if USE_OUT_POOL else None
-        # Encoder outputs 0..3 feed decoder inputs 7..4, respectively. Zero-init
-        # per-channel gates preserve the pre-skip forward at the first training step.
+        # Architecture inspiration: Ritwika Kancharla, Trainium of Thought (Sep 2026),
+        # https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html
+        # Exact scalar gates/pairs and attention indices are the L2 task's choices;
+        # the public write-up does not specify them. Encoder i feeds input n-1-i.
         self.unet_n_enc = config.n_layer // 2 if USE_UNET_SKIP else 0
-        self.unet_skip_gates = (nn.ParameterList([nn.Parameter(torch.zeros(config.n_embd, dtype=torch.float32))
+        self.unet_skip_gates = (nn.ParameterList([nn.Parameter(torch.zeros(1, dtype=torch.float32))
                                                   for _ in range(self.unet_n_enc)])
                                 if self.unet_n_enc else None)
         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
@@ -2195,7 +2216,7 @@ class GPT(nn.Module):
             if block.c_in is not None:
                 matrix_params.append(block.c_in.weight)
         if self.unet_skip_gates is not None:
-            gate_params.extend(self.unet_skip_gates)
+            scalar_params.extend(self.unet_skip_gates)
         matrix_params.extend((p.weight for p in self.ngram_proj.values()))
         engram_conv_params = []
         if self.engram is not None:
@@ -3192,9 +3213,9 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
     flat_grad_buffer.mul_(clip_coef_clamped)
     return total_norm
 ARCH_TOGGLE_NAMES = ['PACK_FACTOR', 'INIT_SCALE', 'USE_VE', 'WINDOW_PATTERN', 'SHORT_WINDOW_FRAC', 'ROPE_BASE', 'USE_LOCAL_CONV', 'LOCAL_CONV_KERNEL', 'TRAIN_LOCAL_CONV', 'USE_GATED_MLP', 'USE_WEIGHT_CACHE', 'USE_TRANSPOSED_LINEAR', 'WARMDOWN_RATIO', 'FINAL_LR_FRAC', 'WARMUP_STEPS', 'WD_DECAY_TO_ZERO', 'MUON_MOMENTUM_WARMUP_STEPS', 'USE_DOC_MASK', 'VE_WD', 'USE_SELECTIVE_GATE', 'SELECTIVE_GATE_CHANNELS', 'USE_FUSED_QKV', 'USE_CAUSAL_FASTPATH', 'USE_TRN2_COMPILER_FLAGS', 'COMPILE_SDPA_DIRECT', 'USE_NKI_ATTN', 'USE_NKI_LOCAL_CONV', 'USE_BF16_NORM_OUTPUT', 'USE_BF16_SDPA_INPUT', 'MATRIX_LR', 'EMBEDDING_LR', 'UNEMBEDDING_LR', 'SCALAR_LR', 'WEIGHT_DECAY', 'GRAD_CLIP', 'CLIP_AFTER_REDUCE', 'LOGIT_SOFTCAP', 'LOSS_BYTE_WEIGHT', 'LOSS_SCALE', 'LOSS_SCALE_DYNAMIC', 'ATTN_CPROJ_INIT_SCALE', 'MUON_NS_STEPS', 'MUON_MOMENTUM_COOLDOWN_FRAC', 'MUON_MOMENTUM_FINAL', 'ADAM_EVERY_N', 'ADAM_EVERY_N_LR_COMP', 'DEMON_BETA1', 'DEMON_BETA1_FINAL', 'DEMON_BETA1_REF', 'DEMON_BETA1_START_FRAC', 'MUON_BETA2', 'MUON_BETA2_FINAL', 'MUON_DEPTH_LR_BOTTOM', 'MUON_DEPTH_LR_TOP', 'MUON_DEPTH_MOM_BOTTOM', 'MUON_DEPTH_MOM_TOP', 'MUON_DEPTH_MOM_REF', 'DEPTH', 'N_EMBD', 'HEAD_DIM', 'MLP_RATIO', 'ATTN_SCALE', 'N_KV_HEADS', 'USE_NGRAM_VE', 'NGRAM_VE_LAYERS', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_DIM', 'NGRAM_VE_BF16', 'NGRAM_RMS_FP32', 'USE_NKI_NGRAM_RMS', 'NGRAM_VE_LR', 'NGRAM_VE_BETA2', 'NGRAM_VE_FLAT_LR', 'NGRAM_VE_OPT', 'NGRAM_VE_CLIP_EXCLUDE', 'USE_OUT_BIGRAM', 'OUT_BIGRAM_BF16', 'OUT_BIGRAM_GATE_BIAS', 'OUT_BIGRAM_LR', 'RELU2_TAU', 'USE_MLP_SANDWICH_NORM', 'USE_HEAD_GATE', 'HEAD_GATE_NORM', 'HEAD_GATE_CHANNELS', 'HEAD_GATE_MUL', 'HEAD_GATE_BIAS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'QK_SHIFT_BETA', 'QK_SHIFT_FREEZE', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'BLOCK_NUDGE_SITE', 'USE_QKV_NORM_CSE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_SITE', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'ENGRAM_BF16', 'USE_EPOCH_SHUFFLE', 'EPOCH_SHUFFLE_SEED', 'BATCH_RAMP', 'BATCH_RAMP_GRAD_ACCUM', 'BATCH_RAMP_BOUNDS', 'BATCH_RAMP_LR_EXP', 'USE_WEIGHT_EMA', 'WEIGHT_EMA_DECAYS', 'WEIGHT_EMA_START_FRAC', 'USE_BYTE_WTE_INIT', 'BYTE_WTE_INIT_MIX', 'BYTE_WTE_INIT_NGRAM', 'BYTE_WTE_INIT_STD', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN', 'USE_CAUTIOUS_WD', 'SCALAR_BETA1', 'SCALAR_BETA2']
-ARCH_TOGGLE_NAMES.extend(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8'))
+ARCH_TOGGLE_NAMES.extend(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8', 'ATTENTION_LAYERS'))
 SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELECTIVE_GATE', 'USE_FUSED_QKV', 'USE_TRANSPOSED_LINEAR', 'USE_NGRAM_VE', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_DIM', 'USE_OUT_BIGRAM', 'USE_HEAD_GATE', 'HEAD_GATE_CHANNELS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'N_KV_HEADS', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN'}
-SHAPE_CRITICAL_TOGGLES.update(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8'))
+SHAPE_CRITICAL_TOGGLES.update(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8', 'ATTENTION_LAYERS'))
 
 def current_toggles() -> dict:
     g = globals()
@@ -3463,7 +3484,7 @@ def main() -> None:
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
-    global USE_UNET_SKIP, USE_PARTIAL_ATTN_8
+    global USE_UNET_SKIP, USE_PARTIAL_ATTN_8, ATTENTION_LAYERS
     global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
     global USE_ENGRAM, ENGRAM_SITE, ENGRAM_ORDERS, ENGRAM_HEADS, ENGRAM_TABLE_MULT
     global ENGRAM_MEM_DIM, ENGRAM_KEY_DIM, ENGRAM_CONV_KERNEL, ENGRAM_SHARE_NGRAM_TABLES
@@ -3580,8 +3601,10 @@ def main() -> None:
     parser.add_argument('--requeue-identity', action=argparse.BooleanOptionalAction, default=REQUEUE_IDENTITY, help='IMPL-3 control: the same in-file requeue loader as --fresh-tail-frac, natural row-group order. Default off.')
     parser.add_argument('--epoch-shuffle-seed', type=int, default=EPOCH_SHUFFLE_SEED, help='seed base for --epoch-shuffle; epoch e is shuffled with seed+e.')
     parser.add_argument('--x0-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_X0_GATE', '1' if USE_X0_GATE else '0') != '0', help="Recursive's input-dependent x0 gate: scale each block's x0 skip by 2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, which owns the same line of Block.forward.")
-    parser.add_argument('--unet-skip', action=argparse.BooleanOptionalAction, default=USE_UNET_SKIP, help='S-B: zero-initialized, trained per-channel encoder-to-decoder skips. For depth 8 the pairs are 0->7, 1->6, 2->5, 3->4. Default OFF; shape-critical.')
-    parser.add_argument('--partial-attn-8', action=argparse.BooleanOptionalAction, default=USE_PARTIAL_ATTN_8, help='S-B: depth-8 pattern AAMAMAMA (attention at layers 0,1,3,5,7; MLP-only 2,4,6), retaining every value-embedding/table site. Default OFF; shape-critical.')
+    parser.add_argument('--unet-8x1024', action=argparse.BooleanOptionalAction, default=False, help='L2 architecture preset: force depth 8, width 1024, zero-init scalar U-Net skips and partial attention. Default OFF.')
+    parser.add_argument('--unet-skip', action=argparse.BooleanOptionalAction, default=USE_UNET_SKIP, help='Zero-init scalar encoder-to-decoder skips, optimized with the existing scalar group. Even depths >=2 only; pairs i->n-1-i. Default OFF; shape-critical.')
+    parser.add_argument('--partial-attn-8', action=argparse.BooleanOptionalAction, default=USE_PARTIAL_ATTN_8, help='Depth-8 partial attention, with the other blocks MLP-only. Default OFF; shape-critical.')
+    parser.add_argument('--attention-layers', type=str, default=ATTENTION_LAYERS, help='Attention indices for --unet-8x1024/--partial-attn-8 (default 0,2,4,6,7). Shape-critical; MLP-only layers have no VE or n-gram tables.')
     parser.add_argument('--batch-ramp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP', '1' if BATCH_RAMP else '0') != '0', help='T2.1: ramp the effective batch size across the run by varying grad_accum_steps on wall-clock-fraction boundaries, holding the micro shape (and therefore every compiled graph) fixed. Off by default.')
     parser.add_argument('--batch-ramp-grad-accum', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_GRAD_ACCUM', ','.join((str(g) for g in BATCH_RAMP_GRAD_ACCUM))), help="T2.1: comma-separated micro-batch counts for stages A,B,C. Stage B should normally be TOTAL_BATCH_SIZE's own grad_accum (4 at the locked shape) so the ramp is symmetric around today's batch size.")
     parser.add_argument('--batch-ramp-bounds', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_BOUNDS', ','.join((str(b) for b in BATCH_RAMP_BOUNDS))), help='T2.1: comma-separated elapsed/max_train_seconds boundaries A->B,B->C. The second should normally equal WARMDOWN_RATIO so the largest batch covers exactly the lr cooldown.')
@@ -3626,10 +3649,23 @@ def main() -> None:
     _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
     parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    if args.unet_8x1024:
+        args.depth, args.n_embd = 8, 1024
+        args.unet_skip = args.partial_attn_8 = True
     if args.partial_attn_8 and args.depth != 8:
         parser.error('--partial-attn-8 requires --depth 8')
     if args.partial_attn_8 and args.parallel_block:
         parser.error('--partial-attn-8 cannot combine with --parallel-block')
+    if args.unet_skip and (args.depth < 2 or args.depth % 2):
+        parser.error('--unet-skip requires an even depth >= 2')
+    ATTENTION_LAYERS = args.attention_layers
+    if args.partial_attn_8:
+        try:
+            attention_layer_set(args.depth)
+        except ValueError as exc:
+            parser.error(str(exc))
+    elif args.attention_layers != '0,2,4,6,7':
+        parser.error('--attention-layers requires --unet-8x1024 or --partial-attn-8')
     if args.ngram_rms_fp32 and args.ngram_ve_opt != 'rmsprop':
         parser.error('--ngram-rms-fp32 requires --ngram-ve-opt rmsprop')
     if args.nki_ngram_rms and (not args.ngram_rms_fp32):
@@ -3859,7 +3895,8 @@ def main() -> None:
     config = build_config()
     print0(f'model_config={json.dumps(asdict(config), indent=2)}')
     model = GPT(config)
-    print0(f'architecture: unet_skip_pairs={model.unet_n_enc} attention_layers={tuple(i for i, block in enumerate(model.transformer.h) if block.attn is not None)} partial_attn_8={USE_PARTIAL_ATTN_8}')
+    if USE_UNET_SKIP or USE_PARTIAL_ATTN_8:
+        print0(f'architecture: unet_skip_pairs={model.unet_n_enc} attention_layers={tuple(i for i, block in enumerate(model.transformer.h) if block.attn is not None)} value_embedding_layers={tuple(model.value_embeds)} ngram_tables={tuple(model.ngram_embeds)}')
     model.init_weights()
     if USE_BYTE_WTE_INIT:
         n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer, config.vocab_size)

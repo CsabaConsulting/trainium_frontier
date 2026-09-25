@@ -1,0 +1,28 @@
+{
+  "verdict": "PASS_SELF_CHECK_ONLY",
+  "source_sha256": "52e234e90f33fc2ccfcc22edb7afe101be25089020a58c352afda4470ac5a7c1",
+  "torch": "2.13.0+cpu",
+  "seed": 42,
+  "max_shape": "8x128, vocab64, sequence32",
+  "eval_min_seq_len_test_override": 32,
+  "checks": {
+    "preset_forces_8x1024_before_runtime": true,
+    "attention_scalar_optimizer_and_no_unused_ve": true,
+    "zero_init_skip_exact_logits_and_common_weights": true,
+    "three_finite_steps_all_grads_and_learned_skips": [
+      4.161538124084473,
+      3.046776056289673,
+      1.4557805061340332
+    ],
+    "strict_reload_logit_parity_determinism_batch_independence_causality": true,
+    "missing_skip_key_rejected": true,
+    "malformed_attention_and_odd_depth_rejected_before_allocation": true,
+    "table_filtering_explicit_conflict_and_custom_attention": true
+  },
+  "limitations": [
+    "Not exact 8x1024 G2",
+    "No Neuron or NKI execution",
+    "No real data or BPB",
+    "Not independent review"
+  ]
+}
