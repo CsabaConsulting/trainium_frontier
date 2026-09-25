@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-25 13:51 UTC
+Last reconciled: 2026-09-25 13:55 UTC
+
+## Latest human override: short cache-discriminator smokes, 13:55 UTC
+
+Poojith superseded both queued **full-duration diagnostic** assignments before
+either was staged. Controller `61a6090d` sets their `launch_authorized` fields
+to false. After each active A0 control *and its fresh public-20M eval* is
+terminal, the next desired tests are separate uniquely labelled 120-second
+compile smokes: exact unmodified S0 bytes with `--max-train-seconds 120` on
+trn21's populated cache, and exact unmodified 116188 bytes with the same
+CLI budget on trn22's proven empty persistent cache. Passing requires clean
+four-rank compilation and at least 20 completed training steps; neither smoke
+is a BPB comparison or a submission replay. Their new proposals, independent
+review as applicable, one-use assignments, and fresh Operator checks are
+pending—**no smoke is yet launch-authorized**. S0 still needs its own separate
+full 1,800-second demonstrably cold replay, checkpoint, fresh-process
+public-20M evaluation and independent audit before human submission. A1/A2
+table gates remain immediately behind the smokes.
 
 ## Live cache-contrast handoff, 13:51 UTC
 
