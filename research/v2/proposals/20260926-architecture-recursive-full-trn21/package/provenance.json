@@ -1,0 +1,10 @@
+{
+  "label": "fs-20260926-arch75b9-recursive-trn21-r1-full",
+  "train_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+  "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --recursive-schedule",
+  "source_commit": "fe0969fd311d654e143dc6113614416c8970a424",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "scope": "DISABLED_RESEARCH_RECURSIVE_ARCHITECTURE_FULL_PLUS_FRESH20M_NOT_SUBMISSION",
+  "launch_authorized": false,
+  "submission_authorized": false
+}
