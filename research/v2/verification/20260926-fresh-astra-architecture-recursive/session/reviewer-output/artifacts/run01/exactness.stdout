@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/work/exactness_test.py", line 380, in <module>
+    environment = run()
+  File "/work/exactness_test.py", line 220, in run
+    baseline, candidate, reference = [Source(x) for x in ('baseline', 'candidate', 'schedule_reference')]
+                                      ~~~~~~^^^
+  File "/work/exactness_test.py", line 74, in __init__
+    loop = next(n for n in ast.walk(main) if isinstance(n, ast.For) and any(isinstance(x, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'lrm' for t in x.targets) for x in n.body))
+StopIteration
+
+{
+  "status": "REFUSE",
+  "checks": 0,
+  "failed_checks": 0,
+  "runtime_seconds": 0.049914398998225806,
+  "environment": null,
+  "error": "Traceback (most recent call last):\n  File \"/work/exactness_test.py\", line 380, in <module>\n    environment = run()\n  File \"/work/exactness_test.py\", line 220, in run\n    baseline, candidate, reference = [Source(x) for x in ('baseline', 'candidate', 'schedule_reference')]\n                                      ~~~~~~^^^\n  File \"/work/exactness_test.py\", line 74, in __init__\n    loop = next(n for n in ast.walk(main) if isinstance(n, ast.For) and any(isinstance(x, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'lrm' for t in x.targets) for x in n.body))\nStopIteration\n",
+  "tolerance_policy": "zero for frozen float/byte identity; absolute 5e-16, relative 0 for independent Decimal schedule/group oracle"
+}

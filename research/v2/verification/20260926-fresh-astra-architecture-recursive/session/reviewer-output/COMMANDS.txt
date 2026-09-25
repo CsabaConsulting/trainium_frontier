@@ -1,0 +1,39 @@
+Review input: /packet/lane-spec.md. Working directory: /work.
+All processes ran sequentially. No source module was imported; no native compile,
+distributed workers, full model, external checkpoint, network or provider was used.
+
+Input reconstruction and authentication (exit 0):
+python /work/reconstruct.py > /work/artifacts/reconstruct.stdout 2> /work/artifacts/reconstruct.stderr
+
+Receipt field audit (exit 0):
+python /work/audit_receipts.py > /work/artifacts/receipt_audit.stdout 2> /work/artifacts/receipt_audit.stderr
+
+Own test run 01 (exit 1; harness extraction error before any numerical case):
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONHASHSEED=0 python /work/exactness_test.py > /work/artifacts/exactness.stdout 2> /work/artifacts/exactness.stderr
+Archived exact script and outputs in /work/artifacts/run01/.
+Failure: StopIteration, extractor searched for ast.For; actual training loop is ast.While.
+Fix: accept (ast.For, ast.While). No candidate-source edit and no expectation changes.
+
+Own test run 02 (exit 0; 6263 checks, 0 failed):
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONHASHSEED=0 python /work/exactness_test.py > /work/artifacts/exactness.stdout 2> /work/artifacts/exactness.stderr
+Archived exact script and outputs in /work/artifacts/run02/.
+Measured command wall time: 3.961109821 seconds.
+In-script runtime (after importing torch): 1.9502475510016666 seconds.
+stderr: Error in cpuinfo: failed to parse processor information from /proc/cpuinfo
+This library diagnostic did not abort execution; all numerical checks completed.
+
+Complete-diff/source invariance audit (exit 0; 12 checks):
+python /work/audit_source.py > /work/artifacts/source_audit.stdout 2> /work/artifacts/source_audit.stderr
+
+Report generation (exit status recorded in tool output):
+python /work/write_report.py
+
+Reproduce sequentially from the supplied packet and the final scripts:
+bash /work/run_tests.sh
+This command is provided for replay; it was not an additional test run in the original review.
+Existing run01/run02 evidence remains preserved; replays get their own directory.
+
+Read-only inspection also used cat, head, tail, sed -n and rg on supplied packet
+and reconstructed source/artifacts. The entire 11-region change is retained in
+artifacts/candidate.diff; reference differences in artifacts/reference_vs_candidate.diff.
+File creation/copy commands used only /work; /packet was not changed.

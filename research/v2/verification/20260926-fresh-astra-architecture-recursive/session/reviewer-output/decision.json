@@ -1,0 +1,185 @@
+{
+  "decision": "PASS",
+  "scope": "Source and bounded/reduced-CPU suitability of candidate fe0969fd311d654e143dc6113614416c8970a424 for the next exact full-size CPU qualification only.",
+  "default_until_evidence": "REFUSE",
+  "completed_at_utc": "2026-09-25T22:03:11.471276+00:00",
+  "source_hashes": {
+    "baseline": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "candidate": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+    "schedule_reference": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+  },
+  "source_commits": {
+    "baseline_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "candidate_commit": "fe0969fd311d654e143dc6113614416c8970a424",
+    "schedule_reference_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b"
+  },
+  "input_hashes": [
+    {
+      "path": "/packet/INPUT_MANIFEST.json",
+      "bytes": 1889,
+      "sha256": "75a0dbd970b2397c8ad7e75ad564cf1deb28f1a1eed5e4a51e0a288d952895dd"
+    },
+    {
+      "path": "/packet/baseline-to-candidate.diff",
+      "bytes": 330617,
+      "sha256": "fb62105a077e275d6fe3c8a3e4ef9c0cbeeee3bb07a8c0ed776dc78a33c58afb",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/lane-spec.md",
+      "bytes": 6408,
+      "sha256": "8e84529b9b048da3eb529cde4a2b5985c1593caae076196e190a1896a5cf0b6b",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/raw/tiny-g2-default.json",
+      "bytes": 17729,
+      "sha256": "db8f03e81d0ecd8db096e66dddfe7c09928465ac0a41322483a446f406803b7c",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/raw/tiny-g2-off.json",
+      "bytes": 17760,
+      "sha256": "47a53a74dbb868dbb2beccccc1bd08dacea9abb58b21e44cdf9e53c3df5b0b57",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/raw/tiny-g2-on.json",
+      "bytes": 17757,
+      "sha256": "fac24e14937223420f431b06ac2a55555c31dcf8363c3a3ab1861cd971a76db2",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/raw/tiny-g2-reference.json",
+      "bytes": 17735,
+      "sha256": "ab20ac34f011c476cee5913e812730f16c78bf273d9ca5a71281b166b3cdc357",
+      "manifest_match": true
+    },
+    {
+      "path": "/packet/schedule-reference.diff",
+      "bytes": 323830,
+      "sha256": "5a4de9f24603db1d78f4b0d2f3fcf9d131a400a65d9ccd92cd8a67343dbcb651",
+      "manifest_match": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "verified",
+      "location": "source/candidate.py:199, 3666, 3742",
+      "finding": "Module and CLI default OFF; BooleanOptionalAction supports explicit OFF/ON. Exact extracted CLI parsing and assignment passed."
+    },
+    {
+      "id": "F2",
+      "severity": "verified",
+      "location": "source/candidate.py:3308, 3376, 3435, 4100",
+      "finding": "ON schedule functions match supplied reference exactly; OFF arithmetic matches baseline for tested identical step/time inputs. Warmup, actual binary64 thresholds, optimizer-kind selection, batch scaling and flat precedence verified."
+    },
+    {
+      "id": "F3",
+      "severity": "verified",
+      "location": "source/candidate.py:2644, 2973, 3014",
+      "finding": "ON compiled-body route receives a changing FP32 tensor containing rounded host binary64 1-beta2; OFF receives legacy float unless the old beta2 ramp is active. Eager path consumes current group beta2."
+    },
+    {
+      "id": "F4",
+      "severity": "verified",
+      "location": "source/candidate.py:3221, 3226, 3228, 3242, 3271",
+      "finding": "Toggle is saved and restored; missing old-checkpoint toggle resets to captured False even after prior ON. Serialization exercised only with tiny test fixture; load_for_eval source unchanged."
+    },
+    {
+      "id": "F5",
+      "severity": "verified",
+      "location": "source/candidate.py:1933, 2196, 4023, 4137, 4158, 4931",
+      "finding": "Whole 11-region diff inspected. Model/forward/evaluator, optimizer math, group construction, cache refresh, timer resets and token accounting unchanged. Main AST matches baseline after removing only approved schedule statements."
+    },
+    {
+      "id": "F6",
+      "severity": "nonblocking_documentation",
+      "location": "source/candidate.py:2658, 2387, 3438",
+      "finding": "Existing beta2-transport docstrings still describe MUON_BETA2_FINAL > 0 as the tensor-path condition and do not mention RECURSIVE_SCHEDULE. Executable condition at 2973 is correct. No source modified."
+    }
+  ],
+  "own_test": {
+    "status": "PASS",
+    "checks": 6263,
+    "failed_checks": 0,
+    "runtime_seconds": 1.9502475510016666,
+    "environment": {
+      "torch": "2.13.0+cpu",
+      "python": "3.14.4",
+      "device": "cpu",
+      "threads": 1,
+      "interop_threads": 1,
+      "schedule_dtype": "Python binary64; independent Decimal precision 60",
+      "optimizer_dtypes": [
+        "FP32 parameters/state",
+        "FP32 or BF16 Newton-Schulz computation"
+      ],
+      "tracked_peak_tensor_storage_bytes_overcounting_views": 522,
+      "max_single_tensor_storage_bytes": 24,
+      "dispatch_calls": 102334,
+      "models_instantiated": 0,
+      "largest_parameter_shape": [
+        3,
+        2
+      ],
+      "max_live_optimizer_fixtures": 1
+    },
+    "code": "/work/exactness_test.py",
+    "raw_cases": "/work/artifacts/exactness_cases.json",
+    "summary": "/work/artifacts/exactness_summary.json",
+    "negative_controls": "31 intentionally incorrect alternatives/nonidentity controls detected as expected",
+    "tolerances": "zero for frozen float/byte identity; absolute 5e-16, relative 0 for independent Decimal schedule/group oracle"
+  },
+  "historical_failures": [
+    {
+      "run": "run01",
+      "type": "reviewer_harness_extraction",
+      "exit_code": 1,
+      "detail": "StopIteration: searched for ast.For, actual training loop is ast.While. Corrected extractor only; preserved code/traceback/empty cases.",
+      "path": "/work/artifacts/run01"
+    }
+  ],
+  "receipt_audit": {
+    "checks": 116,
+    "failed_checks": 0,
+    "default_and_off_losses_equal": true,
+    "default_and_off_65_rank0_digests_equal": true,
+    "on_changed_rank0_digests": 65,
+    "limitations": [
+      "Receipt bytes and source fields authenticated to manifest, not cryptographic provenance of execution.",
+      "Plan digests cannot be recomputed without full plans; compare recorded hashes and summaries only.",
+      "Only rank 0 has parameter digests; cross-rank equality is a recorded empty-mismatch claim.",
+      "Loss finiteness independently checked. No raw tensor values or explicit tensor-finiteness records supplied.",
+      "Reload success/determinism is recorded; no checkpoint/logit bytes supplied for independent replay.",
+      "16-hex-character parameter digests are equality evidence, not bytewise checkpoint verification.",
+      "Recorded token counters and compile-body log wording do not override disclosed microbatch/fake-clock/CPU shims."
+    ],
+    "path": "/work/artifacts/receipt_audit.json"
+  },
+  "source_audit": {
+    "checks": 12,
+    "failed_checks": 0,
+    "path": "/work/artifacts/source_audit.json"
+  },
+  "pending_gates": [
+    "Exact full-size 8x1024, 113256724-parameter / 65-tensor CPU qualification of candidate default, explicit OFF and ON, including production group/ownership layout, actual tensor finiteness and reload/logit evidence.",
+    "Production sequence 1024 / pack 32 / total batch 131072 / four LNC2 ranks and full gradient-history validation; supplied receipts use only 64 actual synthetic tokens per update.",
+    "Native Neuron/NKI compilation, dynamic beta2 transport/recompile behavior, device arithmetic, host runtime and cold startup.",
+    "Real timing/startup allowance/checkpoint accounting and 1800-second budget behavior.",
+    "Real-data training, evaluator/causality/quality evidence, adoption and submission review."
+  ],
+  "authorization": {
+    "next_full_size_cpu_qualification_suitability": true,
+    "full_size_gate_complete": false,
+    "host": false,
+    "native": false,
+    "cold": false,
+    "quality": false,
+    "adoption": false,
+    "submission": false
+  },
+  "report": "/work/REPORT.md",
+  "commands": "/work/COMMANDS.txt"
+}
