@@ -324,6 +324,64 @@ class CollectorParserTests(unittest.TestCase):
         self.assertEqual(len(raw["parsed"]["records"]), 2)
         self.assertEqual(base64.b64decode(raw["stdout_base64"]), partial)
 
+    def test_postflight_keyword_cannot_bypass_late_stop_gate(self):
+        with mock.patch.object(operator, "_local_gates",
+                               side_effect=RuntimeError("synthetic late STOP")) as gates, \
+             mock.patch.object(operator, "_ssh_identity") as identity, \
+             mock.patch.object(operator, "_ssh_argv") as argv, \
+             mock.patch.object(operator.subprocess, "run") as contact:
+            with self.assertRaisesRegex(RuntimeError, "synthetic late STOP"):
+                operator._run_ssh("probe", postflight=True)
+        gates.assert_called_once_with()
+        identity.assert_not_called()
+        argv.assert_not_called()
+        contact.assert_not_called()
+
+    def test_stop_after_timing_prevents_new_postflight_connection(self):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-late-stop-") as temp:
+            root = Path(temp)
+            active, former, package = (root / name for name in
+                                       ("Desktop", "Documents", "Package"))
+            (active / "research/v2").mkdir(parents=True)
+            state = {"breakers": {"global_correctness": {"tripped": False},
+                                  "trn22": {"tripped": False}},
+                     "hosts": {"trn22": {"launch_allowed": False}}}
+            (active / "research/v2/state.json").write_text(
+                json.dumps(state), encoding="utf-8")
+            stop = active / "research/v2/STOP"
+            output = root / "timing-result.json"
+            contact_count = 0
+
+            def fake_contact(*_args, **_kwargs):
+                nonlocal contact_count
+                contact_count += 1
+                if contact_count == 2:
+                    stop.write_text("synthetic late STOP\n", encoding="ascii")
+                return types.SimpleNamespace(returncode=0, stdout=b"{}\n", stderr=b"")
+
+            argv = ["/usr/bin/ssh", "-T", "-i", "/synthetic/key", "endpoint", "command"]
+            with mock.patch.object(operator, "CONTROL_ROOT", active), \
+                 mock.patch.object(operator, "FORMER_CONTROL_ROOT", former), \
+                 mock.patch.object(operator, "CONTROL_STATE",
+                                   active / "research/v2/state.json"), \
+                 mock.patch.object(operator, "REPO", package), \
+                 mock.patch.object(operator, "OUTPUT", output), \
+                 mock.patch.object(operator, "_ssh_identity") as identity, \
+                 mock.patch.object(operator, "_ssh_argv", return_value=argv), \
+                 mock.patch.object(operator.subprocess, "run",
+                                   side_effect=fake_contact) as contact, \
+                 mock.patch.object(operator, "_require_probe",
+                                   return_value={"synthetic": "probe"}):
+                authority = {"local_gates": operator._local_gates()}
+                status = operator.collect_once(authority)
+            self.assertEqual(status, "FAILED_CLOSED")
+            self.assertEqual(contact_count, 2)
+            self.assertEqual(contact.call_count, 2)
+            self.assertEqual(identity.call_count, 2)
+            receipt = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(len(receipt["phases"]), 2)
+            self.assertTrue(any("STOP" in item["message"] for item in receipt["errors"]))
+
     def test_partial_timeout_consumes_receipt_and_attempts_postflight(self):
         start = {"schema": operator.SCHEMA, "kind": "start", "trial_count": 20}
         trial = {"schema": operator.SCHEMA, "kind": "trial", "index": 1}

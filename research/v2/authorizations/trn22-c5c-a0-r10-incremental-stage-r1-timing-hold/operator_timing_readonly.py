@@ -329,8 +329,9 @@ def _parse_jsonl(stdout, operation):
 
 
 def _run_ssh(operation, *, pin=None, postflight=False):
-    if not postflight:
-        _local_gates()
+    # Best-effort postflight is not an exception to local STOP/breaker gates:
+    # a new SSH connection after STOP is forbidden even to collect a probe.
+    _local_gates()
     _ssh_identity()
     argv = _ssh_argv(operation, pin=pin)
     started = time.monotonic_ns()
