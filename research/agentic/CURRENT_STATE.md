@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:49 UTC
+Last reconciled: 2026-09-25 05:52 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -51,6 +51,11 @@ received another [independent static HOLD](../v2/authorizations/trn22-c5c-a0-r4-
 a pre-existing FIFO at the lock pathname can block the read-only open before
 the type check. A distinct disabled successor is being prepared. The prior
 trn22 static HOLDs continue to control.
+On trn21, a [distinct disabled final-r4 private-lock successor](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R4_HOLD.json)
+is under independent static review; its authorizations remain false. A
+[disabled trn22 A0 r5 control package](../v2/authorizations/trn22-c5c-a0-r5-native-hold/GATE_CONTRACT.json)
+is also under separate independent review for use only after an accepted r4
+source checkout. Neither package starts a scored run.
 Neither review authorizes an enabled request, host transfer, or native launch.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at
