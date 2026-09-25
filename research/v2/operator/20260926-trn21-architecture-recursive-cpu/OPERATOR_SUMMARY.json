@@ -1,0 +1,385 @@
+{
+  "record_type": "operator_cpu_four_arm_result_not_independent_acceptance",
+  "utc": "2026-09-25T22:24:02.745757+00:00",
+  "source_reference": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "source_candidate": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+  "terminal": {
+    "cpu_only": true,
+    "exit_code": 0,
+    "native_launch_authorized": false,
+    "status": "CPU_FOUR_ARMS_COMPLETE_PENDING_INDEPENDENT_REVIEW",
+    "utc": "2026-09-25T22:23:25.071421+00:00"
+  },
+  "outer": {
+    "command": [
+      "/usr/bin/flock",
+      "-n",
+      "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "/home/ubuntu/trainium_arch3e79_recursive_cpu_20260926_trn21_r1/host_driver.py"
+    ],
+    "driver_terminal_exists": true,
+    "ended_utc": "2026-09-25T22:23:25.132545+00:00",
+    "returncode": 0,
+    "started_utc": "2026-09-25T22:21:45.494239+00:00",
+    "status": "OUTER_COMMAND_EXITED",
+    "under_lock_receipt_exists": true
+  },
+  "arms": {
+    "reference": {
+      "terminal": {
+        "cpu_only": true,
+        "exit_code": 0,
+        "label": "fs-20260926-arch3e79-recursive-reference-trn21-g2-r1",
+        "reason": "all ranks completed the real training loop consistently",
+        "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+        "utc": "2026-09-25T22:22:07.007978+00:00",
+        "verdict": "PASS"
+      },
+      "g2": {
+        "verdict": "PASS",
+        "elapsed_s": 21.3,
+        "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+        "prepare": {
+          "dir": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "stub": false
+        },
+        "nproc": 4,
+        "steps": 3,
+        "micro_batch": [
+          2,
+          256
+        ],
+        "plan_sha256": "df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a",
+        "rank_losses": [
+          {
+            "rank": 0,
+            "losses": [
+              9.009672164916992,
+              9.021651268005371,
+              9.053120613098145
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 1,
+            "losses": [
+              9.012287139892578,
+              9.020283699035645,
+              9.050683975219727
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 2,
+            "losses": [
+              9.013776779174805,
+              9.019458770751953,
+              9.050694465637207
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 3,
+            "losses": [
+              9.012662887573242,
+              9.0178861618042,
+              9.058394432067871
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          }
+        ],
+        "shims": [
+          "compute_dtype_for -> torch.bfloat16",
+          "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+          "module `time` -> deterministic fake clock (1 ms per call)",
+          "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+          "GPT.forward training micro-batch sliced to 2x256 tokens"
+        ]
+      }
+    },
+    "default": {
+      "terminal": {
+        "cpu_only": true,
+        "exit_code": 0,
+        "label": "fs-20260926-arch3e79-recursive-default-trn21-g2-r1",
+        "reason": "all ranks completed the real training loop consistently",
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "utc": "2026-09-25T22:22:29.198358+00:00",
+        "verdict": "PASS"
+      },
+      "g2": {
+        "verdict": "PASS",
+        "elapsed_s": 21.7,
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "prepare": {
+          "dir": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "stub": false
+        },
+        "nproc": 4,
+        "steps": 3,
+        "micro_batch": [
+          2,
+          256
+        ],
+        "plan_sha256": "df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a",
+        "rank_losses": [
+          {
+            "rank": 0,
+            "losses": [
+              9.009672164916992,
+              9.021651268005371,
+              9.053120613098145
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 1,
+            "losses": [
+              9.012287139892578,
+              9.020283699035645,
+              9.050683975219727
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 2,
+            "losses": [
+              9.013776779174805,
+              9.019458770751953,
+              9.050694465637207
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 3,
+            "losses": [
+              9.012662887573242,
+              9.0178861618042,
+              9.058394432067871
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          }
+        ],
+        "shims": [
+          "compute_dtype_for -> torch.bfloat16",
+          "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+          "module `time` -> deterministic fake clock (1 ms per call)",
+          "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+          "GPT.forward training micro-batch sliced to 2x256 tokens"
+        ]
+      }
+    },
+    "off": {
+      "terminal": {
+        "cpu_only": true,
+        "exit_code": 0,
+        "label": "fs-20260926-arch3e79-recursive-off-trn21-g2-r1",
+        "reason": "all ranks completed the real training loop consistently",
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "utc": "2026-09-25T22:22:51.230952+00:00",
+        "verdict": "PASS"
+      },
+      "g2": {
+        "verdict": "PASS",
+        "elapsed_s": 21.6,
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "prepare": {
+          "dir": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "stub": false
+        },
+        "nproc": 4,
+        "steps": 3,
+        "micro_batch": [
+          2,
+          256
+        ],
+        "plan_sha256": "df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a",
+        "rank_losses": [
+          {
+            "rank": 0,
+            "losses": [
+              9.009672164916992,
+              9.021651268005371,
+              9.053120613098145
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 1,
+            "losses": [
+              9.012287139892578,
+              9.020283699035645,
+              9.050683975219727
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 2,
+            "losses": [
+              9.013776779174805,
+              9.019458770751953,
+              9.050694465637207
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 3,
+            "losses": [
+              9.012662887573242,
+              9.0178861618042,
+              9.058394432067871
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          }
+        ],
+        "shims": [
+          "compute_dtype_for -> torch.bfloat16",
+          "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+          "module `time` -> deterministic fake clock (1 ms per call)",
+          "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+          "GPT.forward training micro-batch sliced to 2x256 tokens"
+        ]
+      }
+    },
+    "on": {
+      "terminal": {
+        "cpu_only": true,
+        "exit_code": 0,
+        "label": "fs-20260926-arch3e79-recursive-on-trn21-g2-r1",
+        "reason": "all ranks completed the real training loop consistently",
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "utc": "2026-09-25T22:23:13.054182+00:00",
+        "verdict": "PASS"
+      },
+      "g2": {
+        "verdict": "PASS",
+        "elapsed_s": 21.4,
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+        "prepare": {
+          "dir": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "stub": false
+        },
+        "nproc": 4,
+        "steps": 3,
+        "micro_batch": [
+          2,
+          256
+        ],
+        "plan_sha256": "df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a",
+        "rank_losses": [
+          {
+            "rank": 0,
+            "losses": [
+              9.009672164916992,
+              9.021649360656738,
+              9.053122520446777
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 1,
+            "losses": [
+              9.012287139892578,
+              9.020281791687012,
+              9.050762176513672
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 2,
+            "losses": [
+              9.013776779174805,
+              9.019449234008789,
+              9.050677299499512
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          },
+          {
+            "rank": 3,
+            "losses": [
+              9.012662887573242,
+              9.0178861618042,
+              9.058419227600098
+            ],
+            "n_changed": 65,
+            "n_params": 65
+          }
+        ],
+        "shims": [
+          "compute_dtype_for -> torch.bfloat16",
+          "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+          "module `time` -> deterministic fake clock (1 ms per call)",
+          "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+          "GPT.forward training micro-batch sliced to 2x256 tokens"
+        ]
+      }
+    }
+  },
+  "strict": {
+    "status": "FULL_PARAMETER_CPU_RECEIPTS_MATCH",
+    "native_correctness": false,
+    "all_parameter_digests": 65,
+    "all_rank_losses": 12,
+    "checkpoint_file_bytes_need_not_match": "Default/OFF add schedule toggle metadata; only reference/default/OFF tensors/logits must match. ON updates intentionally differ."
+  },
+  "checkpoint_comparison": {
+    "status": "FULL_PARAMETER_CPU_CHECKPOINT_AND_LOGIT_IDENTITY",
+    "states": 65,
+    "parameters": 113256724,
+    "logits_shape": [
+      1,
+      256,
+      8192
+    ],
+    "records": [
+      {
+        "name": "reference",
+        "checkpoint_sha256": "2e3d8e442e8c7ddfbb29308787fcd6f0ccba9f8c3f3bc051331f7a2b2a01fd3b",
+        "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c"
+      },
+      {
+        "name": "default",
+        "checkpoint_sha256": "b7910089c69ca5aa8b4c58d342e4adced419ca91ffaedf10420f43a9557432bb",
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f"
+      },
+      {
+        "name": "off",
+        "checkpoint_sha256": "b7910089c69ca5aa8b4c58d342e4adced419ca91ffaedf10420f43a9557432bb",
+        "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f"
+      }
+    ],
+    "torch": "2.11.0+cpu",
+    "compute_dtype_shim": "CPU bfloat16",
+    "synthetic_input": [
+      1,
+      256
+    ],
+    "native_correctness": false,
+    "quality_evidence": false
+  },
+  "file_count": 91,
+  "no_checkpoint_copy": true,
+  "native_authority": false
+}
