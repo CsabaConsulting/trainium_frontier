@@ -1,6 +1,15 @@
 # Current state
 
-Last reconciled: 2026-09-25 09:04 UTC
+Last reconciled: 2026-09-25 09:51 UTC
+
+The disabled trn21 e65→r10 r2 source-stage repair `3e846589` received
+[independent STATIC PASS only](../v2/verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)
+at `fd4bd470`. Its previous pre-open failures now fail closed in offline
+witnesses, but there was no live timing, host stage, native run or BPB result.
+The matching trn22 e65→r10 disabled stage candidate `3d26e963` is pushed
+for a separate independent review. Matching source HEAD is only a planned
+possibility until both host stages and fresh pre-run checks succeed. A2's
+two missing-path risks remain under a separate read-only probe design.
 
 The disabled trn22 e65→r9 no-unlink r4 stage `19fbfdc8` received
 [independent STATIC PASS only](../v2/verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md)

@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 09:51 UTC, disabled trn21 e65→r10 r2 source-stage `3e846589`
+received [independent STATIC PASS only](verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)
+at `fd4bd470`. The matching trn22 e65→r10 disabled candidate `3d26e963`
+is in independent review. Neither host has been staged by these packages;
+live timing, enabled request, final review, one-shot assignment, native
+controls and tables remain pending. A separate read-only A2 tool-path probe
+is in design after its independent HOLD. No new BPB result exists.
+
 At 09:04 UTC, disabled trn22 e65→r9 no-unlink r4 stage `19fbfdc8`
 received [independent STATIC PASS only](verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md)
 at `7eae104e`. No host transfer, native run, or BPB followed; live timing,
