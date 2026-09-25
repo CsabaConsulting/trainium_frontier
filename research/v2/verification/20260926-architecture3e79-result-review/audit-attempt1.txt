@@ -1,0 +1,5 @@
+Own audit development failure, 2026-09-25 UTC; no candidate/host execution:
+KeyError: 'python' at audit_final.py expected_eval construction.
+The binding has no standalone python key. The corrected audit reads the already-bound
+interpreter from evaluation_command[5]. This was an audit schema assumption, not a
+model/evaluator gate failure. No candidate, raw artifact or threshold changed.
