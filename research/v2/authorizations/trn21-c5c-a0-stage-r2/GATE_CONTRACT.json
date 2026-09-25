@@ -1,0 +1,152 @@
+{
+  "schema": "trn21-c5c-a0-source-stage-r2-persistent-ext4-hold-v1",
+  "status": "IMPLEMENTER_PREPARED_PENDING_INDEPENDENT_REVIEW_AND_FRESH_STAGE_AUTHORITY_HOLD",
+  "prepared_by_role": "implementer",
+  "source_stage_authorized": false,
+  "cpu_g2_authorized": false,
+  "native_training_authorized": false,
+  "fresh_eval_authorized": false,
+  "submission_authorized": false,
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "existing_science_a0_label_unconsumed": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "stage_r2_label_new": "fs-20260925-v2-c5c-a0-control-trn21-r1-source-stage-r2",
+  "prior_stage_failure": {
+    "operator_hold_path": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-hold.md",
+    "operator_hold_sha256": "1710449665cf889349a2527cf793a1a247ab88ecc903a9c6aaf2cf7823f46135",
+    "read_only_addendum_path": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-forensic-addendum.md",
+    "read_only_addendum_sha256": "60df65fd3080aa070f8ebf8a348baf5fa55dd8b6d3ad2a70b930cc4624e7eb11",
+    "consumed_host_archive_target_do_not_retry": "/dev/shm/trainium-c5c-e65-one-commit-20260925.trn21.tar.gz",
+    "consumed_stage_assignment_sha256": "24a58fbe947537d3a4f0fc377e08638a6f0b6f48697988a5ed0b9958f77e75a3",
+    "finding": "Prior write-process SHA/size PASS on tmpfs did not persist to a distinct SSH session about five seconds later. Writer code and transfer mount namespace were not retained. Cause unknown; the old path and assignment are HOLD, not evidence of staged source.",
+    "prior_checkout_or_cpu_g2_or_native_action": false
+  },
+  "immutable_science": {
+    "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "one_commit_shallow_git_capsule_sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264",
+    "one_commit_shallow_git_capsule_bytes": 104005787,
+    "no_model_prepare_evaluator_data_or_scoring_change": true,
+    "no_host_git_fetch_or_source_substitution": true
+  },
+  "persistent_artifacts": {
+    "capsule": {
+      "local_path": "/dev/shm/trainium-c5c-e65-one-commit-20260925.tar.gz",
+      "local_mode_required": "0600",
+      "host_path": "/home/ubuntu/trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz",
+      "host_mode_required": "0600",
+      "bytes": 104005787,
+      "sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264"
+    },
+    "preflight": {
+      "local_path": "workflow/tools/preflight_dryrun.py",
+      "host_path": "/home/ubuntu/trainium-v2-g2-preflight-dryrun-20260925-trn21-stage-r2.py",
+      "host_mode_required": "0600",
+      "bytes": 23550,
+      "sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8"
+    },
+    "contained": {
+      "local_path": "workflow/tools/contained.py",
+      "host_path": "/home/ubuntu/trainium-v2-g2-contained-20260925-trn21-stage-r2.py",
+      "host_mode_required": "0600",
+      "bytes": 9185,
+      "sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d"
+    }
+  },
+  "writer": {
+    "repo_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2/stage_r2_remote_writer.py",
+    "sha256": "a87fb4efe9b3e7b4c0b4f60855edb1ebf98f8a02cd66224cd36fb90d7d5b20eb",
+    "command_builder_repo_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2/stage_r2_transport.py",
+    "command_builder_sha256": "cd60f0abd8897fa9091b107f065a4ec2e863b7f063ea7d7fb06e58829d18e336",
+    "execution_shape_if_later_authorized": "One new pinned SSH process per artifact write and one separate SSH process per read-only verify. Local builder checks the literal writer file SHA then constructs a deterministically shlex-quoted python3 -c argv; no generated source, interactive shell, SCP overwrite, or unreviewed ad-hoc remote code.",
+    "remote_target_parent": "/home/ubuntu",
+    "remote_required_filesystem": "ext4",
+    "remote_open_flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC for each new file; O_RDONLY|O_NOFOLLOW|O_CLOEXEC for read-only verify",
+    "no_unlink_rename_replace_cleanup_or_overwrite": true,
+    "fsync_file_and_parent": true,
+    "bounded_chunks_bytes": 4194304,
+    "in_process_evidence": ["stream byte count and SHA-256", "fsynced file readback byte count and SHA-256", "fstat/lstat exact inode, device, regular type, UID and mode 0600", "hostname and UID", "boot ID", "mount namespace", "ext4 mount ID/source/major:minor", "/home/ubuntu parent device/inode/owner/mode", "root free bytes pre/post"],
+    "on_any_error": "Nonzero exit, no success JSON, leave any newly created partial target in place for forensic diagnosis; consume that target and do not retry/clean it."
+  },
+  "historical_read_only_prewrite": {
+    "observed_utc": "2026-09-25T00:41:39.039573Z",
+    "root_ext4_source": "/dev/nvme0n1p1",
+    "root_free_bytes": 58676260864,
+    "host_uid": 1000,
+    "boot_id_after_failed_transfer": "1903f7f0-8e0d-4011-9566-346e4ba01a0f",
+    "mount_namespace_after_failed_transfer": "mnt:[4026531832]",
+    "is_not_live_preflight": true
+  },
+  "fresh_full_preflight_required_before_each_write_and_after_stage": {
+    "expected_hostname_uid_and_pinned_ssh_host_key": true,
+    "no_open_global_or_host_breaker_or_STOP": true,
+    "no_matched_train_eval_G2_guard_process_neuron_holder_or_shared_lock": true,
+    "science_A0_label_unconsumed_and_all_new_exact_host_paths_absent": true,
+    "root_ext4_mount_device_inode_namespace_and_boot_recorded": true,
+    "minimum_root_free_bytes": 10737418240,
+    "immutable_native_operational_floor_bytes": 6979321856,
+    "two_protected_checkpoints_and_six_historical_warm_cache_device_inode_hash_identities_reauthenticated_without_modification": true,
+    "historical_checkpoint_one_bytes_sha256": [469834849, "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535"],
+    "historical_checkpoint_two_bytes_sha256": [469831009, "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9"],
+    "six_warm_cache_root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train",
+    "six_warm_cache_children": ["neff", "local", "hlo", "inductor", "compiler", "debug"],
+    "cache_or_checkpoint_cleanup_or_substitution_authorized": false
+  },
+  "cross_session_persistence_gate": {
+    "one_write_and_at_least_one_later_new_SSH_verify_process_per_artifact": true,
+    "final_extra_new_SSH_read_only_verify_of_all_three_after_all_writes": true,
+    "compare_helper": "stage_r2_transport.compare_cross_session",
+    "require_different_process_id_or_start_ticks": true,
+    "require_same_hostname_uid_boot_mount_namespace_ext4_mount_parent_and_target_device_inode": true,
+    "require_exact_file_mode_0600_bytes_and_readback_sha256": true,
+    "require_later_UTC_verify": true,
+    "separate_session_ssh_transport_exit_stdout_stderr_and_exact_argv_sha256_archived": true,
+    "writer_process_only_sha_is_not_sufficient": true,
+    "failed_or_missing_verification": "HOLD; no checkout, G2 or native continuation, and no in-place retry/deletion"
+  },
+  "source_scan_and_checkout_after_verified_persistence_only": {
+    "new_checkout_must_be_absent": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+    "checkout_mode_required": "0700",
+    "archive_member_scan_required_before_extraction": "Reject absolute/traversal/duplicate/ambiguous-PAX paths, symlinks, hardlinks, devices/FIFO, unknown members, unsafe Git hooks/filters/remotes/credential helpers and credential/data-like paths; compare with 6338-member local source scan but repeat on host.",
+    "extraction_no_overwrite_no_same_owner_no_same_permissions": true,
+    "expected_git_HEAD": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "expected_reachable_commit_count": 1,
+    "expected_shallow_repository": true,
+    "expected_remote_count": 0,
+    "expected_object_alternates": false,
+    "git_fsck_and_clean_including_untracked_required": true,
+    "expected_root_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "expected_prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "science_output_must_be_absent": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "source_stage_receipt_required_before_G2": true,
+    "independent_source_stage_review_required_before_G2": true,
+    "partial_checkout_on_failure_preserved_no_cleanup": true
+  },
+  "cpu_g2": {
+    "planned_new_label": "fs-20260925-g2-a0-c5c-exactenv-trn21-r2",
+    "planned_new_root_must_be_absent": "/home/ubuntu/trainium-v2-g2-20260925-trn21-r2",
+    "uses_the_two_persistent_hash_verified_tools_only_after_stage_review": true,
+    "new_cpu_g2_proposal_and_exact_env_request_required": true,
+    "independent_g2_receipt": null,
+    "one_shot_g2_authorization": null,
+    "native_A0_remains_HOLD_even_after_G2_PASS": true
+  },
+  "stage_result_receipt": null,
+  "independent_stage_review": null,
+  "final_stage_request_sha256": null,
+  "stage_one_shot_authorization": null,
+  "required_sequence": [
+    "Independent Verifier reviews writer, transport, tests and this HOLD contract; checks old failure/addendum, exact source/tool hashes, unique ext4 paths, no overwrite/deletion and complete command construction.",
+    "Supervisor issues a distinct stage-r2-only assignment after that review; Operator records fresh complete read-only host/disk/lock/Neuron/breaker/cache/checkpoint/label/path preflight and exact immutable transfer request. An uncertain state is HOLD.",
+    "Operator rehashes each local artifact and the reviewed writer file, then uses only the fixed new /home/ubuntu ext4 targets with O_EXCL|O_NOFOLLOW. Save exact command argv hash, stdout/stderr/exit and in-process bytes/hash/stat/host/boot/mount/root-free receipt. Never retry a failed or partial path.",
+    "In a distinct new pinned SSH session per artifact, read back exact bytes/hash and target inode/device/mode/host/boot/mount identity. Do an additional distinct read-only pass over all three after transfer; persist all receipts and compare across sessions.",
+    "Only after all three persist, scan the capsule on host, create the absent new checkout without overwrite, extract safely, verify exact e65 shallow one-commit clean checkout and c5c/prepare hashes. Preserve caches/checkpoints and archive stage evidence.",
+    "A different Verifier reviews the complete source-stage receipt. CPU G2 remains HOLD for its own separately reviewed r2 request, fresh preflight and one-shot authority; native A0 remains HOLD for separate continuous monitor/interlock and native authorization."
+  ],
+  "forbidden_actions": [
+    "No SSH/host write, source extraction, CPU G2, native training, fresh evaluation, cleanup, cache copying, checkpoint deletion, AWS mutation, breaker reset, adoption or submission from this Implementer package.",
+    "No reuse of the old /dev/shm host archive target or old assignment; no overwrite/deletion/retry of any new target if a write fails. A failed path must be quarantined in place and a newly reviewed r3 path/authority prepared if needed.",
+    "No modification of scored train.py, prepare.py, evaluator, data, tokenizer or scoring. The science A0 label remains unused until a separate native request."
+  ]
+}
