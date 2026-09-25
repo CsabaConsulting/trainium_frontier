@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:18 UTC
+Last reconciled: 2026-09-25 12:22 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
@@ -18,12 +18,19 @@ disabled trn22 r6 repair (`7b250a74`) with bounded pre-open timing-only
 retry and nonsecret failure classification passed independent static review
 (`297a1097`), but remains operationally HOLD; a no-write diagnostic is being
 developed. Further write attempts
-are HOLD pending diagnosis, distinct independent authority and the required
-human retry decision. Both r10 A0 control proposals remain selected
+are HOLD pending diagnosis and distinct independent authority. The human
+approved at most one new safe attempt per host **conditional on a read-only
+diagnosis identifying a fix and independent safety review**; see
+`research/v2/authorizations/20260925-both-host-r10-source-stage-retry-human-ack.md`.
+This is not immediate dispatch authority. Both r10 A0 control proposals remain selected
 (`6a3aa8e9`, `8aec974e`), and both disabled native packages have static
 PASS (`ae718458` trn22, `a254d223` trn21), but neither host is native-
 launch-ready. The best confirmed local public20M/context-1024 result remains
 0.9918353324 (single) / 0.9919537735 (two-run mean).
+
+The A2 exact-size CPU-G2 tool-path repair has an independent **disabled-only**
+static PASS (`40d4661e`). Its prior r4 G2 HOLD is unchanged; no A2 host
+capture or table run is authorized by this review.
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
