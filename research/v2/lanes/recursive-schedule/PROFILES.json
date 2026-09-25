@@ -1,0 +1,159 @@
+{
+  "schema": "recursive-schedule-conditional-profiles-v1",
+  "candidate_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+  "candidate_path": "workflow/proposals/research-v2/train.py",
+  "status": "WAIT_EXACT_SIZE_G2_AND_RECORDED_INDEPENDENT_REVIEW",
+  "release_authority": "Supervisor assigns only after current user conditional policy and per-profile G2 pass; this file is not a launcher or additional queue.",
+  "selection_rule": "If A1 or A2 public-20M delta <= -0.003 against valid same-host control, schedule ON that winning table profile after cross-host replicate and A3. Otherwise schedule ON dense control before architecture and flag bank. No table winner is assumed.",
+  "profiles": [
+    {
+      "id": "dense",
+      "argv": [
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule"
+      ],
+      "same_host_control_kind": "c5c A0 dense, LR0.015",
+      "conditional_on": "No A1/A2 table arm qualifying at delta <= -0.003",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule",
+      "per_host_run_labels": {
+        "trn21": "fs-20260925-l3-recursive-dense-trn21-r1-full",
+        "trn22": "fs-20260925-l3-recursive-dense-trn22-r1-full"
+      },
+      "proposal_id": "20260925-l3-recursive-dense"
+    },
+    {
+      "id": "a1",
+      "argv": [
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=-1",
+        "--ngram-ve-table-mult",
+        "64",
+        "--ngram-ve-dim",
+        "128",
+        "--ngram-ve-trigram",
+        "--ngram-ve-opt",
+        "rmsprop",
+        "--ngram-ve-flat-lr",
+        "--ngram-ve-bf16",
+        "--ngram-ve-clip-exclude",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule"
+      ],
+      "same_host_control_kind": "c5c A1 last-layer table result; A0 secondary for whole-stack delta",
+      "conditional_on": "A1 selected winning table profile under current policy, after replicate and A3",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule",
+      "per_host_run_labels": {
+        "trn21": "fs-20260925-l3-recursive-a1-trn21-r1-full",
+        "trn22": "fs-20260925-l3-recursive-a1-trn22-r1-full"
+      },
+      "proposal_id": "20260925-l3-recursive-a1"
+    },
+    {
+      "id": "a2",
+      "argv": [
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=1,-1",
+        "--ngram-ve-table-mult",
+        "64",
+        "--ngram-ve-dim",
+        "128",
+        "--ngram-ve-trigram",
+        "--ngram-ve-opt",
+        "rmsprop",
+        "--ngram-ve-flat-lr",
+        "--ngram-ve-bf16",
+        "--ngram-ve-clip-exclude",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule"
+      ],
+      "same_host_control_kind": "c5c A2 layer1,last table result; A0 secondary for whole-stack delta",
+      "conditional_on": "A2 selected winning table profile under current policy, after replicate and A3",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule",
+      "per_host_run_labels": {
+        "trn21": "fs-20260925-l3-recursive-a2-trn21-r1-full",
+        "trn22": "fs-20260925-l3-recursive-a2-trn22-r1-full"
+      },
+      "proposal_id": "20260925-l3-recursive-a2"
+    }
+  ],
+  "same_host_a0_controls": {
+    "trn21": {
+      "run_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+      "public_val_bpb": 0.9914739939934344,
+      "steps": 3675
+    },
+    "trn22": {
+      "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+      "public_val_bpb": 0.991513958330512,
+      "steps": 3633
+    }
+  },
+  "g2": {
+    "tool_path": "workflow/tools/preflight_dryrun.py",
+    "tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "nproc": 4,
+    "steps": 3,
+    "micro_rows": 2,
+    "micro_tokens": 256,
+    "cpu_only": true,
+    "exact_size": true,
+    "required_memory": "Large host CPU; not laptop. Check available memory and do not overlap a Neuron run.",
+    "gates_missing": [
+      "exact-size selected-profile G2",
+      "independent receipt binding to committed code"
+    ]
+  },
+  "training": {
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "lnc": 2,
+    "nproc": 4,
+    "cache": "warm",
+    "post_eval": {
+      "tokens": 20971520,
+      "seq_len": 1024,
+      "fresh_process": true
+    }
+  }
+}

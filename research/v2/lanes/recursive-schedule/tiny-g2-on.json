@@ -1,0 +1,851 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/tmp/g2-vpwcm8tw/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "128",
+    "--depth",
+    "6",
+    "--ngram-ve",
+    "--ngram-ve-layers=1,-1",
+    "--ngram-ve-table-mult",
+    "1",
+    "--ngram-ve-dim",
+    "16",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--recursive-schedule"
+  ],
+  "elapsed_s": 8.0,
+  "host": "poojith",
+  "micro_batch": [
+    1,
+    128
+  ],
+  "nproc": 4,
+  "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+  "prepare": {
+    "dir": "/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.12.14",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-vpwcm8tw/out"
+      ],
+      "checkpoint_check": {
+        "deterministic": true,
+        "logits_shape": [
+          1,
+          128,
+          8192
+        ],
+        "ok": true,
+        "path_exists": true
+      },
+      "cross_rank_mismatches": [],
+      "final_digests": {
+        "lm_head.weight": "6ceba0325217209d",
+        "ngram_embeds.b1.weight": "da8ca6e8d6d290f9",
+        "ngram_embeds.b5.weight": "30b4f0ca29a076c9",
+        "ngram_embeds.t1.weight": "f8793092862036c7",
+        "ngram_embeds.t5.weight": "a51305bc06519418",
+        "ngram_proj.b1.weight": "127062a6156b5840",
+        "ngram_proj.b5.weight": "07555fd7488b9be8",
+        "ngram_proj.t1.weight": "0f4dd655a0930346",
+        "ngram_proj.t5.weight": "6acbbca65b4a1d37",
+        "transformer.h.0.attn.c_k.weight": "29920378b1342998",
+        "transformer.h.0.attn.c_proj.weight": "02dd0d160fd26947",
+        "transformer.h.0.attn.c_q.weight": "b04685b93235bc46",
+        "transformer.h.0.attn.c_v.weight": "37f415c2608b45f2",
+        "transformer.h.0.local_conv.weight": "279ee1586627a45e",
+        "transformer.h.0.mlp.c_fc.weight": "6bd93141c351e614",
+        "transformer.h.0.mlp.c_proj.weight": "469cd22f7f056693",
+        "transformer.h.0.resid_lambda": "3c51449ea0007d33",
+        "transformer.h.0.x0_lambda": "2aea3a8f0bd59c95",
+        "transformer.h.1.attn.c_k.weight": "6655eb376ed986d8",
+        "transformer.h.1.attn.c_proj.weight": "d04260c525cb6f2e",
+        "transformer.h.1.attn.c_q.weight": "7f6994d56787b988",
+        "transformer.h.1.attn.c_v.weight": "9d4b6e05c99315eb",
+        "transformer.h.1.attn.ve_gate.weight": "b693abf6d27dae17",
+        "transformer.h.1.attn.ve_gate_bi.weight": "712b8f1f9979b95c",
+        "transformer.h.1.attn.ve_gate_tri.weight": "a40ae5a90af51083",
+        "transformer.h.1.local_conv.weight": "ea79baec3b34d027",
+        "transformer.h.1.mlp.c_fc.weight": "f9b8ef2faa204dd0",
+        "transformer.h.1.mlp.c_proj.weight": "74c450912c17bb1e",
+        "transformer.h.1.resid_lambda": "697ddf362fda4328",
+        "transformer.h.1.x0_lambda": "a53a767f1cd9d7d4",
+        "transformer.h.2.attn.c_k.weight": "6c1fbc0c0a53af11",
+        "transformer.h.2.attn.c_proj.weight": "1f0615914d5eb21a",
+        "transformer.h.2.attn.c_q.weight": "14139c65eec70669",
+        "transformer.h.2.attn.c_v.weight": "d8968ecc5d2a3a6a",
+        "transformer.h.2.local_conv.weight": "b4e67e2934cb8c1a",
+        "transformer.h.2.mlp.c_fc.weight": "13a47ed84682dac8",
+        "transformer.h.2.mlp.c_proj.weight": "6564ac9ef8979bc8",
+        "transformer.h.2.resid_lambda": "95bb3462207d7c3b",
+        "transformer.h.2.x0_lambda": "e842ea52ee152b38",
+        "transformer.h.3.attn.c_k.weight": "88c4940844d65d84",
+        "transformer.h.3.attn.c_proj.weight": "fbd942e317602c5e",
+        "transformer.h.3.attn.c_q.weight": "7292435ab24af3f2",
+        "transformer.h.3.attn.c_v.weight": "a861659414134ff9",
+        "transformer.h.3.attn.ve_gate.weight": "1c8726017149301e",
+        "transformer.h.3.local_conv.weight": "a36ac7799115ba7f",
+        "transformer.h.3.mlp.c_fc.weight": "efcc045782456c1e",
+        "transformer.h.3.mlp.c_proj.weight": "e5d198a56a9c5433",
+        "transformer.h.3.resid_lambda": "b5e91dc4fdae4646",
+        "transformer.h.3.x0_lambda": "815c1a4b7b2d6947",
+        "transformer.h.4.attn.c_k.weight": "e2cac7ee357a5591",
+        "transformer.h.4.attn.c_proj.weight": "ef47fb05a04b55e8",
+        "transformer.h.4.attn.c_q.weight": "c8f35fcbfb2c67e0",
+        "transformer.h.4.attn.c_v.weight": "e337faadfaba7081",
+        "transformer.h.4.local_conv.weight": "e95d1642eafcfec7",
+        "transformer.h.4.mlp.c_fc.weight": "4afc5963323fab54",
+        "transformer.h.4.mlp.c_proj.weight": "3aaadd3ac6e33bfe",
+        "transformer.h.4.resid_lambda": "7d0b6da5f308d8bf",
+        "transformer.h.4.x0_lambda": "519af078abe9e6df",
+        "transformer.h.5.attn.c_k.weight": "4b6d0b83aedb4d5f",
+        "transformer.h.5.attn.c_proj.weight": "892a0a9c92111967",
+        "transformer.h.5.attn.c_q.weight": "b7a890f6c92e2709",
+        "transformer.h.5.attn.c_v.weight": "fb073c04dfd7654a",
+        "transformer.h.5.attn.ve_gate.weight": "1e1949ce36704b9f",
+        "transformer.h.5.attn.ve_gate_bi.weight": "9cec70cdf380e63a",
+        "transformer.h.5.attn.ve_gate_tri.weight": "327dec8ef307d9d7",
+        "transformer.h.5.local_conv.weight": "16d48e680d67c0e9",
+        "transformer.h.5.mlp.c_fc.weight": "14a3e107747d0246",
+        "transformer.h.5.mlp.c_proj.weight": "2f7979d32644fb89",
+        "transformer.h.5.resid_lambda": "8b7262899fb6b6c6",
+        "transformer.h.5.x0_lambda": "c9dccba025e9d6d3",
+        "transformer.wte.weight": "b152bdf76f4c4e25",
+        "value_embeds.1.weight": "9cbc46cd9c9d448b",
+        "value_embeds.3.weight": "a62735e306d395d5",
+        "value_embeds.5.weight": "8eb2047da677bf93"
+      },
+      "losses": [
+        9.009621620178223,
+        9.02349853515625,
+        9.026060104370117
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 0,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.558831617236137e-09,
+            "max_abs_err_over_lr": 0.01977876979626867,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.73345459997654e-09,
+            "max_abs_err_over_lr": 0.020784989275510295,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1117663234472275e-08,
+            "max_abs_err_over_lr": 0.018112285743980085,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2281816452741623e-08,
+            "max_abs_err_over_lr": 0.017040739001374268,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.2282197177410126e-09,
+            "max_abs_err_over_lr": 0.02248694602141383,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.025894049043433204,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.275957614183426e-09,
+            "max_abs_err_over_lr": 0.0199139922172378,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.023506937408457468,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.6.0+cu124",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-vpwcm8tw/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.009841918945312,
+        9.018769264221191,
+        9.01873779296875
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 1,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.558831617236137e-09,
+            "max_abs_err_over_lr": 0.01977876979626867,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.73345459997654e-09,
+            "max_abs_err_over_lr": 0.020784989275510295,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1117663234472275e-08,
+            "max_abs_err_over_lr": 0.018112285743980085,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2281816452741623e-08,
+            "max_abs_err_over_lr": 0.017040739001374268,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.2282197177410126e-09,
+            "max_abs_err_over_lr": 0.02248694602141383,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.025894049043433204,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.275957614183426e-09,
+            "max_abs_err_over_lr": 0.0199139922172378,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.023506937408457468,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.6.0+cu124",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-vpwcm8tw/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.01007080078125,
+        9.013463973999023,
+        9.000697135925293
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 2,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.558831617236137e-09,
+            "max_abs_err_over_lr": 0.01977876979626867,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.73345459997654e-09,
+            "max_abs_err_over_lr": 0.020784989275510295,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1117663234472275e-08,
+            "max_abs_err_over_lr": 0.018112285743980085,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2281816452741623e-08,
+            "max_abs_err_over_lr": 0.017040739001374268,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.2282197177410126e-09,
+            "max_abs_err_over_lr": 0.02248694602141383,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.025894049043433204,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.275957614183426e-09,
+            "max_abs_err_over_lr": 0.0199139922172378,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.023506937408457468,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.6.0+cu124",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-vpwcm8tw/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010930061340332,
+        9.017353057861328,
+        9.006881713867188
+      ],
+      "n_changed": 74,
+      "n_params": 74,
+      "plan_sha256": "a7a2a34e35668f03f09cf1f1a3890132950a29ee4acbb44fe73652385363ff1e",
+      "plan_summary": {
+        "elements_by_owner": [
+          2097152,
+          1446436,
+          1444452,
+          1444452
+        ],
+        "estimated_ms_by_owner": [
+          1.0212198625,
+          0.720856279368329,
+          0.730856279368329,
+          0.730856279368329
+        ],
+        "shard_elements": 2097152,
+        "total_padded_bytes": 33554432
+      },
+      "rank": 3,
+      "rmsprop_trace": {
+        "calls": 3,
+        "checks": [
+          {
+            "grad_abs_median_touched": 2.86672729998827e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.9685907065868378e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 2.954038791358471e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 3.026798367500305e-09,
+            "max_abs_err_over_lr": 0.00660654732281605,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 1,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.558831617236137e-09,
+            "max_abs_err_over_lr": 0.01977876979626867,
+            "numel": 131072,
+            "rows_touched": 496,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 5.73345459997654e-09,
+            "max_abs_err_over_lr": 0.020784989275510295,
+            "numel": 131072,
+            "rows_touched": 500,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1117663234472275e-08,
+            "max_abs_err_over_lr": 0.018112285743980085,
+            "numel": 131072,
+            "rows_touched": 497,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.2281816452741623e-08,
+            "max_abs_err_over_lr": 0.017040739001374268,
+            "numel": 131072,
+            "rows_touched": 499,
+            "step_t": 2,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 6.2282197177410126e-09,
+            "max_abs_err_over_lr": 0.02248694602141383,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.683411240577698e-09,
+            "max_abs_err_over_lr": 0.025894049043433204,
+            "numel": 131072,
+            "rows_touched": 498,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 7.275957614183426e-09,
+            "max_abs_err_over_lr": 0.0199139922172378,
+            "numel": 131072,
+            "rows_touched": 494,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          },
+          {
+            "grad_abs_median_touched": 1.1525116860866547e-08,
+            "max_abs_err_over_lr": 0.023506937408457468,
+            "numel": 131072,
+            "rows_touched": 495,
+            "step_t": 3,
+            "untouched_rows_unchanged": true
+          }
+        ],
+        "optimizer_steps": 3
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "PASS",
+      "tables": [
+        "ngram_embeds.b1.weight",
+        "ngram_embeds.t1.weight",
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ],
+      "torch": "2.6.0+cu124",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    }
+  ],
+  "reason": "all ranks completed the real training loop consistently",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 1x128 tokens",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "steps": 3,
+  "timed_out": false,
+  "torch": "2.6.0+cu124",
+  "torchrun_log_tail": [
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 3 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 1,",
+    "  \"n_embd\": 128,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=6,956,780 flops_per_token=4.174061e+07",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "step 00000 | loss 9.0096 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 2 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0169 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00002 | loss 9.0203 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "---",
+    "checkpoint_path:    /tmp/g2-vpwcm8tw/out/final.pt",
+    "training_seconds:  0.0",
+    "budget_seconds:    1800",
+    "target_steps:      3",
+    "max_train_seconds: 1800",
+    "startup_allowance_est: 0.0",
+    "charged_seconds_est:   0.0",
+    "over_budget:       False",
+    "total_seconds:     0.0",
+    "compiled:          False",
+    "nki_relu2:         False",
+    "nki_rope_norm:     True",
+    "nki_softcap_ce:    True",
+    "transposed_linear: False",
+    "nki_muon:          False",
+    "compile_muon:      True",
+    "muon_lr_fp32:      False",
+    "ngram_ve:          True tables=4 rows=8192 dim=16 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0",
+    "oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "num_steps:         3",
+    "total_tokens_M:    0.4",
+    "world_size:        4",
+    "lnc:               ",
+    "seq_len:           1024",
+    "num_params_M:      7.0",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py",
+  "train_py_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+  "verdict": "PASS"
+}

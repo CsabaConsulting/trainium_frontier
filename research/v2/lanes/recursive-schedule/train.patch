@@ -1,0 +1,53 @@
+diff --git a/workflow/proposals/research-v2/train.py b/workflow/proposals/research-v2/train.py
+index 29449762..efd4e11c 100644
+--- a/workflow/proposals/research-v2/train.py
++++ b/workflow/proposals/research-v2/train.py
+@@ -198,0 +199 @@ FINAL_LR_FRAC = 0.05
++RECURSIVE_SCHEDULE = False
+@@ -2914 +2915 @@ class MuonAdamW(torch.optim.Optimizer):
+-            one_beta2 = one_b2_t if MUON_BETA2_FINAL > 0.0 else 1 - group['beta2']
++            one_beta2 = one_b2_t if RECURSIVE_SCHEDULE or MUON_BETA2_FINAL > 0.0 else 1 - group['beta2']
+@@ -3159,0 +3161,2 @@ SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELE
++ARCH_TOGGLE_NAMES += ['RECURSIVE_SCHEDULE']
++
+@@ -3242 +3245,13 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
+-def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
++# Schedule formulas adapted from Recursive's optimized_from_karpathy.py (Apache-2.0):
++# https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/main/nanochat_autoresearch/solutions/optimized_from_karpathy.py
++# Only the separate LR warmdowns, Muon momentum and NorMuon beta2 schedules are used.
++def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0, kind: str='muon') -> float:
++    if RECURSIVE_SCHEDULE:
++        if step < WARMUP_STEPS:
++            return (step + 1) / max(1, WARMUP_STEPS)
++        warmdown_ratio = 0.95 if kind == 'muon' else 0.65
++        progress = min(1.0, max(0.0, elapsed / max(1e-06, max_train_seconds)))
++        if progress < 1.0 - warmdown_ratio:
++            return 1.0
++        cooldown = (1.0 - progress) / warmdown_ratio
++        return cooldown * 1.0 + (1 - cooldown) * 0.05
+@@ -3315,0 +3331,8 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
++    if RECURSIVE_SCHEDULE:
++        frac = min(step / 300, 1.0)
++        m = (1 - frac) * 0.85 + frac * 0.95
++        p = min(1.0, max(0.0, progress))
++        if p > 1.0 - 0.95:
++            cooldown = (p - (1.0 - 0.95)) / 0.95
++            m = 0.95 + cooldown ** 2 * (0.79 - 0.95)
++        return m
+@@ -3360,0 +3384,4 @@ def muon_beta2(progress: float) -> float:
++    if RECURSIVE_SCHEDULE:
++        p = min(1.0, max(0.0, progress))
++        cooldown = max(0.0, (p - (1.0 - 0.95)) / 0.95)
++        return 0.95 + cooldown * (0.97 - 0.95)
+@@ -3405,0 +3433 @@ def main() -> None:
++    global RECURSIVE_SCHEDULE
+@@ -3571,0 +3600 @@ def main() -> None:
++    parser.add_argument('--recursive-schedule', action=argparse.BooleanOptionalAction, default=False, help='Recursive schedule package: Muon/Adam warmdowns 0.95/0.65 with floor 0.05, quadratic Muon momentum to 0.79 and NorMuon beta2 0.95->0.97. Flat table LR takes precedence. Default OFF.')
+@@ -3629,0 +3659 @@ def main() -> None:
++    RECURSIVE_SCHEDULE = args.recursive_schedule
+@@ -3980,0 +4011 @@ def main() -> None:
++        lrm_adam = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds, kind='adamw') if RECURSIVE_SCHEDULE else lrm
+@@ -3986 +4017,2 @@ def main() -> None:
+-            group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm)
++            lrm_group = lrm if group['kind'] == 'muon' else lrm_adam
++            group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm_group)

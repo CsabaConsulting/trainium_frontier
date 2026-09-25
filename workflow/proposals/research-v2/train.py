@@ -196,6 +196,7 @@ loss_scale_skips = 0
 LOSS_SCALE = 1.0
 WARMDOWN_RATIO = 0.75
 FINAL_LR_FRAC = 0.05
+RECURSIVE_SCHEDULE = False
 USE_TENSOR_LR_SCALARS = True
 LRM_QUANTUM = 0
 USE_FOREACH_OPTIM = True
@@ -2911,7 +2912,7 @@ class MuonAdamW(torch.optim.Optimizer):
                 _MUON_COMPILED[key] = fn
                 print0(f'muon step: COMPILED body for {tuple(g.shape)} (tall={key[0]} ns_steps={ns_steps} red_dim={red_dim}) [specialisations so far: {len(_MUON_COMPILED)}]')
             lr_t, lrwd_t, mom_t, one_mom_t, one_b2_t = self._muon_compile_scalars(group, p0, ratio)
-            one_beta2 = one_b2_t if MUON_BETA2_FINAL > 0.0 else 1 - group['beta2']
+            one_beta2 = one_b2_t if RECURSIVE_SCHEDULE or MUON_BETA2_FINAL > 0.0 else 1 - group['beta2']
             w, momentum_buffer, second = fn(w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t, key[0], ns_steps, red_dim, g.size(red_dim), one_beta2, COMPUTE_DTYPE == torch.bfloat16, USE_MUON_LR_FP32)
             state['stacked_params'] = w
             state['momentum_buffer'] = momentum_buffer
@@ -3157,6 +3158,8 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
 ARCH_TOGGLE_NAMES = ['PACK_FACTOR', 'INIT_SCALE', 'USE_VE', 'WINDOW_PATTERN', 'SHORT_WINDOW_FRAC', 'ROPE_BASE', 'USE_LOCAL_CONV', 'LOCAL_CONV_KERNEL', 'TRAIN_LOCAL_CONV', 'USE_GATED_MLP', 'USE_WEIGHT_CACHE', 'USE_TRANSPOSED_LINEAR', 'WARMDOWN_RATIO', 'FINAL_LR_FRAC', 'WARMUP_STEPS', 'WD_DECAY_TO_ZERO', 'MUON_MOMENTUM_WARMUP_STEPS', 'USE_DOC_MASK', 'VE_WD', 'USE_SELECTIVE_GATE', 'SELECTIVE_GATE_CHANNELS', 'USE_FUSED_QKV', 'USE_CAUSAL_FASTPATH', 'USE_TRN2_COMPILER_FLAGS', 'COMPILE_SDPA_DIRECT', 'USE_NKI_ATTN', 'USE_NKI_LOCAL_CONV', 'USE_BF16_NORM_OUTPUT', 'USE_BF16_SDPA_INPUT', 'MATRIX_LR', 'EMBEDDING_LR', 'UNEMBEDDING_LR', 'SCALAR_LR', 'WEIGHT_DECAY', 'GRAD_CLIP', 'CLIP_AFTER_REDUCE', 'LOGIT_SOFTCAP', 'LOSS_BYTE_WEIGHT', 'LOSS_SCALE', 'LOSS_SCALE_DYNAMIC', 'ATTN_CPROJ_INIT_SCALE', 'MUON_NS_STEPS', 'MUON_MOMENTUM_COOLDOWN_FRAC', 'MUON_MOMENTUM_FINAL', 'ADAM_EVERY_N', 'ADAM_EVERY_N_LR_COMP', 'DEMON_BETA1', 'DEMON_BETA1_FINAL', 'DEMON_BETA1_REF', 'DEMON_BETA1_START_FRAC', 'MUON_BETA2', 'MUON_BETA2_FINAL', 'MUON_DEPTH_LR_BOTTOM', 'MUON_DEPTH_LR_TOP', 'MUON_DEPTH_MOM_BOTTOM', 'MUON_DEPTH_MOM_TOP', 'MUON_DEPTH_MOM_REF', 'DEPTH', 'N_EMBD', 'HEAD_DIM', 'MLP_RATIO', 'ATTN_SCALE', 'N_KV_HEADS', 'USE_NGRAM_VE', 'NGRAM_VE_LAYERS', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_DIM', 'NGRAM_VE_BF16', 'NGRAM_RMS_FP32', 'USE_NKI_NGRAM_RMS', 'NGRAM_VE_LR', 'NGRAM_VE_BETA2', 'NGRAM_VE_FLAT_LR', 'NGRAM_VE_OPT', 'NGRAM_VE_CLIP_EXCLUDE', 'USE_OUT_BIGRAM', 'OUT_BIGRAM_BF16', 'OUT_BIGRAM_GATE_BIAS', 'OUT_BIGRAM_LR', 'RELU2_TAU', 'USE_MLP_SANDWICH_NORM', 'USE_HEAD_GATE', 'HEAD_GATE_NORM', 'HEAD_GATE_CHANNELS', 'HEAD_GATE_MUL', 'HEAD_GATE_BIAS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'QK_SHIFT_BETA', 'QK_SHIFT_FREEZE', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'BLOCK_NUDGE_SITE', 'USE_QKV_NORM_CSE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_SITE', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'ENGRAM_BF16', 'USE_EPOCH_SHUFFLE', 'EPOCH_SHUFFLE_SEED', 'BATCH_RAMP', 'BATCH_RAMP_GRAD_ACCUM', 'BATCH_RAMP_BOUNDS', 'BATCH_RAMP_LR_EXP', 'USE_WEIGHT_EMA', 'WEIGHT_EMA_DECAYS', 'WEIGHT_EMA_START_FRAC', 'USE_BYTE_WTE_INIT', 'BYTE_WTE_INIT_MIX', 'BYTE_WTE_INIT_NGRAM', 'BYTE_WTE_INIT_STD', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN', 'USE_CAUTIOUS_WD', 'SCALAR_BETA1', 'SCALAR_BETA2']
 SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELECTIVE_GATE', 'USE_FUSED_QKV', 'USE_TRANSPOSED_LINEAR', 'USE_NGRAM_VE', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_DIM', 'USE_OUT_BIGRAM', 'USE_HEAD_GATE', 'HEAD_GATE_CHANNELS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'N_KV_HEADS', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN'}
 
+ARCH_TOGGLE_NAMES += ['RECURSIVE_SCHEDULE']
+
 def current_toggles() -> dict:
     g = globals()
     return {name: g[name] for name in ARCH_TOGGLE_NAMES}
@@ -3239,7 +3242,19 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
     model.requires_grad_(False)
     return model
 
-def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
+# Schedule formulas adapted from Recursive's optimized_from_karpathy.py (Apache-2.0):
+# https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/main/nanochat_autoresearch/solutions/optimized_from_karpathy.py
+# Only the separate LR warmdowns, Muon momentum and NorMuon beta2 schedules are used.
+def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0, kind: str='muon') -> float:
+    if RECURSIVE_SCHEDULE:
+        if step < WARMUP_STEPS:
+            return (step + 1) / max(1, WARMUP_STEPS)
+        warmdown_ratio = 0.95 if kind == 'muon' else 0.65
+        progress = min(1.0, max(0.0, elapsed / max(1e-06, max_train_seconds)))
+        if progress < 1.0 - warmdown_ratio:
+            return 1.0
+        cooldown = (1.0 - progress) / warmdown_ratio
+        return cooldown * 1.0 + (1 - cooldown) * 0.05
     if step < WARMUP_STEPS:
         return (step + 1) / max(1, WARMUP_STEPS)
     if WARMDOWN_RATIO <= 0.0:
@@ -3313,6 +3328,14 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
     therefore does not need the _device_scalar treatment. Verified again by watching dt across the
     cooldown window of the A/B run itself, not just inferred from history.
     """
+    if RECURSIVE_SCHEDULE:
+        frac = min(step / 300, 1.0)
+        m = (1 - frac) * 0.85 + frac * 0.95
+        p = min(1.0, max(0.0, progress))
+        if p > 1.0 - 0.95:
+            cooldown = (p - (1.0 - 0.95)) / 0.95
+            m = 0.95 + cooldown ** 2 * (0.79 - 0.95)
+        return m
     frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
     m = (1 - frac) * 0.85 + frac * 0.95
     if MUON_MOMENTUM_COOLDOWN_FRAC > 0.0:
@@ -3358,6 +3381,10 @@ def muon_beta2(progress: float) -> float:
     guard and therefore a per-step recompile of the whole optimizer graph. When the ramp IS on,
     _muon_step routes `1 - beta2` through _muon_compile_scalars as a device tensor instead.
     """
+    if RECURSIVE_SCHEDULE:
+        p = min(1.0, max(0.0, progress))
+        cooldown = max(0.0, (p - (1.0 - 0.95)) / 0.95)
+        return 0.95 + cooldown * (0.97 - 0.95)
     if MUON_BETA2_FINAL <= 0.0:
         return MUON_BETA2
     p = min(1.0, max(0.0, progress))
@@ -3403,6 +3430,7 @@ def muon_depth_mults(depths: list[int | None], n_layer: int) -> tuple[list[float
     return (lr_mult, mom_mult)
 
 def main() -> None:
+    global RECURSIVE_SCHEDULE
     global NGRAM_VE_FREEZE_EPOCH, FRESH_TAIL_FRAC, REQUEUE_IDENTITY
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
@@ -3569,6 +3597,7 @@ def main() -> None:
     _hp('--weight-decay', WEIGHT_DECAY, float, "T0.4: Muon groups' weight decay (decayed to zero over the run unless --no-wd-decay-to-zero). Currently 0.10.")
     _hp('--final-lr-frac', FINAL_LR_FRAC, float, 'T0.4: LR floor at the end of cooldown as a fraction of peak. Currently 0.05.')
     _hp('--warmdown-ratio', WARMDOWN_RATIO, float, 'T0.4: fraction of the wall-clock budget spent on LR cooldown. Currently 0.75.')
+    parser.add_argument('--recursive-schedule', action=argparse.BooleanOptionalAction, default=False, help='Recursive schedule package: Muon/Adam warmdowns 0.95/0.65 with floor 0.05, quadratic Muon momentum to 0.79 and NorMuon beta2 0.95->0.97. Flat table LR takes precedence. Default OFF.')
     _hp('--init-scale', INIT_SCALE, float, 'T0.4: multiplier on the attn/mlp uniform-init bound. Currently 0.68.')
     _hp('--attn-cproj-init', ATTN_CPROJ_INIT_SCALE, float, 'T0.4: attn.c_proj init bound as a multiple of the shared bound s; 0.0 (default) keeps the historical exact-zero init.')
     _hp('--logit-softcap', LOGIT_SOFTCAP, float, 'T0.4: tanh logit softcap. Currently 15.0.')
@@ -3627,6 +3656,7 @@ def main() -> None:
     WD_DECAY_TO_ZERO = args.wd_decay_to_zero
     FINAL_LR_FRAC = args.final_lr_frac
     WARMDOWN_RATIO = args.warmdown_ratio
+    RECURSIVE_SCHEDULE = args.recursive_schedule
     INIT_SCALE = args.init_scale
     ATTN_CPROJ_INIT_SCALE = args.attn_cproj_init
     LOGIT_SOFTCAP = args.logit_softcap
@@ -3978,12 +4008,14 @@ def main() -> None:
         clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)
         debug_numerics('clip_and_reduce', step, last_loss, inspect_tensors=True)
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
+        lrm_adam = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds, kind='adamw') if RECURSIVE_SCHEDULE else lrm
         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
         wd_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
         demon_b1 = demon_beta1_scale(wd_progress)
         muon_b2 = muon_beta2(wd_progress)
         for group in optimizer.param_groups:
-            group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm)
+            lrm_group = lrm if group['kind'] == 'muon' else lrm_adam
+            group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm_group)
             if group['kind'] == 'muon':
                 group['momentum'] = muon_momentum(step, wd_progress)
                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
