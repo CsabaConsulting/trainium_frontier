@@ -3,16 +3,21 @@
 
 from __future__ import annotations
 
+import ast
 import os
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import test_root_free_guard_monitor as fixtures
 import test_paired_root_free_guard_monitor as pairfixtures
 import root_free_guard_monitor as base
+import fresh_start_guard as guard_host
+import fresh_start_host as host
 
 
 class R4InterlockImplementationTest(unittest.TestCase):
@@ -201,6 +206,110 @@ class R4InterlockImplementationTest(unittest.TestCase):
         self.assertEqual(monitor.state, "HOLD")
         self.assertIn("QUIESCENT_HOLD", [event for event, _ in case.journal.events])
 
+    def test_markerless_worker_in_live_child_session_is_reenumerated_and_killed(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        system.free = case.binding["stop_free_bytes"]
+        system.time += 0.25
+        self.assertIsNone(monitor.tick())
+        worker_pid = 12348
+        system.procs[worker_pid] = base.ProcInfo(
+            worker_pid, os.getuid(), 88006, case.child_pid,
+            case.child_pid, case.child_pid, ("/usr/bin/env", "-i", "worker"),
+            "/usr/bin/env")
+        self.assertNotIn(worker_pid, system.owned_pids)
+        for _ in range(500):
+            if monitor.state == "KILLING":
+                break
+            system.time += 0.25
+            self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertIn(("KILL", worker_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.child_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.guard_pid + 100000), system.signals)
+
+    def test_markerless_session_worker_surviving_guard_child_blocks_clean_finish(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        worker_pid = 12349
+        system.procs[worker_pid] = base.ProcInfo(
+            worker_pid, os.getuid(), 88007, 1, worker_pid, case.child_pid,
+            ("/usr/bin/sleep", "3600"), "/usr/bin/sleep")
+        self.assertNotIn(worker_pid, system.owned_pids)
+        system.procs[case.guard_pid] = None
+        system.procs[case.child_pid] = None
+        system.files[monitor.postflight_path] = {
+            "label": case.binding["label"], "host_clean": True,
+            "command_returncode": 0,
+        }
+        system.time += 0.25
+        self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", worker_pid + 100000), system.signals)
+        for _ in range(130):
+            system.time += 0.25
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
+        self.assertEqual(monitor.state, "HOLD")
+        self.assertIn("UNPROVEN_PROCESS_HOLD", [event for event, _ in case.journal.events])
+        self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
+
+    def test_changed_session_orphan_with_marker_is_hold_only(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        orphan_pid = 12350
+        system.procs[orphan_pid] = base.ProcInfo(
+            orphan_pid, os.getuid(), 88008, 1, orphan_pid, orphan_pid,
+            ("/usr/bin/worker",), "/usr/bin/worker")
+        system.owned_pids.add(orphan_pid)
+        system.procs[case.guard_pid] = None
+        system.procs[case.child_pid] = None
+        system.files[monitor.postflight_path] = {
+            "label": case.binding["label"], "host_clean": True,
+            "command_returncode": 0,
+        }
+        system.time += 0.25
+        self.assertIsNone(monitor.tick())
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", orphan_pid + 100000), system.signals)
+        for _ in range(130):
+            system.time += 0.25
+            result = monitor.tick()
+            if result is not None:
+                break
+        self.assertEqual(result, 3)
+        self.assertEqual(monitor.state, "HOLD")
+        self.assertIn("UNPROVEN_PROCESS_HOLD", [event for event, _ in case.journal.events])
+
+    def test_replaced_worker_pid_between_inventory_and_pidfd_is_not_killed(self):
+        case = self.base_case()
+        monitor, system = case.monitor, case.system
+        worker_pid = 12351
+        worker = base.ProcInfo(
+            worker_pid, os.getuid(), 88009, case.child_pid,
+            case.child_pid, case.child_pid,
+            ("/usr/bin/worker",), "/usr/bin/worker")
+        system.procs[worker_pid] = worker
+        old_open_pidfd = system.open_pidfd
+
+        def open_with_reuse(pid):
+            pidfd = old_open_pidfd(pid)
+            if pid == worker_pid:
+                system.procs[worker_pid] = base.ProcInfo(
+                    worker_pid, os.getuid(), worker.birth_ticks + 1, 1,
+                    worker_pid, worker_pid,
+                    ("/usr/bin/unrelated",), "/usr/bin/unrelated")
+            return pidfd
+
+        system.open_pidfd = open_with_reuse
+        monitor._escalate_kill("synthetic worker replacement")
+        self.assertEqual(monitor.state, "KILLING")
+        self.assertNotIn(("KILL", worker_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.child_pid + 100000), system.signals)
+        self.assertIn(("KILL", case.guard_pid + 100000), system.signals)
+
     def test_same_uid_marker_spoof_outside_child_session_is_never_killed(self):
         case = self.base_case()
         monitor, system = case.monitor, case.system
@@ -231,8 +340,31 @@ class R4InterlockImplementationTest(unittest.TestCase):
         self.assertEqual(result, 3)
         self.assertEqual(monitor.state, "HOLD")
         self.assertNotIn(("KILL", spoof_pid + 100000), system.signals)
-        self.assertIn("MARKER_ONLY_PROCESS_HOLD", [event for event, _ in case.journal.events])
+        self.assertIn("UNPROVEN_PROCESS_HOLD", [event for event, _ in case.journal.events])
         self.assertIn("UNRESOLVED_HOLD", [event for event, _ in case.journal.events])
+
+    def test_host_cleanup_never_signals_same_uid_marker_spoof(self):
+        spoof_pid = 45679
+        spoof = {"pid": spoof_pid, "start_ticks": 88005,
+                 "session": spoof_pid, "state": "S", "argv": ["unrelated"]}
+        with (patch.object(host, "owned_processes", return_value=[spoof]),
+              patch.object(host, "session_processes", return_value=[]),
+              patch.object(host.os, "kill", side_effect=AssertionError("numeric signal"))):
+            result = host.cleanup_owned("fs-synthetic-marker-spoof", 12346)
+        self.assertEqual(result["actions"], [])
+        self.assertEqual(result["remaining"], [spoof])
+        self.assertEqual(result["signal_policy"], "inventory_only_unproven_ownership_hold")
+
+    def test_guard_and_host_have_no_numeric_process_signal_calls(self):
+        for module in (host, guard_host):
+            tree = ast.parse(Path(module.__file__).read_text())
+            numeric_calls = [node for node in ast.walk(tree)
+                             if isinstance(node, ast.Call)
+                             and isinstance(node.func, ast.Attribute)
+                             and isinstance(node.func.value, ast.Name)
+                             and node.func.value.id == "os"
+                             and node.func.attr in ("kill", "killpg")]
+            self.assertEqual(numeric_calls, [], module.__name__)
 
     def test_term_and_kill_ignoring_guard_child_end_in_explicit_unresolved_hold(self):
         case = self.base_case()

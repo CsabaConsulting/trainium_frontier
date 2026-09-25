@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Host-wide experiment ownership, bounded health capture and owned cleanup.
+"""Host-wide experiment ownership, bounded health capture and process inventory.
 
-No broad process killing, driver changes, cache deletion or artifact deletion.
+No marker-derived process killing, driver changes, cache deletion or artifact deletion.
 The launcher holds the same lock through setup, workload, cleanup and postflight.
 """
 from datetime import datetime, timezone
@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 import re
 import shutil
-import signal
 import socket
 import subprocess
 import time
@@ -96,34 +95,42 @@ def owned_processes(label):
             record = process_record(int(root.name))
             if record and record['state'] != 'Z':
                 result.append(record)
-        except (OSError, ValueError, IndexError):
+        except (FileNotFoundError, ProcessLookupError):
             continue
     return result
 
 
-def cleanup_owned(label):
-    """Only a matching UID, unique marker and unchanged process birth qualify."""
-    actions = []
-    for sig, grace in ((signal.SIGTERM, 8), (signal.SIGKILL, 3)):
-        pending = owned_processes(label)
-        if not pending:
-            break
-        for old in pending:
-            try:
-                current = process_record(old['pid'])
-                if current is None or current['start_ticks'] != old['start_ticks']:
-                    continue
-                if not any(p['pid'] == old['pid'] for p in owned_processes(label)):
-                    continue
-                os.kill(old['pid'], sig)
-                actions.append(dict(pid=old['pid'], start_ticks=old['start_ticks'],
-                                    signal=sig.name, argv=old['argv']))
-            except (OSError, ProcessLookupError):
-                continue
-        deadline = time.monotonic() + grace
-        while owned_processes(label) and time.monotonic() < deadline:
-            time.sleep(0.25)
-    return dict(actions=actions, remaining=owned_processes(label),
+def session_processes(session):
+    """Inventory live same-UID session members without granting signal authority."""
+    if type(session) is not int or session <= 0:
+        return []
+    result = []
+    for root in Path('/proc').iterdir():
+        if not root.name.isdigit() or int(root.name) == os.getpid():
+            continue
+        try:
+            record = process_record(int(root.name))
+            if record and record['state'] != 'Z' and record['session'] == session:
+                result.append(record)
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    return result
+
+
+def cleanup_owned(label, child_session=None):
+    """Inventory possible leftovers; public markers never authorize a signal.
+
+    A previous run has no live authenticated pidfd anchor, and the guard may
+    have reaped its child before postflight. In either case we cannot safely
+    escalate from a marker or numeric PID. The caller must HOLD on remaining
+    processes while the independently bound monitor handles live containment.
+    """
+    remaining = {(p['pid'], p['start_ticks']): p
+                 for p in owned_processes(label)}
+    for process in session_processes(child_session):
+        remaining[(process['pid'], process['start_ticks'])] = process
+    return dict(actions=[], remaining=list(remaining.values()),
+                signal_policy='inventory_only_unproven_ownership_hold',
                 artifacts_deleted=[], caches_deleted=[], driver_modified=False)
 
 
@@ -227,11 +234,15 @@ def health_failures(record, exclude_pids=()):
 
 def preflight(remote, label):
     previous = json.loads(HOST_STATE.read_text()) if HOST_STATE.exists() else None
-    pre_cleanup = cleanup_owned(previous['label']) if previous else dict(actions=[], remaining=[])
+    pre_cleanup = cleanup_owned(previous['label'], previous.get('child_session')) if previous else dict(actions=[], remaining=[])
     record = snapshot(remote, previous.get('completed_at') if previous else None)
     record.update(label=label, remote=str(remote), stage='preflight', previous_postflight=previous,
                   cleanup=pre_cleanup)
     record['failures'] = health_failures(record, (os.getpid(), os.getppid()))
+    if previous and previous.get('host_clean') is not True:
+        record['failures'].append('previous postflight was not host-clean')
+    if pre_cleanup['remaining']:
+        record['failures'].append('previous run has unproven live processes; cleanup is HOLD-only')
     record['passed'] = not record['failures']
     write_json(Path(remote) / 'research/run-logs' / (label + '.preflight.json'), record)
     if record['failures']:

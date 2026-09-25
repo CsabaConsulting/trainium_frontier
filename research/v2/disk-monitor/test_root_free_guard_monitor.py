@@ -98,6 +98,10 @@ class FakeSystem:
         return [self.procs[pid] for pid in self.owned_pids
                 if self.procs.get(pid) is not None]
 
+    def session_processes(self, session):
+        return [proc for proc in self.procs.values()
+                if proc is not None and proc.session == session]
+
     def has_marker(self, pid, _label):
         return pid in self.owned_pids
 
