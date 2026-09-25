@@ -1,0 +1,16 @@
+--- a/train.py
++++ b/train.py
+@@ -1432,10 +1432,12 @@
+             startup_allowance_est = min(observed_startup, TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
+             excess = max(0.0, observed_startup + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
+             budget_started = now - excess
++            # Compile-heavy startup samples must not predict steady-state step cost.
++            recent_step_times.clear()
+         elapsed_after_step = time.monotonic() - budget_started
+         reached_min_steps = step + 1 >= TRAIN_STARTUP_STEPS_EXCLUDED
+         step_cap_hit = step + 1 >= args.num_steps
+-        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:]) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
++        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:], default=0.0) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
+         stop_after_step = step_cap_hit or time_budget_hit
+         control = torch.tensor([1 if math.isnan(train_loss) or train_loss > 100 else 0, 1 if stop_after_step else 0], device=device, dtype=torch.int32)
+         if dist.is_available() and dist.is_initialized():

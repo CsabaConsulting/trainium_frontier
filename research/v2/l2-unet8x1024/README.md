@@ -1,5 +1,10 @@
 # L2: 8x1024 U-Net / partial-attention architecture
 
+Update: the subsequent narrow startup-predictor port is documented in
+`startup-predictor-reset/IMPLEMENTATION.md`. Current source SHA-256 is
+`93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5`.
+The model receipts and original architecture handoff below remain bound to 52e234e9.
+
 Implementation candidate, **not host-launch approval**. The Supervisor assigned this
 local Codex L2 lane under Poojith's Final Push directive and exact Lane 2 prompt.
 Only `workflow/proposals/research-v2/train.py` changes model behavior. The evaluator,
