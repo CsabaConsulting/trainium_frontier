@@ -1,6 +1,37 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:42 UTC
+Last reconciled: 2026-09-25 13:35 UTC
+
+## Live break-glass handoff, 13:35 UTC
+
+Both hosts are now occupied with uniquely labelled c5c research-v2 A0
+controls: trn22 launched 13:19:56 UTC and logged its first step; trn21
+launched 13:31:07 UTC with four workers confirmed. Neither control has a
+fresh-process public-20M score yet, and independent post-launch receipt
+review is pending, so no result is available for adoption or table
+comparison. The sole active launch route is the one-off checked manual path;
+workflow-v2's automatic launcher remains disabled. Six future slots per host
+are listed in `research/v2/queue.json` as **conditional planning**, not six
+launch-ready jobs.
+
+The trn21 S0 replay launched at 13:17:22 UTC but failed before the first
+training step. Rank 3 reported a Neuron NKI RNG `module.neff` read failure at
+13:17:43 UTC. A kernel journal line at 13:17:35 UTC records a `python3`
+segfault (PID 2863535), but its parent/role is unproven; no compiler log was
+found in the named debug directory, and no S0 BPB or checkpoint exists.
+The label is consumed and the failure artifacts are preserved. The launch
+used fresh directories named as a cold cache, but did not set Neuron's
+documented `NEURON_COMPILE_CACHE_URL`/`--cache_dir`; actual persistent-cache
+coldness is **unproven**. Per Poojith's latest instruction, next after trn21
+A0 is a new-label S0 warm-cache run; next on a compatible host is a
+new-label known-good 116188 run with a verified empty persistent cache.
+S0 remains a submission HOLD until a clean true-cold full replay, fresh
+public-20M score, and independent review. A1/A2 preparation continues, but
+their exact-size G2/native smoke/same-host control gates are not yet passed.
+
+The prior 12:42 UTC handoff below is historical; its statement that source
+staging is the immediate blocker has been superseded by the human-authorized
+manual path and the launches above.
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
