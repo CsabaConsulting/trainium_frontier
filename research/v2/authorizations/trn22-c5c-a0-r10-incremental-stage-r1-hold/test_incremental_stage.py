@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -308,7 +309,7 @@ class IncrementalStageTests(unittest.TestCase):
         self.assertTrue(enabled.is_file())
         self.assertEqual(
             hashlib.sha256(enabled.read_bytes()).hexdigest(),
-            "d19086a3f0c8aff9835f14f641d528980b12b21f45310070f6613ae261a33958",
+            "25092856f0fef3c1e3cf85e40e45fa0d2d51971b7b8112f50dbc3761770971f2",
         )
         enabled_request = json.loads(enabled.read_text())
         self.assertIs(enabled_request["dispatch_authorized"], True)
@@ -317,22 +318,29 @@ class IncrementalStageTests(unittest.TestCase):
         self.assertEqual(enabled_request["attempt_label"], remote.LABEL)
         self.assertEqual(enabled_request["target"], str(remote.TARGET))
         self.assertEqual(enabled_request["marker"], str(operator.MARKER))
-        self.assertFalse(operator.FINAL_REVIEW.exists())
-        self.assertFalse(operator.ASSIGNMENT.exists())
+        self.assertNotEqual(operator.FINAL_REVIEW,
+                            HERE / "INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW.PASS.json")
+        self.assertNotEqual(operator.ASSIGNMENT,
+                            HERE / "SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT.json")
         contact = mock.Mock(side_effect=AssertionError("contacted"))
-        with mock.patch.object(operator, "_local_stop_and_breakers") as stop, \
-             mock.patch.object(operator, "_ssh_identity") as ssh, \
-             mock.patch.object(operator, "_marker") as marker:
-            if __debug__:
-                with self.assertRaises(FileNotFoundError):
-                    operator.stage_once(remote_call=contact)
-            else:
-                with self.assertRaisesRegex(RuntimeError, "optimized Python"):
-                    operator.stage_once(remote_call=contact)
-            stop.assert_not_called()
-            ssh.assert_not_called()
-            marker.assert_not_called()
-            contact.assert_not_called()
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-missing-r5-") as temp:
+            with mock.patch.object(operator, "FINAL_REVIEW", Path(temp) / "missing-review"), \
+                 mock.patch.object(operator, "ASSIGNMENT", Path(temp) / "missing-assignment"), \
+                 mock.patch.object(operator, "_local_stop_and_breakers") as stop, \
+                 mock.patch.object(operator, "_ssh_identity") as ssh, \
+                 mock.patch.object(operator, "_remote_timeout_identity") as probe, \
+                 mock.patch.object(operator, "_marker") as marker:
+                if __debug__:
+                    with self.assertRaises(FileNotFoundError):
+                        operator.stage_once(remote_call=contact)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "optimized Python"):
+                        operator.stage_once(remote_call=contact)
+                stop.assert_not_called()
+                ssh.assert_not_called()
+                probe.assert_not_called()
+                marker.assert_not_called()
+                contact.assert_not_called()
         with tempfile.TemporaryDirectory(prefix="trn22-r10-authority-") as temp:
             absent = Path(temp) / "enabled.json"
             marker = Path(temp) / "marker"
@@ -343,10 +351,15 @@ class IncrementalStageTests(unittest.TestCase):
                     operator.stage_once(remote_call=fake)
             self.assertFalse(marker.exists())
             fake.assert_not_called()
-        result = subprocess.run(["/usr/bin/python3", "-B", str(HERE / "operator_once.py")],
-                                capture_output=True, text=True, timeout=10, check=False)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("HOLD", result.stderr)
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-entry-isolated-") as temp:
+            copy = Path(temp)
+            for name in ("operator_once.py", "REQUEST.ENABLED_PENDING_FINAL_REVIEW.json",
+                         "e65-to-r10.bundle", "remote_incremental.py"):
+                shutil.copyfile(HERE / name, copy / name)
+            result = subprocess.run(["/usr/bin/python3", "-B", str(copy / "operator_once.py")],
+                                    capture_output=True, text=True, timeout=10, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("HOLD", result.stderr)
 
     def test_stale_documents_state_cannot_hide_tripped_desktop_breaker(self):
         with tempfile.TemporaryDirectory(prefix="trn22-r10-controller-root-") as temp:
@@ -393,15 +406,17 @@ class IncrementalStageTests(unittest.TestCase):
             marker.assert_not_called()
             remote_call.assert_not_called()
 
-    def test_absolute_timeout_gate_blocks_fake_contact(self):
+    def test_remote_timeout_gate_blocks_fake_contact(self):
         fake = mock.Mock()
         with mock.patch.object(operator, "_local_stop_and_breakers"), \
              mock.patch.object(operator, "_ssh_identity"), \
              mock.patch.object(operator.subprocess, "run", return_value=types.SimpleNamespace(
                  returncode=0, stderr=b"", stdout=b"fake timeout\n")) as run:
-            with self.assertRaises(RuntimeError):
+            with self.assertRaisesRegex(RuntimeError, "remote absolute GNU timeout identity"):
                 operator._ssh_phase("preflight", None, b"", b"# empty\n")
-            self.assertEqual(run.call_args.args[0][0], "/usr/bin/timeout")
+            self.assertEqual(run.call_args.args[0][0], "/usr/bin/ssh")
+            self.assertEqual(run.call_args.args[0][-1],
+                             "/usr/bin/env -i LC_ALL=C /usr/bin/timeout --version")
         fake.assert_not_called()
 
     def test_forged_enabled_request_holds_before_marker_or_contact(self):
@@ -478,6 +493,7 @@ class IncrementalStageTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(operator, "_authority"))
                 stack.enter_context(mock.patch.object(operator, "_local_stop_and_breakers"))
                 stack.enter_context(mock.patch.object(operator, "_ssh_identity"))
+                stack.enter_context(mock.patch.object(operator, "_remote_timeout_identity"))
                 with self.assertRaises(RuntimeError):
                     operator.stage_once(remote_call=fake_remote)
             self.assertEqual(calls, ["preflight", "write", "postflight"])
@@ -517,6 +533,7 @@ class IncrementalStageTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(operator, "_authority"))
                 stack.enter_context(mock.patch.object(operator, "_local_stop_and_breakers"))
                 stack.enter_context(mock.patch.object(operator, "_ssh_identity"))
+                stack.enter_context(mock.patch.object(operator, "_remote_timeout_identity"))
                 with self.assertRaisesRegex(RuntimeError, "final STOP/label/holder/disk/open proof"):
                     operator.stage_once(remote_call=fake_remote)
             self.assertEqual(calls, ["preflight", "write", "postflight"])

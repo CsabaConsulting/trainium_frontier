@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -15,7 +16,7 @@ from unittest import mock
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 REQUEST = HERE / "REQUEST.ENABLED_PENDING_FINAL_REVIEW.json"
-EXPECTED_REQUEST_SHA256 = "d19086a3f0c8aff9835f14f641d528980b12b21f45310070f6613ae261a33958"
+EXPECTED_REQUEST_SHA256 = "25092856f0fef3c1e3cf85e40e45fa0d2d51971b7b8112f50dbc3761770971f2"
 
 spec = importlib.util.spec_from_file_location(
     "trn22_r10_stage_operator_under_test", HERE / "operator_once.py"
@@ -105,15 +106,36 @@ class EnabledPendingRequestTests(unittest.TestCase):
              disabled["attempt_label"], disabled["one_attempt_marker"]),
         )
 
-    def test_no_final_review_or_assignment_files_exist(self):
-        self.assertFalse(operator.FINAL_REVIEW.exists())
-        self.assertFalse(operator.ASSIGNMENT.exists())
+    def test_new_r5_authorities_are_distinct_from_preserved_r4_evidence(self):
+        prior_review = HERE / "INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW.PASS.json"
+        prior_assignment = HERE / "SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT.json"
+        self.assertEqual(sha256(prior_review.read_bytes()),
+                         "c9be026c2609fbbdcfdc85005630675959a2b6661befb91268dd4cf73d59d615")
+        self.assertEqual(sha256(prior_assignment.read_bytes()),
+                         "ed07f024e45b5a606c4c8ed3f0ad6bc335a6bcaead548bf89c1e0cbcd2ec5bb4")
+        self.assertNotEqual(operator.FINAL_REVIEW, prior_review)
+        self.assertNotEqual(operator.ASSIGNMENT, prior_assignment)
+        self.assertIn("R5", operator.FINAL_REVIEW.name)
+        self.assertIn("R5", operator.ASSIGNMENT.name)
         self.assertEqual(operator.ENABLED_REQUEST, REQUEST)
+        old_review = json.loads(prior_review.read_text())
+        old_assignment = json.loads(prior_assignment.read_text())
+        self.assertNotEqual(old_review["schema"],
+                            "trn22-r10-incremental-stage-r1-r5-independent-final-review-v1")
+        self.assertNotEqual(old_assignment["schema"],
+                            "trn22-r10-incremental-stage-r1-r5-supervisor-assignment-v1")
+        with self.assertRaisesRegex(RuntimeError, "actual independent final source-stage PASS"):
+            operator._authority(
+                json.loads(REQUEST.read_text()), sha256(REQUEST.read_bytes()),
+                old_review, sha256(prior_review.read_bytes()), old_assignment,
+                sha256((HERE / "remote_incremental.py").read_bytes()),
+                sha256((HERE / "operator_once.py").read_bytes()),
+            )
 
     def test_runbook_command_targets_exact_repaired_operator(self):
         designated_operator = Path(
             "/home/poojith-devan/Documents/ChatGPT/"
-            "Trainium-trn22-r10-stage-r4-stop-recheck-r1/"
+            "Trainium-trn22-r10-remote-timeout-repair-r1-disabled/"
             "research/v2/authorizations/"
             "trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py"
         )
@@ -123,27 +145,32 @@ class EnabledPendingRequestTests(unittest.TestCase):
         self.assertEqual(commands, ["/usr/bin/python3 -B " + str(designated_operator)])
         operator_hash = json.loads(REQUEST.read_text())["operator_source_sha256"]
         self.assertEqual(operator_hash,
-                         "af888c89dbed4360895e5cf93299095efe3280893dafd1e504cd88b6a9c4408f")
+                         "6224763c0acdbba8bfadf4281498fe9801a8b8d4aaee3d37f8b58f2f97b412be")
         self.assertEqual(sha256((HERE / "operator_once.py").read_bytes()), operator_hash)
         self.assertEqual(sha256(designated_operator.read_bytes()), operator_hash)
 
     def test_enabled_request_alone_refuses_before_ssh_or_marker(self):
         remote_call = mock.Mock(side_effect=AssertionError("remote called"))
-        with (
-            mock.patch.object(operator, "_local_stop_and_breakers") as stop,
-            mock.patch.object(operator, "_ssh_identity") as ssh,
-            mock.patch.object(operator, "_marker") as marker,
-        ):
-            if sys.flags.optimize:
-                with self.assertRaisesRegex(RuntimeError, "optimized Python"):
-                    operator.stage_once(remote_call=remote_call)
-            else:
-                with self.assertRaises(FileNotFoundError):
-                    operator.stage_once(remote_call=remote_call)
-            stop.assert_not_called()
-            ssh.assert_not_called()
-            marker.assert_not_called()
-            remote_call.assert_not_called()
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-absent-r5-") as temp:
+            with (
+                mock.patch.object(operator, "FINAL_REVIEW", Path(temp) / "missing-review"),
+                mock.patch.object(operator, "ASSIGNMENT", Path(temp) / "missing-assignment"),
+                mock.patch.object(operator, "_local_stop_and_breakers") as stop,
+                mock.patch.object(operator, "_ssh_identity") as ssh,
+                mock.patch.object(operator, "_remote_timeout_identity") as probe,
+                mock.patch.object(operator, "_marker") as marker,
+            ):
+                if sys.flags.optimize:
+                    with self.assertRaisesRegex(RuntimeError, "optimized Python"):
+                        operator.stage_once(remote_call=remote_call)
+                else:
+                    with self.assertRaises(FileNotFoundError):
+                        operator.stage_once(remote_call=remote_call)
+                stop.assert_not_called()
+                ssh.assert_not_called()
+                probe.assert_not_called()
+                marker.assert_not_called()
+                remote_call.assert_not_called()
 
     def test_even_an_in_memory_review_without_assignment_refuses(self):
         if sys.flags.optimize:
@@ -156,20 +183,24 @@ class EnabledPendingRequestTests(unittest.TestCase):
             return original_json(path)
 
         remote_call = mock.Mock(side_effect=AssertionError("remote called"))
-        with (
-            mock.patch.object(operator, "_json", side_effect=without_assignment),
-            mock.patch.object(operator, "_local_stop_and_breakers") as stop,
-            mock.patch.object(operator, "_ssh_identity") as ssh,
-            mock.patch.object(operator, "_marker") as marker,
-        ):
-            with self.assertRaises(FileNotFoundError):
-                operator.stage_once(remote_call=remote_call)
-            stop.assert_not_called()
-            ssh.assert_not_called()
-            marker.assert_not_called()
-            remote_call.assert_not_called()
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-absent-assignment-") as temp:
+            with (
+                mock.patch.object(operator, "ASSIGNMENT", Path(temp) / "missing-assignment"),
+                mock.patch.object(operator, "_json", side_effect=without_assignment),
+                mock.patch.object(operator, "_local_stop_and_breakers") as stop,
+                mock.patch.object(operator, "_ssh_identity") as ssh,
+                mock.patch.object(operator, "_remote_timeout_identity") as probe,
+                mock.patch.object(operator, "_marker") as marker,
+            ):
+                with self.assertRaises(FileNotFoundError):
+                    operator.stage_once(remote_call=remote_call)
+                stop.assert_not_called()
+                ssh.assert_not_called()
+                probe.assert_not_called()
+                marker.assert_not_called()
+                remote_call.assert_not_called()
 
-    def _check_late_desktop_change(self, kind):
+    def _check_late_desktop_change(self, kind, during):
         with tempfile.TemporaryDirectory(prefix="trn22-r10-late-local-") as temp:
             root = Path(temp)
             desktop = root / "Desktop" / "Trainium"
@@ -187,12 +218,20 @@ class EnabledPendingRequestTests(unittest.TestCase):
             state_file.write_text(json.dumps(state), encoding="utf-8")
             marker_path = root / "one-attempt-marker"
 
-            def identity_then_change_desktop():
+            def change_desktop():
                 if kind == "STOP":
                     (control / "STOP").write_text("synthetic late STOP\n", encoding="utf-8")
                 else:
                     state["breakers"]["trn22"]["tripped"] = True
                     state_file.write_text(json.dumps(state), encoding="utf-8")
+
+            def identity_then_change_desktop():
+                if during == "identity":
+                    change_desktop()
+
+            def probe_then_change_desktop():
+                if during == "probe":
+                    change_desktop()
 
             remote_call = mock.Mock(side_effect=AssertionError("SSH attempted"))
             # Exercise the seam under both normal and -O bytecode. The real -O
@@ -213,6 +252,8 @@ class EnabledPendingRequestTests(unittest.TestCase):
                 mock.patch.object(operator, "_authority"),
                 mock.patch.object(operator, "_ssh_identity",
                                   side_effect=identity_then_change_desktop) as identity,
+                mock.patch.object(operator, "_remote_timeout_identity",
+                                  side_effect=probe_then_change_desktop) as probe,
                 mock.patch.object(operator, "_local_stop_and_breakers",
                                   wraps=operator._local_stop_and_breakers) as stop,
                 mock.patch.object(operator, "_marker", wraps=operator._marker) as marker,
@@ -221,28 +262,45 @@ class EnabledPendingRequestTests(unittest.TestCase):
                           "controller STOP/breaker/launch state")
                 with self.assertRaisesRegex(RuntimeError, reason):
                     operator.stage_once(remote_call=remote_call)
-                self.assertEqual(stop.call_count, 2)
+                self.assertEqual(stop.call_count, 2 if during == "identity" else 3)
                 identity.assert_called_once_with()
+                if during == "identity":
+                    probe.assert_not_called()
+                else:
+                    probe.assert_called_once_with()
                 marker.assert_not_called()
                 remote_call.assert_not_called()
             self.assertFalse(marker_path.exists())
 
     def test_late_desktop_stop_after_identity_refuses_before_marker(self):
-        self._check_late_desktop_change("STOP")
+        self._check_late_desktop_change("STOP", "identity")
 
     def test_late_desktop_breaker_after_identity_refuses_before_marker(self):
-        self._check_late_desktop_change("breaker")
+        self._check_late_desktop_change("breaker", "identity")
+
+    def test_late_desktop_stop_after_remote_probe_refuses_before_marker(self):
+        self._check_late_desktop_change("STOP", "probe")
+
+    def test_late_desktop_breaker_after_remote_probe_refuses_before_marker(self):
+        self._check_late_desktop_change("breaker", "probe")
 
     def test_direct_entrypoint_holds_in_normal_and_optimized_python(self):
-        for flags in (["-B"], ["-O", "-B"]):
-            with self.subTest(flags=flags):
-                result = subprocess.run(
-                    [sys.executable, *flags, str(HERE / "operator_once.py")],
-                    cwd=ROOT, stdin=subprocess.DEVNULL,
-                    text=True, capture_output=True, timeout=15, check=False,
-                )
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("HOLD:", result.stderr)
+        # Run from an isolated copy with no r5 authority. This remains safe
+        # even after an independent review and assignment are later added.
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-entry-hold-") as temp:
+            copy = Path(temp)
+            for name in ("operator_once.py", "REQUEST.ENABLED_PENDING_FINAL_REVIEW.json",
+                         "e65-to-r10.bundle", "remote_incremental.py"):
+                shutil.copyfile(HERE / name, copy / name)
+            for flags in (["-B"], ["-O", "-B"]):
+                with self.subTest(flags=flags):
+                    result = subprocess.run(
+                        [sys.executable, *flags, str(copy / "operator_once.py")],
+                        cwd=ROOT, stdin=subprocess.DEVNULL,
+                        text=True, capture_output=True, timeout=15, check=False,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("HOLD:", result.stderr)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,7 @@
 """One-attempt trn22 e65->r10 direct source stage, DISABLED/HOLD.
 
-No enabled request, independent final PASS, or Supervisor assignment is in
-this package. ``main`` therefore exits before a marker, journal, or SSH.
-Only a later exact separately reviewed request can enter ``stage_once``.
+Prior r4 review and assignment are retained as evidence but cannot satisfy
+the distinct, absent r5 authorities. ``main`` exits before marker or SSH.
 """
 
 import hashlib
@@ -10,6 +9,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import shlex
 import stat
 import subprocess
@@ -21,8 +21,8 @@ REMOTE = HERE / "remote_incremental.py"
 BUNDLE = HERE / "e65-to-r10.bundle"
 DISABLED_REQUEST = HERE / "REQUEST.HOLD.json"
 ENABLED_REQUEST = HERE / "REQUEST.ENABLED_PENDING_FINAL_REVIEW.json"
-FINAL_REVIEW = HERE / "INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW.PASS.json"
-ASSIGNMENT = HERE / "SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT.json"
+FINAL_REVIEW = HERE / "INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW_R5.PASS.json"
+ASSIGNMENT = HERE / "SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT_R5.json"
 MARKER = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/"
               "trn22-c5c-a0-r10-incremental-stage-r1.one-attempt.jsonl")
 PRIOR_MARKERS = tuple(
@@ -160,7 +160,7 @@ def _authority(request, request_hash, review, review_hash, assignment,
     if request != expected_request:
         raise RuntimeError("no exact enabled source-stage request")
     if review != {
-            "schema": "trn22-r10-incremental-stage-r1-independent-final-review-v1",
+            "schema": "trn22-r10-incremental-stage-r1-r5-independent-final-review-v1",
             "verdict": "PASS_SOURCE_STAGE_ONLY",
             "request_sha256": request_hash,
             "remote_source_sha256": remote_hash,
@@ -176,8 +176,8 @@ def _authority(request, request_hash, review, review_hash, assignment,
             "native_training_authorized": False}:
         raise RuntimeError("actual independent final source-stage PASS is absent or mismatched")
     if assignment != {
-            "schema": "trn22-r10-incremental-stage-r1-supervisor-assignment-v1",
-            "assignment_id": "trn22-r10-incremental-stage-r1-one-attempt",
+            "schema": "trn22-r10-incremental-stage-r1-r5-supervisor-assignment-v1",
+            "assignment_id": "trn22-r10-incremental-stage-r1-one-attempt-r5",
             "request_sha256": request_hash,
             "review_sha256": review_hash,
             "scope": SCOPE,
@@ -221,15 +221,35 @@ def _ssh_identity():
         raise RuntimeError("known-hosts changed during identity check")
 
 
+def _pinned_ssh_argv(remote_command):
+    return ["/usr/bin/ssh", "-T", "-F", "/dev/null", "-o", "BatchMode=yes",
+            "-o", "StrictHostKeyChecking=yes", "-o",
+            "UserKnownHostsFile=" + str(KNOWN_HOSTS), "-o", "IdentitiesOnly=yes",
+            "-o", "ConnectTimeout=10", "-i", str(IDENTITY_FILE), ENDPOINT,
+            remote_command]
+
+
+def _remote_timeout_identity():
+    # The deadline runs on trn22, not on this local controller. This probe is
+    # read-only, pinned to the same host/options, and bounded before any phase.
+    command = "/usr/bin/env -i LC_ALL=C /usr/bin/timeout --version"
+    try:
+        version = subprocess.run(_pinned_ssh_argv(command), input=b"",
+                                 capture_output=True, timeout=25, check=False)
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError("remote absolute timeout identity probe timed out") from error
+    first_line = version.stdout.split(b"\n", 1)[0]
+    if (version.returncode != 0 or version.stderr or len(version.stdout) > 4096 or
+            re.fullmatch(rb"timeout \(GNU coreutils\) [0-9]+(?:\.[0-9]+){1,3}",
+                         first_line) is None):
+        raise RuntimeError("remote absolute GNU timeout identity check failed")
+
+
 def _ssh_phase(phase, prior, data, remote_source):
     _local_stop_and_breakers()
     _ssh_identity()
-    version = subprocess.run(["/usr/bin/timeout", "--version"],
-                             env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
-                             capture_output=True, timeout=5, check=False)
-    if (version.returncode != 0 or version.stderr or
-            not version.stdout.startswith(b"timeout (GNU coreutils) ")):
-        raise RuntimeError("absolute GNU timeout identity check failed")
+    _local_stop_and_breakers()
+    _remote_timeout_identity()
     # A fresh isolated Python process executes exact, hash-checked source.
     program = ("import json,sys\n"
                "if sys.flags.optimize: raise SystemExit('optimized Python HOLD')\n"
@@ -244,11 +264,8 @@ def _ssh_phase(phase, prior, data, remote_source):
                "/usr/bin/python3", "-I", "-B", "-c", program, phase,
                json.dumps(prior, sort_keys=True, separators=(",", ":"))]
     remote_command = " ".join(shlex.quote(item) for item in command)
-    argv = ["/usr/bin/ssh", "-T", "-F", "/dev/null", "-o", "BatchMode=yes",
-            "-o", "StrictHostKeyChecking=yes", "-o",
-            "UserKnownHostsFile=" + str(KNOWN_HOSTS), "-o", "IdentitiesOnly=yes",
-            "-o", "ConnectTimeout=10", "-i", str(IDENTITY_FILE), ENDPOINT,
-            remote_command]
+    argv = _pinned_ssh_argv(remote_command)
+    _local_stop_and_breakers()
     result = subprocess.run(argv, input=data, capture_output=True,
                             timeout=350, check=False)
     if result.returncode != 0 or result.stderr or len(result.stdout) > 2 * 1024 * 1024:
@@ -304,7 +321,7 @@ def stage_once(remote_call=_ssh_phase):
     """
     if sys.flags.optimize or os.environ.get("PYTHONOPTIMIZE") is not None:
         raise RuntimeError("optimized Python or inherited optimization is forbidden")
-    # Current disabled package contains no enabled file; this is first gate.
+    # The new r5 review and assignment are absent; old r4 files cannot pass.
     request, request_hash = _json(ENABLED_REQUEST)
     if request.get("dispatch_authorized") is not True:
         raise RuntimeError("source staging not enabled")
@@ -317,6 +334,8 @@ def stage_once(remote_call=_ssh_phase):
                remote_hash, operator_hash)
     _local_stop_and_breakers()
     _ssh_identity()
+    _local_stop_and_breakers()
+    _remote_timeout_identity()
     _local_stop_and_breakers()
     marker_fd = _marker(request_hash, review_hash, assignment_hash)
     preflight = write = readback = postflight = None
