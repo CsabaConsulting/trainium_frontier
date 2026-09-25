@@ -1,0 +1,195 @@
+{
+  "candidate_status": "e4d93 REFUSE unchanged",
+  "cases": [
+    {
+      "case": "review_large",
+      "dense_cpu_exact": true,
+      "dense_row3": 0.0,
+      "gradient_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "manual_exact": true,
+      "ordered_row3": 0.0,
+      "per_row_order_exact": true,
+      "rejected_grouped_row3": 1.0,
+      "shape": [
+        2,
+        128,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 256,
+      "wave_rounds_per_tile": [
+        127,
+        126
+      ]
+    },
+    {
+      "case": "review_unit",
+      "dense_cpu_exact": true,
+      "dense_row3": 0.0,
+      "gradient_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "manual_exact": true,
+      "ordered_row3": 0.0,
+      "per_row_order_exact": true,
+      "rejected_grouped_row3": 5.960464477539063e-08,
+      "shape": [
+        2,
+        128,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 256,
+      "wave_rounds_per_tile": [
+        127,
+        126
+      ]
+    },
+    {
+      "case": "unique",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "c24f5393f46396a459395e3fdfce6419012b52e36b598420dd505af16b5271e8",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        256,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        1,
+        1
+      ]
+    },
+    {
+      "case": "same_id",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "f649856f6d758dfa4d1ac1ba475ba458bd4b7c632c7ef8132736c2f92d639907",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        256,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        128,
+        128
+      ]
+    },
+    {
+      "case": "interleaved_three_tiles",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "8f3eaaaa2a878f9a51e0821ee8be71c6e8c18d64f9bfc72aab4473c1c0ea19df",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        384,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "case": "random_ids",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "d41a7d99ebb60aaaf2e3d2533352ed7472f6a0f3f73f17858baddcfd25f81424",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        384,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        5,
+        4,
+        5
+      ]
+    },
+    {
+      "case": "signed_zero",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        256,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        64,
+        64
+      ]
+    },
+    {
+      "case": "bf16_subnormal",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "2d302cda81ac10c91db6e004c453eb160c8327129a13bd2c8a31fbd0bfecdf98",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        256,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 512,
+      "wave_rounds_per_tile": [
+        64,
+        64
+      ]
+    },
+    {
+      "case": "noncontiguous",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "17a33d01d6a39dab03be65f734fad4d00a9d5ef8fcf6a6ca71afd9dd485e749d",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        128,
+        2,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 256,
+      "wave_rounds_per_tile": [
+        10,
+        10
+      ]
+    },
+    {
+      "case": "empty",
+      "dense_cpu_exact": true,
+      "gradient_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "manual_exact": true,
+      "per_row_order_exact": true,
+      "shape": [
+        0,
+        8
+      ],
+      "tile_prefix_exact": true,
+      "vocabulary": 256,
+      "wave_rounds_per_tile": []
+    }
+  ],
+  "checks_pass": true,
+  "max_channels": 8,
+  "max_tokens": 384,
+  "max_vocabulary": 512,
+  "native_executed": false,
+  "probe_sha256": "9d3460f319dc1bb8f56abbd5e70575551a79ec70304dbb811e5f64f371261105",
+  "python": "3.14.4",
+  "scope": "Researcher CPU arithmetic feasibility only; no candidate implementation",
+  "seed": 42,
+  "threads": 1,
+  "tolerance": "identical dtype/shape/bytes; zero tolerance",
+  "torch": "2.13.0+cpu"
+}
