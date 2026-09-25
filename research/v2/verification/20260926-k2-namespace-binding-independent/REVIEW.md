@@ -1,0 +1,25 @@
+# Independent K2 namespace-successor binding mechanics
+
+**PASS_DISABLED_K2_NAMESPACE_BINDING_MECHANICS_ONLY** for frozen `0abd35a071508679e4d184ca2aeb3ab1295cba3f`, packet `research/v2/proposals/20260926-k2-name-binding-native/`. No source correctness, native result, adoption, staging or launch is approved. The fresh source reviewer is separate and was still running when this receipt was written; none of this review is sent into its inputs.
+
+Own stdlib `audit.py` passes **124 checks normally and under `python3 -O`**. It reuses this Verifier's previously authored mechanical/refusal fixtures, rebound to immutable new pins, not the implementer's PASS labels. Raw fixture results are retained in `RESULT-normal.json` and `RESULT-optimized.json`. No tensor, checker, hardware or host execution occurred; process effects are mocked. Reproduce with `python3 audit.py` / `python3 -O audit.py` from this directory.
+
+Exact pins:
+
+- Binding: `127fbb6a9b4339a3331da76ab70b484cdb92c3573735703a99a4bd91b3a05f72`.
+- Driver: `438139440fca22e55dc097cd59d301d6f69d6e5794705dc3c8015eb31ffaa2ba`.
+- Manifest: `3991cd06963355513f49693e7fb432eb32c09d0d540a4e44459c7503faef9458`.
+- Source commit `d0f0d7fbdbe07ddee39680ee1a2b79fdfac388ca`; consumer `4939265bf73b3d5f42276e72e48f022df338226a40a9be5b79ed63bde6a4f5b8`.
+- Unchanged checker `89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850`, reference `14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f`, receipt validator `c551f7933d410d27eda6755d197c1e83152c72ad0f7285ebf8869a3e4d514b40`.
+
+All manifest and support hashes authenticate. Driver, rank entry and command are byte-identical to `df48361a619baa65fe9864cd815a1cd864d7a789` after only label/root, consumer hash and dependent rank-entry hash substitutions. The checker/reference/validator, environment settings, command structure, timeout, disk floor, guard and dispatcher are unchanged. The complete prior packet remains byte-identical in the new commit. The original native refusal `94fb52c4` is preserved, not reclassified as success.
+
+The single proposed trn22 label is `fs-20260926-k2-resident-consumer-name-binding-trn22-r3`, hostname `ip-172-31-32-253`, with a distinct previously absent packet root. One synchronous four-rank LNC2 synthetic V256/C128/T256 diagnostic retains seed42, one CPU thread per rank, component timing repeat count3, the 600-second child timeout and 60-second TERM grace. Preflight/receipt processing are outside that child timeout. It does not import train.py or prepare/evaluator and has no full/evaluation/next-job route.
+
+The original persistent `/home/ubuntu/.cache/trainium_freshstart/device0.lock` is unchanged. Only the pinned dispatch→flock→driver route is specified, not direct checker/command invocation. The driver authenticates the inherited lock and fresh ps AND neuron-ls checks before its one child; that child inherits the authenticated FD. Six absent/empty private SDK cache directories are recorded before execution and compiler URL equals DIR; actual worker/compiler use still requires retrieved runtime evidence. Existing STOP, hostname, exact-support, absent-artifact and 10.5GiB disk-floor refusals remain.
+
+Independent positive/negative fixtures cover valid completion plus host, STOP, disk, support hash, existing cache, busy guard, child timeout and incomplete receipt failures; inherited descriptor/argv/environment delivery; rank/checker mismatch before runpy; actual wrapper success, SystemExit and exception recording. The unchanged validator accepts only all four exit-0 receipts with 20 complete cases, 150 finite exact-byte comparisons and 12 component timing samples per rank. Independent mutations reject missing ranks/cases/samples/gradients, wrong label/kernel/environment, duplicate cases, REFUSE, loose tolerance, differing bytes, signed-zero mismatch, null/NaN/nonfinite metrics, wrapper failure and false speed claims. This validates mechanical acceptance logic, not real tensor values.
+
+The explicit postflight requirement is correctly an **Operator obligation**, not falsely represented as new automated driver behavior: record actual dispatch/flock/driver/timeout/torchrun/worker PIDs and PPID/PGID/SID descendants while active; after every exit prove these identities and compiler processes absent using unfiltered process evidence plus fresh ps and neuron-ls. A released parent lock or narrow name filter alone is insufficient. Missing/ambiguous evidence or survivors must park the route. The driver still has no automatic descendant cleanup/postflight; no unrelated kill or cleanup is authorized.
+
+The proposal allows classification as one diagnosed retry only after separate assignment; automatic retries remain0 and its authorization remainsfalse. Mechanical completion still reports only tiny diagnostic completion pending independent artifact review, with accepted_speedup false and whole-step/model correctness unmeasured. Fresh source acceptance, exact Supervisor release, the sole Operator's fresh under-lock preflight/postflight, and complete independent raw-result review remain required. No model/native/performance claim follows from these tests.
