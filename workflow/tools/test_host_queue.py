@@ -175,6 +175,12 @@ class QueueTests(unittest.TestCase):
                 self.runner().run()
 
     def test_approved_schedule_source_gates_and_composite_control_base(self):
+        self.check_approved_source_gates("SCHEDULE_SHA")
+
+    def test_timer_schedule_source_requires_exact_receipts_and_argv(self):
+        self.check_approved_source_gates("TIMER_SCHEDULE_SHA")
+
+    def check_approved_source_gates(self, allowed_constant):
         candidate = self.root / "schedule.py"
         candidate.write_text("# fake reviewed schedule source\n")
         digest, job = q.sha(candidate), self.cfg["jobs"][0]
@@ -193,7 +199,11 @@ class QueueTests(unittest.TestCase):
             gates[name] = {"path": str(receipt), "sha256": q.sha(receipt), "passed": True, "source_sha256": digest}
         gates["cpu_g2"]["argv"] = job["argv"]
         self.cfg["approved_sources"] = {digest: {"path": str(candidate), "gates": gates}}
-        with patch.object(q, "SCHEDULE_SHA", digest):
+        with patch.object(q, allowed_constant, digest):
+            gates["diff_review"]["source_sha256"] = "f" * 64
+            with self.assertRaisesRegex(RuntimeError, "SOURCE_GATE_MISSING"):
+                self.runner().run()
+            gates["diff_review"]["source_sha256"] = digest
             gates["cpu_g2"]["argv"] = ["wrong-profile"]
             with self.assertRaisesRegex(RuntimeError, "NO_EXACT_ARGV_SOURCE_GATE"):
                 self.runner().run()

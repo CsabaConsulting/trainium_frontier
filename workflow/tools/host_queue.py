@@ -24,6 +24,7 @@ import time
 
 SOURCE_SHA = "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
 SCHEDULE_SHA = "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67"
+TIMER_SCHEDULE_SHA = "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
 PREPARE_SHA = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
 CACHE_KEYS = {
     "TORCH_NEURONX_NEFF_CACHE_DIR": "neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "local",
@@ -113,7 +114,7 @@ def validate_manifest(cfg, run=False):
         absolute(cfg["resolution_inbox"])
     require(isinstance(cfg.get("jobs"), list) and (cfg["jobs"] or cfg.get("resolution_inbox")), "EMPTY_QUEUE")
     for digest, entry in cfg.get("approved_sources", {}).items():
-        require(digest in (SOURCE_SHA, SCHEDULE_SHA), "UNAPPROVED_SOURCE: " + digest)
+        require(digest in (SOURCE_SHA, SCHEDULE_SHA, TIMER_SCHEDULE_SHA), "UNAPPROVED_SOURCE: " + digest)
         absolute(entry["path"])
     seen = set()
     for job in cfg["jobs"]:
@@ -142,7 +143,7 @@ def validate_manifest(cfg, run=False):
 
 def source_for_job(cfg, job):
     digest = job.get("source_sha256", SOURCE_SHA)
-    require(digest in (SOURCE_SHA, SCHEDULE_SHA), "UNAPPROVED_JOB_SOURCE")
+    require(digest in (SOURCE_SHA, SCHEDULE_SHA, TIMER_SCHEDULE_SHA), "UNAPPROVED_JOB_SOURCE")
     entry = cfg.get("approved_sources", {}).get(digest)
     if digest == SOURCE_SHA and entry is None:
         entry = cfg["source"]
