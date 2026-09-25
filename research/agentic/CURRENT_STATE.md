@@ -1,6 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:13 UTC
+Last reconciled: 2026-09-25 02:22 UTC
+
+## Current handoff: trn21 read-only feasibility refreshed; exact checkout still HOLD
+
+At 02:19:45 UTC, the trn21 Operator's
+[read-only refresh](../v2/authorizations/trn21-c5c-a0-stage-r2-extraction/OPERATOR_READONLY_FEASIBILITY_REFRESH_20260925T021945Z.md)
+found all three independently verified persistent files unchanged, the new
+checkout and science output absent, protected checkpoints/caches intact,
+no process/device/lock holder, and 58,571,898,880 B root free. This is a
+point-in-time observation only; a later checkout still needs its own fresh
+preflight, reviewed exact request and Supervisor one-attempt assignment.
+No host write, G2, native run or BPB result occurred.
 
 ## Current handoff: trn22 r4 disabled package static PASS; source transfer is next
 

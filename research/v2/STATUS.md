@@ -2,6 +2,13 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:19:45 UTC, trn21's
+[read-only feasibility refresh](authorizations/trn21-c5c-a0-stage-r2-extraction/OPERATOR_READONLY_FEASIBILITY_REFRESH_20260925T021945Z.md)
+confirmed exact three-file persistence, absent checkout/output, intact assets,
+idle device, closed STOP/breakers and 58,571,898,880 B free. It is not a
+checkout preflight or authority; exact request review and new one-shot
+assignment remain HOLD.
+
 At 02:13 UTC, trn22 r4's
 [disabled exact-hash draft](disk-monitor/r4-hold/GATE_CONTRACT.json)
 [passed independent static review](disk-monitor/r4-hold/INDEPENDENT_VERIFIER_RECEIPT.md).
