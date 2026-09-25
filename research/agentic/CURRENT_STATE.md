@@ -1,6 +1,18 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:02 UTC
+Last reconciled: 2026-09-25 08:06 UTC
+
+The exact-size A2 CPU-only G2 draft `701ecb65` received [independent static
+HOLD](../v2/verification/20260925-a2-c5c-m64d128-trn22-r2-disabled-g2-independent-HOLD.md)
+at `14011c45`: its planned temporary directory could fall back outside the
+projected scratch root, and request/result validators accepted inconsistent
+metadata. This is a package defect, not a table-quality verdict; a distinct
+disabled repair is under implementation. A read-only fast-path audit found
+that the existing e65 trn22 checkout cannot safely run native A0 as-is after
+the earlier disk-floor incident: it lacks the reviewed continuous monitor and
+containment path. An out-of-tree overlay would need more staging/review than
+repairing the small e65→r9 stage. The trn21 r10 disabled stage draft is pushed
+for independent review. No new score or host action followed.
 
 The disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38` received
 [independent HOLD](../v2/verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)

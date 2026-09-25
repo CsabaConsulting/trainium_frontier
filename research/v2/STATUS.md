@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+At 08:06 UTC, the exact-size A2 CPU-only G2 draft `701ecb65` received
+[independent static HOLD](verification/20260925-a2-c5c-m64d128-trn22-r2-disabled-g2-independent-HOLD.md)
+at `14011c45`: scratch/TMPDIR locality and several request/result validators
+were not fail-closed. This is not a scientific rejection of A2. A distinct
+disabled repair is underway. The trn21 r10 disabled small-bundle stage draft
+`c03e3ac3` is pushed for independent review. A read-only alternative-path
+audit found the old e65 trn22 launcher still lacks continuous disk monitoring
+and modern containment, so it cannot safely bypass staging after the prior
+zero-step disk stop. No host action or BPB result followed.
+
 At 08:02 UTC, disabled trn22 e65→r9 small-bundle stage candidate `1bbe2a38`
 received [independent HOLD](verification/20260925-trn22-r9-incremental-source-stage-independent-HOLD.md)
 at `002fe8b9`: a late STOP or attempt label after its final slow scan can
