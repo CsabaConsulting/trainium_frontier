@@ -1,0 +1,58 @@
+{
+  "schema": "trn21-c5c-a0-r1-source-stage-supervisor-assignment-v1",
+  "issued_utc": "2026-09-25T00:36:26Z",
+  "status": "AUTHORIZED_SOURCE_AND_CPU_TOOL_STAGE_ONLY_ON_FRESH_PASS",
+  "host": "trn21",
+  "operator_role": "operator",
+  "assigned_operator": "trn21_g1_r2_guarded_eval_operator",
+  "science_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "source_stage_authorized": true,
+  "cpu_g2_launch_authorized": false,
+  "native_training_authorized": false,
+  "fresh_evaluation_authorized": false,
+  "aws_or_volume_action_authorized": false,
+  "deletion_or_overwrite_authorized": false,
+  "evidence": {
+    "conditional_science_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
+    "conditional_science_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
+    "g1_independent_pass": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+    "g1_independent_pass_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+    "read_only_feasibility": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json",
+    "read_only_feasibility_sha256": "90b77b5f220da9e72dbe1932b27b87b953ba85865793ea9ebc3318997f330df1",
+    "read_only_feasibility_independent_review": "research/agentic/verification/20260925-trn21-c5c-a0-r1-readonly-feasibility-review.md",
+    "read_only_feasibility_independent_review_sha256": "ef1df8346555088b14fd575f85699b08aa9163efc68e10b582e41f2ee3099c40",
+    "source_stage_g2_contract": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-r1/GATE_CONTRACT.json",
+    "source_stage_g2_contract_sha256": "fa1379c0f040992cd3fa6195a46dacba8de2608857b5847ac2e946ad32fb1c87",
+    "source_stage_g2_runbook": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-r1/RUNBOOK.md",
+    "source_stage_g2_runbook_sha256": "e1aa14f37da72554b5e700a953ab3176121b14009d56084ca00f2a2305e49fc5",
+    "source_stage_g2_independent_static_review": "research/agentic/verification/20260925-trn21-c5c-a0-r1-stage-g2-static-review.md",
+    "source_stage_g2_independent_static_review_sha256": "63505225afcf381c173f306c17b33f2831d67cd75bf3017ff2a57b38df2ec4d6"
+  },
+  "allowed_new_host_paths": {
+    "source_archive": "/dev/shm/trainium-c5c-e65-one-commit-20260925.trn21.tar.gz",
+    "source_checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r1",
+    "cpu_tools_root": "/dev/shm/trainium-v2-g2-tools-20260925-trn21-r1"
+  },
+  "source_identity": {
+    "local_archive": "/dev/shm/trainium-c5c-e65-one-commit-20260925.tar.gz",
+    "archive_bytes": 104005787,
+    "archive_sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264",
+    "commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "root_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "fresh_checks_before_any_host_write": [
+    "Pin the existing trn21 SSH identity and strict host-key transport without reading or printing secret contents; verify expected hostname and UID.",
+    "Root filesystem free space at least 10737418240 bytes and enough /dev/shm capacity for the exact capsule and tools; preserve the 6979321856-byte operational floor.",
+    "Global/trn21 STOP and breaker states closed; no train/eval/G2/guard process, Neuron device holder or shared host-lock holder.",
+    "Source archive and all three target paths absent; exact science label/output/step/log paths absent locally and on the host; no overwrite or relabel.",
+    "Both protected checkpoint size/SHA and all six warm-cache path identities match the reviewed evidence; no cache or checkpoint cleanup/substitution.",
+    "Local archive regular mode 0600, exact size/SHA, safe tar member list and no secret/data inclusion; both CPU tools match the contract SHA before transfer."
+  ],
+  "stage_completion_required": [
+    "Transfer only the exact archive and two exact CPU tools to the three allowed new host paths; no host Git fetch or source substitution.",
+    "At the new checkout, prove exact e65 HEAD, one-commit shallow clean tree, fsck PASS, no remotes/alternates/unsafe config, root c5c train.py and unchanged prepare.py SHA.",
+    "Archive a hash-bound Operator stage receipt with fresh host/disk/process/assets/source/tool/path checks and no CPU/native/eval run.",
+    "Obtain a separate independent stage receipt review before requesting any CPU G2 authority. On any mismatch, record HOLD/FAIL and preserve partial artifacts; do not delete or retry the same path."
+  ]
+}
