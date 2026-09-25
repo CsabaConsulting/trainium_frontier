@@ -3504,6 +3504,7 @@ def main() -> None:
     parser.add_argument('--device-type', type=str, default='')
     parser.add_argument('--num-steps', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NUM_STEPS', NUM_STEPS)))
     parser.add_argument('--debug-numerics-steps', type=int, default=0, help='Diagnostic only: synchronize and inspect loss/parameters/gradients at each stage of the first N steps. Invalidates speed measurements.')
+    parser.add_argument('--initial-cache-refresh', action=argparse.BooleanOptionalAction, default=False, help='Refresh differentiable weight casts inside the timed first step before its first forward; default OFF.')
     parser.add_argument('--max-train-seconds', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS', MAX_TRAIN_SECONDS)))
     parser.add_argument('--out-dir', type=str, default=os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out'))
     parser.add_argument('--eval-public', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EVAL_PUBLIC', '1') != '0')
@@ -4028,6 +4029,9 @@ def main() -> None:
             optimizer.zero_grad(set_to_none=True)
         else:
             optimizer.zero_grad_selective(zero_adamw=False)
+        if step == 0 and args.initial_cache_refresh:
+            for m in cached_linears:
+                m.refresh_weight_cache(COMPUTE_DTYPE)
         last_loss = None
         for micro_index in range(grad_accum_now):
             loss = model(x, y)
