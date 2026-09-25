@@ -1,0 +1,86 @@
+{
+  "proposal_id": "20260925-startup-predictor-reset",
+  "status": "human_authorized_implementation_complete_pending_independent_review",
+  "owner_role": "supervisor",
+  "authorization": "Latest human instruction relayed by the Supervisor: reset predictive-stop history at the startup-exclusion boundary, preserve all official timing/accounting, and run only lightweight local CPU checks. This expressly permits the default behavior correction without a new flag.",
+  "hypothesis": "Removing excluded startup samples from the next-step predictor prevents compile-heavy samples from prematurely ending the A2 trace at step five without forgiving charged startup excess.",
+  "single_causal_change": "Clear recent_step_times exactly when the existing five-step startup exclusion ends; give the existing max predictor a 0.0 default for the resulting empty history.",
+  "mechanism_class": "training_timer_correctness",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "Reset predictor history at the existing startup-exclusion boundary",
+      "mechanism_class": "training_timer_correctness",
+      "predicted_bpb_delta": null,
+      "why_ranked": "The human selected this bounded correction after the recorded A2 first two steps took 1056.75 and 903.47 seconds; both were retained by the twenty-step maximum. No new quality hypothesis or alternative mechanism is selected."
+    }
+  ],
+  "selection_rationale": "Directly repairs the demonstrated stop-prediction defect with two behavioral expressions and one comment, preserving the accounting boundary, budget, reserve, and model computations.",
+  "p_improve": null,
+  "estimated_host_hours": 0.0,
+  "trainium_feasibility": "Pure host-side Python list/reset and max-default changes. No tensor graph, optimizer, model, ownership, world size, data, checkpoint, or evaluator changes. No host contact, Neuron execution, or package installation is part of this proposal. Cold compile behavior and any quality improvement remain unmeasured.",
+  "cheapest_falsifier": "Execute the actual extracted source timer statements on the five A2 durations and compare unchanged startup/excess/elapsed values with the preserved c5c timer. Reject if the corrected predictor stops prematurely, loses the checkpoint reserve, or changes accounting.",
+  "prior_result_refs": [
+    "research/agentic/CURRENT_STATE.md: Latest correction and A2 startup truncation, 15:55 UTC",
+    "research/v2/operator/20260925-trn22-a2-full-r1/"
+  ],
+  "evidence": [
+    "workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md",
+    "research/trn2-experiment-results.md: t21-ramp-smoke2 and sched_tricks_smoke cold-cache traps",
+    "workflow/proposals/research-v2/train.py",
+    "submissions/research_v2/train.py",
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py"
+  ],
+  "duplicate_search_terms": [
+    "recent_step_times",
+    "startup.*predict",
+    "startup.*trunc"
+  ],
+  "duplicate_search_result": "Searched DECISION_LOG.md, experiment-log.jsonl, trn2-experiment-results.md, and the v2 ledger. Historical reports describe the same five-step cold-cache trap; inspected current f9b6a9cb research, preserved c5c, and scored 116188 all still retain the offending history.",
+  "control": {
+    "git_commit": "3d9f794697cbc2c2260474f6b7676131507a4362",
+    "run_label": "local-source-timer-replay-of-preserved-c5c",
+    "public_val_bpb": null,
+    "steps": 5,
+    "box_constraint": "Local stdlib-only source replay; no machine training comparison",
+    "research_train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "preserved_c5c_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "preserved_scored_vehicle_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d"
+  },
+  "candidate": {
+    "branch": "codex/20260925-startup-predictor-reset",
+    "files_allowed": [
+      "workflow/proposals/research-v2/train.py",
+      "research/v2/proposals/20260925-startup-predictor-reset/"
+    ],
+    "expected_diff": "One clear() and safe empty-history max default in the existing train timer, plus proposal/test/evidence and a prospective patch artifact for an isolated future copy of 116188.",
+    "train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "run_label": "cpu-20260925-startup-predictor-reset-r1",
+    "launch_command": "python3 research/v2/proposals/20260925-startup-predictor-reset/test_startup_predictor.py",
+    "training_launch_authorized": false
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "gate_scope": "cpu_or_static_checks denotes Implementer self-checks only. An independent Verifier follows. No exact-size CPU G2, three-step model equivalence, native smoke, host run, or submission approval is claimed by this local timer test.",
+  "success_criteria": {
+    "quality": "No BPB result or win is claimed; a later independently gated full experiment is required.",
+    "throughput": "No device throughput change is claimed; A2 source replay must continue after step five when charged time plus checkpoint reserve fits.",
+    "correctness": "All five startup durations are discarded from prediction exactly once; startup cap remains 900, launch margin 30, total budget 1800 and checkpoint reserve 15. Startup excess/charged accounting, hard stop and step cap are unchanged. Original c5c, 116188, prepare.py and evaluator remain untouched."
+  },
+  "abort_conditions": [
+    "Any local timer regression fails",
+    "The source diff changes model/optimizer/data/eval behavior or timing policy",
+    "A historical pin or protected source hash changes",
+    "Host access or heavy Torch/Neuron execution becomes necessary"
+  ],
+  "human_approved_by": "Poojith, latest active conversation; bounded implementation and lightweight CPU checks only",
+  "verdict": "IMPLEMENTER_SELF_CHECK_PASS_PENDING_INDEPENDENT_VERIFIER"
+}

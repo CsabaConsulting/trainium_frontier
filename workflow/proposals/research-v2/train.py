@@ -4049,10 +4049,12 @@ def main() -> None:
             startup_allowance_est = min(observed_startup, TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
             excess = max(0.0, observed_startup + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
             budget_started = now - excess
+            # Compile-heavy startup samples must not predict steady-state step cost.
+            recent_step_times.clear()
         elapsed_after_step = time.monotonic() - budget_started
         reached_min_steps = step + 1 >= TRAIN_STARTUP_STEPS_EXCLUDED
         step_cap_hit = step + 1 >= args.num_steps
-        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:]) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
+        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:], default=0.0) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
         stop_after_step = step_cap_hit or time_budget_hit
         if step_cap_hit and (not time_budget_hit) and (rank == 0):
             progress_at_exit = elapsed_after_step / max(1e-06, args.max_train_seconds)
