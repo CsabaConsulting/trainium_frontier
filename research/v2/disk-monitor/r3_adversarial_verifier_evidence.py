@@ -2,7 +2,9 @@
 """Independent static/synthetic safety probes for the disabled r3 package.
 
 These tests assert the observed unsafe outcome to keep the failure reproducible.
-They do not launch a host job or send a real signal.
+They do not launch a host job or send a real signal. Run on review commit
+068271a3, where the r3 fixture modules are present; this canonical copy is
+archival evidence and is intentionally not auto-collected as a test.
 """
 
 from __future__ import annotations
