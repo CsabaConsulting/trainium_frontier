@@ -6,7 +6,14 @@ are both frozen tool files actually present inside the clean e65 checkout?
 The e65 Git tree has no `workflow/tools` paths. That is evidence of a likely
 absence, **not** a measurement of the host's untracked/ignored files.
 
-This r2 local-gate repair descends from disabled r1 `ab978507`. Before each
+This r3 local-gate repair descends from disabled r2 `e4f523cc` and closes the
+independent r2 static HOLD at `5fb34056`
+(`research/v2/verification/20260925-a2-toolpath-active-root-r2-independent-static-HOLD.md`):
+r2 recorded the active controller hash before and after capture
+but did not compare them, so a changed non-breaker field could leave a false
+feasible decision. The r3 collector forces HOLD with a distinct state-drift
+reason whenever the active Desktop state hash changes after the read-only
+observations, even if its breaker and launch bits remain safe. Before each
 future SSH read, it checks STOP in the active Desktop controller, legacy
 Documents checkout, and package worktree, then reads **only** the active
 `/home/poojith-devan/Desktop/Trainium/research/v2/state.json` for the
@@ -64,10 +71,11 @@ python -B -m unittest discover -s research/v2/authorizations/trn22-a2-toolpath-r
 python -OB -m unittest discover -s research/v2/authorizations/trn22-a2-toolpath-readonly-hold -p test_readonly.py -v
 ```
 
-Each ran 9/9 PASS. Tests include a no-SSH disabled capture, stale-Documents
+Each ran 10/10 PASS. Tests include a no-SSH disabled capture, stale-Documents
 versus active-Desktop STOP/breaker HOLD-before-SSH, no-follow
 regular/missing/symlink/oversize cases, clean-vs-dirty/occupied/low-memory
-planning decisions, and sensitive-output suppression. These are **offline
+planning decisions, active-Desktop non-breaker state drift during a synthetic
+probe with unchanged safe Documents state, and sensitive-output suppression. These are **offline
 source tests only**, not host observations.
 
 ## Decision after a future independent Operator receipt

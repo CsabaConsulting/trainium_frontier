@@ -186,6 +186,57 @@ class CollectorTests(unittest.TestCase):
                     collector.one_probe(transport, "tools", b"test", "schema")
                 process.assert_not_called()
 
+    def test_active_desktop_state_drift_during_probe_forces_hold(self):
+        snapshot, gitdir, tools = clean_planning_fixture()
+        self.assertEqual(collector.planning_decision(request, snapshot, gitdir, tools)["status"],
+                         "READ_ONLY_FEASIBLE_AT_OBSERVATION_TIME_ONLY")
+        with tempfile.TemporaryDirectory(prefix="a2-controller-drift-") as temp:
+            root = Path(temp)
+            desktop = root / "Desktop/Trainium"
+            documents = root / "Documents/ChatGPT/Trainium"
+            package = root / "probe-package"
+            for checkout in (desktop, documents, package):
+                (checkout / "research/v2").mkdir(parents=True)
+            clear = {"launch_authorized": False,
+                     "breakers": {"global_correctness": {"tripped": False},
+                                  "trn22": {"tripped": False}},
+                     "hosts": {"trn22": {"launch_allowed": False}}}
+            active_path = desktop / "research/v2/state.json"
+            legacy_path = documents / "research/v2/state.json"
+            active_path.write_text(json.dumps(clear), encoding="utf-8")
+            legacy_path.write_text(json.dumps(clear), encoding="utf-8")
+            legacy_before = legacy_path.read_bytes()
+            observations = {"snapshot": snapshot, "gitdir": gitdir, "tools": tools}
+
+            def synthetic_probe(_transport, name, _source, _schema):
+                if name == "tools":
+                    changed = {**clear, "non_breaker_observation": "changed_during_probe"}
+                    active_path.write_text(json.dumps(changed), encoding="utf-8")
+                return {"name": name}, observations[name]
+
+            raw = {name: name.encode("ascii") for name in
+                   ("request", "snapshot", "gitdir", "tools")}
+            with mock.patch.object(collector, "ACTIVE_CONTROL", desktop), \
+                 mock.patch.object(collector, "LEGACY_CONTROL", documents), \
+                 mock.patch.object(collector, "REPO", package), \
+                 mock.patch.object(collector, "pinned_sources", return_value=(request, raw)), \
+                 mock.patch.object(collector, "require_future_authority", return_value={}), \
+                 mock.patch.object(collector, "load_transport", return_value=(object(), {})), \
+                 mock.patch.object(collector, "one_probe", side_effect=synthetic_probe) as probe_call, \
+                 mock.patch.object(collector, "write_receipt", return_value=root / "unused") as writer, \
+                 mock.patch.object(collector.subprocess, "run",
+                                   side_effect=AssertionError("unexpected SSH")) as process:
+                collector.capture()
+            self.assertEqual(probe_call.call_count, 3)
+            process.assert_not_called()
+            record = writer.call_args.args[0]
+            self.assertNotEqual(record["active_controller_before"]["active_state_sha256"],
+                                record["active_controller_after"]["active_state_sha256"])
+            self.assertEqual(record["planning_decision"]["status"], "HOLD")
+            self.assertIn("active_controller_state_changed_after_readonly_capture",
+                          record["planning_decision"]["reasons"])
+            self.assertEqual(legacy_path.read_bytes(), legacy_before)
+
     def test_exact_planning_witness_then_missing_tool_hold(self):
         snapshot, gitdir, tools = clean_planning_fixture()
         first = collector.planning_decision(request, snapshot, gitdir, tools)

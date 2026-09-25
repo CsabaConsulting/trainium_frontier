@@ -378,6 +378,10 @@ def capture() -> Path:
         controller_after = {"status": "HOLD", "error": type(error).__name__}
         decision = {"status": "HOLD", "reasons": decision["reasons"] +
                     ["active_controller_gate_failed_after_readonly_capture"]}
+    else:
+        if controller_after["active_state_sha256"] != controller_before["active_state_sha256"]:
+            decision = {"status": "HOLD", "reasons": decision["reasons"] +
+                        ["active_controller_state_changed_after_readonly_capture"]}
     record = {
         "schema": "trn22-a2-toolpath-operator-readonly-raw-v1",
         "scope": "point_in_time_planning_only_no_preflight_or_cpu_or_native_authority",
