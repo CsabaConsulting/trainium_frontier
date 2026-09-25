@@ -2,6 +2,14 @@
 
 Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, but trn22's first final enabled transfer request and A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
 
+At 06:33 UTC, distinct [trn22 final-r2](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r2/RUNBOOK.md)
+and [trn21 r5 final](authorizations/trn21-c5c-a0-r4-transfer-only/FINAL_R5_ENABLED_TRANSFER_ONLY_PENDING_REVIEW_RUNBOOK.md)
+transfer-only request candidates are under separate independent final reviews.
+Their review and Supervisor assignment files are absent; neither may dispatch.
+The narrow operational launcher-source successor at `e74f9995` is under
+independent review for assertion-based local/remote gates; it changes no
+model, data, evaluator, or scoring bytes and has not been staged on a host.
+
 At 06:25 UTC, the [trn22 final transfer-only r1 candidate](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/TRANSFER_REQUEST.FIFO_FINAL_R1.json)
 received [independent HOLD](verification/20260925-trn22-fifo-final-r1-independent-HOLD.md):
 a persistent STOP arising during slow local authorization or source rehash

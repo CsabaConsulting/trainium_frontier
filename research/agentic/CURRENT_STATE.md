@@ -1,9 +1,14 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:30 UTC
+Last reconciled: 2026-09-25 06:33 UTC
 
 The Sep 25 noon-IST S0 submission-package target was missed. Neither of the
 required cold replays has begun, and no new file is ready for human upload.
+Distinct trn22 final-r2 and trn21 r5 final transfer-only candidates are
+under independent review, without any assignment or host action. A narrow
+operational launcher-source successor is also under independent static
+review; it leaves the model and scoring files unchanged. No native control
+or table run has started.
 
 The distinct trn22 FIFO/nonblocking-lock transfer successor now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),
