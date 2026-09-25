@@ -1,0 +1,206 @@
+{
+  "status": "PASS",
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "interop_threads": 1,
+  "seed": 42,
+  "bounds": {
+    "width": 16,
+    "context": 8,
+    "vocabulary": 32,
+    "microbatch": 2,
+    "steps": 22,
+    "accumulation": 2
+  },
+  "scope": "CPU fixture using unchanged extracted loop and optimizer definitions, identity collectives and deterministic fixture clock",
+  "extracted_definitions": [
+    "MuonAdamW",
+    "_muon_lr_g",
+    "_muon_math",
+    "batch_ramp_grad_accum",
+    "batch_ramp_stage",
+    "clip_and_sync_gradients",
+    "clip_grad_norm_flat_",
+    "demon_beta1_scale",
+    "lr_multiplier",
+    "muon_beta2",
+    "muon_momentum",
+    "sync_gradients",
+    "sync_gradients_flat",
+    "unscale_grads_"
+  ],
+  "results": [
+    {
+      "name": "source_binding_exact_argv_landmarks_and_default_off",
+      "status": "PASS",
+      "evidence": {
+        "hashes_match": true,
+        "exact_landmarks": {
+          "loop_line": 3953,
+          "statements": {
+            "3977": "forward",
+            "3980": "backward",
+            "3982": "data_fetch",
+            "4007": "gradient_unscale",
+            "4008": "clip_and_reduce",
+            "4027": "optimizer",
+            "4039": "weight_cache_refresh",
+            "4042": "record_boundary",
+            "3965": "existing_synchronize",
+            "4041": "existing_synchronize"
+          }
+        },
+        "rejected_argument_variants": 5,
+        "default_off": true
+      }
+    },
+    {
+      "name": "float32_real_loop_cpu_parity",
+      "status": "PASS",
+      "evidence": {
+        "bitwise_equal": true,
+        "compared_tensor_elements": 133170,
+        "steps": 22,
+        "losses": 44,
+        "snapshots": 22,
+        "fetches": 45,
+        "existing_sync_calls": 44,
+        "lifecycle": [
+          [
+            "prepare",
+            0,
+            0
+          ],
+          [
+            "start",
+            20,
+            20
+          ],
+          [
+            "stop",
+            21,
+            21
+          ]
+        ],
+        "annotation_counts": {
+          "P/existing_synchronize": 2,
+          "P/forward": 2,
+          "P/backward": 2,
+          "P/data_fetch": 2,
+          "P/gradient_unscale": 1,
+          "P/clip_and_reduce": 1,
+          "P/all_reduce_host_call": 4,
+          "P/optimizer": 1,
+          "P/optimizer_adamw_group_inclusive": 1,
+          "P/optimizer_muon_group_inclusive": 1,
+          "P/optimizer_muon_scalar_upload": 1,
+          "P/optimizer_muon_eager_math_if_executed": 1,
+          "P/weight_cache_refresh": 1,
+          "P/record_boundary": 1
+        },
+        "final_parameter_hashes": {
+          "embedding.weight": "cc04e5506acbf33fb63a0a8811832c9e34c37a481ec9742a79666391b7ec7816",
+          "matrix.weight": "a738c53d43779a57e884bc39dabd1f5460756d68f32f0afc328bb70a0a931be2",
+          "head.weight": "1fc40d4319174fde1496c9158cef065c238e8c8ea4def14c295017598c0312f5"
+        }
+      }
+    },
+    {
+      "name": "bfloat16_real_loop_cpu_parity",
+      "status": "PASS",
+      "evidence": {
+        "bitwise_equal": true,
+        "compared_tensor_elements": 133170,
+        "steps": 22,
+        "losses": 44,
+        "snapshots": 22,
+        "fetches": 45,
+        "existing_sync_calls": 44,
+        "lifecycle": [
+          [
+            "prepare",
+            0,
+            0
+          ],
+          [
+            "start",
+            20,
+            20
+          ],
+          [
+            "stop",
+            21,
+            21
+          ]
+        ],
+        "annotation_counts": {
+          "P/existing_synchronize": 2,
+          "P/forward": 2,
+          "P/backward": 2,
+          "P/data_fetch": 2,
+          "P/gradient_unscale": 1,
+          "P/clip_and_reduce": 1,
+          "P/all_reduce_host_call": 4,
+          "P/optimizer": 1,
+          "P/optimizer_adamw_group_inclusive": 1,
+          "P/optimizer_muon_group_inclusive": 1,
+          "P/optimizer_muon_scalar_upload": 1,
+          "P/optimizer_muon_eager_math_if_executed": 1,
+          "P/weight_cache_refresh": 1,
+          "P/record_boundary": 1
+        },
+        "final_parameter_hashes": {
+          "embedding.weight": "c5c251084c0ea8646c166181a8648bf40417b1d325e193cb6c314459c3d05247",
+          "matrix.weight": "6b758c7996f7f64a9e058a642d0a080765869931a973d6e92d15175c8b2c258c",
+          "head.weight": "92d2aa8b6ead9c6d53136d73bb141445f1455090925cc2287480772b466b6ad9"
+        }
+      }
+    },
+    {
+      "name": "early_exit_and_exception_cleanup",
+      "status": "PASS",
+      "evidence": {
+        "early_exit_refused": true,
+        "injected_failure_preserved": true,
+        "exception_scopes_balanced": true,
+        "exception_lifecycle": [
+          [
+            "prepare",
+            0,
+            0
+          ],
+          [
+            "start",
+            20,
+            20
+          ],
+          [
+            "abort"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "run_exact_runpy_contract",
+      "status": "PASS",
+      "evidence": {
+        "argv_path_main_semantics": true,
+        "tensor_exact": true,
+        "exception_restoration": true,
+        "existing_trace_refused": true
+      }
+    },
+    {
+      "name": "startup_cap_excess_and_wallclock_sensitivity",
+      "status": "PASS",
+      "evidence": {
+        "cap_seconds": 900.0,
+        "budget_started": -130.00000000000003,
+        "wallclock_lr_at_0": 1.0,
+        "wallclock_lr_at_900": 0.5499999999999999,
+        "note": "Fixture defines imported prepare constants; this does not verify absent prepare.py or Operator accounting."
+      }
+    }
+  ]
+}

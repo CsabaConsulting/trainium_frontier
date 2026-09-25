@@ -1,0 +1,358 @@
+diff --git a/research/v2/lanes/p-profile/profile_actual_loop.py b/research/v2/lanes/p-profile/profile_actual_loop.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..eb23ea007b7774536c036cd8fb12c498d70fd45d
+--- /dev/null
++++ b/research/v2/lanes/p-profile/profile_actual_loop.py
+@@ -0,0 +1,352 @@
++"""Profile one real train.py loop iteration; never rebuild or patch training math.
++
++Default OFF. The diagnostic ON path registers a filtered Python trace hook,
++executes exact source through runpy, and brackets existing statements with
++record_function annotations. No Tensor dispatch mode, model/optimizer/module
++replacement, data shim, additional synchronization, or scoring code.
++"""
++import argparse
++import ast
++import hashlib
++import inspect
++import json
++import os
++from pathlib import Path
++import runpy
++import sys
++import time
++
++SOURCES = {
++    '6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3': 'recursive6',
++    '93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5': 'architecture8',
++    '3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c': 'architecture8-initial-cache-refresh',
++}
++INSTALLED_API_SHA = 'ac8a9a43e5d8326cf532dfd2916cf6b7d7833d3a1d67e8ebe0e075aa1dfea3d6'
++COMPILER_FLAGS = '--optlevel=1 --auto-cast matmult --auto-cast-type bf16'
++
++
++def launch_arguments(kind, out_dir):
++    arguments = ['--n-embd', '1024', '--no-ngram-ve', '--no-qk-shift',
++        '--compile-sdpa-direct', '--nki-local-conv', '--bf16-norm-output',
++        '--pack-factor', '32', '--clip-after-reduce', '--seq-len', '1024',
++        '--no-eval-public', '--matrix-lr', '0.015', '--seed', '42',
++        '--max-train-seconds', '1800', '--num-steps', '22', '--out-dir', out_dir]
++    if kind == 'recursive6':
++        arguments += ['--recursive-schedule']
++    else:
++        arguments += ['--unet-8x1024', '--attention-layers', '0,2,4,6,7']
++        if kind == 'architecture8-initial-cache-refresh':
++            arguments += ['--initial-cache-refresh']
++    return arguments
++
++
++def check_capture_arguments(kind, arguments):
++    require(arguments.count('--out-dir') == 1, 'ONE_OUTPUT_DIRECTORY_REQUIRED')
++    index = arguments.index('--out-dir')
++    require(index + 1 < len(arguments), 'OUTPUT_DIRECTORY_VALUE_REQUIRED')
++    require(arguments == launch_arguments(kind, arguments[index+1]), 'EXACT_PROFILE_ARGV_REQUIRED')
++
++
++def require(condition, message):
++    if not condition:
++        raise RuntimeError(message)
++
++
++def sha(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def write_json(path, value):
++    with Path(path).open('x') as stream:
++        json.dump(value, stream, indent=2, sort_keys=True, allow_nan=False)
++        stream.write('\n')
++
++
++def landmarks(raw):
++    """Resolve exact existing statements, rather than hard-coding shifted lines."""
++    tree = ast.parse(raw)
++    main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
++    loops = [n for n in main.body if isinstance(n, ast.While) and
++             isinstance(n.test, ast.Compare) and isinstance(n.test.left, ast.Name) and n.test.left.id == 'step']
++    require(len(loops) == 1, 'UNIQUE_REAL_TRAINING_LOOP_REQUIRED')
++    loop = loops[0]
++    found = {}
++    def add(label, predicate, counts=(1,)):
++        nodes = [n for n in ast.walk(loop) if isinstance(n, ast.stmt) and predicate(ast.unparse(n))]
++        # Pick exact simple statements, never their enclosing if/for compound.
++        nodes = [n for n in nodes if isinstance(n, (ast.Assign, ast.Expr, ast.AugAssign))]
++        require(len(nodes) in counts, 'EXPECTED_LANDMARK_COUNT:' + label)
++        for node in nodes:
++            found[node.lineno] = label
++    add('forward', lambda s: s == 'loss = model(x, y)')
++    add('backward', lambda s: s.endswith('.backward()'))
++    add('data_fetch', lambda s: s == 'x, y, loader_state = fetch()')
++    add('gradient_unscale', lambda s: s.startswith('unscale_grads_('))
++    add('clip_and_reduce', lambda s: s.startswith('clip_and_sync_gradients('))
++    add('optimizer', lambda s: s == 'optimizer.step(update_adamw=adam_step_now)')
++    add('weight_cache_refresh', lambda s: s == 'm.refresh_weight_cache(COMPUTE_DTYPE)', counts=(1, 2))
++    add('record_boundary', lambda s: s == 'record_step_boundary(step)')
++    # Synchronization statements occur at both ends, intentionally unmodified.
++    syncs = [n.lineno for n in ast.walk(loop) if isinstance(n, ast.Expr)
++             and ast.unparse(n) == 'synchronize(device)']
++    require(len(syncs) == 2, 'EXPECTED_TWO_EXISTING_SYNCHRONIZATIONS')
++    for line in syncs:
++        found[line] = 'existing_synchronize'
++    return dict(loop_line=loop.lineno, statements=found)
++
++
++class LoopTrace:
++    """Annotations only. Does not write frame locals/globals or wrap functions."""
++    def __init__(self, source, plan, engine, target=20):
++        self.source, self.plan, self.engine, self.target = str(source), plan, engine, target
++        self.active = self.finished = self.prepared = False
++        self.scopes = {}
++        self.function_scopes = {}
++        self.warm_steps = []
++        self.last_step_time = None
++        self.main_frame = None
++
++    def __call__(self, frame, event, arg):
++        if event != 'call':
++            return None
++        filename, name = frame.f_code.co_filename, frame.f_code.co_name
++        if filename == self.source and name == 'main':
++            self.main_frame = frame
++            return self.trace_main
++        if self.active:
++            label = None
++            if filename == self.source:
++                label = {'_muon_step': 'optimizer_muon_group_inclusive',
++                         '_muon_compile_scalars': 'optimizer_muon_scalar_upload',
++                         '_adamw_step_foreach': 'optimizer_adamw_group_inclusive',
++                         '_muon_math': 'optimizer_muon_eager_math_if_executed'}.get(name)
++            elif filename.endswith('/distributed_c10d.py'):
++                label = {'all_reduce': 'all_reduce_host_call',
++                         'all_gather_into_tensor': 'all_gather_host_call'}.get(name)
++            if label:
++                context = self.engine.region(label)
++                context.__enter__()
++                self.function_scopes[id(frame)] = context
++                return self.trace_function
++        return None
++
++    def trace_function(self, frame, event, arg):
++        if event == 'return':
++            context = self.function_scopes.pop(id(frame), None)
++            if context is not None:
++                context.__exit__(None, None, None)
++        return self.trace_function
++
++    def trace_main(self, frame, event, arg):
++        if event == 'line':
++            context = self.scopes.pop(id(frame), None)
++            if context is not None:
++                context.__exit__(None, None, None)
++            if frame.f_lineno == self.plan['loop_line']:
++                step = frame.f_locals['step']
++                now = time.monotonic()
++                if self.last_step_time is not None:
++                    self.warm_steps.append(dict(completed_step=step-1, wall_seconds=now-self.last_step_time))
++                self.last_step_time = now
++                if not self.prepared:
++                    self.engine.prepare(frame)
++                    self.prepared = True
++                if step == self.target and not self.finished:
++                    self.engine.start(frame)
++                    self.active = True
++                elif self.active and step == self.target + 1:
++                    self.active = False
++                    self.engine.stop(frame)
++                    self.finished = True
++                    # Stop monitoring after the one diagnostic window. Original loop continues.
++                    sys.settrace(None)
++                    frame.f_trace = None
++                    return None
++            if self.active and frame.f_lineno in self.plan['statements']:
++                context = self.engine.region(self.plan['statements'][frame.f_lineno])
++                context.__enter__()
++                self.scopes[id(frame)] = context
++        return self.trace_main
++
++    def abort(self):
++        for context in reversed(list(self.function_scopes.values())):
++            context.__exit__(*sys.exc_info())
++        for context in reversed(list(self.scopes.values())):
++            context.__exit__(*sys.exc_info())
++        self.function_scopes.clear()
++        self.scopes.clear()
++        self.active = False
++        self.engine.abort()
++
++
++class NativeEngine:
++    def __init__(self, directory, device_capture, capture_nc, max_events):
++        self.directory = directory
++        self.device_capture, self.capture_nc, self.max_events = device_capture, capture_nc, max_events
++        self.prof = self.config = self.exporter = None
++        self.context_active = False
++        self.report = {}
++
++    def prepare(self, frame):
++        import torch
++        import torch_neuronx.profiling as neuron_profiling
++        from torch.profiler import ProfilerActivity, profile, record_function
++        require(sha(inspect.getfile(neuron_profiling)) == INSTALLED_API_SHA, 'INSTALLED_PROFILING_API_CHANGED')
++        require(hasattr(ProfilerActivity, 'PrivateUse1'), 'PRIVATEUSE1_ACTIVITY_MISSING')
++        require(frame.f_locals['device'].type == 'neuron', 'NATIVE_DEVICE_REQUIRED')
++        require(frame.f_locals['world_size'] == 4, 'FULL_CHIP_WORLD4_REQUIRED')
++        self.torch, self.record_function = torch, record_function
++        modes = [neuron_profiling.ProfileMode.RUNTIME]
++        if self.device_capture:
++            modes.insert(0, neuron_profiling.ProfileMode.DEVICE)
++        self.config = neuron_profiling.NeuronConfig(modes=modes,
++            max_events_per_nc=self.max_events, capture_enabled_for_nc=self.capture_nc,
++            profile_output_dir=str(self.directory / 'native'), precache_node_info=True)
++        self.exporter = neuron_profiling.NeuronProfiler(self.config)
++        self.prof = profile(activities=[ProfilerActivity.CPU, ProfilerActivity.PrivateUse1],
++            experimental_config=self.config, record_shapes=True, with_stack=True, with_flops=True)
++        self.report.update(torch=torch.__version__, installed_profiling_api_sha256=INSTALLED_API_SHA,
++            world_size=frame.f_locals['world_size'], rank=frame.f_locals['rank'],
++            device_capture=self.device_capture, capture_enabled_for_nc=self.capture_nc,
++            max_events_per_nc=self.max_events,
++            dtype_coverage='UNKNOWN until actual trace metadata and compiled device IR are reviewed',
++            device_phase_attribution='PENDING correlated runtime/device trace review')
++
++    def start(self, frame):
++        self.prof.__enter__()
++        self.context_active = True
++        self.report['profiled_step'] = frame.f_locals['step']
++        self.report['start_monotonic'] = time.monotonic()
++        self.report['source_process_started'] = frame.f_globals.get('_PROCESS_STARTED')
++        self.report['session_dir'] = self.config.get_session_dir()
++
++    def region(self, label):
++        return self.record_function('P/' + label)
++
++    def stop(self, frame):
++        # The real loop already synchronizes and reads its control tensor. No extra sync inserted.
++        self.report['end_monotonic'] = time.monotonic()
++        self.report['profiled_loop_wall_seconds'] = self.report['end_monotonic'] - self.report['start_monotonic']
++        self.prof.__exit__(None, None, None)
++        self.context_active = False
++        self.exporter.export_trace(self.prof, filename='trace.json')
++        model = frame.f_locals['orig_model']
++        self.report.update(model_config=vars(model.config),
++            total_parameter_elements=sum(p.numel() for p in model.parameters()),
++            tokens_this_update=frame.f_locals['grad_accum_now'] * frame.f_locals['world_tokens_per_micro'],
++            grad_accum=frame.f_locals['grad_accum_now'],
++            source_estimated_flops_per_token=model.estimate_flops(),
++            flops_estimate_caveat='Source estimate_flops formula, not hardware FLOPs; may overcount partial attention and embeddings. Not accepted MFU until reviewed.')
++        rows, dtype_rows, embedding_rows = [], [], []
++        for event in self.prof.events():
++            name = str(event.name)
++            if name.startswith('P/'):
++                device_us = getattr(event, 'device_time_total', None)
++                rows.append(dict(name=name, cpu_elapsed_ms=float(event.cpu_time_total)/1000,
++                    cpu_self_ms=float(event.self_cpu_time_total)/1000,
++                    device_ms_if_profiler_attributed=float(device_us)/1000 if device_us else None))
++            if any(word in name.lower() for word in ('mm', 'matmul', 'scaled_dot', 'attention', 'embed', 'scatter')):
++                dtypes = getattr(event, 'input_dtypes', None)
++                row = dict(name=name, input_shapes=getattr(event, 'input_shapes', None),
++                    input_dtypes=None if dtypes is None else str(dtypes),
++                    metadata_scope='Observed profiler event only; not proof of every compiled inner operand',
++                    cpu_elapsed_ms=float(event.cpu_time_total)/1000)
++                dtype_rows.append(row)
++                if 'embed' in name.lower() or 'scatter' in name.lower():
++                    embedding_rows.append(row)
++        self.report.update(phase_cpu_annotations=rows, observed_matmul_attention_embedding_events=dtype_rows,
++            observed_embedding_events=embedding_rows,
++            embedding_backward_device_ms=None,
++            embedding_backward_status='PENDING device correlation; absent framework events do not mean zero work',
++            phase_sum_warning='Inclusive/nested CPU dispatch ranges overlap; do not sum as exclusive device time',
++            every_matmul_sdpa_bf16='UNKNOWN', mfu=None,
++            mfu_pending='Use reviewed FLOP estimate and worst-rank loop wall against 667e12 BF16 FLOP/s per full Trn2 chip; profiled overhead remains.')
++        session = Path(self.report['session_dir'])
++        inventory = [dict(path=str(p.relative_to(session)), bytes=p.stat().st_size)
++                     for p in sorted(session.rglob('*')) if p.is_file()]
++        self.report.update(native_session_artifacts=inventory,
++            artifact_coverage='PENDING independent inspection of nonempty runtime/device files; export success is not complete device coverage')
++        write_json(self.directory / 'profile.json', self.report)
++
++    def abort(self):
++        if self.context_active:
++            self.prof.__exit__(*sys.exc_info())
++            self.context_active = False
++
++
++def run_exact(source, arguments, trace=None):
++    previous_argv, previous_path, previous_trace = sys.argv, sys.path[:], sys.gettrace()
++    require(previous_trace is None, 'EXISTING_TRACE_HOOK_REFUSED')
++    try:
++        sys.argv = [str(source), *arguments]
++        sys.path.insert(0, str(source.parent))
++        if trace is not None:
++            sys.settrace(trace)
++        return runpy.run_path(str(source), run_name='__main__')
++    finally:
++        sys.settrace(previous_trace)
++        sys.argv, sys.path[:] = previous_argv, previous_path
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--train-py', type=Path, required=True)
++    parser.add_argument('--capture', action=argparse.BooleanOptionalAction, default=False)
++    parser.add_argument('--out', type=Path)
++    parser.add_argument('--target-step', type=int, default=20)
++    parser.add_argument('--device-ranks', default='0', help='Ranks with DEVICE capture; all ranks retain CPU+RUNTIME')
++    parser.add_argument('--capture-nc', default='0-7')
++    parser.add_argument('--max-events-per-nc', type=int, default=200000)
++    parser.add_argument('--describe', action='store_true', help='Stdlib source/landmark check only, no execution')
++    parser.add_argument('train_args', nargs=argparse.REMAINDER)
++    args = parser.parse_args()
++    source = args.train_py.resolve()
++    source_sha = sha(source)
++    require(source_sha in SOURCES, 'UNREVIEWED_SOURCE')
++    arguments = args.train_args[1:] if args.train_args[:1] == ['--'] else args.train_args
++    plan = landmarks(source.read_text())
++    if args.describe:
++        print(json.dumps(dict(source_sha256=source_sha, source_kind=SOURCES[source_sha], landmarks=plan), indent=2))
++        return 0
++    if not args.capture:
++        run_exact(source, arguments)
++        return 0
++    require(args.out is not None and args.out.is_dir(), 'EXISTING_FRESH_PROFILE_PARENT_REQUIRED')
++    require(args.target_step == 20, 'EXACT_STEP20_CAPTURE_REQUIRED')
++    check_capture_arguments(SOURCES[source_sha], arguments)
++    require(os.environ.get('WORLD_SIZE') == '4' and os.environ.get('NEURON_LOGICAL_NC_CONFIG') == '2', 'LNC2_WORLD4')
++    require(os.environ.get('NEURON_CC_FLAGS') == COMPILER_FLAGS, 'EXACT_EXISTING_COMPILER_FLAGS_REQUIRED')
++    require(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS') == '1800', 'ENV_BUDGET1800_REQUIRED')
++    require(bool(os.environ.get('TRN_EXP_LABEL')), 'OPERATOR_UNIQUE_LABEL_REQUIRED')
++    require(args.capture_nc == '0-7' and 0 < args.max_events_per_nc <= 200000, 'BOUNDED_CAPTURE_REQUIRED')
++    rank = int(os.environ['RANK'])
++    device_ranks = {int(r) for r in args.device_ranks.split(',')}
++    require(device_ranks <= {0, 1, 2, 3} and bool(device_ranks), 'INVALID_DEVICE_RANKS')
++    directory = args.out / ('rank' + str(rank))
++    directory.mkdir()
++    engine = NativeEngine(directory, rank in device_ranks, args.capture_nc, args.max_events_per_nc)
++    trace = LoopTrace(source, plan, engine, args.target_step)
++    write_json(directory / 'binding.json', dict(classification='DIAGNOSTIC_ONLY', source_path=str(source),
++        source_sha256=source_sha, wrapper_sha256=sha(__file__), source_kind=SOURCES[source_sha],
++        train_argv=[str(source), *arguments], target_step=args.target_step, landmarks=plan,
++        label=os.environ['TRN_EXP_LABEL'], compiler_flags=os.environ['NEURON_CC_FLAGS'],
++        quality_evidence=False, device_ranks=sorted(device_ranks), capture_nc=args.capture_nc))
++    started = time.monotonic()
++    try:
++        run_exact(source, arguments, trace)
++        require(trace.finished, 'SOURCE_EXITED_BEFORE_PROFILE_WINDOW_COMPLETED')
++        require(sha(source) == source_sha, 'SOURCE_CHANGED')
++        write_json(directory / 'terminal.json', dict(status='PROFILE_DIAGNOSTIC_COMPLETED',
++            quality_evidence=False, source_sha256=source_sha, process_wrapper_wall_seconds=time.monotonic()-started,
++            warmup_and_profile_boundary_observations=trace.warm_steps,
++            native_dtype_and_device_phase_review='PENDING', source_math_mutated=False))
++    except BaseException as error:
++        trace.abort()
++        write_json(directory / 'terminal.json', dict(status='FAILED', error=str(error), quality_evidence=False,
++            source_sha256=source_sha, warmup_and_profile_boundary_observations=trace.warm_steps))
++        raise
++    return 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())

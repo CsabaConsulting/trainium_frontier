@@ -1,0 +1,392 @@
+{
+  "verdict": "PASS",
+  "scope": "Only exact 6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3 Recursive6 binding and bounded CPU diagnostic instrumentation exactness",
+  "review_identity": "User-authorized fresh SAME-family substitute review; not cross-family review",
+  "native_task_completed": false,
+  "candidate_fixed": false,
+  "hashes": {
+    "manifest_files": [
+      {
+        "path": "lane-spec.md",
+        "bytes": 5066,
+        "sha256": "baa043c504fa09eeaa1bc6f224216a26a2d9f04a051aa0b2fa12eaae6aced9bb",
+        "match": true
+      },
+      {
+        "path": "raw/g2/tiny-off-r2.json",
+        "bytes": 9488,
+        "sha256": "75a9a185e533e2dc3a4573525ea2d9faa306776d6a88ae0b6dcfbbbd01cb23f9",
+        "match": true
+      },
+      {
+        "path": "raw/g2/tiny-off-r3.json",
+        "bytes": 14943,
+        "sha256": "041288bff61167c3f8dd10100afe7c85c69028ae59d922812d513e8352b8ebf7",
+        "match": true
+      },
+      {
+        "path": "raw/g2/tiny-off.json",
+        "bytes": 6548,
+        "sha256": "f827cd5cafaa604e73551b6daedcf9b434ce4e32994fbcb4d09765cfe3970341",
+        "match": true
+      },
+      {
+        "path": "raw/g2/tiny-on.json",
+        "bytes": 22796,
+        "sha256": "2773d47f720f1e166990df04874f30e9c925a881ca074c1667ed853c2d0e6bf9",
+        "match": true
+      },
+      {
+        "path": "raw/sdk/capability.json",
+        "bytes": 1255,
+        "sha256": "b0b2d3ee1fd7538ebbdd1aa6ffa7e40e61125f993cf827911e11cdd53ff43c8b",
+        "match": true
+      },
+      {
+        "path": "raw/sdk/profiling.py.txt",
+        "bytes": 6357,
+        "sha256": "ac8a9a43e5d8326cf532dfd2916cf6b7d7833d3a1d67e8ebe0e075aa1dfea3d6",
+        "match": true
+      },
+      {
+        "path": "unchanged-recursive-source-context.diff",
+        "bytes": 324049,
+        "sha256": "6107544c8450a2580749ceeb6da09adc4e3e04ecd54d7705261cabead0c8df13",
+        "match": true
+      },
+      {
+        "path": "wrapper.diff",
+        "bytes": 19254,
+        "sha256": "eecc55d15cb202238a93579f06ed46cc0cd34677c914a9d7619b8dadb028fe88",
+        "match": true
+      }
+    ],
+    "reconstructed": [
+      {
+        "diff": "wrapper.diff",
+        "reconstructed": "profile_actual_loop.py",
+        "bytes": 18586,
+        "lines": 352,
+        "sha256": "eaad6aff2e18a825eb8ddca91aed5efa72c91a385eb02cbdaee36b01c2644f7d",
+        "expected_sha256": "eaad6aff2e18a825eb8ddca91aed5efa72c91a385eb02cbdaee36b01c2644f7d",
+        "match": true
+      },
+      {
+        "diff": "unchanged-recursive-source-context.diff",
+        "reconstructed": "recursive6.py",
+        "bytes": 318875,
+        "lines": 4890,
+        "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+        "expected_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+        "match": true
+      }
+    ]
+  },
+  "commits_as_supplied_metadata": {
+    "dependency": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "wrapper": "d5e185ed429145d451f602086691a36127714b3b"
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "info",
+      "blocking_in_scope": false,
+      "finding": "No blocking defect reproduced in the tested exact-source CPU instrumentation behavior. All six independent test groups passed; FP32 and BF16 comparison arms were bitwise equal."
+    },
+    {
+      "id": "F2",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "finding": "Own reference uses unchanged extracted loop and CPU optimizer definitions with synthetic tiny model/data, identity collectives, fixed training clock and CPU profiling engine; native model/adapters/data/checkpoint/evaluator and real collectives were not executed."
+    },
+    {
+      "id": "F3",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "finding": "Supplied early receipts fail on pyarrow and requests despite launcher rc0. Later four-rank loss sequences and rank0 truncated parameter digests match OFF/ON, but supplied ON captures CPU step1, not native step20."
+    },
+    {
+      "id": "F4",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "finding": "API source/pin and call signatures agree statically. Capability help commands returned1, referenced help/metrics files are absent, and no native capture or API execution evidence exists."
+    },
+    {
+      "id": "F5",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "location": "profile_actual_loop.py:323",
+      "finding": "The prescribed device-ranks0 invocation is the only device-rank contract considered. CLI accepts other nonempty rank subsets; this review does not approve them or certify all-rank device coverage."
+    },
+    {
+      "id": "F6",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "finding": "Profiling overhead can alter wallclock-dependent schedules. Prepare constants/Operator containment are not supplied. Fixed-clock CPU parity does not prove native training identity or native budget compliance."
+    },
+    {
+      "id": "F7",
+      "severity": "limitation",
+      "blocking_in_scope": false,
+      "finding": "Inclusive CPU ranges are not exclusive device times. Missing events do not mean no work. Native device dtype, embedding-backward timing and MFU remain unknown; other architecture bindings remain unreviewed."
+    }
+  ],
+  "test_files": [
+    "/work/reconstruct_packet.py",
+    "/work/test_reference_exactness.py",
+    "/work/audit_receipts.py",
+    "/work/runpy_fixture.py"
+  ],
+  "test_commands": [
+    {
+      "command": "/opt/cpu/bin/python /work/reconstruct_packet.py > /work/reconstruction.stdout.txt",
+      "exit_code": 0
+    },
+    {
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 PYTHONHASHSEED=42 timeout 120s /opt/cpu/bin/python /work/test_reference_exactness.py > /work/own_test.stdout.txt 2> /work/own_test.stderr.txt",
+      "exit_code": 0
+    },
+    {
+      "command": "/opt/cpu/bin/python /work/audit_receipts.py > /work/receipt_audit.stdout.txt",
+      "exit_code": 0
+    }
+  ],
+  "test_results": {
+    "status": "PASS",
+    "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+    "torch": "2.13.0+cpu",
+    "threads": 1,
+    "interop_threads": 1,
+    "seed": 42,
+    "bounds": {
+      "width": 16,
+      "context": 8,
+      "vocabulary": 32,
+      "microbatch": 2,
+      "steps": 22,
+      "accumulation": 2
+    },
+    "scope": "CPU fixture using unchanged extracted loop and optimizer definitions, identity collectives and deterministic fixture clock",
+    "extracted_definitions": [
+      "MuonAdamW",
+      "_muon_lr_g",
+      "_muon_math",
+      "batch_ramp_grad_accum",
+      "batch_ramp_stage",
+      "clip_and_sync_gradients",
+      "clip_grad_norm_flat_",
+      "demon_beta1_scale",
+      "lr_multiplier",
+      "muon_beta2",
+      "muon_momentum",
+      "sync_gradients",
+      "sync_gradients_flat",
+      "unscale_grads_"
+    ],
+    "results": [
+      {
+        "name": "source_binding_exact_argv_landmarks_and_default_off",
+        "status": "PASS",
+        "evidence": {
+          "hashes_match": true,
+          "exact_landmarks": {
+            "loop_line": 3953,
+            "statements": {
+              "3977": "forward",
+              "3980": "backward",
+              "3982": "data_fetch",
+              "4007": "gradient_unscale",
+              "4008": "clip_and_reduce",
+              "4027": "optimizer",
+              "4039": "weight_cache_refresh",
+              "4042": "record_boundary",
+              "3965": "existing_synchronize",
+              "4041": "existing_synchronize"
+            }
+          },
+          "rejected_argument_variants": 5,
+          "default_off": true
+        }
+      },
+      {
+        "name": "float32_real_loop_cpu_parity",
+        "status": "PASS",
+        "evidence": {
+          "bitwise_equal": true,
+          "compared_tensor_elements": 133170,
+          "steps": 22,
+          "losses": 44,
+          "snapshots": 22,
+          "fetches": 45,
+          "existing_sync_calls": 44,
+          "lifecycle": [
+            [
+              "prepare",
+              0,
+              0
+            ],
+            [
+              "start",
+              20,
+              20
+            ],
+            [
+              "stop",
+              21,
+              21
+            ]
+          ],
+          "annotation_counts": {
+            "P/existing_synchronize": 2,
+            "P/forward": 2,
+            "P/backward": 2,
+            "P/data_fetch": 2,
+            "P/gradient_unscale": 1,
+            "P/clip_and_reduce": 1,
+            "P/all_reduce_host_call": 4,
+            "P/optimizer": 1,
+            "P/optimizer_adamw_group_inclusive": 1,
+            "P/optimizer_muon_group_inclusive": 1,
+            "P/optimizer_muon_scalar_upload": 1,
+            "P/optimizer_muon_eager_math_if_executed": 1,
+            "P/weight_cache_refresh": 1,
+            "P/record_boundary": 1
+          },
+          "final_parameter_hashes": {
+            "embedding.weight": "cc04e5506acbf33fb63a0a8811832c9e34c37a481ec9742a79666391b7ec7816",
+            "matrix.weight": "a738c53d43779a57e884bc39dabd1f5460756d68f32f0afc328bb70a0a931be2",
+            "head.weight": "1fc40d4319174fde1496c9158cef065c238e8c8ea4def14c295017598c0312f5"
+          }
+        }
+      },
+      {
+        "name": "bfloat16_real_loop_cpu_parity",
+        "status": "PASS",
+        "evidence": {
+          "bitwise_equal": true,
+          "compared_tensor_elements": 133170,
+          "steps": 22,
+          "losses": 44,
+          "snapshots": 22,
+          "fetches": 45,
+          "existing_sync_calls": 44,
+          "lifecycle": [
+            [
+              "prepare",
+              0,
+              0
+            ],
+            [
+              "start",
+              20,
+              20
+            ],
+            [
+              "stop",
+              21,
+              21
+            ]
+          ],
+          "annotation_counts": {
+            "P/existing_synchronize": 2,
+            "P/forward": 2,
+            "P/backward": 2,
+            "P/data_fetch": 2,
+            "P/gradient_unscale": 1,
+            "P/clip_and_reduce": 1,
+            "P/all_reduce_host_call": 4,
+            "P/optimizer": 1,
+            "P/optimizer_adamw_group_inclusive": 1,
+            "P/optimizer_muon_group_inclusive": 1,
+            "P/optimizer_muon_scalar_upload": 1,
+            "P/optimizer_muon_eager_math_if_executed": 1,
+            "P/weight_cache_refresh": 1,
+            "P/record_boundary": 1
+          },
+          "final_parameter_hashes": {
+            "embedding.weight": "c5c251084c0ea8646c166181a8648bf40417b1d325e193cb6c314459c3d05247",
+            "matrix.weight": "6b758c7996f7f64a9e058a642d0a080765869931a973d6e92d15175c8b2c258c",
+            "head.weight": "92d2aa8b6ead9c6d53136d73bb141445f1455090925cc2287480772b466b6ad9"
+          }
+        }
+      },
+      {
+        "name": "early_exit_and_exception_cleanup",
+        "status": "PASS",
+        "evidence": {
+          "early_exit_refused": true,
+          "injected_failure_preserved": true,
+          "exception_scopes_balanced": true,
+          "exception_lifecycle": [
+            [
+              "prepare",
+              0,
+              0
+            ],
+            [
+              "start",
+              20,
+              20
+            ],
+            [
+              "abort"
+            ]
+          ]
+        }
+      },
+      {
+        "name": "run_exact_runpy_contract",
+        "status": "PASS",
+        "evidence": {
+          "argv_path_main_semantics": true,
+          "tensor_exact": true,
+          "exception_restoration": true,
+          "existing_trace_refused": true
+        }
+      },
+      {
+        "name": "startup_cap_excess_and_wallclock_sensitivity",
+        "status": "PASS",
+        "evidence": {
+          "cap_seconds": 900.0,
+          "budget_started": -130.00000000000003,
+          "wallclock_lr_at_0": 1.0,
+          "wallclock_lr_at_900": 0.5499999999999999,
+          "note": "Fixture defines imported prepare constants; this does not verify absent prepare.py or Operator accounting."
+        }
+      }
+    ]
+  },
+  "raw_artifacts": [
+    "/work/bfloat16.raw.json",
+    "/work/bfloat16.raw.pt",
+    "/work/bfloat16_on.trace.json",
+    "/work/exception.raw.json",
+    "/work/exception.trace.json",
+    "/work/float32.raw.json",
+    "/work/float32.raw.pt",
+    "/work/float32_on.trace.json",
+    "/work/hash_verification.json",
+    "/work/own_test.stderr.txt",
+    "/work/own_test.stdout.txt",
+    "/work/own_test_results.json",
+    "/work/receipt_audit.json",
+    "/work/receipt_audit.stdout.txt",
+    "/work/reconstruction.stdout.txt",
+    "/work/startup_on.trace.json"
+  ],
+  "pending_scope": [
+    "Native profiling API import, entry, collection, export and nonempty complete runtime/device artifacts",
+    "Actual 22-step LNC2/world4 native execution; seed42; step20 capture; rank0 device-only and all-rank runtime coverage",
+    "Real training adapters, data, distributed optimizer ownership, checkpoint/evaluator paths",
+    "Operator fixed1800/startup-cap900/excess accounting and existing 2700-second hard-wall containment",
+    "Correlated exclusive device phase attribution, including embedding backward and Newton-Schulz",
+    "Actual BF16 matmul/attention evidence across operations and ranks",
+    "Worst-rank native wall time, reviewed FLOPs, honest MFU and profiler overhead",
+    "Quality/performance adoption, submission, upload and host authorization",
+    "All architecture bindings other than the exact Recursive6 source hash"
+  ],
+  "mfu": null,
+  "native_device_dtype_evidence": null,
+  "report": "/work/REVIEW.md"
+}

@@ -1,0 +1,663 @@
+{
+  "receipts": {
+    "tiny-off-r2.json": {
+      "claimed_verdict": "FAIL",
+      "reason": "ModuleNotFoundError in <module>:35",
+      "torchrun_rc": 0,
+      "timed_out": false,
+      "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "argv": [
+        "--depth",
+        "2",
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--recursive-schedule"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-7fcdkt_9/out"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium",
+        "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "stub": false
+      },
+      "shims": [],
+      "steps": 3,
+      "micro_batch": [
+        1,
+        8
+      ],
+      "python": "3.14.4",
+      "torch": "2.13.0+cpu",
+      "ranks": [
+        {
+          "rank": 0,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'requests'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 1,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'requests'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 2,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'requests'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 3,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'requests'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        }
+      ]
+    },
+    "tiny-off-r3.json": {
+      "claimed_verdict": "PASS",
+      "reason": "all ranks completed the real training loop consistently",
+      "torchrun_rc": 0,
+      "timed_out": false,
+      "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "argv": [
+        "--depth",
+        "2",
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--recursive-schedule"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-bburerim/out"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-p-actual-loop-profile-20260926/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x8 tokens"
+      ],
+      "steps": 3,
+      "micro_batch": [
+        1,
+        8
+      ],
+      "python": "3.14.4",
+      "torch": "2.13.0+cpu",
+      "ranks": [
+        {
+          "rank": 0,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.011563301086426,
+            9.02148723602295,
+            8.995948791503906
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              8,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          },
+          "final_digests_count": 22,
+          "final_digest_lengths": [
+            16
+          ],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": null
+        },
+        {
+          "rank": 1,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.009450912475586,
+            9.009400367736816,
+            8.911516189575195
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": null
+        },
+        {
+          "rank": 2,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.015210151672363,
+            9.00666618347168,
+            9.009931564331055
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": null
+        },
+        {
+          "rank": 3,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.011550903320312,
+            8.9981050491333,
+            9.014042854309082
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": null
+        }
+      ]
+    },
+    "tiny-off.json": {
+      "claimed_verdict": "FAIL",
+      "reason": "ModuleNotFoundError in <module>:30",
+      "torchrun_rc": 0,
+      "timed_out": false,
+      "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "argv": [
+        "--depth",
+        "2",
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--recursive-schedule"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-n78k38ag/out"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium",
+        "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "stub": false
+      },
+      "shims": [],
+      "steps": 3,
+      "micro_batch": [
+        1,
+        8
+      ],
+      "python": "3.14.4",
+      "torch": "2.13.0+cpu",
+      "ranks": [
+        {
+          "rank": 0,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'pyarrow'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 1,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'pyarrow'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 2,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'pyarrow'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        },
+        {
+          "rank": 3,
+          "claimed_status": "FAIL",
+          "error": "ModuleNotFoundError: No module named 'pyarrow'",
+          "losses": null,
+          "n_changed": null,
+          "n_params": null,
+          "cross_rank_mismatches": null,
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": null,
+          "profile": null
+        }
+      ]
+    },
+    "tiny-on.json": {
+      "claimed_verdict": "PASS",
+      "reason": "all ranks completed the real training loop consistently",
+      "torchrun_rc": 0,
+      "timed_out": false,
+      "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "argv": [
+        "--depth",
+        "2",
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--recursive-schedule"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-lrtviuvq/out"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-p-actual-loop-profile-20260926/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x8 tokens"
+      ],
+      "steps": 3,
+      "micro_batch": [
+        1,
+        8
+      ],
+      "python": "3.14.4",
+      "torch": "2.13.0+cpu",
+      "ranks": [
+        {
+          "rank": 0,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.011563301086426,
+            9.02148723602295,
+            8.995948791503906
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              8,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          },
+          "final_digests_count": 22,
+          "final_digest_lengths": [
+            16
+          ],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": {
+            "scope": "TEST ONLY CPU profiler and reduced synthetic G2, not native",
+            "start_step": 1,
+            "stop_step": 2,
+            "event_counts": {
+              "P/existing_synchronize": 2,
+              "P/forward": 1,
+              "P/backward": 1,
+              "P/data_fetch": 1,
+              "P/gradient_unscale": 1,
+              "P/clip_and_reduce": 1,
+              "P/all_reduce_host_call": 23,
+              "P/optimizer": 1,
+              "P/optimizer_adamw_group_inclusive": 1,
+              "P/all_gather_host_call": 1,
+              "P/weight_cache_refresh": 14,
+              "P/record_boundary": 1
+            }
+          }
+        },
+        {
+          "rank": 1,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.009450912475586,
+            9.009400367736816,
+            8.911516189575195
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": {
+            "scope": "TEST ONLY CPU profiler and reduced synthetic G2, not native",
+            "start_step": 1,
+            "stop_step": 2,
+            "event_counts": {
+              "P/existing_synchronize": 2,
+              "P/forward": 1,
+              "P/backward": 1,
+              "P/data_fetch": 1,
+              "P/gradient_unscale": 1,
+              "P/clip_and_reduce": 1,
+              "P/all_reduce_host_call": 23,
+              "P/optimizer": 1,
+              "P/optimizer_adamw_group_inclusive": 1,
+              "P/all_gather_host_call": 1,
+              "P/weight_cache_refresh": 14,
+              "P/record_boundary": 1
+            }
+          }
+        },
+        {
+          "rank": 2,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.015210151672363,
+            9.00666618347168,
+            9.009931564331055
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": {
+            "scope": "TEST ONLY CPU profiler and reduced synthetic G2, not native",
+            "start_step": 1,
+            "stop_step": 2,
+            "event_counts": {
+              "P/existing_synchronize": 2,
+              "P/forward": 1,
+              "P/backward": 1,
+              "P/data_fetch": 1,
+              "P/gradient_unscale": 1,
+              "P/clip_and_reduce": 1,
+              "P/all_reduce_host_call": 23,
+              "P/optimizer": 1,
+              "P/optimizer_adamw_group_inclusive": 1,
+              "P/all_gather_host_call": 1,
+              "P/weight_cache_refresh": 14,
+              "P/record_boundary": 1
+            }
+          }
+        },
+        {
+          "rank": 3,
+          "claimed_status": "PASS",
+          "error": null,
+          "losses": [
+            9.011550903320312,
+            8.9981050491333,
+            9.014042854309082
+          ],
+          "n_changed": 22,
+          "n_params": 22,
+          "cross_rank_mismatches": [],
+          "checkpoint_check": null,
+          "final_digests_count": 0,
+          "final_digest_lengths": [],
+          "plan_sha256": "190ff1c2328be1226db47a5cad55e262745dd4e401524cfb26aedac7128f5935",
+          "profile": {
+            "scope": "TEST ONLY CPU profiler and reduced synthetic G2, not native",
+            "start_step": 1,
+            "stop_step": 2,
+            "event_counts": {
+              "P/existing_synchronize": 2,
+              "P/forward": 1,
+              "P/backward": 1,
+              "P/data_fetch": 1,
+              "P/gradient_unscale": 1,
+              "P/clip_and_reduce": 1,
+              "P/all_reduce_host_call": 23,
+              "P/optimizer": 1,
+              "P/optimizer_adamw_group_inclusive": 2,
+              "P/optimizer_muon_group_inclusive": 4,
+              "P/optimizer_muon_scalar_upload": 4,
+              "P/optimizer_muon_eager_math_if_executed": 4,
+              "P/all_gather_host_call": 1,
+              "P/weight_cache_refresh": 14,
+              "P/record_boundary": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "off_on_comparison": [
+    {
+      "rank": 0,
+      "losses_exact": true,
+      "final_digests_present": true,
+      "final_digests_equal_when_present": true,
+      "plan_sha256_equal": true,
+      "plan_summary_equal": true
+    },
+    {
+      "rank": 1,
+      "losses_exact": true,
+      "final_digests_present": false,
+      "final_digests_equal_when_present": null,
+      "plan_sha256_equal": true,
+      "plan_summary_equal": true
+    },
+    {
+      "rank": 2,
+      "losses_exact": true,
+      "final_digests_present": false,
+      "final_digests_equal_when_present": null,
+      "plan_sha256_equal": true,
+      "plan_summary_equal": true
+    },
+    {
+      "rank": 3,
+      "losses_exact": true,
+      "final_digests_present": false,
+      "final_digests_equal_when_present": null,
+      "plan_sha256_equal": true,
+      "plan_summary_equal": true
+    }
+  ],
+  "sdk": {
+    "source_sha256": "ac8a9a43e5d8326cf532dfd2916cf6b7d7833d3a1d67e8ebe0e075aa1dfea3d6",
+    "matches_candidate_pin": true,
+    "metadata_scope": "Read-only CLI help and installed API source; no profiler collection/import/native launch",
+    "commands": [
+      {
+        "command": [
+          "/opt/aws/neuron/bin/neuron-profile",
+          "--help"
+        ],
+        "exit_code": 1,
+        "file": "neuron-profile-help.txt"
+      },
+      {
+        "command": [
+          "/opt/aws/neuron/bin/neuron-profile",
+          "capture",
+          "--help"
+        ],
+        "exit_code": 1,
+        "file": "neuron-profile-capture-help.txt"
+      },
+      {
+        "command": [
+          "/opt/aws/neuron/bin/neuron-profile",
+          "view",
+          "--help"
+        ],
+        "exit_code": 1,
+        "file": "neuron-profile-view-help.txt"
+      }
+    ],
+    "missing_referenced_files": [
+      "neuron-profile-help.txt",
+      "neuron-profile-capture-help.txt",
+      "neuron-profile-view-help.txt",
+      "metrics.py.txt"
+    ],
+    "native_execution_evidence": false
+  }
+}
