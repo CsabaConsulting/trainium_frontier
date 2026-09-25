@@ -1,4 +1,4 @@
-"""Offline synthetic r4 timing tests only; no trn22 or stage-writer contact."""
+"""Offline synthetic r10 timing tests only; no trn22 or stage-writer contact."""
 
 import base64
 from contextlib import nullcontext
@@ -26,8 +26,8 @@ def load(name, filename):
     return module
 
 
-remote = load("trn22_r4_remote_timing_test", "remote_timing_readonly.py")
-operator = load("trn22_r4_operator_timing_test", "operator_timing_readonly.py")
+remote = load("trn22_r10_remote_timing_test", "remote_timing_readonly.py")
+operator = load("trn22_r10_operator_timing_test", "operator_timing_readonly.py")
 
 
 def line(value):
@@ -180,7 +180,7 @@ class RemoteSequenceTests(unittest.TestCase):
         identity = {"hostname": remote.HOST, "uid": remote.UID}
         pre = {"schema": remote.SCHEMA + "-probe", "utc": remote._utc(),
                "identity": identity,
-               "stage_r4": operator.STAGE_R4_PIN,
+               "stage_r10": operator.STAGE_R10_PIN,
                "lock": {"synthetic": True},
                "process_identity": {"pid": 123, "start_ticks": 456}}
         fake_out = types.SimpleNamespace(buffer=stream)
@@ -213,12 +213,12 @@ class CollectorParserTests(unittest.TestCase):
                     "source": {"commit": remote.BASE_COMMIT}}
         lock = {"synthetic": True}
         pre = {"schema": operator.SCHEMA + "-probe", "identity": identity,
-               "stage_r4": operator.STAGE_R4_PIN, "lock": lock,
+               "stage_r10": operator.STAGE_R10_PIN, "lock": lock,
                "process_identity": {"pid": 1, "start_ticks": 100}}
         post = {**pre, "process_identity": {"pid": 3, "start_ticks": 300}}
         start = {"schema": operator.SCHEMA, "kind": "start", "trial_count": 20,
                  "preflight_sha256": operator._sha(operator._canonical(pre)),
-                 "identity": identity, "stage_r4": operator.STAGE_R4_PIN,
+                 "identity": identity, "stage_r10": operator.STAGE_R10_PIN,
                  "lock": lock,
                  "process_identity": {"pid": 2, "start_ticks": 200}}
         records = [start]
@@ -275,7 +275,7 @@ class CollectorParserTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "below floor"):
             operator._require_timing(bad, pre, post)
         bad_pre = copy.deepcopy(pre)
-        bad_pre["stage_r4"]["remote_sha256"] = "0" * 64
+        bad_pre["stage_r10"]["remote_sha256"] = "0" * 64
         with self.assertRaisesRegex(RuntimeError, "binding malformed"):
             operator._require_timing(raw, bad_pre, post)
 
@@ -352,17 +352,28 @@ class CollectorParserTests(unittest.TestCase):
 
 
 class PinnedAuthorityTests(unittest.TestCase):
-    def test_exact_stage_r4_and_diagnostic_hashes(self):
-        for path, digest in ((operator.STAGE_R4_REMOTE,
-                              operator.STAGE_R4_REMOTE_SHA256),
-                             (operator.STAGE_R4_OPERATOR,
-                              operator.STAGE_R4_OPERATOR_SHA256),
-                             (operator.STAGE_R4_HOLD,
-                              operator.STAGE_R4_HOLD_SHA256),
+    def test_r10_stage_boundary_identity_matches_timing_model(self):
+        stage = load("trn22_r10_stage_remote_timing_pin", operator.STAGE_R10_REMOTE)
+        for name in ("SOURCE", "TARGET", "BUNDLE", "LABEL", "BASE_COMMIT",
+                     "HOST", "UID", "DEV", "STOP_PATHS", "PROCESS_MARKERS",
+                     "LOCK", "LOCK_INODES", "LOCK_MODES"):
+            self.assertEqual(getattr(remote, name), getattr(stage, name), name)
+        self.assertEqual(remote.MIN_FREE, stage.PRE_FREE)
+        self.assertEqual(remote.MIN_INODES, stage.MIN_INODES)
+        self.assertEqual(remote.MAX_AGE_NS,
+                         int(stage.MAX_FINAL_CHECK_AGE_SECONDS * 1_000_000_000))
+
+    def test_exact_stage_r10_and_diagnostic_hashes(self):
+        for path, digest in ((operator.STAGE_R10_REMOTE,
+                              operator.STAGE_R10_REMOTE_SHA256),
+                             (operator.STAGE_R10_OPERATOR,
+                              operator.STAGE_R10_OPERATOR_SHA256),
+                             (operator.STAGE_R10_HOLD,
+                              operator.STAGE_R10_HOLD_SHA256),
                              (operator.REMOTE, operator.REMOTE_SHA256)):
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
-        self.assertEqual(operator.STAGE_R4_COMMIT,
-                         "19fbfdc88763b6b5762e219339dcd156e7977a30")
+        self.assertEqual(operator.STAGE_R10_COMMIT,
+                         "020bfa7ebd048f947d5207cbedaf028a29a4b159")
 
     def test_disabled_package_exits_before_ssh_or_local_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:

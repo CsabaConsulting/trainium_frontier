@@ -1,4 +1,4 @@
-"""Disabled one-attempt trn22 r4 read-only boundary timing collector.
+"""Disabled one-attempt trn22 r10 read-only boundary timing collector.
 
 The checked-in HOLD contract is not authority. Only a separate exact enabled
 request, independent PASS and Supervisor assignment can reach SSH. No remote
@@ -20,16 +20,16 @@ import time
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
-STAGE_R4 = HERE.parent / "trn22-c5c-a0-r9-incremental-stage-r4-hold"
-STAGE_R4_REMOTE = STAGE_R4 / "remote_incremental.py"
-STAGE_R4_OPERATOR = STAGE_R4 / "operator_once.py"
-STAGE_R4_HOLD = STAGE_R4 / "REQUEST.HOLD.json"
+STAGE_R10 = HERE.parent / "trn22-c5c-a0-r10-incremental-stage-r1-hold"
+STAGE_R10_REMOTE = STAGE_R10 / "remote_incremental.py"
+STAGE_R10_OPERATOR = STAGE_R10 / "operator_once.py"
+STAGE_R10_HOLD = STAGE_R10 / "REQUEST.HOLD.json"
 REMOTE = HERE / "remote_timing_readonly.py"
 HOLD = HERE / "GATE_CONTRACT.HOLD.json"
 ENABLED = HERE / "TIMING_REQUEST.ENABLED.json"
 REVIEW = HERE / "INDEPENDENT_TIMING_REVIEW.PASS.json"
 ASSIGNMENT = HERE / "SUPERVISOR_TIMING_ASSIGNMENT.json"
-OUTPUT = HERE / "OPERATOR_RAW_R4_TIMING_RESULT.json"
+OUTPUT = HERE / "OPERATOR_RAW_R10_TIMING_RESULT.json"
 CONTROL_ROOT = Path("/home/poojith-devan/Desktop/Trainium")
 CONTROL_STATE = CONTROL_ROOT / "research/v2/state.json"
 KNOWN_HOSTS = Path("/home/poojith-devan/.ssh/known_hosts")
@@ -37,24 +37,24 @@ IDENTITY_FILE = Path("/home/poojith-devan/Desktop/Trainium/trn2.pem")
 ENDPOINT = "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com"
 HOST_FINGERPRINT = "SHA256:bXvW4P20oehuJWPMDLUS72E1aPY58rq/kOqUybiB44U"
 KNOWN_HOSTS_SHA256 = "e42405d8dd82c56be05b849dbe1d050dafe2ebf2678ab197857174b44057cce3"
-STAGE_R4_COMMIT = "19fbfdc88763b6b5762e219339dcd156e7977a30"
-STAGE_R4_REMOTE_SHA256 = "871fd00aa61d0db2df8597949c8cad43c4c0a9a94ffda218a44851d60091c9b7"
-STAGE_R4_OPERATOR_SHA256 = "64d0ed49261cd231b3193f315d114d43e39a94f3b3dea21833a37dd15c0c2d7e"
-STAGE_R4_HOLD_SHA256 = "8cd3b2debb0c309ab72faef78b057e344fc0525b1269332d3d46b13337797f56"
-REMOTE_SHA256 = "b454aa5524cd1df572ea5437a4588239a7b01eee12498474a99df958695160e2"
+STAGE_R10_COMMIT = "020bfa7ebd048f947d5207cbedaf028a29a4b159"
+STAGE_R10_REMOTE_SHA256 = "da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f"
+STAGE_R10_OPERATOR_SHA256 = "7c04b0288de04a514b3da0a6a9c01f525551f2cfc92f69d4ba63f8941aa2d0b5"
+STAGE_R10_HOLD_SHA256 = "625b4a53c0f67fba0a7b4ef5a6705f64f3935eb8f5841ef5e2212f6c8e820b6e"
+REMOTE_SHA256 = "a9bc253680403883dacc601b35cb1935c81672c512fc9a04cff9ce12e7944ed4"
 TRIALS = 20
 MAX_AGE_NS = 1_000_000_000
 PRE_FREE = 13_177_973_911
 MIN_INODES = 10_000
-SCOPE = "TRN22_R9_STAGE_R4_READ_ONLY_FINAL_BOUNDARY_TIMING"
-SCHEMA = "trn22-r9-stage-r4-timing-v1"
+SCOPE = "TRN22_R10_STAGE_R1_READ_ONLY_FINAL_BOUNDARY_TIMING"
+SCHEMA = "trn22-r10-stage-r1-timing-v1"
 MAX_REMOTE_LINE = 8192
 MAX_REMOTE_STDOUT = 256 * 1024
 STABLE_IDENTITY = ("hostname", "uid", "root_device", "boot_id", "mount_namespace", "source")
-STAGE_R4_PIN = {"commit": STAGE_R4_COMMIT,
-                "remote_sha256": STAGE_R4_REMOTE_SHA256,
-                "operator_sha256": STAGE_R4_OPERATOR_SHA256,
-                "hold_sha256": STAGE_R4_HOLD_SHA256}
+STAGE_R10_PIN = {"commit": STAGE_R10_COMMIT,
+                "remote_sha256": STAGE_R10_REMOTE_SHA256,
+                "operator_sha256": STAGE_R10_OPERATOR_SHA256,
+                "hold_sha256": STAGE_R10_HOLD_SHA256}
 STEP_SEQUENCE = ("activity_pre_scan", "label_scan_1", "label_scan_2",
                  "activity_post_scan", "space_pre_open", "direct_pre_open",
                  "label_scan_3", "activity_post_would_open",
@@ -170,9 +170,9 @@ def _ssh_identity():
 
 def _authorize():
     """Fail locally before SSH or a local receipt unless all distinct gates exist."""
-    _pinned(STAGE_R4_REMOTE, STAGE_R4_REMOTE_SHA256)
-    _pinned(STAGE_R4_OPERATOR, STAGE_R4_OPERATOR_SHA256)
-    _pinned(STAGE_R4_HOLD, STAGE_R4_HOLD_SHA256)
+    _pinned(STAGE_R10_REMOTE, STAGE_R10_REMOTE_SHA256)
+    _pinned(STAGE_R10_OPERATOR, STAGE_R10_OPERATOR_SHA256)
+    _pinned(STAGE_R10_HOLD, STAGE_R10_HOLD_SHA256)
     _pinned(REMOTE, REMOTE_SHA256)
     hold_raw, hold = _exact_json(HOLD)
     own_hash = _sha(_read_regular(Path(__file__)))
@@ -181,10 +181,10 @@ def _authorize():
         "scope": SCOPE, "host": "trn22", "hostname": "ip-172-31-32-253",
         "endpoint": ENDPOINT, "fingerprint": HOST_FINGERPRINT,
         "known_hosts_sha256": KNOWN_HOSTS_SHA256,
-        "stage_r4_commit": STAGE_R4_COMMIT,
-        "stage_r4_remote_sha256": STAGE_R4_REMOTE_SHA256,
-        "stage_r4_operator_sha256": STAGE_R4_OPERATOR_SHA256,
-        "stage_r4_hold_sha256": STAGE_R4_HOLD_SHA256,
+        "stage_r10_commit": STAGE_R10_COMMIT,
+        "stage_r10_remote_sha256": STAGE_R10_REMOTE_SHA256,
+        "stage_r10_operator_sha256": STAGE_R10_OPERATOR_SHA256,
+        "stage_r10_hold_sha256": STAGE_R10_HOLD_SHA256,
         "diagnostic_sha256": REMOTE_SHA256,
         "collector_sha256": own_hash, "trial_count": TRIALS,
         "remote_operations": ["probe", "timing", "probe"],
@@ -205,10 +205,10 @@ def _authorize():
     if review != {"schema": SCHEMA + "-review", "verdict": "PASS_READ_ONLY_TIMING_ONLY",
                   "role": "independent_verifier", "host": "trn22", "scope": SCOPE,
                   "request_sha256": _sha(request_raw),
-                  "stage_r4_commit": STAGE_R4_COMMIT,
-                  "stage_r4_remote_sha256": STAGE_R4_REMOTE_SHA256,
-                  "stage_r4_operator_sha256": STAGE_R4_OPERATOR_SHA256,
-                  "stage_r4_hold_sha256": STAGE_R4_HOLD_SHA256,
+                  "stage_r10_commit": STAGE_R10_COMMIT,
+                  "stage_r10_remote_sha256": STAGE_R10_REMOTE_SHA256,
+                  "stage_r10_operator_sha256": STAGE_R10_OPERATOR_SHA256,
+                  "stage_r10_hold_sha256": STAGE_R10_HOLD_SHA256,
                   "diagnostic_sha256": REMOTE_SHA256,
                   "collector_sha256": own_hash}:
         raise RuntimeError("independent exact timing review missing or mismatched")
@@ -237,7 +237,7 @@ _BOOTSTRAP = (
     "if len(sys.argv) not in (3,4): raise SystemExit('wrong read-only shape')\n"
     "raw=base64.b64decode(sys.argv[1],validate=True)\n"
     "if hashlib.sha256(raw).hexdigest()!=%r: raise SystemExit('diagnostic SHA drift')\n"
-    "ns={'__name__':'trn22_r9_r4_readonly_timing','__file__':'<pinned-readonly-timing>'}\n"
+    "ns={'__name__':'trn22_r10_r1_readonly_timing','__file__':'<pinned-readonly-timing>'}\n"
     "exec(compile(raw,ns['__file__'],'exec'),ns)\n"
     "operation=sys.argv[2]\n"
     "if operation=='probe' and len(sys.argv)==3:\n"
@@ -371,13 +371,13 @@ def _require_probe(raw):
             not isinstance(probe.get("process_identity", {}).get("start_ticks"), int) or
             probe.get("identity", {}).get("source", {}).get("commit") !=
             "e65a3097a5b00f6178188a935bb2acb9a5042c6c" or
-            probe.get("stage_r4") != STAGE_R4_PIN or
+            probe.get("stage_r10") != STAGE_R10_PIN or
             probe.get("stop_paths_absent") is not True or
-            probe.get("label") != "fs-20260925-trn22-c5c-a0-r9-incremental-stage-r1" or
+            probe.get("label") != "fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1" or
             probe.get("bundle") !=
-            "/home/ubuntu/trainium-c5c-e65-to-r9-20260925.trn22-stage-r1.bundle" or
+            "/home/ubuntu/trainium-c5c-e65-to-r10-20260925.trn22-stage-r1.bundle" or
             probe.get("target") !=
-            "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r9_stage_r1"):
+            "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r10_stage_r1"):
         raise RuntimeError("read-only probe host/label/target identity malformed")
     return probe
 
@@ -398,7 +398,7 @@ def _space_observation(value):
 def _checked_steps(trial, count):
     steps = trial.get("steps")
     if not isinstance(steps, list) or len(steps) != count:
-        raise RuntimeError("exact r4 read-only step prefix incomplete")
+        raise RuntimeError("exact r10 read-only step prefix incomplete")
     for index, (step, name) in enumerate(zip(steps, STEP_SEQUENCE)):
         is_space = index in (4, 8)
         keys = {"name", "started_ns", "ended_ns", "duration_ns"}
@@ -410,18 +410,18 @@ def _checked_steps(trial, count):
                     ("started_ns", "ended_ns", "duration_ns")) or
                 step["ended_ns"] < step["started_ns"] or
                 step["duration_ns"] != step["ended_ns"] - step["started_ns"]):
-            raise RuntimeError("r4 monotonic step evidence malformed")
+            raise RuntimeError("r10 monotonic step evidence malformed")
         if is_space and not _space_observation(step["observation"]):
-            raise RuntimeError("r4 root byte/inode observation below floor")
+            raise RuntimeError("r10 root byte/inode observation below floor")
     if any(left["ended_ns"] > right["started_ns"] for left, right in
            zip(steps, steps[1:])):
-        raise RuntimeError("r4 read-only step order malformed")
+        raise RuntimeError("r10 read-only step order malformed")
     return steps
 
 
 def _checked_ages(trial, field, now, steps, *, label, activity, space):
     if not _exact_nonnegative_int(now):
-        raise RuntimeError("r4 monotonic boundary missing")
+        raise RuntimeError("r10 monotonic boundary missing")
     observed = trial.get(field)
     expected = {"label_age_ns": now - steps[label]["ended_ns"],
                 "activity_age_ns": now - steps[activity]["ended_ns"],
@@ -430,7 +430,7 @@ def _checked_ages(trial, field, now, steps, *, label, activity, space):
             any(not _exact_nonnegative_int(value) for value in observed.values()) or
             any(value < 0 for value in expected.values()) or
             observed != expected):
-        raise RuntimeError("r4 boundary age evidence malformed")
+        raise RuntimeError("r10 boundary age evidence malformed")
     return any(value > MAX_AGE_NS for value in expected.values())
 
 
@@ -445,7 +445,7 @@ def _require_trial(trial, index):
             trial["max_age_ns"] != MAX_AGE_NS or
             trial.get("status") != ("WITHIN_MODEL_NO_OPEN" if
                                     trial.get("stopped_at") == "none" else "TIMING_MISS")):
-        raise RuntimeError("r4 timing trial malformed or aborted")
+        raise RuntimeError("r10 timing trial malformed or aborted")
     stopped = trial["stopped_at"]
     keys = {"schema", "kind", "index", "model", "status", "stopped_at",
             "max_age_ns", "scan_pair_duration_ns", "steps"}
@@ -456,47 +456,47 @@ def _require_trial(trial, index):
     if stopped in ("would_payload", "none"):
         keys |= {"would_payload_ns", "post_would_open_ages_ns"}
     if set(trial) != keys:
-        raise RuntimeError("r4 timing trial has missing or extra boundary fields")
+        raise RuntimeError("r10 timing trial has missing or extra boundary fields")
     steps = _checked_steps(trial, lengths[stopped])
     pair = steps[2]["ended_ns"] - steps[1]["started_ns"]
     if (not _exact_nonnegative_int(trial["scan_pair_duration_ns"]) or
             trial["scan_pair_duration_ns"] != pair):
-        raise RuntimeError("r4 double-scan duration malformed")
+        raise RuntimeError("r10 double-scan duration malformed")
     if stopped == "double_scan":
         if pair <= MAX_AGE_NS:
-            raise RuntimeError("r4 double-scan miss classification malformed")
+            raise RuntimeError("r10 double-scan miss classification malformed")
         return True
     if pair > MAX_AGE_NS:
-        raise RuntimeError("r4 double-scan success classification malformed")
+        raise RuntimeError("r10 double-scan success classification malformed")
     pre = trial["pre_open_check_ns"]
     if not _exact_nonnegative_int(pre) or pre < steps[5]["ended_ns"]:
-        raise RuntimeError("r4 pre-open check time malformed")
+        raise RuntimeError("r10 pre-open check time malformed")
     pre_miss = _checked_ages(trial, "pre_open_ages_ns", pre, steps,
                              label=2, activity=3, space=4)
     if stopped == "pre_open":
         if not pre_miss:
-            raise RuntimeError("r4 pre-open miss classification malformed")
+            raise RuntimeError("r10 pre-open miss classification malformed")
         return True
     if pre_miss:
-        raise RuntimeError("r4 stale pre-open gate classified as fresh")
+        raise RuntimeError("r10 stale pre-open gate classified as fresh")
     would = trial["would_open_ns"]
     if not _exact_nonnegative_int(would) or would < pre:
-        raise RuntimeError("r4 would-open clock boundary malformed")
+        raise RuntimeError("r10 would-open clock boundary malformed")
     would_miss = _checked_ages(trial, "would_open_ages_ns", would, steps,
                                label=2, activity=3, space=4)
     if stopped == "would_open":
         if not would_miss:
-            raise RuntimeError("r4 would-open miss classification malformed")
+            raise RuntimeError("r10 would-open miss classification malformed")
         return True
     if would_miss or steps[6]["started_ns"] < would:
-        raise RuntimeError("r4 stale or reordered would-open gate")
+        raise RuntimeError("r10 stale or reordered would-open gate")
     payload = trial["would_payload_ns"]
     if not _exact_nonnegative_int(payload) or payload < steps[9]["ended_ns"]:
-        raise RuntimeError("r4 would-payload clock boundary malformed")
+        raise RuntimeError("r10 would-payload clock boundary malformed")
     post_miss = _checked_ages(trial, "post_would_open_ages_ns", payload, steps,
                               label=6, activity=7, space=8)
     if (stopped == "would_payload") != post_miss:
-        raise RuntimeError("r4 post-would-open miss classification malformed")
+        raise RuntimeError("r10 post-would-open miss classification malformed")
     return post_miss
 
 
@@ -505,19 +505,19 @@ def _require_timing(raw, pre, post):
     records = parsed["records"]
     if (raw["returncode"] != 0 or raw["timed_out"] or raw["stderr_bytes"] or
             parsed["error"] is not None or len(records) != TRIALS + 2):
-        raise RuntimeError("read-only r4 timing incomplete; partial JSONL retained")
+        raise RuntimeError("read-only r10 timing incomplete; partial JSONL retained")
     start, end = records[0], records[-1]
     if (start.get("kind") != "start" or start.get("trial_count") != TRIALS or
             start.get("preflight_sha256") != _sha(_canonical(pre)) or
-            start.get("stage_r4") != STAGE_R4_PIN or
+            start.get("stage_r10") != STAGE_R10_PIN or
             end.get("kind") != "end" or end.get("trial_count") != TRIALS or
             end.get("completed_trials") != TRIALS or
             end.get("status") != "COMPLETE_READ_ONLY"):
-        raise RuntimeError("read-only r4 timing start/end binding malformed")
-    if (pre.get("stage_r4") != STAGE_R4_PIN or
-            post.get("stage_r4") != STAGE_R4_PIN or
+        raise RuntimeError("read-only r10 timing start/end binding malformed")
+    if (pre.get("stage_r10") != STAGE_R10_PIN or
+            post.get("stage_r10") != STAGE_R10_PIN or
             pre["lock"] != post["lock"] or pre["lock"] != start.get("lock")):
-        raise RuntimeError("before/timing/after r4 source or lock pin drift")
+        raise RuntimeError("before/timing/after r10 source or lock pin drift")
     for key in STABLE_IDENTITY:
         if (pre["identity"][key] != post["identity"][key] or
                 pre["identity"][key] != start["identity"][key]):
@@ -532,7 +532,7 @@ def _require_timing(raw, pre, post):
     misses = sum(_require_trial(trial, index) for index, trial in
                  enumerate(trials, 1))
     if type(end.get("timing_misses")) is not int or end["timing_misses"] != misses:
-        raise RuntimeError("r4 timing miss total does not match trials")
+        raise RuntimeError("r10 timing miss total does not match trials")
     return {"status": "COMPLETE_READ_ONLY_PENDING_INDEPENDENT_REVIEW",
             "timing_misses": misses,
             "within_model_trials": TRIALS - misses,

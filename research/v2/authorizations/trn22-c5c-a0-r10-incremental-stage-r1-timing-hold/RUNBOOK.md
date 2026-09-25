@@ -1,42 +1,45 @@
-# trn22 r4 source-stage timing feasibility — DISABLED / READ-ONLY HOLD
+# trn22 r10 direct-stage timing feasibility — DISABLED / READ-ONLY HOLD
 
-This is a separate Implementer-only timing diagnostic for the exact disabled [trn22 r4 e65→r9 source stage](../trn22-c5c-a0-r9-incremental-stage-r4-hold/RUNBOOK.md), commit `19fbfdc88763b6b5762e219339dcd156e7977a30`. It neither enables that stage nor supplies native-training authority. No SSH/EC2/AWS contact, local result, host marker, transfer, checkout, cleanup, training, evaluation, breaker reset or submission occurred. The checked-in contract has `dispatch_authorized=false`; the separately named enabled timing request, independent final timing review, Supervisor one-attempt assignment and raw result are absent. Running `operator_timing_readonly.py` now refuses locally before SSH or a result file.
+This Implementer-only diagnostic is bound to the corrected disabled [trn22 e65→r10 direct source-stage package](../trn22-c5c-a0-r10-incremental-stage-r1-hold/RUNBOOK.md) at commit `020bfa7ebd048f947d5207cbedaf028a29a4b159`. Its target training-source HEAD is `22bfbab5a77d6feb670d2d737504f8b70b08ddc1`. The predecessor stage package `3d26e963` had a mistyped inherited-review hash and remains historical HOLD. This timing diagnostic changes neither stage code nor its one-shot label, target, bundle or marker.
 
-## Exact immutable pins
+No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, native training, evaluation, AWS action or submission occurred. `GATE_CONTRACT.HOLD.json` has `dispatch_authorized=false` and all remote-write/training permissions false. The absent distinct enabled timing request, independent final timing review and Supervisor one-attempt assignment are required before the collector can contact a host. Running `operator_timing_readonly.py` from these checked-in bytes refuses locally before SSH or a result file. Source-stage dispatch is a separate authority and remains HOLD.
 
-| File or source | SHA-256 |
+## Exact source pins
+
+| Item | SHA-256 |
 | --- | --- |
-| `remote_timing_readonly.py` | `b454aa5524cd1df572ea5437a4588239a7b01eee12498474a99df958695160e2` |
-| `operator_timing_readonly.py` | `3d3bc7b99088314ddeea1e0b9ea5e4cc6fe782c60abcc2eec735f92423d268f1` |
-| `GATE_CONTRACT.HOLD.json` | `68c0b32b469c6a16062a9587eeb2dc567415f7d27158f557a1257aebc17e01ad` |
-| `test_timing_readonly.py` | `e5560f808e10f1eb7e82005bdcb7a6ff5576b253408a04f6f8c3927c223267ec` |
-| exact r4 stage remote | `871fd00aa61d0db2df8597949c8cad43c4c0a9a94ffda218a44851d60091c9b7` |
-| exact r4 stage operator | `64d0ed49261cd231b3193f315d114d43e39a94f3b3dea21833a37dd15c0c2d7e` |
-| exact r4 disabled request | `8cd3b2debb0c309ab72faef78b057e344fc0525b1269332d3d46b13337797f56` |
+| `remote_timing_readonly.py` | `a9bc253680403883dacc601b35cb1935c81672c512fc9a04cff9ce12e7944ed4` |
+| `operator_timing_readonly.py` | `4d35b139e2d1cd44e96afb25458b10415de94dd211791ed4172e2893f95e21ab` |
+| `GATE_CONTRACT.HOLD.json` | `bc5f5efc1fa86606c0dbdc03203ceb0dc4f3c0c197fa5bf696e0dd9ffbac98c2` |
+| `test_timing_readonly.py` | `cf5ba6b15128820ce60ecdff1e4f6232e155e980314ef47aa6c3c8d116016800` |
+| exact corrected-stage remote source | `da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f` |
+| exact corrected-stage operator source | `7c04b0288de04a514b3da0a6a9c01f525551f2cfc92f69d4ba63f8941aa2d0b5` |
+| exact corrected-stage disabled request | `625b4a53c0f67fba0a7b4ef5a6705f64f3935eb8f5841ef5e2212f6c8e820b6e` |
 
-The host/source pin remains trn22 `ip-172-31-32-253`, UID/GID 1000, ext4 device 66305, accepted linked e65 checkout `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2`, HEAD `e65a3097a5b00f6178188a935bb2acb9a5042c6c`, exact `train.py`/`prepare.py` hashes, observed checkout inode/mode `2432738/0775`, linked `.git` inode/mode `2432740/0664`, and existing `.cache/trainium_freshstart/device0.lock` identity. The r4 target, bundle and attempt label remain the same exact absent stage-r1 names; this diagnostic never opens them. The earlier 07:33 read-only snapshot is point-in-time planning evidence, not a fresh stage preflight. A timing probe is intentionally narrower than r4's full ACL/NSS/mount/protected-artifact/source-stage preflight.
+The host/source pin is trn22 `ip-172-31-32-253`, UID/GID 1000, ext4 device 66305, accepted linked e65 checkout `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2` at `e65a3097a5b00f6178188a935bb2acb9a5042c6c`, and the exact source `train.py`/`prepare.py` hashes. The timed label is `fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1`; its target and bundle paths match the corrected-stage code. The existing private-cache lock is opened read-only and acquired nonblocking. This diagnostic checks source identity and activity but is intentionally narrower than the stage's full ACL/NSS/mount/protected-artifact preflight. Earlier host snapshots are not fresh stage preflights.
 
-The older r2 timing diagnostic `384eb822c12c05cd994e98e81d2fe4f632cb6118` received [independent STATIC PASS only](../../verification/20260925-trn22-r9-final-continuity-timing-r4-independent-static-PASS.md) at `9aa9a124` (receipt SHA-256 `4b2e4e86240433b922f5394b8dd6d692e79c7241c52ac2e5dd255abcd1f8971d`). It measured only the r2 sequence and did not authorize a host attempt or establish r4 feasibility. This package reuses its strict local authority/host-key gates, read-only transport, existing nonblocking cooperative flock, per-trial flushed JSONL, raw timeout-prefix retention and separate pre/post probes. It binds the **r4** source hashes and changes the timed sequence; the r2 result cannot be substituted.
+The older r9-r4 timing source `6876f084` supplied the bounded collector pattern; no r9 timing result or static review grants r10 authority. Every r10 pin, label, target, schema and output name has a distinct binding here.
 
-## Read-only r4 timing model
+## Exact clock-only model of the r10 final boundary
 
-Each trial, under the existing flock, performs the r4 writer's read-only order:
+Each of twenty trials holds the existing cooperative lock and follows the corrected stage's final read-only order:
 
-1. Full STOP/process/`fuser`/Neuron/process activity check; two broad attempt-label scans; measure their combined duration against the inherited inclusive one-second limit.
-2. If still timely, another full activity check, root byte/inode floor check, direct STOP/bundle/target absence check, then sample the pre-open label/activity/space ages.
-3. If still timely, take a **monotonic clock-only `would_open` sample** and recheck those ages. There is **no** `os.open(O_EXCL)` or file creation.
-4. Only for a passing would-open model, run the third broad label scan, third full activity check, second root floor check and direct absence check, then sample post-would-open ages at a clock-only `would_payload` point.
+1. Full STOP/process/fuser/Neuron/process check; two broad label scans. Measure the double-scan duration against the inclusive one-second bound.
+2. Only if timely: another full activity check, root byte/inode floor check and direct STOP/bundle/target absence check; sample label/activity/space ages before the would-open.
+3. Take a monotonic **clock-only** would-open sample and recheck all three ages. No `O_CREAT`, `O_EXCL`, payload or target creation occurs.
+4. Only if that model passes: third broad label scan, third full activity check, second root byte/inode floor check and direct absence check; sample post-would-open ages at a clock-only would-payload point.
 
-A timing miss stops that trial where r4 would refuse; it does not fabricate unrun third checks. Persistent STOP, activity, label, low disk or helper uncertainty aborts the read-only trial. The diagnostic uses the r4 helper timeouts (20-second `fuser` and `neuron-ls`, 45-second broad `find`); the 120-second outer timing timeout bounds the twenty-trial request and may leave a strict completed JSONL prefix. Each complete record is flushed before the next trial. The local collector preserves raw stdout/stderr in its exclusive one-attempt receipt, attempts a distinct post-probe after timing starts, and treats timeout, aborted/incomplete records, probe drift, bad age arithmetic or failed post-probe as HOLD. A local STOP may prevent even the attempted post-probe from contacting the host; no completed post-probe may be inferred without its actual receipt.
+A timing miss stops that trial where the stage would refuse; unrun checks are not fabricated. Persistent STOP, process/Neuron activity, label appearance, low disk, helper failure or uncertainty aborts. Helper timeouts mirror the stage: fuser/neuron-ls 20 s, broad find 45 s. The outer timing phase is bounded to 120 s. Each complete JSONL start/trial/end record is flushed before the next trial. The one-attempt local collector retains raw stdout and stderr bytes/base64, hashes, exact redacted argv and timeout status, even if only a completed prefix is retrieved. It attempts a distinct full read-only post-probe after timing starts. Missing/failed post-probe, timeout, incomplete/aborted records, identity drift, malformed age arithmetic or any other uncertainty is HOLD, not a timing PASS. A local STOP can prevent even that post-probe connection; no completed post-probe is inferred.
 
-This is a **feasibility measurement**, not a safety or transfer proof. The two adjacent clock samples cannot measure the real `O_EXCL` syscall or its scheduler delay; the read-only post-would-open direct check requires the bundle to stay absent whereas the real writer would have a provisional empty bundle. It cannot test r4's fsync, retained-partial behavior, actual payload delay, Git reconstruction, cross-session readback, malicious same-UID/root races or the non-atomic broad-scan gap. A twenty-trial subsecond result would only show that these read-only helpers fitted the modeled windows in those observations. It cannot close a source-stage HOLD or permit dispatch. Independent review must judge both this static source and any eventual raw timing result.
+This measures **feasibility**, not write safety. Adjacent clock samples do not measure real `O_EXCL` syscall/scheduler delay. The read-only post-would-open direct check requires the bundle absent, whereas the real stage would retain a provisional empty bundle. It cannot prove fsync, payload timing, reconstruction/readback, same-UID/root race freedom or atomicity of broad scans. A subsecond twenty-trial result would only show these read-only helpers fitted the modeled windows on those observations. Independent static and raw-result review, separate enabled stage request, fresh preflight and Supervisor assignment remain mandatory; this package does not close any native/BPB gate.
 
-The Implementer ran **18/18** synthetic tests under normal Python and **18/18** under `python3 -O`. Tests cover exact three-activity/three-scan/two-space order, inclusive 1-second edge and misses at the double scan/pre-open/would-open/post-would-open boundaries, late helper aborts, no target-open primitives, exact pin validation, strict JSONL/age parsing, timeout prefix preservation, distinct post-probe attempt and absent authority before SSH/output. These are offline regressions, not independent verification or live timing.
+Offline checks, with no host contact:
 
-R4→r9 timing is **not the current scored A0 critical path** while trn21's planned checkout is r10: experiment-protocol §1 requires the same Git HEAD locally and on both hosts. The collector pattern can be adapted to a **separate exact r10 trn22 stage profile** after that profile's review, but r4 pins, label, target and any r4 raw result cannot be reused as r10 authority or evidence.
+```text
+python3 -B -m unittest discover -s research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold -p 'test_*.py' -q
+python3 -O -B -m unittest discover -s research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold -p 'test_*.py' -q
+python3 -B research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold/operator_timing_readonly.py
+python3 -O -B research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold/operator_timing_readonly.py
+```
 
-Offline commands:
-
-`python3 -B -m unittest discover -s research/v2/authorizations/trn22-c5c-a0-r9-incremental-stage-r4-timing-hold -p 'test_*.py' -q`
-
-`python3 -O -B -m unittest discover -s research/v2/authorizations/trn22-c5c-a0-r9-incremental-stage-r4-timing-hold -p 'test_*.py' -q`
+The Implementer tests are local synthetic checks only. Both entrypoints must refuse before SSH or an output receipt; a distinct independent Verifier must review the final package before any later enabled timing request.
