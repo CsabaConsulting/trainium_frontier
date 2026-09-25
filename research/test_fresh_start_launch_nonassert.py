@@ -35,13 +35,20 @@ REMOTE_SCRIPT = next(
 LOCAL_FUNCTIONS = [
     node for node in TREE.body
     if isinstance(node, ast.FunctionDef)
-    and node.name in {"require_unoptimized_python", "validate_request", "main"}
+    and node.name in {"require_unoptimized_python", "positive_timeout_seconds",
+                      "bounded_timeout_command", "validate_request", "main"}
 ]
+SOURCE_FINGERPRINT_PATHS = ast.literal_eval(next(
+    node.value for node in TREE.body
+    if isinstance(node, ast.Assign)
+    and any(isinstance(target, ast.Name) and target.id == "SOURCE_FINGERPRINT_PATHS"
+            for target in node.targets)
+))
 FLOOR = 13 * 1024**3 // 2
 PRELAUNCH = 10 * 1024**3
 COMMIT = "a" * 40
 LABEL = "fs-synthetic-nonassert-r7"
-SOURCE_SHA256 = "ece127ad02f72871341369736732f9b324bad9ffa865bc503def7732bb8ad3ab"
+SOURCE_SHA256 = "dcf9fdc0e1d8ecc459e6687b87511f00a5747d3fff19dfdfeae0a6b57d818c07"
 
 
 class FlagsProxy:
@@ -83,7 +90,8 @@ def request_template(remote="/home/ubuntu/trainium_freshstart_synthetic_r7",
         "label": LABEL,
         "expected_commit": COMMIT,
         "remote": str(remote),
-        "command": ["timeout", "1s", "true"],
+        "command": ["timeout", "--kill-after=1s", "1s", "true"],
+        "fingerprint_paths": list(SOURCE_FINGERPRINT_PATHS),
         "environment": {"NEURON_LOGICAL_NC_CONFIG": "2",
                         "NEURON_CC_FLAGS": "--optlevel=1"},
         "min_free_bytes": FLOOR,
@@ -108,6 +116,7 @@ def local_namespace(root, contacts, optimize=0):
         subprocess=types.SimpleNamespace(run=fake_ssh), sys=sys,
         ROOT=root, HOSTS={"trn22": "fake-host"}, SSH=["fake-ssh"],
         REMOTE_SCRIPT=REMOTE_SCRIPT,
+        SOURCE_FINGERPRINT_PATHS=SOURCE_FINGERPRINT_PATHS,
     )
     code = compile(ast.Module(body=LOCAL_FUNCTIONS, type_ignores=[]),
                    "launcher-local-functions", "exec", optimize=optimize)
@@ -294,10 +303,7 @@ class RemoteNonAssertTests(unittest.TestCase):
             checkout = root / "checkout"
             runlogs = checkout / "research/run-logs"
             runlogs.mkdir(parents=True)
-            for name in ("train.py", "prepare.py", "research/run_experiment.py",
-                         "research/fresh_start_host.py", "research/fresh_start_guard.py",
-                         "research/fresh_start_backup.py",
-                         "research/fresh_start_monitor_interlock.py"):
+            for name in SOURCE_FINGERPRINT_PATHS:
                 target = checkout / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text("synthetic source\n")
@@ -437,9 +443,6 @@ class RemoteNonAssertTests(unittest.TestCase):
             ("dirty", {"dirty": b"train.py\n"}, "not committed", "source_identity"),
             ("untracked", {"untracked": b"research/fresh_start_launch.py\n"},
              "not committed", "source_identity"),
-            ("fingerprint", {"mutation": lambda r, *_: r.update(
-                fingerprint_paths=["research/agentic/.env"])},
-             "invalid source fingerprint paths", "source_identity"),
             ("commit", {"commit": "b" * 40}, "unexpected source commit", "source_identity"),
             ("label", {"mutation": lambda r, _root, checkout, _monitor: (
                 checkout / "research/run-logs" / (r["label"] + ".launch.json")
@@ -460,6 +463,21 @@ class RemoteNonAssertTests(unittest.TestCase):
                     self.assertIsNotNone(state["no_spawn"])
                     self.assertEqual(state["no_spawn"]["stage"], stage)
                     self.assertEqual(state["no_spawn"]["status"], "NO_GUARD_SPAWNED")
+
+    def test_bad_fingerprint_refuses_before_remote_lock_or_receipt(self):
+        for optimize in (0, 1):
+            with self.subTest(compiled_optimize=optimize):
+                error, calls, state = self.run_remote(
+                    compiled_optimize=optimize,
+                    mutation=lambda r, *_: r.update(
+                        fingerprint_paths=["research/agentic/private.json"]))
+                self.assertIsInstance(error, RuntimeError)
+                self.assertIn("invalid source fingerprint paths", str(error))
+                self.assertFalse(state["host_dir"])
+                self.assertIsNone(state["no_spawn"])
+                self.assertFalse(state["manifest"] or state["job"] or state["log"])
+                self.assertEqual(calls["git"], [])
+                self.assertEqual(calls["guard"], [])
 
     def test_interlock_refusal_prevents_manifest_job_and_guard(self):
         for optimize in (0, 1):

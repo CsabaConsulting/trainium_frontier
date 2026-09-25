@@ -37,7 +37,8 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
             'expected_commit': 'a' * 40,
             'min_free_bytes': host.MIN_OPERATIONAL_FREE_BYTES,
             'pre_launch_required_free_bytes': 10 * 1024**3,
-            'command': ['timeout', '1s', 'true'],
+            'command': ['timeout', '--kill-after=1s', '1s', 'true'],
+            'fingerprint_paths': list(launcher.SOURCE_FINGERPRINT_PATHS),
             'environment': {'NEURON_LOGICAL_NC_CONFIG': '2',
                             'NEURON_CC_FLAGS': '--optlevel=1'},
             'monitor_interlock': {
@@ -129,12 +130,7 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
             logdir = checkout / 'research/run-logs'
             logdir.mkdir(parents=True)
             request = self.request(root, checkout)
-            paths = [
-                'train.py', 'prepare.py', 'research/run_experiment.py',
-                'research/fresh_start_host.py', 'research/fresh_start_guard.py',
-                'research/fresh_start_backup.py',
-                'research/fresh_start_monitor_interlock.py',
-            ]
+            paths = launcher.SOURCE_FINGERPRINT_PATHS
             for relative in paths:
                 target = checkout / relative
                 target.parent.mkdir(parents=True, exist_ok=True)

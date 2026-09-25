@@ -20,6 +20,16 @@ import sys
 from fresh_start_sync import HOSTS, ROOT, SSH
 
 
+SOURCE_FINGERPRINT_PATHS = (
+    "train.py", "prepare.py", "research/run_experiment.py",
+    "research/fresh_start_launch.py", "research/fresh_start_sync.py",
+    "research/fresh_start_guard.py", "research/fresh_start_host.py",
+    "research/fresh_start_backup.py", "research/fresh_start_monitor_interlock.py",
+    "research/v2/disk-monitor/root_free_guard_monitor.py",
+    "research/v2/disk-monitor/paired_root_free_guard_monitor.py",
+)
+
+
 REMOTE_SCRIPT = r'''
 import datetime, fcntl, hashlib, json, os, pathlib, re, shutil, socket, stat, subprocess, sys
 # This interpreter is independent of the local launcher and the later
@@ -27,6 +37,51 @@ import datetime, fcntl, hashlib, json, os, pathlib, re, shutil, socket, stat, su
 # manifest or guard side effects; assert statements elsewhere cannot save us.
 if sys.flags.optimize != 0 or 'PYTHONOPTIMIZE' in os.environ:
     raise RuntimeError('optimized Python is forbidden in the remote launcher')
+
+SOURCE_FINGERPRINT_PATHS = (
+    'train.py', 'prepare.py', 'research/run_experiment.py',
+    'research/fresh_start_launch.py', 'research/fresh_start_sync.py',
+    'research/fresh_start_guard.py', 'research/fresh_start_host.py',
+    'research/fresh_start_backup.py', 'research/fresh_start_monitor_interlock.py',
+    'research/v2/disk-monitor/root_free_guard_monitor.py',
+    'research/v2/disk-monitor/paired_root_free_guard_monitor.py',
+)
+
+def positive_timeout_seconds(value):
+    # A deliberately narrow GNU timeout duration grammar: integer seconds,
+    # minutes, hours or days, capped at one day. GNU's zero disables timeout.
+    match = re.fullmatch(r'([0-9]{1,8})([smhd]?)', value) if isinstance(value, str) else None
+    if match is None:
+        return False
+    seconds = int(match[1]) * {'': 1, 's': 1, 'm': 60, 'h': 3600, 'd': 86400}[match[2]]
+    return 0 < seconds <= 86400
+
+def bounded_timeout_command(command):
+    if (not isinstance(command, list) or not command
+            or not all(isinstance(arg, str) and arg and '\x00' not in arg for arg in command)
+            or command[0] != 'timeout'
+            or any(arg.startswith('PYTHONOPTIMIZE=') for arg in command)):
+        return False
+    seen = set()
+    index = 1
+    while index < len(command) and command[index].startswith('-'):
+        option = command[index]
+        if option == '--foreground':
+            name = 'foreground'
+        elif option == '--signal=TERM':
+            name = 'signal'
+        elif option.startswith('--kill-after=') and positive_timeout_seconds(option[13:]):
+            name = 'kill-after'
+        else:
+            return False
+        if name in seen:
+            return False
+        seen.add(name)
+        index += 1
+    return ('kill-after' in seen and index + 1 < len(command)
+            and positive_timeout_seconds(command[index])
+            and not command[index + 1].startswith('-'))
+
 m = json.load(sys.stdin)
 if not isinstance(m, dict) or m.get('dispatch_authorized') is not True:
     raise RuntimeError('one-label remote dispatch is not authorized')
@@ -57,10 +112,7 @@ if len({path.parent for path in interlock_paths.values()}) != 1:
 if len(set(interlock_paths.values())) != 3:
     raise RuntimeError('remote interlock paths are not distinct')
 command = m.get('command')
-if (not isinstance(command, list) or not command
-        or not all(isinstance(arg, str) for arg in command)
-        or command[0] != 'timeout'
-        or any(arg.startswith('PYTHONOPTIMIZE=') for arg in command)):
+if not bounded_timeout_command(command):
     raise RuntimeError('invalid bounded remote command')
 environment = m.get('environment')
 if (not isinstance(environment, dict)
@@ -77,6 +129,12 @@ if (type(m.get('min_free_bytes')) is not int
     raise RuntimeError('remote disk threshold mismatch')
 if type(m.get('runner_owns_manifest', False)) is not bool:
     raise RuntimeError('invalid manifest ownership policy')
+fingerprints = m.get('fingerprint_paths')
+if (not isinstance(fingerprints, list)
+        or len(fingerprints) != len(SOURCE_FINGERPRINT_PATHS)
+        or any(not isinstance(path, str) for path in fingerprints)
+        or set(fingerprints) != set(SOURCE_FINGERPRINT_PATHS)):
+    raise RuntimeError('invalid source fingerprint paths')
 stage = 'before_checkout'
 spawn_call_started = False
 
@@ -140,11 +198,6 @@ try:
                     'research/fresh_start_monitor_interlock.py', 'research/fresh_start_sync.py',
                     'research/v2/disk-monitor/root_free_guard_monitor.py',
                     'research/v2/disk-monitor/paired_root_free_guard_monitor.py']
-    fingerprints = m.get('fingerprint_paths', [])
-    if (not isinstance(fingerprints, list)
-            or any(not isinstance(path, str) or path not in source_paths
-                   for path in fingerprints)):
-        raise RuntimeError('invalid source fingerprint paths')
     dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
     new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
     if dirty.strip() or new.strip():
@@ -185,7 +238,7 @@ try:
     paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
              'research/fresh_start_host.py', 'research/fresh_start_guard.py',
              'research/fresh_start_backup.py',
-             'research/fresh_start_monitor_interlock.py'] + m.get('fingerprint_paths', [])
+             'research/fresh_start_monitor_interlock.py'] + fingerprints
     m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
              hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
              preflight_free_bytes=free,
@@ -240,6 +293,43 @@ def require_unoptimized_python():
         raise RuntimeError("optimized Python is forbidden in the local launcher")
 
 
+def positive_timeout_seconds(value):
+    """Accept only a finite, positive, at-most-one-day GNU timeout duration."""
+    match = re.fullmatch(r"([0-9]{1,8})([smhd]?)", value) if isinstance(value, str) else None
+    if match is None:
+        return False
+    seconds = int(match[1]) * {"": 1, "s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]]
+    return 0 < seconds <= 86400
+
+
+def bounded_timeout_command(command):
+    """Require a positive deadline and kill-after before dispatch."""
+    if (not isinstance(command, list) or not command
+            or not all(isinstance(arg, str) and arg and "\x00" not in arg for arg in command)
+            or command[0] != "timeout"
+            or any(arg.startswith("PYTHONOPTIMIZE=") for arg in command)):
+        return False
+    seen = set()
+    index = 1
+    while index < len(command) and command[index].startswith("-"):
+        option = command[index]
+        if option == "--foreground":
+            name = "foreground"
+        elif option == "--signal=TERM":
+            name = "signal"
+        elif option.startswith("--kill-after=") and positive_timeout_seconds(option[13:]):
+            name = "kill-after"
+        else:
+            return False
+        if name in seen:
+            return False
+        seen.add(name)
+        index += 1
+    return ("kill-after" in seen and index + 1 < len(command)
+            and positive_timeout_seconds(command[index])
+            and not command[index + 1].startswith("-"))
+
+
 def validate_request(request):
     """Reject an unreviewed or malformed request before local side effects."""
     if not isinstance(request, dict) or request.get("dispatch_authorized") is not True:
@@ -279,10 +369,7 @@ def validate_request(request):
     if len(set(paths.values())) != 3:
         raise RuntimeError("interlock paths are not distinct")
     command = request.get("command")
-    if (not isinstance(command, list) or not command
-            or not all(isinstance(arg, str) for arg in command)
-            or command[0] != "timeout"
-            or any(arg.startswith("PYTHONOPTIMIZE=") for arg in command)):
+    if not bounded_timeout_command(command):
         raise RuntimeError("a bounded command without Python optimization is required")
     environment = request.get("environment")
     if (not isinstance(environment, dict)
@@ -300,11 +387,11 @@ def validate_request(request):
         raise RuntimeError("disk threshold mismatch")
     if type(request.get("runner_owns_manifest", False)) is not bool:
         raise RuntimeError("invalid manifest ownership policy")
-    fingerprints = request.get("fingerprint_paths", [])
+    fingerprints = request.get("fingerprint_paths")
     if (not isinstance(fingerprints, list)
-            or any(not isinstance(path, str) or Path(path).is_absolute()
-                   or any(part.startswith(".") for part in Path(path).parts)
-                   for path in fingerprints)):
+            or len(fingerprints) != len(SOURCE_FINGERPRINT_PATHS)
+            or any(not isinstance(path, str) for path in fingerprints)
+            or set(fingerprints) != set(SOURCE_FINGERPRINT_PATHS)):
         raise RuntimeError("invalid source fingerprint paths")
 
 
