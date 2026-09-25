@@ -198,9 +198,10 @@ class QueueRunner:
         self.root = Path(cfg["run_root"])
         self.lock = None
 
-    def guards(self):
+    def guards(self, *, starting=False):
         require(socket.gethostname() == self.cfg["expected_hostname"], "HOSTNAME_MISMATCH")
-        require(dt.datetime.now(dt.timezone.utc) < dt.datetime.fromisoformat(self.cfg["freeze_utc"]), "RESEARCH_FREEZE")
+        if starting:
+            require(dt.datetime.now(dt.timezone.utc) < dt.datetime.fromisoformat(self.cfg["freeze_utc"]), "RESEARCH_FREEZE")
         for value in self.cfg["stop_paths"]:
             require(not os.path.lexists(value), "STOP: " + value)
         require(not os.path.lexists(self.root / "STOP"), "QUEUE_STOP")
@@ -208,10 +209,10 @@ class QueueRunner:
         checked_file(self.cfg["source"])
         checked_file(self.cfg["prepare"])
 
-    def wait_idle(self, max_wait=None):
+    def wait_idle(self, max_wait=None, *, starting=False):
         started = time.monotonic()
         while True:
-            self.guards()
+            self.guards(starting=starting)
             busy = {"processes": active_jobs(), "device_holders": device_holders()}
             if not any(busy.values()):
                 return busy
@@ -281,7 +282,7 @@ class QueueRunner:
                       "job_sha256": digest, "utc": utc(), "review_required": True}
             self.record_terminal(directory, record)
             raise RuntimeError(record["error"])
-        self.wait_idle()
+        self.wait_idle(starting=True)
         proposal = json.loads(checked_file(job["proposal"]).read_text())
         binding = {k: job[k] for k in ("label", "argv", "kind", "arm_id", "base_sha256")}
         binding.update(host=self.cfg["host"], source_sha256=SOURCE_SHA)
@@ -300,7 +301,7 @@ class QueueRunner:
             require(sha(directory / "train.py") == SOURCE_SHA, "STAGED_SOURCE_MISMATCH")
             exclusive_json(directory / "proposal.json", proposal)
             commands = self.commands(job, directory)
-            self.guards()
+            self.guards(starting=True)
             exclusive_json(directory / "preflight.json", {"utc": utc(), "disk_free_bytes": shutil.disk_usage(self.root).free,
                            "train_sha256": SOURCE_SHA, "prepare_sha256": PREPARE_SHA, "idle": True, "device_lock_held": True})
             self.phase(job, directory, "training", commands["training"], self.environment(job, directory, self.cfg["train_cache"]))
@@ -329,7 +330,7 @@ class QueueRunner:
         # The live manual A1/A2 drivers use this same lock over train AND eval.
         with open(self.cfg["device_lock"], "a") as self.lock:
             while True:
-                self.guards()
+                self.guards(starting=True)
                 if (self.root / "PAUSE_NEXT").exists():
                     return "paused_between_jobs"
                 try:
