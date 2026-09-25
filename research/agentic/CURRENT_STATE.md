@@ -1,6 +1,14 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:03 UTC
+Last reconciled: 2026-09-25 07:07 UTC
+
+The operational launcher-source r8 successor `d3f39dd8` received an
+[independent HOLD](../v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_HOLD_R8.md)
+at `b197f86c`: a request-controlled `PATH` can select an unbounded fake
+`timeout`, and a shell wrapper can hide an optimized Python child. A distinct
+r9 repair is under implementation. The trn21 r6 transfer repair `71d6701f`
+is disabled and under independent static review; its live one-second timing
+feasibility remains unknown. Neither changes the scored-run HOLD.
 
 The distinct trn22 final-r3 transfer request `d571ea61` received an
 [independent HOLD](../v2/verification/20260925-trn22-fifo-final-r3-independent-HOLD.md)
@@ -10,8 +18,7 @@ the required one-second label-to-open window. A miss would safely prevent the
 remote write while consuming the one-shot local attempt. No fixed final PASS,
 Supervisor assignment, marker, SSH, host transfer, native run or new score
 exists. A separate read-only timing diagnostic is being prepared; it is not
-dispatch authority. The operational launcher-source r8 repair has been
-implemented separately and remains under independent review.
+dispatch authority. The launcher r8 outcome is recorded above.
 
 The Sep 25 noon-IST S0 submission-package target was missed. Neither of the
 required cold replays has begun, and no new file is ready for human upload.

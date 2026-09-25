@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+At 07:07 UTC, launcher-source r8 `d3f39dd8` received
+[independent HOLD](launcher-safety/INDEPENDENT_SOURCE_VERIFIER_HOLD_R8.md)
+at `b197f86c`: although its earlier timeout/fingerprint paths are fixed,
+request-controlled `PATH` can select a fake unbounded timeout and a shell
+wrapper can hide an optimized Python child. Both were reproduced without
+host contact. A distinct r9 repair is underway. The trn21 r6 transfer
+repair `71d6701f` is disabled and under independent static review; its live
+one-second transfer timing remains unmeasured. No host scored work began.
+
 At 07:03 UTC, the distinct trn22 final-r3 transfer-only candidate
 `d571ea61` received [independent HOLD](verification/20260925-trn22-fifo-final-r3-independent-HOLD.md)
 at `cbc2c03e`. Its post-label safety repair passed offline tests, but three
@@ -7,8 +16,7 @@ serial subprocess checks plus other gates have not been shown to fit the
 one-second final-scan-to-open window on trn22; a safe timeout would consume
 the one-shot attempt without transferring the capsule. No assignment or host
 write occurred. A separately scoped read-only timing study is being prepared.
-The launcher r8 source repair `d3f39dd8` is under independent review. There
-is still no scored A0 control, table run, S0 cold replay or new BPB.
+There is still no scored A0 control, table run, S0 cold replay or new BPB.
 
 Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both disabled transfer repairs passed static review, but the trn21 and trn22 enabled transfer requests and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
 
