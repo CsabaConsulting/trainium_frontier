@@ -1,0 +1,30 @@
+{
+  "schema": "trainium-s-a-a2-l4-stack-implementer-v1",
+  "status": "OFFLINE_IMPLEMENTER_DRAFT",
+  "dispatch_authorized": false,
+  "label": "fs-20260925-s-a-a2-l4-trn22-r1",
+  "intended_host": "trn22",
+  "kind": "explicit_stack_confirmation",
+  "source_commit": "e10e51c99dfe3285d3f5172ed4a0cc3bd4b8fc3f",
+  "train_py": "workflow/proposals/research-v2/train.py",
+  "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "launch_shape": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+  "seed": 42,
+  "training_budget_seconds": 1800,
+  "eval_seq_len": 1024,
+  "eval_tokens": 20971520,
+  "argv": [
+    "--n-embd", "1024", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+    "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+    "--no-eval-public", "--matrix-lr", "0.015",
+    "--ngram-ve", "--ngram-ve-layers", "1,-1", "--ngram-ve-table-mult", "64",
+    "--ngram-ve-dim", "128", "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
+    "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude",
+    "--warmdown-ratio", "0.9", "--muon-momentum-cooldown-frac", "0.9",
+    "--muon-momentum-final", "0.8", "--embedding-lr", "0.45", "--final-lr-frac", "0.05"
+  ],
+  "optional_demon_beta1": "NOT_INCLUDED: separate exact-G2/optimizer-path review required before any --demon-beta1 arm",
+  "control_requirement": "same-host research-v2 base, matrix LR 0.015, full 1800 s, identical evaluator; must complete before comparison",
+  "resource_failure_policy": "HOLD; never shrink tables, change shape, or improvise launch flags",
+  "human_submission_only": true
+}
