@@ -100,7 +100,7 @@ After those gates, the proposed **single-attempt** command from this
 verified clean science-base worktree is:
 
 ```text
-/usr/bin/python3 -B /home/poojith-devan/Documents/ChatGPT/Trainium-trn22-r10-stage-r3-enabled-request-r1/research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py
+/usr/bin/python3 -B /home/poojith-devan/Documents/ChatGPT/Trainium-trn22-r10-stage-r4-stop-recheck-r1/research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py
 ```
 
 That command must **not** be run yet. The Operator must retrieve its raw

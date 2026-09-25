@@ -110,6 +110,23 @@ class EnabledPendingRequestTests(unittest.TestCase):
         self.assertFalse(operator.ASSIGNMENT.exists())
         self.assertEqual(operator.ENABLED_REQUEST, REQUEST)
 
+    def test_runbook_command_targets_exact_repaired_operator(self):
+        designated_operator = Path(
+            "/home/poojith-devan/Documents/ChatGPT/"
+            "Trainium-trn22-r10-stage-r4-stop-recheck-r1/"
+            "research/v2/authorizations/"
+            "trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py"
+        )
+        runbook = (HERE / "FINAL_PENDING_RUNBOOK.md").read_text(encoding="utf-8")
+        commands = [line for line in runbook.splitlines()
+                    if line.startswith("/usr/bin/python3 -B ")]
+        self.assertEqual(commands, ["/usr/bin/python3 -B " + str(designated_operator)])
+        operator_hash = json.loads(REQUEST.read_text())["operator_source_sha256"]
+        self.assertEqual(operator_hash,
+                         "af888c89dbed4360895e5cf93299095efe3280893dafd1e504cd88b6a9c4408f")
+        self.assertEqual(sha256((HERE / "operator_once.py").read_bytes()), operator_hash)
+        self.assertEqual(sha256(designated_operator.read_bytes()), operator_hash)
+
     def test_enabled_request_alone_refuses_before_ssh_or_marker(self):
         remote_call = mock.Mock(side_effect=AssertionError("remote called"))
         with (
