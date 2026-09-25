@@ -1,6 +1,8 @@
 """Local synthetic tests only: never connect to trn22 or open the SSH key."""
 
+import copy
 import datetime
+import io
 import json
 import os
 from pathlib import Path
@@ -104,9 +106,9 @@ def probe(*, archive=None):
     return result
 
 
-def receipt(operation, *, pid, utc_seconds=0):
+def receipt(operation, *, pid, utc_seconds=0, preflight=None):
     archive = meta("regular", inode=700777, mode="0o600", size=remote.BYTES)
-    return {"schema": remote.SCHEMA, "operation": operation,
+    result = {"schema": remote.SCHEMA, "operation": operation,
             "status": "HASH_VERIFIED_IN_THIS_SESSION_ONLY",
             "utc": utc(utc_seconds),
             "process_identity": {"pid": pid, "start_ticks": pid * 10},
@@ -115,6 +117,27 @@ def receipt(operation, *, pid, utc_seconds=0):
             "streamed_sha256": remote.SHA256 if operation == "write" else None,
             "readback_sha256": remote.SHA256, "target_stat": archive,
             "identity_before": identity(), "identity_after": identity()}
+    if operation == "write":
+        if preflight is None:
+            raise ValueError("synthetic write receipt needs its exact preflight")
+        binding = transport.write_binding(preflight)
+        stopped = {"stops": copy.deepcopy(preflight["stops"]),
+                   "processes": copy.deepcopy(preflight["processes"])}
+        result["prewrite_evidence"] = {
+            "preflight_binding_sha256": transport.sha256(
+                transport._canonical_bytes(binding)),
+            "preflight_receipt_sha256": binding["preflight_receipt_sha256"],
+            "live_prewrite_safety": {
+                **stopped,
+                "checkpoint_fuser": copy.deepcopy(preflight["checkpoint_fuser"]),
+                "shared_lock_fuser": copy.deepcopy(preflight["shared_lock_fuser"]),
+                "neuron0_fuser": copy.deepcopy(preflight["neuron0_fuser"]),
+                "neuron_ls": copy.deepcopy(preflight["neuron_ls"]),
+                "science_label_scan": copy.deepcopy(preflight["science_label_scan"]),
+            },
+            "last_stop_process_check": copy.deepcopy(stopped),
+        }
+    return result
 
 
 class TransferOnlyTests(unittest.TestCase):
@@ -126,18 +149,27 @@ class TransferOnlyTests(unittest.TestCase):
     def test_reviewed_source_and_exact_command(self):
         self.assertEqual(transport.REMOTE_SHA256,
                          transport.sha256(transport.REMOTE.read_bytes()))
+        preflight = probe()
         for operation in ("probe", "write", "verify"):
-            argv = transport.build_ssh_argv(operation)
+            argv = transport.build_ssh_argv(
+                operation, preflight=preflight if operation == "write" else None)
             self.assertEqual(argv[0:4], ["ssh", "-F", "/dev/null", "-T"])
             self.assertEqual(argv[-2], transport.ENDPOINT)
             self.assertIn("UserKnownHostsFile=" + str(transport.KNOWN_HOSTS), argv)
             self.assertIn("GlobalKnownHostsFile=/dev/null", argv)
             self.assertIn("HostKeyAlgorithms=ssh-ed25519", argv)
-            self.assertEqual(shlex.split(argv[-1]),
-                             ["exec", "python3", "-c", transport.reviewed_remote_source(),
-                              operation])
+            words = shlex.split(argv[-1])
+            self.assertEqual(words[:5], ["exec", "python3", "-c",
+                                         transport.reviewed_remote_source(), operation])
+            if operation == "write":
+                self.assertEqual(remote._decode_write_binding(words[5]),
+                                 transport.write_binding(preflight))
+            else:
+                self.assertEqual(len(words), 5)
         with self.assertRaises(ValueError):
             transport.build_ssh_argv("checkout")
+        with self.assertRaisesRegex(RuntimeError, "exact fresh preflight"):
+            transport.build_ssh_argv("write")
 
     def test_local_capsule_exact_bytes_and_digest(self):
         source = transport.checked_local_source()
@@ -263,10 +295,13 @@ class TransferOnlyTests(unittest.TestCase):
         before = probe()
         archive = meta("regular", inode=700777, mode="0o600", size=remote.BYTES)
         after = probe(archive=archive)
-        write, verify = receipt("write", pid=1001), receipt("verify", pid=1002, utc_seconds=1)
+        write = receipt("write", pid=1001, preflight=before)
+        verify = receipt("verify", pid=1002, utc_seconds=1)
         transport.validate_probe(before, before_write=True)
         transport.validate_probe(after, before_write=False)
-        persistence = transport.compare_sessions(write, verify)
+        persistence = transport.compare_sessions(write, verify, preflight=before)
+        self.assertEqual(persistence["preflight_continuity"]["status"],
+                         "PREFLIGHT_TO_WRITE_IDENTITY_AND_LIVE_SAFETY_PASS")
         self.assertEqual(transport.compare_postflight(before, after, persistence=persistence)
                          ["status"], "READ_ONLY_POSTFLIGHT_PASS")
 
@@ -285,13 +320,153 @@ class TransferOnlyTests(unittest.TestCase):
             transport.validate_probe(occupied, before_write=True)
 
     def test_cross_session_must_be_distinct_and_pinned(self):
-        write, verify = receipt("write", pid=1001), receipt("verify", pid=1001, utc_seconds=1)
+        before = probe()
+        write = receipt("write", pid=1001, preflight=before)
+        verify = receipt("verify", pid=1001, utc_seconds=1)
         with self.assertRaisesRegex(RuntimeError, "distinct"):
-            transport.compare_sessions(write, verify)
+            transport.compare_sessions(write, verify, preflight=before)
         verify["process_identity"]["pid"] = 1002
         verify["expected_sha256"] = "0" * 64
         with self.assertRaisesRegex(RuntimeError, "exact capsule"):
-            transport.compare_sessions(write, verify)
+            transport.compare_sessions(write, verify, preflight=before)
+
+    def test_preflight_boot_a_write_boot_b_postflight_boot_a_holds(self):
+        before, after = probe(), probe()
+        archive = meta("regular", inode=700777, mode="0o600", size=remote.BYTES)
+        after["targets"][remote.TARGET] = archive
+        write = receipt("write", pid=1001, preflight=before)
+        verify = receipt("verify", pid=1002, utc_seconds=1)
+        for evidence in (write, verify):
+            evidence["identity_before"]["boot_id"] = "synthetic-boot-B"
+            evidence["identity_after"]["boot_id"] = "synthetic-boot-B"
+        self.assertEqual(transport.compare_postflight(before, after)["status"],
+                         "READ_ONLY_POSTFLIGHT_PASS")
+        with self.assertRaisesRegex(RuntimeError, "preflight-to-write host/boot/mount drift: boot_id"):
+            transport.compare_sessions(write, verify, preflight=before)
+
+    def test_remote_write_rejects_changed_boot_before_target_creation(self):
+        before = probe()
+        binding = transport.write_binding(before)
+        changed = identity()
+        changed["boot_id"] = "synthetic-boot-B"
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            opened = []
+            def open_parent():
+                fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY)
+                opened.append(fd)
+                return fd, changed["ancestry"]
+            with (mock.patch.object(remote, "_open_parent", side_effect=open_parent),
+                  mock.patch.object(remote, "_identity", return_value=changed),
+                  mock.patch.object(remote, "_process_identity",
+                                    return_value={"pid": 456, "start_ticks": 789}),
+                  mock.patch.object(remote, "_safe_path", return_value={"exists": False})):
+                with self.assertRaisesRegex(RuntimeError, "preflight-to-write host/boot/mount"):
+                    remote.write(io.BytesIO(b""), binding)
+            self.assertEqual(len(opened), 1)
+            self.assertFalse((parent / remote.TARGET_NAME).exists())
+
+    def test_remote_write_rechecks_stop_after_probe_before_target_creation(self):
+        before = probe()
+        binding = transport.write_binding(before)
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            def open_parent():
+                fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY)
+                return fd, before["identity_after"]["ancestry"]
+            def path_state(path):
+                return {"exists": path == remote.STOP_PATHS[0]}
+            with (mock.patch.object(remote, "_open_parent", side_effect=open_parent),
+                  mock.patch.object(remote, "_identity",
+                                    return_value=before["identity_after"]),
+                  mock.patch.object(remote, "_process_identity",
+                                    return_value={"pid": 456, "start_ticks": 789}),
+                  mock.patch.object(remote, "_safe_path", side_effect=path_state)):
+                with self.assertRaisesRegex(RuntimeError, "live host STOP"):
+                    remote.write(io.BytesIO(b""), binding)
+            self.assertFalse((parent / remote.TARGET_NAME).exists())
+
+    def test_stop_appearing_during_live_checks_is_caught_by_last_gate(self):
+        before = probe()
+        binding = transport.write_binding(before)
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            stop = parent / "STOP"
+            def open_parent():
+                return (os.open(parent, os.O_RDONLY | os.O_DIRECTORY),
+                        before["identity_after"]["ancestry"])
+            def path_state(path):
+                return {"exists": stop.exists() if path == remote.STOP_PATHS[0]
+                        else False}
+            def live_checks():
+                stop.write_text("appeared during live checks", encoding="utf-8")
+                return {"initial_checks_completed": True}
+            with (mock.patch.object(remote, "_open_parent", side_effect=open_parent),
+                  mock.patch.object(remote, "_identity",
+                                    return_value=before["identity_after"]),
+                  mock.patch.object(remote, "_process_identity",
+                                    return_value={"pid": 456, "start_ticks": 789}),
+                  mock.patch.object(remote, "_safe_path", side_effect=path_state),
+                  mock.patch.object(remote, "_live_prewrite_safety",
+                                    side_effect=live_checks)):
+                with self.assertRaisesRegex(RuntimeError, "live host STOP"):
+                    remote.write(io.BytesIO(b""), binding)
+            self.assertTrue(stop.exists())
+            self.assertFalse((parent / remote.TARGET_NAME).exists())
+
+    def test_remote_write_rechecks_process_after_probe_before_target_creation(self):
+        before = probe()
+        binding = transport.write_binding(before)
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            def open_parent():
+                return (os.open(parent, os.O_RDONLY | os.O_DIRECTORY),
+                        before["identity_after"]["ancestry"])
+            with (mock.patch.object(remote, "_open_parent", side_effect=open_parent),
+                  mock.patch.object(remote, "_identity",
+                                    return_value=before["identity_after"]),
+                  mock.patch.object(remote, "_process_identity",
+                                    return_value={"pid": 456, "start_ticks": 789}),
+                  mock.patch.object(remote, "_safe_path", return_value={"exists": False}),
+                  mock.patch.object(remote, "_processes", return_value={
+                      "matched": [{"pid": 777, "markers": ["train.py"]}],
+                      "unreadable_cmdlines": 0})):
+                with self.assertRaisesRegex(RuntimeError, "live host process busy"):
+                    remote.write(io.BytesIO(b""), binding)
+            self.assertFalse((parent / remote.TARGET_NAME).exists())
+
+    def test_missing_or_wrong_write_binding_holds_before_any_create(self):
+        before = probe()
+        binding = transport.write_binding(before)
+        with self.assertRaisesRegex(RuntimeError, "incomplete exact preflight binding"):
+            remote._require_preflight_binding({}, before["identity_after"])
+        bad = copy.deepcopy(binding)
+        bad["identity_pin"]["mount"]["major_minor"] = "259:9"
+        with self.assertRaisesRegex(RuntimeError, "preflight-to-write host/boot/mount"):
+            remote._require_preflight_binding(bad, before["identity_after"])
+        stale = copy.deepcopy(binding)
+        stale["preflight_utc"] = utc(-181)
+        with mock.patch.object(remote, "_process_identity",
+                               return_value={"pid": 456, "start_ticks": 789}):
+            with self.assertRaisesRegex(RuntimeError, "expired"):
+                remote._require_preflight_binding(stale, before["identity_after"])
+
+    def test_all_pinned_host_identity_fields_reject_preflight_to_write_drift(self):
+        before = probe()
+        for key in transport.STABLE_IDENTITY_KEYS:
+            with self.subTest(key=key):
+                write = receipt("write", pid=1001, preflight=before)
+                changed = copy.deepcopy(write["identity_before"])
+                if isinstance(changed[key], dict):
+                    changed[key] = {**changed[key], "unexpected": True}
+                elif isinstance(changed[key], int):
+                    changed[key] += 1
+                else:
+                    changed[key] += "-other"
+                write["identity_before"] = changed
+                write["identity_after"] = copy.deepcopy(changed)
+                with self.assertRaises(RuntimeError):
+                    transport.compare_preflight_write(before, write)
 
     def test_fixed_journal_is_one_attempt_only(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -317,7 +492,7 @@ class TransferOnlyTests(unittest.TestCase):
         pre = probe()
         post = probe()
         post["process_identity"] = {"pid": 999, "start_ticks": 9990}
-        def fake_ssh(operation, journal):
+        def fake_ssh(operation, journal, **kwargs):
             seen.append(operation)
             if len(seen) == 1:
                 return pre
@@ -352,7 +527,7 @@ class TransferOnlyTests(unittest.TestCase):
             if checks == 2:
                 raise RuntimeError("local STOP appeared")
             return {}
-        def ssh(operation, journal):
+        def ssh(operation, journal, **kwargs):
             calls.append(operation)
             return probe()
         with (mock.patch.object(operator, "authorize", return_value=(

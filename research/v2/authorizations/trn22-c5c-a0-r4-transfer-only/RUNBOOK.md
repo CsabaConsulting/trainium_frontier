@@ -1,4 +1,11 @@
-# trn22 c5c A0 r4: exact-source transfer-only implementation (HOLD)
+# Historical r2 transfer draft (SUPERSEDED; current package HOLD)
+
+**Do not use the hashes or sequence below as current dispatch authority.**
+The prior final candidate received an independent HOLD at canonical
+`de7e29bb` for preflight-to-write identity and live host STOP/process gaps.
+The disabled repair and current boundaries are in
+`CONTINUITY_REPAIR_HOLD.md`. New code hashes invalidate the earlier static
+PASS. The remainder of this runbook is historical r2 design evidence only.
 
 This is an **Implementer draft**, not dispatch authority. No SSH/AWS/host
 command, source transfer, checkout, G2, native training, evaluation, monitor

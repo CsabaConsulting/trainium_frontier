@@ -4,6 +4,7 @@ The only source stage is the frozen 446b capsule into one new trn22 ext4 path.
 Importing or executing this module never opens SSH or changes host state.
 """
 
+import base64
 import datetime
 import hashlib
 import importlib.util
@@ -17,7 +18,7 @@ import subprocess
 
 HERE = Path(__file__).resolve().parent
 REMOTE = HERE / "stage_r4_remote.py"
-REMOTE_SHA256 = "2920dfc78b1bf3941e9eaf500e41a44f7f5e29f9799273c04eb7ddc7de3d756e"
+REMOTE_SHA256 = "023e578693c3fb826b81cfc645190d79e409757dba0bd8df29adad6e3f90a69d"
 SOURCE = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trainium-c5c-r4-446b-one-commit-20260925.tar.gz")
 SOURCE_BYTES = 104154875
 SOURCE_SHA256 = "767d1d0ce0526b822c680fccc5d79ed0423827d6f2ce3570b8d7d8b5c5d7c84a"
@@ -28,6 +29,9 @@ KNOWN_HOSTS = Path("/home/poojith-devan/.ssh/known_hosts")
 KNOWN_HOSTS_SHA256 = "e42405d8dd82c56be05b849dbe1d050dafe2ebf2678ab197857174b44057cce3"
 HOST_FINGERPRINT = "SHA256:bXvW4P20oehuJWPMDLUS72E1aPY58rq/kOqUybiB44U"
 SCHEMA = "trn22-c5c-a0-r4-transfer-only-v1"
+WRITE_BINDING_SCHEMA = "trn22-r4-preflight-write-binding-v1"
+STABLE_IDENTITY_KEYS = ("hostname", "uid", "boot_id", "mount_namespace",
+                        "mount", "block_aliases", "ancestry")
 PRE_FREE = 13177973911
 POST_FREE = 10737418240
 MIN_INODES = 10000
@@ -45,6 +49,10 @@ def sha256(data):
 
 def argv_sha256(argv):
     return sha256(json.dumps(argv, separators=(",", ":")).encode("utf-8"))
+
+
+def _canonical_bytes(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def reviewed_remote_source():
@@ -164,12 +172,32 @@ def checked_ssh_identity():
             "host_key_algorithm": "ssh-ed25519"}
 
 
-def build_ssh_argv(operation):
+def write_binding(preflight):
+    """Bind one fresh read-only probe to the sole remote write SSH process."""
+    validate_probe(preflight, before_write=True)
+    pin = {key: preflight["identity_after"][key] for key in STABLE_IDENTITY_KEYS}
+    return {"schema": WRITE_BINDING_SCHEMA,
+            "source_commit": remote_constants().SOURCE_COMMIT,
+            "target": TARGET, "capsule_sha256": SOURCE_SHA256,
+            "preflight_utc": preflight["utc"],
+            "preflight_process_identity": preflight["process_identity"],
+            "preflight_receipt_sha256": sha256(_canonical_bytes(preflight)),
+            "identity_pin": pin}
+
+
+def build_ssh_argv(operation, *, preflight=None):
     if operation not in ("probe", "write", "verify"):
         raise ValueError("only fixed probe/write/verify operations exist")
+    if operation == "write" and preflight is None:
+        raise RuntimeError("remote write requires the exact fresh preflight binding")
+    if operation != "write" and preflight is not None:
+        raise RuntimeError("preflight binding is only legal on the sole write")
     checked_ssh_identity()
     source = reviewed_remote_source()
     words = ["exec", "python3", "-c", source, operation]
+    if operation == "write":
+        words.append(base64.urlsafe_b64encode(
+            _canonical_bytes(write_binding(preflight))).decode("ascii"))
     command = " ".join(shlex.quote(word) for word in words)
     if shlex.split(command) != words:
         raise RuntimeError("remote command quoting drift")
@@ -331,7 +359,75 @@ def validate_probe(probe, *, before_write):
     return probe
 
 
-def compare_sessions(write, verify):
+def _check_stop_and_process_snapshot(snapshot):
+    remote = remote_constants()
+    expected_stops = set(remote._all_stop_paths())
+    if (not isinstance(snapshot, dict) or
+            set(snapshot.get("stops", {})) != expected_stops or
+            any(item.get("exists") is not False
+                for item in snapshot["stops"].values()) or
+            snapshot.get("processes", {}).get("matched") != [] or
+            snapshot.get("processes", {}).get("unreadable_cmdlines") != 0):
+        raise RuntimeError("live prewrite STOP/process safety receipt is incomplete or busy")
+
+
+def compare_preflight_write(preflight, write):
+    """Close the preflight-to-write identity and live-safety continuity gap."""
+    validate_probe(preflight, before_write=True)
+    if write.get("schema") != SCHEMA or write.get("operation") != "write":
+        raise RuntimeError("missing exact remote write receipt")
+    _identity(write)
+    for key in STABLE_IDENTITY_KEYS:
+        if preflight["identity_after"][key] != write["identity_before"][key]:
+            raise RuntimeError("preflight-to-write host/boot/mount drift: " + key)
+    if preflight["process_identity"] == write["process_identity"]:
+        raise RuntimeError("write did not enter a distinct SSH process")
+    pre_time = datetime.datetime.fromisoformat(preflight["utc"])
+    write_time = datetime.datetime.fromisoformat(write["utc"])
+    if (pre_time.tzinfo is None or write_time.tzinfo is None or
+            write_time < pre_time or (write_time - pre_time).total_seconds() > 600):
+        raise RuntimeError("write timestamp not after its exact fresh preflight")
+    evidence = write.get("prewrite_evidence", {})
+    expected_binding = write_binding(preflight)
+    if (evidence.get("preflight_binding_sha256") !=
+            sha256(_canonical_bytes(expected_binding)) or
+            evidence.get("preflight_receipt_sha256") !=
+            expected_binding["preflight_receipt_sha256"]):
+        raise RuntimeError("remote write receipt is not bound to this preflight")
+    safety = evidence.get("live_prewrite_safety", {})
+    _check_stop_and_process_snapshot(safety)
+    _check_stop_and_process_snapshot(evidence.get("last_stop_process_check", {}))
+    label = safety.get("science_label_scan", {})
+    checkpoint_fuser = safety.get("checkpoint_fuser", {})
+    lock = safety.get("shared_lock_fuser", {})
+    neuron0 = safety.get("neuron0_fuser", {})
+    neuron_ls = safety.get("neuron_ls", {})
+    if (checkpoint_fuser.get("path_exists") is not True or
+            checkpoint_fuser.get("rc") != 1 or
+            checkpoint_fuser.get("pids") != [] or
+            checkpoint_fuser.get("stderr_empty") is not True or
+            lock.get("pids") != [] or
+            (lock.get("path_exists") and lock.get("rc") != 1) or
+            (lock.get("path_exists") and lock.get("stderr_empty") is not True) or
+            neuron0.get("path_exists") is not True or neuron0.get("rc") != 1 or
+            neuron0.get("pids") != [] or neuron0.get("stderr_empty") is not True or
+            neuron_ls.get("rc") != 0 or neuron_ls.get("stderr_empty") is not True or
+            neuron_ls.get("json_valid") is not True or
+            neuron_ls.get("schema_valid") is not True or
+            neuron_ls.get("device_count", 0) < 1 or
+            neuron_ls.get("non_diagnostic_pids") != [] or
+            label.get("rc") != 0 or label.get("match_count") != 0 or
+            label.get("matches") != [] or label.get("truncated") is not False or
+            label.get("stderr_empty") is not True):
+        raise RuntimeError("live prewrite lock/Neuron/label safety receipt is busy")
+    return {"status": "PREFLIGHT_TO_WRITE_IDENTITY_AND_LIVE_SAFETY_PASS",
+            "preflight_receipt_sha256": expected_binding["preflight_receipt_sha256"],
+            "preflight_binding_sha256": sha256(_canonical_bytes(expected_binding)),
+            "boot_id": write["identity_before"]["boot_id"]}
+
+
+def compare_sessions(write, verify, *, preflight):
+    continuity = compare_preflight_write(preflight, write)
     if (write.get("schema") != SCHEMA or verify.get("schema") != SCHEMA or
             write.get("operation") != "write" or verify.get("operation") != "verify" or
             write.get("status") != "HASH_VERIFIED_IN_THIS_SESSION_ONLY" or
@@ -350,8 +446,7 @@ def compare_sessions(write, verify):
             verify["streamed_sha256"] is not None or
             write["target_stat"] != verify["target_stat"]):
         raise RuntimeError("cross-session stream, inode or mode mismatch")
-    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount",
-                "block_aliases", "ancestry"):
+    for key in STABLE_IDENTITY_KEYS:
         if write["identity_after"][key] != verify["identity_before"][key]:
             raise RuntimeError("cross-session host/boot/mount drift: " + key)
     if write["process_identity"] == verify["process_identity"]:
@@ -363,7 +458,8 @@ def compare_sessions(write, verify):
     return {"status": "CROSS_SESSION_PERSISTENCE_HASH_PASS", "path": TARGET,
             "bytes": SOURCE_BYTES, "sha256": SOURCE_SHA256,
             "target_stat": verify["target_stat"],
-            "boot_id": verify["identity_after"]["boot_id"]}
+            "boot_id": verify["identity_after"]["boot_id"],
+            "preflight_continuity": continuity}
 
 
 def compare_postflight(pre, post, *, persistence=None):

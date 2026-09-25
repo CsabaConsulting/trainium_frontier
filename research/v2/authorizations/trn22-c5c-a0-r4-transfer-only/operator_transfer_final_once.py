@@ -1,10 +1,10 @@
-"""Exact trn22 r4 transfer-only successor; no final review/assignment exists yet.
+"""DISABLED trn22 r4 continuity-repair draft; no dispatch authority exists.
 
-The enabled request is intent, not authority. This wrapper can reach SSH only
-after a separate exact-byte independent PASS and a Supervisor one-shot
-assignment appear at their fixed paths. It reuses the independently reviewed
-transfer mechanics without editing them. There is no checkout, G2, training,
-evaluation, cleanup, overwrite, or retry path.
+This source now has different core/transport/remote hashes from the prior
+static-PASS package. A new independent static review, successor final request
+and separate Supervisor one-shot assignment are required. The frozen request
+below explicitly disables dispatch, including if old review files reappear.
+There is no checkout, G2, training, evaluation, cleanup, overwrite or retry.
 """
 
 import json
@@ -26,10 +26,10 @@ TRANSPORT = HERE / "stage_r4_transport.py"
 REMOTE = HERE / "stage_r4_remote.py"
 MARKER = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/"
               "trn22-c5c-a0-r4-transfer-final-r1-one-attempt.marker")
-REQUEST_SHA256 = "3cd3c091d782dbaa535f67c399041900f9ceaf29b74ee046c6472bd3f44919f3"
-CORE_SHA256 = "b81744bba97c1fd0c16ce90b9571a964f347b19908614fae16e617396624439d"
-TRANSPORT_SHA256 = "58a2fc899470137fed940b0b96850d5ce304a432d24093bd6e49e38b1104e38b"
-REMOTE_SHA256 = "2920dfc78b1bf3941e9eaf500e41a44f7f5e29f9799273c04eb7ddc7de3d756e"
+REQUEST_SHA256 = "833737bbe76a7b7acc287c247616527b199b5f515a46fcf8de0190595600ee57"
+CORE_SHA256 = "7590e275f94f79ffac9098bfd3c0345d4c9cb5ce10a26624065b0e04d6189736"
+TRANSPORT_SHA256 = "ea14fd19f6992400ad56e59c8dcbec620c784f616c4ff60f6d0568aa721a4ec0"
+REMOTE_SHA256 = "023e578693c3fb826b81cfc645190d79e409757dba0bd8df29adad6e3f90a69d"
 REPAIRED_STATIC_REVIEW_SHA256 = "7dcfc65cde4dd29a409e8541ace24ada72465b15964d89af5852a5fd89f896db"
 SOURCE_COMMIT = "446b657695f086f9b484fa601c9a3b61c2495912"
 ASSIGNMENT_ID = "trn22-c5c-a0-r4-transfer-final-r1"
@@ -54,10 +54,10 @@ def _read_frozen_request_and_code():
                          (core.SOURCE_REVIEW, core.SOURCE_REVIEW_SHA256)):
         core._pinned(path, digest)
     if (request.get("schema") != "trn22-c5c-a0-r4-transfer-final-request-v1" or
-            request.get("status") != "EXACT_TRANSFER_REQUEST_PENDING_INDEPENDENT_FINAL_REVIEW_AND_SUPERVISOR_ASSIGNMENT" or
-            request.get("dispatch_authorized") is not True or
+            request.get("status") != "CONTINUITY_REPAIR_DISABLED_PENDING_NEW_STATIC_AND_FINAL_REVIEWS_AND_SUPERVISOR_ASSIGNMENT" or
+            request.get("dispatch_authorized") is not False or
             request.get("dispatch_meaning") !=
-            "REQUEST_INTENT_ONLY_FINAL_REVIEW_AND_SUPERVISOR_ASSIGNMENT_STILL_REQUIRED" or
+            "NO_DISPATCH_AUTHORITY_PRIOR_STATIC_REVIEW_INVALIDATED_BY_CODE_REPAIR" or
             request.get("prepared_by_role") != "implementer" or
             request.get("assignment_id") != ASSIGNMENT_ID or
             request.get("scope") != SCOPE or
@@ -74,7 +74,8 @@ def _read_frozen_request_and_code():
             request.get("journal") != str(core.JOURNAL) or
             request.get("source_stage_contract_sha256") != core.SOURCE_CONTRACT_SHA256 or
             request.get("source_stage_independent_review_sha256") != core.SOURCE_REVIEW_SHA256 or
-            request.get("repaired_static_review_sha256") != REPAIRED_STATIC_REVIEW_SHA256 or
+            request.get("historical_repaired_static_review_sha256_not_authority") !=
+            REPAIRED_STATIC_REVIEW_SHA256 or
             request.get("core_wrapper_sha256") != CORE_SHA256 or
             request.get("transport_sha256") != TRANSPORT_SHA256 or
             request.get("remote_sha256") != REMOTE_SHA256 or
@@ -86,6 +87,8 @@ def _read_frozen_request_and_code():
             } or
             any(request.get(key) is not True for key in (
                 "required_fresh_read_only_preflight",
+                "preflight_to_write_identity_binding_required",
+                "live_remote_stop_process_safety_before_o_excl_required",
                 "local_stop_and_breaker_gates_before_marker_and_write",
                 "raw_ssh_transport_journal_required", "distinct_ssh_readback_required",
                 "final_read_only_postflight_even_on_failure_required", "one_attempt")) or
@@ -112,7 +115,7 @@ def _expected_final_review(request, binding):
         "core_wrapper_sha256": CORE_SHA256,
         "transport_sha256": TRANSPORT_SHA256,
         "remote_sha256": REMOTE_SHA256,
-        "repaired_static_review_sha256": REPAIRED_STATIC_REVIEW_SHA256,
+        "historical_static_review_sha256_not_authority": REPAIRED_STATIC_REVIEW_SHA256,
         "source_stage_contract_sha256": core.SOURCE_CONTRACT_SHA256,
         "source_stage_independent_review_sha256": core.SOURCE_REVIEW_SHA256,
         "source_commit": SOURCE_COMMIT,
@@ -144,7 +147,7 @@ def _expected_assignment(request, binding, final_review_sha256):
         "core_wrapper_sha256": CORE_SHA256,
         "transport_sha256": TRANSPORT_SHA256,
         "remote_sha256": REMOTE_SHA256,
-        "repaired_static_review_sha256": REPAIRED_STATIC_REVIEW_SHA256,
+        "historical_static_review_sha256_not_authority": REPAIRED_STATIC_REVIEW_SHA256,
         "source_stage_contract_sha256": core.SOURCE_CONTRACT_SHA256,
         "source_stage_independent_review_sha256": core.SOURCE_REVIEW_SHA256,
         "source_commit": SOURCE_COMMIT,
@@ -178,8 +181,10 @@ def _validate_authority_files(request, binding, review_bytes, assignment_bytes):
 
 
 def authorize_final():
-    """Require the actual fixed-path independent review and separate assignment."""
+    """Explicit HOLD even if stale files or crafted role labels are present."""
     request, binding = _read_frozen_request_and_code()
+    if request["dispatch_authorized"] is not True:
+        raise RuntimeError("DISPATCH HOLD: continuity repair requires a new reviewed successor")
     review_bytes = _read_required(FINAL_REVIEW, "FINAL REVIEW")
     assignment_bytes = _read_required(ASSIGNMENT, "SUPERVISOR ASSIGNMENT")
     authority = _validate_authority_files(request, binding, review_bytes,
@@ -272,9 +277,12 @@ def run_once():
                 raise RuntimeError("final review or assignment drifted after preflight")
             core._pinned(MARKER, marker_sha)
             core._check_controller_breakers()  # Immediately before the only write.
-            written = core._run_ssh("write", journal)
+            written = core._run_ssh("write", journal, preflight=pre)
+            continuity = core.transport.compare_preflight_write(pre, written)
+            journal.emit("PREFLIGHT_TO_WRITE_CONTINUITY_PASS", result=continuity)
             verified = core._run_ssh("verify", journal)  # Distinct SSH process.
-            persistence = core.transport.compare_sessions(written, verified)
+            persistence = core.transport.compare_sessions(written, verified,
+                                                          preflight=pre)
             journal.emit("CROSS_SESSION_PERSISTENCE_PASS", result=persistence)
         except BaseException as error:
             failure = repr(error)
