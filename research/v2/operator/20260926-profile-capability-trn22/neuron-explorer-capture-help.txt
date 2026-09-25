@@ -1,0 +1,165 @@
+neuron-explorer exited with an error.neuron-explorer 2.32.0.498-b1f3998 built on 2026-08-10T05:09:49Z (commit b1f3998a)
+
+Usage:
+  neuron-explorer [OPTIONS] capture [capture-OPTIONS] [ifmap...]
+
+Application Options:
+  -v, --version                                     Show version and exit
+
+Help Options:
+  -h, --help                                        Show this help message
+
+[capture command options]
+      -n, --neff=                                   Compiled NEFF file.
+                                                    (default: file.neff)
+      -s, --session-file=                           File to store profile
+                                                    session information.
+                                                    (default: profile.ntff)
+          --ignore-exec-errors                      Ignore errors during
+                                                    execution
+          --disable-profile                         Load and execute a NEFF
+                                                    without capturing a
+                                                    profile. Can be used to run
+                                                    a minimal execution by
+                                                    removing profiling-related
+                                                    Neuron runtime calls (which
+                                                    may fail due to
+                                                    insufficient device memory,
+                                                    for example)
+          --collectives-worker-start-id=            The rank offset for the
+                                                    first worker on the current
+                                                    node. For example, if node
+                                                    0 has workers 0,1 and node
+                                                    1 has workers 2,3 then
+                                                    collectives-worker-start-id
+                                                    for node 0 and 1 will be 0
+                                                    and 2, respectively.
+          --collectives-worker-count=               Total number of Neuron
+                                                    workers across all nodes
+                                                    for this collectives run.
+      -r, --collectives-workers-per-node=           The number of workers on
+                                                    the current node. The
+                                                    global worker id (rank) of
+                                                    worker n on current node is
+                                                    'collectives-worker-start-i-
+
+                                                    d'+n.
+      -i, --collectives-profile-id=                 worker id which will be
+                                                    profiled. Passing 'all'
+                                                    profiles all workers.
+                                                    (default: all)
+          --single-io                               Create a single tensor for
+                                                    all IO equaling the size of
+                                                    the largest IO tensor.
+                                                    Individual tensors will
+                                                    point to a slice of this
+                                                    tensor.  This option can be
+                                                    used to lower the amount of
+                                                    device memory needed, but
+                                                    outputs will not be correct.
+          --single-io-threshold=                    When using --single-io,
+                                                    give any IO tensor whose
+                                                    size in bytes is at or
+                                                    below this value its own
+                                                    buffer instead of aliasing
+                                                    it onto the shared buffer.
+                                                    Use to keep small index
+                                                    tensors (e.g. block tables)
+                                                    correct so their gathers do
+                                                    not read out of bounds,
+                                                    while large tensors still
+                                                    share memory.  0 (the
+                                                    default) aliases all
+                                                    tensors (unchanged
+                                                    --single-io behavior).
+                                                    (default: 0)
+      -t, --capture-type=[profile|systrace]         Determines what information
+                                                    to capture. 'profile'
+                                                    collects device level
+                                                    information.  'systrace'
+                                                    collects runtime level
+                                                    information. (default:
+                                                    profile)
+          --num-exec=                               Number of executions to do
+                                                    (default: 1)
+          --profile-nth-exec=                       Profile every nth execution
+                                                    rather than all executions.
+                                                    Passing 0 will disable
+                                                    profiling. (default: 1)
+          --check-output-determinism                Check output determinism
+                                                    using CRC32 checksums.
+                                                    Compares CRC output of all
+                                                    executions against the
+                                                    first and fails if any
+                                                    mismatch is detected.
+          --write-tensors-per-exec=[none|all|alias] Write to tensor inputs
+                                                    every execution when
+                                                    tracing (default: none)
+          --io-from=[neff|runtime]                  If no inputs provided,
+                                                    where to get IO tensor
+                                                    sizes to allocate from
+                                                    (default: neff)
+      -m, --multi-input=                            <file> file that describes
+                                                    the input list for each
+                                                    requested worker. Each line
+                                                    in the file should
+                                                    correspond to one worker,
+                                                    and follow the same format
+                                                    as the ifmap argument.
+                                                    Cannot be used with ifmap.
+          --enable-dge-notifs                       Enables DGE notifications
+                                                    in Runtime for tracing
+                                                    dynamic DMAs
+          --exec-mode=[sync|async|async-wait]       Execution mode: 'sync'
+                                                    (default) uses blocking
+                                                    nrt_execute, 'async' queues
+                                                    all executions then waits,
+                                                    'async-wait' schedules and
+                                                    waits one at a time
+                                                    (default: sync)
+          --fgtrace-sample-rate=                    The sampling rate (Hz) for
+                                                    fgtrace tracing. (default:
+                                                    150)
+          --pprof-sample-rate=                      The sampling rate (Hz) for
+                                                    pprof profiling. (default:
+                                                    150)
+
+    System trace args:
+          --systrace-get-event-types                Query runtime for list of
+                                                    available event types and
+                                                    exits.
+          --systrace-event-filter=                  Events to enable in the
+                                                    system trace.  All events
+                                                    enabled if no filters are
+                                                    specified.
+
+    Output dump options:
+          --save-output                             save raw tensor outputs to
+                                                    a plain binary file (file
+                                                    name same as the output
+                                                    name).
+          --save-output-npy                         save tensor outputs to a
+                                                    .npy file (file name same
+                                                    as the output name).
+          --save-output-rank=                       save tensor outputs for
+                                                    given ranks (can be
+                                                    specified multiple times,
+                                                    e.g. --save-output-rank=0
+                                                    --save-output-rank=2)
+          --save-nth-output=                        Save output every nth
+                                                    execution rather than all
+                                                    executions.  Passing 0 will
+                                                    disable saving outputs.
+                                                    (default: 1)
+          --save-output-name=                       Only save output tensors
+                                                    that match given name(s)
+                                                    (can be specified multiple
+                                                    times, e.g.
+                                                    --save-output-name=output0
+                                                    --save-output-name=output1).
+
+[capture command arguments]
+  ifmap:                                            List of IFMaps in the form
+                                                    of <NAME> <FILE_PATH>
+                                                    separated by space. Eg IN1
+                                                    x.npy IN2 y.npy

@@ -1,0 +1,150 @@
+{
+  "proposal_id": "fs-20260926-recursive6ef7-seed44-trn22-r1-full",
+  "status": "PREPARED_NOT_STAGED_PENDING_ASSIGNMENT",
+  "owner_role": "Operator binds exact Supervisor/human-selected seed test; not science author",
+  "human_selected_direction": "ALL IN directive V seed check, seed43 and44 on current6ef7; submissions stay42",
+  "hypothesis": "Measure cross-seed finalpublic20M variability of current exact6ef7 stack; not a new model technique.",
+  "single_causal_change": "Only random seed42->44; source/model/optimizer/schedule/batch/budget and host legal profile unchanged.",
+  "mechanism_class": "cross_seed_noise_diagnostic",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "User-selected L3 exact Recursive schedule package",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Explicit current user priority; limited train.py-only change while A1/A2 run."
+    }
+  ],
+  "selection_rationale": "Human selected overnight priority after architecture decision/profile/new checked timing; do not displace active or higher-priority work.",
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "trainium_feasibility": "Exact6ef7 source/G2/default-OFF gates already passed and the same science argv completed full-budget training and fresh20M on both hosts. This is one same-config repeat, with fresh machine guards required.",
+  "cheapest_falsifier": "Recheck exact bytes, existing matching source/G2 receipts and fresh machine guards; abort on finite/state/load/budget failure. No new code or preliminary smoke is proposed.",
+  "prior_result_refs": [
+    "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md",
+    "research/v2/verification/20260925-trn22-a2-exact-cpu-g2-r2-independent-NUMERIC-PASS.md",
+    "3f6fcf8864a683871706ba6022bb2eb057b72e97:research/v2/verification/20260925-s-a-a2-l4-new-directive-independent-HOLD.md",
+    "research/v2/operator/20260925-trn21-l3-timer-dense-full-r1/terminal.json"
+  ],
+  "evidence": [
+    "workflow/parallel_ai_lanes.md",
+    "workflow/codex_directive_final_push.txt",
+    "research/v2/lanes/recursive-schedule/README.md",
+    "https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/a962ec43e2e3d7c018e59a2ece623fe6e232fdfb/nanochat_autoresearch/solutions/optimized_from_karpathy.py",
+    "research/v2/operator/20260925-trn21-l3-timer-dense-g2-r1/g2.json",
+    "research/v2/operator/20260925-trn21-l3-timer-dense-off-g2-r1/identity-vs-c5c.json",
+    "research/v2/operator/20260925-trn21-a1-full-final/OPERATOR_RESULT.md"
+  ],
+  "duplicate_search_terms": [
+    "recursive-schedule",
+    "S-A",
+    "decoupled warmdown",
+    "NorMuon beta2"
+  ],
+  "control": {
+    "run_label": "fs-20260925-l3-timer-dense-trn22-r1-full",
+    "public_val_bpb": 0.9902787975734985,
+    "steps": 3657,
+    "base_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--recursive-schedule",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "evaluated_utc": null,
+    "review": "research/v2/adoptions/20260925-recursive-schedule.json",
+    "note": "Same-host exact6ef7 prior seed42, never relabelled as a new control. trn21 fresh seed42 control in flight can be added after archive. Cross-host pooling needs explicit host-effect caveat."
+  },
+  "candidate": {
+    "branch": "codex/20260925-trn22-host-queue-operator",
+    "files_allowed": [
+      "train.py"
+    ],
+    "repository_candidate_path": "workflow/proposals/research-v2/train.py",
+    "train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "expected_diff": "No train.py change; seed only.",
+    "run_label": "fs-20260926-recursive6ef7-seed44-trn22-r1-full",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 NEURON_COMPETITION_R1_SEED=44 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule --seed 44 --max-train-seconds 1800 --num-steps 1000000 --out-dir out",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--recursive-schedule",
+      "--seed",
+      "44",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "source_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": true,
+    "cpu_or_static_checks": true,
+    "cpu_scope": "Existing exact6ef7source/denseON4rank3stepCPU G2 seed42; no claim of a new43/44 CPU receipt. Flag-only seed experiment selected by human; fresh source/argv/env/budget guards and independent binding review required.",
+    "numerical_equivalence": true,
+    "numerical_equivalence_scope": "Exact6ef7defaultOFF versus exactc5c, fullwidth1024,all12losses and62parameterdigests andownershipplanidentical.",
+    "causality": null,
+    "causality_note": "Model forward/eval unchanged by reviewed source composition; no new hardware causality measurement is claimed.",
+    "smoke_run": false,
+    "human_run_approval": false,
+    "independent_review_status": "Existing source/G2 PASS ae1de142; this new seed-specific Operator binding has NOT yet been independently assigned.",
+    "independent_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
+    "independent_review_sha256": "ae1de1421162f3f7e91328e9eb522d6f06736e0bf8917a28aa64657435431282"
+  },
+  "success_criteria": {
+    "quality": "Freshpublic20971520/context1024 final BPB under fixed1800. Report seed42/43/44 max-min spread, each same-host delta, actualsteps/startup/timing. This diagnostic is not an architecture gain or submission result; Analyst owns interpretation.",
+    "throughput": "Record steps/tok-s and budget; no speed claim before hardware.",
+    "correctness": "Finite training, loadable checkpoint, true causality gate, within budget, exact-source preflight and archived eval."
+  },
+  "abort_conditions": [
+    "Independent verifier rejects code or identity",
+    "Exact-size CPU G2 fails",
+    "Any correctness/budget/source-identity check fails",
+    "Machine is not clean and idle"
+  ],
+  "human_approved_by": "Poojith ALL IN directive; Supervisor asked preparation only. Native launch awaits exact binding review/assignment and fresh machine checks.",
+  "verdict": null,
+  "native_profile_selection": "Two bounded cross-seed diagnostics; do not infer automatic adoption-policy update or official score.",
+  "queue_binding": null,
+  "launch_authorized": false
+}

@@ -1,0 +1,821 @@
+neuron-explorer exited with an error.neuron-explorer 2.32.0.498-b1f3998 built on 2026-08-10T05:09:49Z (commit b1f3998a)
+
+Usage:
+  neuron-explorer [OPTIONS] view [view-OPTIONS]
+
+Application Options:
+  -v, --version                                                                Show
+                                                                               version
+                                                                               and exit
+
+Help Options:
+  -h, --help                                                                   Show this
+                                                                               help
+                                                                               message
+
+[view command options]
+      -n, --neff-path=                                                         NEFF file
+                                                                               location
+      -s, --session-file=                                                      Profile
+                                                                               artifact
+                                                                               location
+                                                                               (a NTFF
+                                                                               or tar
+                                                                               file for
+                                                                               a device
+                                                                               and
+                                                                               system
+                                                                               profile)
+      -d, --session-dir=                                                       Profile
+                                                                               directory
+                                                                               containin-
+
+                                                                               g one or
+                                                                               more
+                                                                               NTFFs
+                                                                               from a
+                                                                               multi-wor-
+
+                                                                               ker
+                                                                               execution
+                                                                               (of the
+                                                                               form
+                                                                               '*_rank_*-
+
+                                                                               .ntff')
+                                                                               or an
+                                                                               unpacked
+                                                                               system
+                                                                               and
+                                                                               device
+                                                                               profile.
+          --source-code-root=                                                  The path
+                                                                               to search
+                                                                               for
+                                                                               source
+                                                                               code
+                                                                               files.
+      -o, --cc-only                                                            Only
+                                                                               ingest CC
+                                                                               related
+                                                                               data (if
+                                                                               ingesting
+                                                                               a CC
+                                                                               profile
+                                                                               dir)
+      -m, --session-name=                                                      Name for
+                                                                               CC
+                                                                               profile
+                                                                               session
+                                                                               (if
+                                                                               ingesting
+                                                                               a CC
+                                                                               profile
+                                                                               dir)
+          --db-endpoint=                                                       The
+                                                                               endpoint
+                                                                               of
+                                                                               InfluxDB
+                                                                               (default:
+                                                                               http://lo-
+
+                                                                               calhost:8-
+
+                                                                               086)
+          --db-org=                                                            The org
+                                                                               name of
+                                                                               InfluxDB
+                                                                               (default:
+                                                                               AWS)
+          --db-bucket=                                                         The name
+                                                                               of the
+                                                                               InfluxDB
+                                                                               bucket
+                                                                               where
+                                                                               ingested
+                                                                               profile
+                                                                               data is
+                                                                               stored
+          --display-name=                                                      The name
+                                                                               of the
+                                                                               profile
+                                                                               displayed
+                                                                               as the
+                                                                               title in
+                                                                               the UI
+      -f, --force                                                              Force
+                                                                               overwrite
+                                                                               existing
+                                                                               profile
+                                                                               in the
+                                                                               database
+      -p, --port=                                                              The port
+                                                                               number of
+                                                                               the http
+                                                                               server
+                                                                               for the
+                                                                               UI
+                                                                               applicati-
+
+                                                                               on client
+                                                                               (default:
+                                                                               3001)
+          --data-path=                                                         Root
+                                                                               directory
+                                                                               where the
+                                                                               API
+                                                                               server
+                                                                               stores
+                                                                               and
+                                                                               discovers
+                                                                               profile
+                                                                               data.
+                                                                               Mutually
+                                                                               exclusive
+                                                                               with
+                                                                               --output--
+
+                                                                               file.
+                                                                               When
+                                                                               using
+                                                                               --ingest--
+
+                                                                               only,
+                                                                               this must
+                                                                               be the
+                                                                               same
+                                                                               absolute
+                                                                               path used
+                                                                               when
+                                                                               launching
+                                                                               the
+                                                                               server.
+          --disable-ui                                                         Do not
+                                                                               launch
+                                                                               web UI.
+                                                                               This is
+                                                                               used when
+                                                                               you only
+                                                                               want to
+                                                                               launch an
+                                                                               API
+                                                                               server
+                                                                               for
+                                                                               serving
+                                                                               query to
+                                                                               parquet
+                                                                               files
+          --ingest-only                                                        Only
+                                                                               ingest
+                                                                               data.
+                                                                               Don't
+                                                                               launch
+                                                                               the web
+                                                                               server.
+                                                                               This is
+                                                                               useful if
+                                                                               the
+                                                                               server is
+                                                                               already
+                                                                               running
+                                                                               and you
+                                                                               want to
+                                                                               process a
+                                                                               new
+                                                                               profile
+                                                                               from the
+                                                                               CLI.
+          --ignore-nc-buf-usage                                                Ignore
+                                                                               Neuron
+                                                                               Core
+                                                                               Buffer
+                                                                               Informati-
+
+                                                                               on (SB
+                                                                               and PSUM
+                                                                               fullness)-
+
+                                                                               . This
+                                                                               can
+                                                                               reduce
+                                                                               processin-
+
+                                                                               g time
+                                                                               but SB
+                                                                               and PSUM
+                                                                               fullness
+                                                                               measureme-
+
+                                                                               nts will
+                                                                               be
+                                                                               missing
+                                                                               in output.
+          --ignore-instruction-trace                                           Skip
+                                                                               instructi-
+
+                                                                               on trace
+                                                                               processing
+          --ignore-event-trace                                                 Skip
+                                                                               event
+                                                                               trace
+                                                                               processing
+          --ignore-dma-trace                                                   Skip DMA
+                                                                               trace
+                                                                               processin-
+
+                                                                               g. This
+                                                                               can
+                                                                               reduce
+                                                                               processin-
+
+                                                                               g time
+                                                                               but DMAs
+                                                                               will be
+                                                                               missing
+                                                                               in output.
+          --ignore-instruction-hierarchy                                       Disable
+                                                                               instructi-
+
+                                                                               on
+                                                                               hierarchy
+                                                                               processin-
+
+                                                                               g.
+                                                                               Instructi-
+
+                                                                               on
+                                                                               hierarchy
+                                                                               processin-
+
+                                                                               g can
+                                                                               increase
+                                                                               processin-
+
+                                                                               g time
+                                                                               and
+                                                                               memory
+                                                                               consumpti-
+
+                                                                               on. The
+                                                                               purpose
+                                                                               of
+                                                                               instructi-
+
+                                                                               on
+                                                                               hierarchy
+                                                                               profiling
+                                                                               is to
+                                                                               enable
+                                                                               users to
+                                                                               drill
+                                                                               down from
+                                                                               a higher
+                                                                               level
+                                                                               instructi-
+
+                                                                               on
+                                                                               timeline
+                                                                               to lower
+                                                                               level
+                                                                               instructi-
+
+                                                                               on
+                                                                               timeline.
+          --enable-memory-tracker                                              Enable
+                                                                               MemoryTra-
+
+                                                                               cker to
+                                                                               view
+                                                                               scratchpa-
+
+                                                                               d usage
+                                                                               over time
+                                                                               with a
+                                                                               breakdown
+                                                                               of usage
+                                                                               per
+                                                                               tensor.
+                                                                               This
+                                                                               requires
+                                                                               having
+                                                                               set
+                                                                               XLA_IR_DE-
+
+                                                                               BUG=1 and
+                                                                               XLA_HLO_D-
+
+                                                                               EBUG=1
+                                                                               before
+                                                                               NEFF
+                                                                               compilati-
+
+                                                                               on and
+                                                                               passing
+                                                                               --enable--
+
+                                                                               dge-notif-
+
+                                                                               s when
+                                                                               capturing
+                                                                               the
+                                                                               profile.
+          --enable-memory-analyzer                                             Enable
+                                                                               detailed
+                                                                               memory
+                                                                               allocatio-
+
+                                                                               n
+                                                                               analysis.
+                                                                               This
+                                                                               generates
+                                                                               sbuf_allo-
+
+                                                                               cation,et-
+
+                                                                               c data
+                                                                               showing
+                                                                               exact
+                                                                               allocatio-
+
+                                                                               n time
+                                                                               ranges
+                                                                               and
+                                                                               addresses
+                                                                               for each
+                                                                               memory
+                                                                               operation.
+          --dma-throughput-sample-interval-ns=                                 Sampling
+                                                                               setting
+                                                                               for
+                                                                               dma_throu-
+
+                                                                               ghput
+                                                                               data,
+                                                                               i.e.
+                                                                               points
+                                                                               are saved
+                                                                               when the
+                                                                               time
+                                                                               differenc-
+
+                                                                               e since
+                                                                               last
+                                                                               saved
+                                                                               point is
+                                                                               greater
+                                                                               than this
+                                                                               amount.
+                                                                               This
+                                                                               option
+                                                                               has no
+                                                                               effect on
+                                                                               summary
+                                                                               metrics
+                                                                               or the
+                                                                               dma event
+                                                                               trace. It
+                                                                               only
+                                                                               effects
+                                                                               the
+                                                                               number of
+                                                                               dma_throu-
+
+                                                                               ghput
+                                                                               points
+                                                                               and does
+                                                                               not
+                                                                               change
+                                                                               their
+                                                                               values. A
+                                                                               setting
+                                                                               of 0
+                                                                               turns off
+                                                                               sampling,
+                                                                               giving
+                                                                               full
+                                                                               resolutio-
+
+                                                                               n data
+                                                                               for users
+                                                                               willing
+                                                                               to wait
+                                                                               the extra
+                                                                               processin-
+
+                                                                               g time.
+                                                                               (default:
+                                                                               10)
+          --output-format=[db|summary-text|summary-json|json|perfetto|parquet] How the
+                                                                               processed
+                                                                               profile
+                                                                               should be
+                                                                               presented-
+
+                                                                               . 'db'
+                                                                               writes
+                                                                               processed
+                                                                               data to
+                                                                               the
+                                                                               database.
+                                                                               'summary--
+
+                                                                               text' and
+                                                                               'summary--
+
+                                                                               json'
+                                                                               print to
+                                                                               console
+                                                                               the
+                                                                               summary
+                                                                               data as a
+                                                                               table or
+                                                                               json,
+                                                                               respectiv-
+
+                                                                               ely,
+                                                                               without
+                                                                               writing
+                                                                               to the
+                                                                               datebase.
+                                                                               The
+                                                                               'perfetto-
+
+                                                                               ' option
+                                                                               writes
+                                                                               processed
+                                                                               data to
+                                                                               Perfetto'-
+
+                                                                               s native
+                                                                               protobuf
+                                                                               based
+                                                                               tracing
+                                                                               format,
+                                                                               and can
+                                                                               be
+                                                                               visualize-
+
+                                                                               d in the
+                                                                               Perfetto
+                                                                               UI. The
+                                                                               'JSON'
+                                                                               option
+                                                                               writes
+                                                                               processed
+                                                                               data to
+                                                                               human-rea-
+
+                                                                               dable
+                                                                               JSON.
+          --terminology                                                        Print a
+                                                                               helpful
+                                                                               table of
+                                                                               terminolo-
+
+                                                                               gy used
+                                                                               by the
+                                                                               profiler
+          --show-profile-schema                                                Print the
+                                                                               profile
+                                                                               schema
+                                                                               (covers
+                                                                               both
+                                                                               device
+                                                                               and
+                                                                               system
+                                                                               profile
+                                                                               tables).
+                                                                               This
+                                                                               includes
+                                                                               useful
+                                                                               documenta-
+
+                                                                               tion
+                                                                               about the
+                                                                               output
+                                                                               profile
+                                                                               data. For
+                                                                               parquet
+                                                                               output
+                                                                               this
+                                                                               prints
+                                                                               the YAML
+                                                                               schema;
+                                                                               for other
+                                                                               output
+                                                                               formats
+                                                                               this
+                                                                               prints
+                                                                               the
+                                                                               device
+                                                                               profile
+                                                                               schema
+                                                                               JSON.
+          --show-device-profile-schema                                         Deprecate-
+
+                                                                               d alias
+                                                                               for
+                                                                               --show-pr-
+
+                                                                               ofile-sch-
+
+                                                                               ema.
+                                                                               Prints
+                                                                               the
+                                                                               profile
+                                                                               schema
+                                                                               (covers
+                                                                               both
+                                                                               device
+                                                                               and
+                                                                               system
+                                                                               profile
+                                                                               tables
+                                                                               despite
+                                                                               the name).
+          --output-file=                                                       Output
+                                                                               path to
+                                                                               write
+                                                                               results
+                                                                               to, if
+                                                                               applicabl-
+
+                                                                               e for the
+                                                                               given
+                                                                               output
+                                                                               format.
+                                                                               Use
+                                                                               default
+                                                                               if not
+                                                                               specified-
+
+                                                                               .
+                                                                               Defaults
+                                                                               for JSON
+                                                                               output
+                                                                               format is
+                                                                               'ntff.jso-
+
+                                                                               n' for
+                                                                               device
+                                                                               profile
+                                                                               or
+                                                                               'system_p-
+
+                                                                               rofile.js-
+
+                                                                               on' for
+                                                                               system
+                                                                               profile.
+                                                                               Defaults
+                                                                               for
+                                                                               Perfetto
+                                                                               output
+                                                                               format is
+                                                                               'ntff.pft-
+
+                                                                               race' for
+                                                                               device
+                                                                               profile
+                                                                               or
+                                                                               'system_p-
+
+                                                                               rofile.pf-
+
+                                                                               trace'
+                                                                               for
+                                                                               system
+                                                                               profile.
+                                                                               Default
+                                                                               for
+                                                                               Parquet
+                                                                               output
+                                                                               format is
+                                                                               treat
+                                                                               this path
+                                                                               as a
+                                                                               folder
+                                                                               and to
+                                                                               save
+                                                                               multiple
+                                                                               Parquet
+                                                                               files in
+                                                                               that
+                                                                               folder.
+          --processing-status-file=                                            Write a
+                                                                               JSON file
+                                                                               with
+                                                                               processin-
+
+                                                                               g status
+                                                                               including
+                                                                               status
+                                                                               code,
+                                                                               first
+                                                                               error,
+                                                                               and list
+                                                                               of
+                                                                               profile
+                                                                               names
+                                                                               that had
+                                                                               metadata
+                                                                               updated.
+          --fgtrace-sample-rate=                                               The
+                                                                               sampling
+                                                                               rate (Hz)
+                                                                               for
+                                                                               fgtrace
+                                                                               tracing.
+                                                                               (default:
+                                                                               150)
+          --pprof-sample-rate=                                                 The
+                                                                               sampling
+                                                                               rate (Hz)
+                                                                               for pprof
+                                                                               profiling-
+
+                                                                               .
+                                                                               (default:
+                                                                               150)
+          --json-pretty-print                                                  Output
+                                                                               JSON with
+                                                                               indentati-
+
+                                                                               on
+                                                                               formattin-
+
+                                                                               g. Makes
+                                                                               JSON
+                                                                               easier to
+                                                                               read but
+                                                                               will
+                                                                               cause a
+                                                                               slowdown.
+
+    System profiling options:
+          --ignore-device-profile                                              Skip the
+                                                                               processin-
+
+                                                                               g of all
+                                                                               device
+                                                                               profiles
+                                                                               and only
+                                                                               processes
+                                                                               the
+                                                                               system
+                                                                               profile
+          --ignore-system-profile                                              Skip the
+                                                                               processin-
+
+                                                                               g of the
+                                                                               system
+                                                                               profile
+                                                                               and
+                                                                               processes
+                                                                               all
+                                                                               device
+                                                                               profiles
+          --system-trace-primary-group=                                        The first
+                                                                               order
+                                                                               grouping
+                                                                               of trace
+                                                                               events.
+                                                                               In
+                                                                               Perfetto
+                                                                               this
+                                                                               correspon-
+
+                                                                               ds to a
+                                                                               process
+                                                                               (group of
+                                                                               rows in
+                                                                               the UI).
+                                                                               Comma-del-
+
+                                                                               imited
+                                                                               list of
+                                                                               field
+                                                                               names
+                                                                               (options
+                                                                               include
+                                                                               instance_-
+
+                                                                               id,
+                                                                               thread_id-
+
+                                                                               ,
+                                                                               worker_gi-
+
+                                                                               d,
+                                                                               lnc_idx,
+                                                                               process_i-
+
+                                                                               d)
+                                                                               (default:
+                                                                               instance_-
+
+                                                                               id,proces-
+
+                                                                               s_id)
+          --system-trace-secondary-group=                                      The
+                                                                               second
+                                                                               order
+                                                                               grouping
+                                                                               of trace
+                                                                               events.
+                                                                               In
+                                                                               Perfetto
+                                                                               this
+                                                                               correspon-
+
+                                                                               ds to a
+                                                                               thread
+                                                                               (single
+                                                                               row in
+                                                                               the UI).
+                                                                               Comma-del-
+
+                                                                               imited
+                                                                               list of
+                                                                               field
+                                                                               names
+                                                                               (options
+                                                                               include
+                                                                               instance_-
+
+                                                                               id,
+                                                                               thread_id-
+
+                                                                               ,
+                                                                               worker_gi-
+
+                                                                               d,
+                                                                               lnc_idx,
+                                                                               process_i-
+
+                                                                               d)
+                                                                               (default:
+                                                                               worker_gi-
+
+                                                                               d,lnc_idx-
+
+                                                                               ,thread_i-
+
+                                                                               d)
+          --system-trace-ignore-host-memory                                    Ignore
+                                                                               host
+                                                                               memory
+                                                                               events in
+                                                                               system
+                                                                               trace
+          --system-trace-ignore-cpu                                            Ignore
+                                                                               host CPU
+                                                                               events in
+                                                                               system
+                                                                               trace
+          --system-trace-filter-instance-id=                                   Filter
+                                                                               system
+                                                                               trace by
+                                                                               instance
+                                                                               id. (e.g.
+                                                                               i-abc123,-
+
+                                                                               i-def456)
+          --system-trace-filter-neuron-core=                                   Filter
+                                                                               system
+                                                                               trace by
+                                                                               neuron
+                                                                               core.
+                                                                               (e.g.
+                                                                               0,1,2,3)
+          --system-trace-filter-event-type=                                    Filter
+                                                                               system
+                                                                               trace by
+                                                                               event
+                                                                               type.
+                                                                               (e.g.
+                                                                               nrt_execu-
+
+                                                                               te,nrt_lo-
+
+                                                                               ad)
+          --system-trace-filter-ultraserver-instance-index=                    Filter
+                                                                               system
+                                                                               trace by
+                                                                               UltraServ-
+
+                                                                               er
+                                                                               instance
+                                                                               index.
+                                                                               (e.g.
+                                                                               0,1,2,3)
+          --system-trace-filter-ultraserver-id=                                Filter
+                                                                               system
+                                                                               trace by
+                                                                               UltraServ-
+
+                                                                               er ID.
+                                                                               (e.g.
+                                                                               123456789-
+
+                                                                               123)
