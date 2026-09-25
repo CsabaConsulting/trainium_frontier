@@ -1,6 +1,13 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:06 UTC
+Last reconciled: 2026-09-25 08:16 UTC
+
+The [MobileLLM depth-over-width suggestion](MOBILELLM_DEPTH_TRIAGE_2026-09-25.md)
+was reviewed as literature plus historical Trainium evidence, not as an
+approved run: prior fixed-wall-clock depth increases lost BPB, while the
+paper's endpoint and training horizon differ sharply from this competition.
+The dense A0/A1/A2 queue is unchanged; revisit depth only after a measured
+throughput or adopted-table change justifies a new controlled proposal.
 
 The exact-size A2 CPU-only G2 draft `701ecb65` received [independent static
 HOLD](../v2/verification/20260925-a2-c5c-m64d128-trn22-r2-disabled-g2-independent-HOLD.md)
