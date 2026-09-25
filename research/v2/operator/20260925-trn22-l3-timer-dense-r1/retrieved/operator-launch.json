@@ -1,0 +1,68 @@
+{
+  "utc": "2026-09-25T16:32:57.428852+00:00",
+  "host": "trn22",
+  "label": "fs-20260925-l3-timer-dense-trn22-r1-full",
+  "queue_pid": 3053905,
+  "runner_sha256": "7fe160cf0b5eef110caeee963fa4e39f708f4b5aaa6d503a7cf2344f1ac91244",
+  "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "proposal_sha256": "d6bd6488f02d6a901cb66102d8118d7094f88bc4e81ba859ffa8b41c876b91f5",
+  "manifest_sha256": "019c2797866137cb18a529ca670d4fe3b87272f3532bb081342c2208ae4c94e4",
+  "previous_pointer": {
+    "manifest_path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/resolved-a2-warm-r2.json",
+    "manifest_sha256": "8a43595eb59ad7ddc99f60f542f751f100d21adf1cccc94b4166345b8dac6aa4"
+  },
+  "pointer": {
+    "manifest_path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/schedule-dense-r1/manifest-armed.json",
+    "manifest_sha256": "019c2797866137cb18a529ca670d4fe3b87272f3532bb081342c2208ae4c94e4"
+  },
+  "command": [
+    "/usr/bin/nohup",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/schedule-dense-r1/host_queue.py",
+    "--manifest",
+    "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/research/v2/operator/20260925-trn22-conditional-queue-r1/bootstrap.json",
+    "--manifest-sha256",
+    "092e0ba53863fe02758b5a4dc4c99423909d1c92438d99264d1b3c669eed781b",
+    "--run"
+  ],
+  "disk_free_bytes": 49798459392,
+  "quiescent_before_launch": true,
+  "compiler_processes_before": [],
+  "device_holders_before": [],
+  "old_queue_exited": true,
+  "owned_pause_removed": true,
+  "research_only": true,
+  "submission_eligible": false,
+  "same_host_control": {
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+    "public_val_bpb": 0.991513958330512,
+    "steps": 3633,
+    "review": "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md",
+    "evaluated_utc": "2026-09-25T14:16:06Z",
+    "git_commit": null,
+    "git_commit_note": "The control used an exact-file manual stage; source identity is pinned by SHA256. Do not invent a host Git HEAD from a later evidence commit.",
+    "source_definition_commit": "8b9fc841ed817eac263c7087c3bce7c9f008bda1",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "box_constraint": "Same host trn22, exact c5c bytes, same data, effective compiler settings, seed42, full chip and fresh public20M/context1024; refresh control after8 runs or12h or a base change.",
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
+  }
+}

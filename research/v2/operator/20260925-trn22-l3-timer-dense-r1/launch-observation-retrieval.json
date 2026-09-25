@@ -1,0 +1,125 @@
+{
+  "utc": "2026-09-25T16:35:13.431665+00:00",
+  "host": "trn22",
+  "queue_pid": 3053905,
+  "queue_alive": true,
+  "processes": [
+    {
+      "pid": 3053907,
+      "names": [
+        "timeout",
+        "--signal=TERM",
+        "--kill-after=60s",
+        "5400s",
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4"
+      ]
+    },
+    {
+      "pid": 3053908,
+      "names": [
+        "python3",
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4",
+        "train.py",
+        "--n-embd",
+        "1024"
+      ]
+    },
+    {
+      "pid": 3053923,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift"
+      ]
+    },
+    {
+      "pid": 3053924,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift"
+      ]
+    },
+    {
+      "pid": 3053925,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift"
+      ]
+    },
+    {
+      "pid": 3053926,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift"
+      ]
+    }
+  ],
+  "disk_free_bytes": 48291155968,
+  "artifacts": {
+    "operator-launch.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/schedule-dense-r1/operator-launch.json",
+      "sha256": "716b2e8545cb1213689234db7617bb17c8458ff41a63f5dc3d9d0302030890fd",
+      "bytes": 2941
+    },
+    "attempt.started.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/attempt.started.json",
+      "sha256": "d6ee714fef5238b579fe0873f2cfbc34cc722b768db30f5a7574316c4dcb31dd",
+      "bytes": 2886
+    },
+    "preflight.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/preflight.json",
+      "sha256": "03f6104c49acfdb4e0162ab9b3787dc971571a9937fd05dfbb26a2749d12b7c1",
+      "bytes": 300
+    },
+    "training-process.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/training-process.json",
+      "sha256": "446a5da163a39f393b86ef0873d29c5228a15269304baeb172f495199daa4aa4",
+      "bytes": 66
+    },
+    "training-launch.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/training-launch.json",
+      "sha256": "83aa500ac15ef4cfda42ce5ecc5b05b6324a2488955be9091434faa4f9d06b25",
+      "bytes": 2455
+    },
+    "training.snapshot.log": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/training.log",
+      "sha256": "54a1d9b67bfbca4ff4104d36acacff661daff5c9f6168ae86c446d78ba153c01",
+      "bytes": 6724
+    },
+    "queue-events.snapshot.jsonl": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/queue-events.jsonl",
+      "sha256": "f96fc6b1c20929650505eebe3ed4ce3a76114d6dc3f41081637eacca5501bd8d",
+      "bytes": 1146
+    },
+    "pointer.snapshot.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/next-resolution.json",
+      "sha256": "b3152f6bf43c6d2723af2df5b05553ced7a4c226f1a8e15d5c36d2989fd36fac",
+      "bytes": 219
+    }
+  },
+  "staged_source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "latest_steps": []
+}
