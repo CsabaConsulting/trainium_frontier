@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 10:17 UTC
+Last reconciled: 2026-09-25 10:30 UTC
 
 The trn22 r10 stage's mistyped receipt pin was corrected at `020bfa7e` and
 received source-only static PASS at `aff8762e`, but a later
@@ -17,7 +17,15 @@ execution-root binding, live timing, final enablement review, and fresh
 Operator preflight. The trn22 r3 read-only timing rebind received
 [independent HOLD](../v2/verification/20260925-trn22-r10-timing-r3-independent-static-HOLD.md):
 its post-probe could skip a new local STOP before SSH. A narrow disabled
-repair is under implementation; trn21 timing is in a separate lane. Clean
+repair received [static-only PASS](../v2/verification/20260925-trn22-r10-timing-r4-independent-static-PASS.md)
+and an exact read-only enabled request is under preparation; it still has no
+final review or Supervisor assignment. The first trn21 timing package was
+[held independently](../v2/verification/20260925-trn21-r10-stage-readonly-timing-r1-independent-static-HOLD.md)
+because impossible numeric ages and nonempty remote stderr could be labeled
+successful; its disabled source is being repaired. The
+[10:21 UTC read-only host snapshot](../v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T1021Z.md)
+found both hosts quiescent with about 54 GiB root free each and clean e65
+sources. This is point-in-time planning evidence, not launch preflight. Clean
 local source worktrees exist for both stage candidates and a matching r10
 science checkout; the controller's archival source copies are not launch
 roots. No new scored control/table run or BPB exists. Priority remains
