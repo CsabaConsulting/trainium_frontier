@@ -1,4 +1,4 @@
-# CT racer A — 2026-09-26 01:00 IST
+# CT racer A — 2026-09-26 00:48 IST
 
 Done: immutable6ef7/93ae/bcbd/3e79 source and archived graph audit, normal/-O
 stdlib checker, exact native startup measurement plan. No torch job, host access,
@@ -16,7 +16,7 @@ refresh; no duplicate patch. Candidate3e79 awaits its separate fresh review and
 genuine cold5-step<=900 gate before any full architecture run; target870.
 Base target600. See AUDIT and MEASUREMENT_PLAN; P profiling may inform next work.
 
-Night-mode reversible decision (2026-09-26 01:00 IST): record this read-only audit
+Night-mode reversible decision (2026-09-26 00:48 IST): record this read-only audit
 without inventing a new optimization before priming's cold evidence. Reason:
 the leading concrete specialization already has a minimal candidate; schedule
 values/disabled eval have no established redundant graph. Undo: discard this
