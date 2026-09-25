@@ -1,0 +1,88 @@
+{
+  "proposal_id": "20260926-clean-checkpoint-route-diagnostic",
+  "schema": "checkpoint-only-diagnostic-proposal-v1",
+  "status": "DISABLED_SOURCE_REFUSE_UPLOAD_HOLD",
+  "owner_role": "implementer",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "quality_evidence": false,
+  "source_adoption": false,
+  "source_review": "REFUSE_UNCHANGED",
+  "full_training": "HOLD",
+  "upload": "HOLD",
+  "selection_rationale": "User requests exact scored artifact; investigate functional uncertainty without editing source or evading structural source REFUSE.",
+  "hypothesis": "Unchanged ordinary clean GPT loader may preserve same-backend trained-checkpoint B1/reference, batch/state/causal behaviour on fixed syntheticT1024; unmeasured.",
+  "mechanism_class": "correctness_diagnostic_only",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "candidate_shortlist": [
+    {
+      "idea": "Checkpoint-only behaviour diagnostic",
+      "why_ranked": "Narrow immutable-source falsifier selected by Supervisor and frozen Verifier plan."
+    },
+    {
+      "idea": "Add eval wrapper",
+      "why_ranked": "Not authorized; would change user-proven clean vehicle."
+    }
+  ],
+  "single_causal_change": "No source or trained weight changes; alternate only which exact loader reads the same checkpoint, on same fixed inputs and backend.",
+  "source_commit": "bd9e33eee671ee489a1201485faf748bf0a35dea",
+  "source_sha256": "3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f",
+  "reference_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+  "reference_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "checkpoint_sha256": "068749c2559f7c68f6acc76d558caff9d3806d85273fa8562483d87bbad50d25",
+  "plan_commit": "0537291f",
+  "clarification_commit": "8848863b",
+  "host": "trn22",
+  "stages": {
+    "cpu": {
+      "binding": "cpu/BINDING.disabled.json",
+      "world_size": 1,
+      "timeout_seconds": 600
+    },
+    "neuron": {
+      "binding": "neuron/BINDING.disabled.json",
+      "world_size": 4,
+      "timeout_seconds": 900,
+      "requires_independently_accepted_cpu": true
+    }
+  },
+  "termination_grace_seconds": 15,
+  "seed": 42,
+  "sequence_length": 1024,
+  "batches": [
+    1,
+    2
+  ],
+  "calls_per_source_backend": 9,
+  "checks_per_rank": 25,
+  "source_diff_review": "PENDING_DIAGNOSTIC_REVIEW; original source REFUSE unchanged",
+  "cpu_or_static_checks": "PREPARER_ONLY; no full model execution",
+  "numerical_equivalence": false,
+  "success_criteria": {
+    "outputs": "Strict same-backend dtype/shape/finite/byte equality, any difference HOLD",
+    "causality": "Separate synthetic pinned prepare suffix-flip float32 prefix maxabs<=1e-2; not official data loader",
+    "state": "Loaded payload65tensors plus before/after registered/direct tensors frozen; hooks absent",
+    "native": "All4receipts/all25checks and rankoutputdigests agree"
+  },
+  "abort_conditions": [
+    "Any missing gate/assignment or failed host/lock/ps/neuron-ls/STOP/resource/hash preflight",
+    "Nonzero/byte/state difference=>HOLD; execution/receipt/timeout/nonfinite/incomplete=>HOLD or UNRESOLVED",
+    "256MiB emitted artifact cap breach stops and is unresolved; no full output tensor artifacts",
+    "No retry, stage promotion, training/eval/scoring/adoption/upload"
+  ],
+  "resource_floor": {
+    "available_ram_gib": 64,
+    "free_disk_gib": 6.5,
+    "threads": 1,
+    "artifact_cap_mib": 256
+  },
+  "prior_result_refs": [
+    "research/v2/analysis/20260926-clean-checkpoint-contract-diagnostic/PLAN.md",
+    "research/v2/operator/20260926-trn22-arch3e79-full/completed-training/checkpoint.json",
+    "research/v2/verification/20260926-fresh-astra-clean-architecture/"
+  ],
+  "operator_assignment": "NOT_ASSIGNED",
+  "human_approved_by": null,
+  "verdict": null
+}
