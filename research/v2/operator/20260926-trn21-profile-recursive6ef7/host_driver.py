@@ -1,6 +1,7 @@
 """One bounded P actual-loop profile, exact reviewed source/wrapper binding only."""
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -36,6 +37,10 @@ try:
     assert not os.path.lexists(ROOT/'out'),'OUT_ALREADY_EXISTS'
     for key in ('TORCH_NEURONX_NEFF_CACHE_DIR','TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR','TORCH_NEURONX_HLO_CACHE_DIR','TORCHINDUCTOR_CACHE_DIR','NEURON_COMPILE_CACHE_DIR','TORCH_NEURONX_DEBUG_DIR'):
         assert Path(ENV[key]).is_dir(),'CACHE_MISSING:'+key
+    assert sha(ROOT/'idle_guard.py')=='5d735b4baf1b68bab2e9528adc4b1d09a930cb2beafdd069f1a6a513f65c34fb','IDLE_GUARD_SHA'
+    spec=importlib.util.spec_from_file_location('bound_idle_guard',ROOT/'idle_guard.py')
+    guard=importlib.util.module_from_spec(spec); spec.loader.exec_module(guard)
+    guard.require_idle_under_inherited_lock('/home/ubuntu/.cache/trainium_freshstart/device0.lock',ROOT/'host_driver.py',record)
     record('profile-launch.json',{'utc':utc(),'label':LABEL,'command':COMMAND,'environment':ENV,'source_sha256':SOURCE_SHA,'wrapper_sha256':WRAPPER_SHA,'prepare_sha256':PREP_SHA,'no_eval':True})
     with (ROOT/'profile.log').open('x') as out:
         out.write('PROFILE_START_UTC='+utc()+'\n'); out.flush()

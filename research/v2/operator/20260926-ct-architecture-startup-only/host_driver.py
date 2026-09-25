@@ -1,6 +1,7 @@
 """Bounded CT startup-only binding of the unchanged Sep24 rehearsal harness."""
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -31,6 +32,10 @@ try:
     assert sha(PREP)==PREP_SHA,'PREPARE_SHA'
     assert sha(HARNESS)==HARNESS_SHA,'HARNESS_SHA'
     assert not os.path.lexists(ROOT/'train'),'SANDBOX_ALREADY_EXISTS'
+    assert sha(ROOT/'idle_guard.py')=='5d735b4baf1b68bab2e9528adc4b1d09a930cb2beafdd069f1a6a513f65c34fb','IDLE_GUARD_SHA'
+    spec=importlib.util.spec_from_file_location('bound_idle_guard',ROOT/'idle_guard.py')
+    guard=importlib.util.module_from_spec(spec); spec.loader.exec_module(guard)
+    guard.require_idle_under_inherited_lock('/home/ubuntu/.cache/trainium_freshstart/device0.lock',ROOT/'host_driver.py',record)
     record('training-launch.json',{'utc':utc(),'label':LABEL,'command':COMMAND,'environment':ENV,'source_sha256':SOURCE_SHA,'prepare_sha256':PREP_SHA,'harness_sha256':HARNESS_SHA})
     with (ROOT/'training.log').open('x') as out:
         out.write('HARNESS_START_UTC='+utc()+'\n'); out.flush()
