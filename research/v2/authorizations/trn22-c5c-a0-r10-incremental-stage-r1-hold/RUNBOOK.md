@@ -1,4 +1,13 @@
-# trn22 e65 → r10 direct incremental source stage r1 — DISABLED / HOLD
+# trn22 e65 → r10 direct incremental source stage r1, package correction r2 — DISABLED / HOLD
+
+The original disabled package commit `3d26e963df349f444cd560114400788bf572b062`
+remains in history but had a mistyped SHA-256 pin for the inherited r4 static
+PASS receipt. This r2 package correction binds the actual receipt bytes
+(`5f1b18e45fda3e726ccde6063523ee2679f3a8dbc42480cc1e84936d1b78bb1d`)
+without changing the remote stage source, unused host label, bundle, target,
+one-attempt marker or any launch gate. Neither revision has contacted trn22.
+The review hash is reproducible offline from
+`git show efd5f2396b8bb2c37865d3cb751f45ed2c07bb81:research/v2/verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md | sha256sum`.
 
 This is an Implementer-only, distinct **disabled** rebinding of the reviewed trn22 r4 no-cleanup source-stage design. It exists because a trn22 r9 checkout and a planned trn21 r10 checkout would not meet `research/experiment-protocol.md` §1's same-Git-HEAD requirement for comparable scored runs. **No source stage or host contact has occurred through this package.** The request has `dispatch_authorized: false` and `source_stage_authorized: false`; no enabled request, independent final review or Supervisor assignment is present. Neither this file nor the r4 static PASS authorizes SSH, a host marker, cleanup, native training, evaluation or submission.
 
@@ -16,7 +25,7 @@ This is an Implementer-only, distinct **disabled** rebinding of the reviewed trn
 | Unchanged train / evaluator | `train.py` SHA-256 `c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586`; `prepare.py` SHA-256 `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb` |
 | r10 launcher | `research/fresh_start_launch.py` SHA-256 `1be19bc31d2bdcde8abe9fe90cc1ac884d6efd5f7be197d7bdbfe64c257dcff7` |
 
-The target r10 commit descends from r9 `e046de16826bfc3b954136e3c60804aea0554ecc`. Its launcher source has an independent **disabled-source-only** PASS at `research/v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R10_TRN21.md` (SHA-256 `5e6fbfe6fd46608d0b220b99402185c78c809523026df7153882d3637de20c96`, review commit `ee9a4b14cc30ab372162fd434692e59b13ac44ab`). That review found the trn22 r9 profile retained, but it grants no native trn22 authority. The inherited r4 trn22 stage design is source-reviewed at `research/v2/verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md` (SHA-256 `5f1b18e45fda3e726ccde6063523ee2679f3a8dbc42480cc1e84936d1b1d`, review commit `efd5f2396b8bb2c37865d3cb751f45ed2c07bb81`, exact r4 subject `19fbfdc88763b6b5762e219339dcd156e7977a30`). That PASS is **static and r4-specific**; it does not review or authorize these new r10 bytes. The older r3 independent HOLD remains pinned and historical; it is not an authority source.
+The target r10 commit descends from r9 `e046de16826bfc3b954136e3c60804aea0554ecc`. Its launcher source has an independent **disabled-source-only** PASS at `research/v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R10_TRN21.md` (SHA-256 `5e6fbfe6fd46608d0b220b99402185c78c809523026df7153882d3637de20c96`, review commit `ee9a4b14cc30ab372162fd434692e59b13ac44ab`). That review found the trn22 r9 profile retained, but it grants no native trn22 authority. The inherited r4 trn22 stage design is source-reviewed at `research/v2/verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md` (SHA-256 `5f1b18e45fda3e726ccde6063523ee2679f3a8dbc42480cc1e84936d1b78bb1d`, review commit `efd5f2396b8bb2c37865d3cb751f45ed2c07bb81`, exact r4 subject `19fbfdc88763b6b5762e219339dcd156e7977a30`). That PASS is **static and r4-specific**; it does not review or authorize these new r10 bytes. The older r3 independent HOLD remains pinned and historical; it is not an authority source.
 
 The local bundle and all source files are listed in `SHA256SUMS`. Bundle bytes are hash/length checked before a future marker or host action. No `.env`, private key, token or credential bytes were copied into this package. `train.py`, `prepare.py`, data and evaluator paths are unmodified.
 
