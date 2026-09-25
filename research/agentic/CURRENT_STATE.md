@@ -1,6 +1,45 @@
 # Current state
 
-Last reconciled: 2026-09-25 17:25 UTC
+Last reconciled: 2026-09-25 17:40 UTC
+
+## Latest adoption and native handoff, 17:40 UTC
+
+The Recursive schedule is now **ADOPTED FOR RESEARCH** after independently
+retrieved and checked two-host20M results: trn21 **0.9900560897366009**,
+trn22 **0.9902787975734985**, mean **0.9901674436550496**. Same-host deltas
+are-0.0014179042568335 and-0.0012351607570135. All unchanged BPB adoption
+thresholds pass. Standing human research preapproval resolves the selector's
+ADOPT_PENDING_HUMAN_ACK token; do not ask again. Record:
+`research/v2/adoptions/20260925-recursive-schedule.json`.
+No official improvement, submission-ready port or cold validation is claimed.
+
+The new GENERAL fixed-budget selector has independent PASS and is active.
+Steps are reported, never a selection veto; below60% or spikes/stalls raise
+diagnostic alarms. Budget/charging/correctness/replication/thresholds are intact.
+
+FP8 exact9212 passed full-parameter CPU ON/OFF andc5c identity, but its native
+component failed at17:28:30UTC on all4ranks: `native/reference RMS gate failed`,
+dx/dw relative RMS1.0. No timing/full-quality run followed. Candidate versus
+checker/backend cause is unresolved; missing gradients are suggested, not
+proved. Independent audit357ba6e preserves the failure. A narrow diagnostic
+checker patch is being built/reviewed offline without changing source/thresholds.
+
+trn21 restored its reviewed queue at17:30:02UTC /23:00:02IST: matrixLR0.0175
+fallback running, five remaining scalar jobs. No breaker was reset; its owned
+pause was recoverably renamed. Source/control stays the declaredc5c contrast.
+
+trn22 architecture93ae passed actual8x1024 CPU ON plus exact OFF identity to
+bothc5c and6ef7, and root released the prepared native job at02ed1896 after
+independent raw numeric review. Operator is launching the declared isolated
+architecture arm againstc5c; do not silently add the newly adopted schedule.
+Six fallbacks are preserved. No native result is claimed until launch receipt.
+
+Both next native bindings retain startup/exit evidence; warm research is NOT
+cold-cache proof. The architecture needs measured cold accounting before any
+submission. Existing priority checks/manual path are sufficient; do not rebuild
+the launcher or create another approval ceremony.
+
+Sections below are prior handoffs, superseded by this adoption/native status.
 
 ## Latest: schedule single-host nomination; general fixed-budget selection
 

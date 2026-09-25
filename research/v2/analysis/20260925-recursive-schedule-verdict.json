@@ -1,0 +1,92 @@
+{
+  "arm_id": "L3-timer-dense",
+  "disagreement": 0.0001827,
+  "invalid_runs": {},
+  "mean_delta": -0.0013266,
+  "per_host": [
+    {
+      "control_mean": 0.991474,
+      "control_mean_steps": 3675,
+      "controls": [
+        "fs-20260925-v2-c5c-a0-control-trn21-r1"
+      ],
+      "delta": -0.0014179,
+      "host": "trn21",
+      "label": "fs-20260925-l3-timer-dense-trn21-r1-full",
+      "pooled_controls": 1,
+      "public_20m": 0.9900560897366009,
+      "step_ratio": 0.9984,
+      "steps": 3669
+    },
+    {
+      "control_mean": 0.991514,
+      "control_mean_steps": 3633,
+      "controls": [
+        "fs-20260925-v2-c5c-a0-control-trn22-r10"
+      ],
+      "delta": -0.0012352,
+      "host": "trn22",
+      "label": "fs-20260925-l3-timer-dense-trn22-r1-full",
+      "pooled_controls": 1,
+      "public_20m": 0.9902787975734985,
+      "step_ratio": 1.0066,
+      "steps": 3657
+    }
+  ],
+  "replicates": 2,
+  "rules": "v2-2026-09-25-general-fixed-budget",
+  "run_diagnostics": {
+    "fs-20260925-l3-timer-dense-trn21-r1-full": {
+      "affects_bpb_verdict": false,
+      "budget_declaration_error": null,
+      "budget_declarations": {
+        "argv[18]": "1800",
+        "training_budget_seconds": 1800
+      },
+      "charged_source_estimate_seconds": 1785.2,
+      "charged_through_exit_seconds": null,
+      "cold_startup_seconds": null,
+      "cold_startup_submission_gate": "HOLD_MISSING_PROVEN_COLD_STARTUP",
+      "control_mean_steps": 3675,
+      "diagnostic_alarms": [
+        "measured_startup_missing",
+        "cold_startup_unproven_submission_gate"
+      ],
+      "legacy_startup_s_untyped": null,
+      "startup_allowance_seconds": null,
+      "startup_allowance_source_estimate_seconds": 783.4,
+      "startup_measured_seconds": null,
+      "startup_source_estimate_seconds": null,
+      "step_ratio": 0.9984,
+      "steps": 3669,
+      "training_seconds": 1784.8
+    },
+    "fs-20260925-l3-timer-dense-trn22-r1-full": {
+      "affects_bpb_verdict": false,
+      "budget_declaration_error": null,
+      "budget_declarations": {
+        "argv[18]": "1800",
+        "training_budget_seconds": 1800
+      },
+      "charged_source_estimate_seconds": 1785.3,
+      "charged_through_exit_seconds": null,
+      "cold_startup_seconds": null,
+      "cold_startup_submission_gate": "HOLD_MISSING_PROVEN_COLD_STARTUP",
+      "control_mean_steps": 3633,
+      "diagnostic_alarms": [
+        "measured_startup_missing",
+        "cold_startup_unproven_submission_gate"
+      ],
+      "legacy_startup_s_untyped": null,
+      "startup_allowance_seconds": null,
+      "startup_allowance_source_estimate_seconds": 817.9,
+      "startup_measured_seconds": null,
+      "startup_source_estimate_seconds": null,
+      "step_ratio": 1.0066,
+      "steps": 3657,
+      "training_seconds": 1784.9
+    }
+  },
+  "verdict": "ADOPT_PENDING_HUMAN_ACK",
+  "why": "both hosts negative, mean <= -0.0010, hosts agree"
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "trn-research-adoption-v1",
+  "status": "ADOPTED_RESEARCH_COMPONENT",
+  "arm_id": "L3-timer-dense",
+  "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "source_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--recursive-schedule",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out"
+  ],
+  "authority": [
+    "workflow/codex_directive_final_push.txt",
+    "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md",
+    "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md"
+  ],
+  "selector_verdict": "ADOPT_PENDING_HUMAN_ACK",
+  "ack_resolution": "Human pre-approved research-base adoptions under decide.py thresholds; no new acknowledgement required. Submission remains human-only.",
+  "selector_rules": "v2-2026-09-25-general-fixed-budget",
+  "selector_sha256": "fa4a3d3dd3697093f93ac73b5c95335a7c1efa12534589ed3c3e2b64940ca0ac",
+  "result_labels": [
+    "fs-20260925-l3-timer-dense-trn21-r1-full",
+    "fs-20260925-l3-timer-dense-trn22-r1-full"
+  ],
+  "public_20m": [
+    0.9900560897366009,
+    0.9902787975734985
+  ],
+  "public_20m_mean": 0.9901674436550496,
+  "same_host_deltas": [
+    -0.0014179042568335243,
+    -0.0012351607570135759
+  ],
+  "mean_delta_unrounded": -0.00132653250692355,
+  "decision_evidence": "research/v2/analysis/20260925-recursive-schedule-verdict.json",
+  "new_default_for_future_proposals": "Include adopted Recursive schedule on exact reviewed source when designing new stacks; do not mutate the identity/contrast of already launched or explicitly frozen standalone architecture/FP8 jobs.",
+  "host_queue_mutated": false,
+  "source_train_py_mutated": false,
+  "submission_eligible": false,
+  "cold_startup_proven": false,
+  "official_score_unchanged_user_report": 0.9901,
+  "remaining_submission_gates": "Port into proven116188 submission vehicle, validate arithmetic/clean review and genuine cold1800s replay before any human submission. No files in Downloads changed.",
+  "archived_checkpoints": [
+    "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/runs/fs-20260925-l3-timer-dense-trn21-r1-full/out/final.pt",
+    "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-l3-timer-dense-trn22-r1-full/out/final.pt"
+  ]
+}
