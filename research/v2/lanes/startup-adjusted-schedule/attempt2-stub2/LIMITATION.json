@@ -1,0 +1,20 @@
+{
+  "scope": "Preserved attempted CPU self-checks; NOT real-five-startup-boundary evidence",
+  "production_source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "observer_sha256": "1c725820733ae6937b4d2b87a3831fd80de7257bcad949d035d9c7baa1405cef",
+  "unchanged_g2_prepare_stub_sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+  "stub_train_startup_steps_excluded": 2,
+  "real_prepare_train_startup_steps_excluded": 5,
+  "raw_g2_status": "All six arms PASS their original G2 checks; retained unchanged",
+  "comparison_invocations": [
+    "python3 research/v2/lanes/startup-adjusted-schedule/compare_tiny.py research/v2/lanes/startup-adjusted-schedule/tiny-summary.json",
+    "python3 -O research/v2/lanes/startup-adjusted-schedule/compare_tiny.py research/v2/lanes/startup-adjusted-schedule/tiny-summary-optimized.json"
+  ],
+  "both_comparator_exit_codes": 1,
+  "failure_transcribed_from_tool_output": "RuntimeError: on779:early WD",
+  "failed_assertion": "require(group['weight_decay'] == .2, name + ':early WD') over the first five optimizer observations",
+  "observed_rank0_muon_wd_per_step": [0.2, 0.2, 0.1999996666666667, 0.19999911111111113, 0.1999985555555556, 0.19999800000000006],
+  "already_completed_comparisons_before_failure": ["All G2/source/shape/ownership/65-parameter coverage checks", "Base/default/OFF observation identity", "ON779/ON790 observation identity"],
+  "correction_scope": "Test observer only: restore imported TRAIN_STARTUP_STEPS_EXCLUDED to real pinned prepare5 and record it. Production candidate, base, actual prepare and unchanged G2 remain untouched. All six arms rerun separately.",
+  "interpretation": "Test-fixture coverage failure correctly detected. No native/model-quality conclusion. This JSON documents the terminal failure, not an invented original raw stdout file."
+}
