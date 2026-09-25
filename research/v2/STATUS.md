@@ -2,6 +2,17 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 01:54 UTC, trn21's transfer-only Operator archived a
+[terminal three-artifact receipt](authorizations/trn21-c5c-a0-stage-r2/operator-transfer-only-terminal-receipt.json)
+claiming distinct-SSH persistence and clean postflight. Its raw evidence is
+under separate independent result review; no checkout, CPU G2, native training,
+evaluation, or new BPB followed. The non-dispatchable
+[checkout-only package](authorizations/trn21-c5c-a0-stage-r2-extraction/GATE_CONTRACT.json)
+also awaits independent implementation review and a new assignment. trn22's
+next r4 safety source is frozen at `446b657695f086f9b484fa601c9a3b61c2495912`
+with local tests passing, but independent review is pending; the last reviewed
+revision failed and native dispatch remains HOLD.
+
 At 01:23 UTC, trn21's persistent-ext4 source-transfer r2 package had an
 [independent static planning PASS](authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md)
 and a new [transfer-only assignment](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json).

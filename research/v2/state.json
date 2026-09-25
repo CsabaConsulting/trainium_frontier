@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T01:43:02Z",
+  "written_utc": "2026-09-25T01:54:13Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -156,7 +156,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "G1_PASS_A0_SOURCE_STAGE_R2_TRANSFER_ONLY_ASSIGNED_RESULT_PENDING_NO_SCIENCE_SCORE",
+      "status": "G1_PASS_A0_SOURCE_STAGE_R2_OPERATOR_TRANSFER_COMPLETE_INDEPENDENT_RESULT_REVIEW_PENDING_NO_SCIENCE_SCORE",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-25T00:45:55Z",
       "free_bytes_read_only_df": 58676199424,
@@ -183,7 +183,10 @@
       "a0_stage_r2_transfer_assignment": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json",
       "a0_stage_r2_transfer_assignment_sha256": "0127358fed6e97787b8a7d60208ede3cadb0e870791baece2f12830300c09fd5",
       "a0_stage_r2_transfer_scope": "Exact 3-file persistent-ext4 transfer only after fresh full preflight and distinct cross-session verification; no extraction, CPU G2, native training or eval",
-      "a0_stage_r2_transfer_result": null
+      "a0_stage_r2_transfer_result": "research/v2/authorizations/trn21-c5c-a0-stage-r2/operator-transfer-only-terminal-receipt.json",
+      "a0_stage_r2_transfer_result_status": "OPERATOR_COMPLETE_INDEPENDENT_REVIEW_PENDING",
+      "a0_stage_r2_extraction_package": "research/v2/authorizations/trn21-c5c-a0-stage-r2-extraction/GATE_CONTRACT.json",
+      "a0_stage_r2_extraction_dispatch_allowed": false
     },
     "trn22": {
       "status": "A0_R4_CONTINUOUS_DISK_INTERLOCK_INDEPENDENT_SAFETY_FAIL_HOLD_NO_SCORE",
@@ -218,7 +221,9 @@
       "a0_r4_999b_independent_fail": "research/v2/disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md",
       "a0_r4_f8fe_independent_fail": "research/v2/disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md",
       "a0_r4_11379083_independent_fail": "research/v2/disk-monitor/R4_11379083_INDEPENDENT_VERIFIER_RECEIPT.md",
-      "a0_r4_native_dispatch_allowed": false
+      "a0_r4_native_dispatch_allowed": false,
+      "a0_r4_next_frozen_source_commit": "446b657695f086f9b484fa601c9a3b61c2495912",
+      "a0_r4_next_source_status": "LOCAL_TESTS_PASS_INDEPENDENT_REVIEW_PENDING_NATIVE_HOLD"
     }
   },
   "breakers": {
@@ -259,8 +264,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn21 c5c A0 persistent-ext4 source-transfer r2 remains transfer-only; Operator reports first two of three new targets written and separately verified, but complete transfer/result review is pending and checkout/G2/native/eval remain HOLD. trn22 r4 source 11379083 failed independent review on detached markerless worker and missing early no-spawn receipt; further repair is pending. Neither host has completed a new scored control or BPB improvement.",
-  "updated_utc": "2026-09-25T01:43:02Z",
+  "last_event": "trn21 c5c A0 persistent-ext4 source-transfer r2 Operator archived complete three-artifact terminal evidence, now under independent result review; checkout/G2/native/eval remain HOLD. trn22 r4 next source 446b6576 is frozen with local tests passing but independent safety review pending; previous reviewed source failed. Neither host has completed a new scored control or BPB improvement.",
+  "updated_utc": "2026-09-25T01:54:13Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",

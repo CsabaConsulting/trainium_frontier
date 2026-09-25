@@ -1,6 +1,27 @@
 # Current state
 
-Last reconciled: 2026-09-25 01:43 UTC
+Last reconciled: 2026-09-25 01:54 UTC
+
+## Current handoff: trn21 transfer complete at Operator level; independent result review pending
+
+The trn21 persistent-ext4 r2 transfer-only Operator archived all three new
+targets and reported distinct-SSH persistence checks for each plus a final
+read-only postflight. Its [terminal receipt](../v2/authorizations/trn21-c5c-a0-stage-r2/operator-transfer-only-terminal-receipt.json)
+is durable in the shared branch, but a separate Verifier is now auditing the
+raw evidence. This is **not yet an independently accepted source stage**.
+Checkout/extraction, CPU G2, native training, and evaluation remain HOLD; no
+science label was consumed and there is no new BPB result. A separate
+[checkout-only package](../v2/authorizations/trn21-c5c-a0-stage-r2-extraction/GATE_CONTRACT.json)
+exists locally but is non-dispatchable pending independent implementation review,
+transfer-result review, and a new exact Supervisor assignment.
+
+For trn22, the next r4 disk-interlock repair is frozen at source commit
+`446b657695f086f9b484fa601c9a3b61c2495912` with local synthetic tests
+passing; its **independent** safety review is pending. The older 11379083
+failure remains controlling until that review passes. No native dispatch is
+authorized. Best confirmed public20M remains 0.9918353324 single /
+0.9919537735 two-run mean; the table hypothesis remains untested on the dense
+stack.
 
 ## Current handoff: trn21 transfer-only r2 assigned; trn22 r4 still unsafe
 
