@@ -1,0 +1,55 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/home/ubuntu/trainium_c5c_dense_identity_g2_20260925_trn21_r1/tmp/g2-o2e1d2ni/out"
+  ],
+  "cross_rank_mismatches": [],
+  "losses": [
+    9.013445854187012,
+    9.026524543762207,
+    9.042166709899902
+  ],
+  "n_changed": 62,
+  "n_params": 62,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "plan_summary": {
+    "elements_by_owner": [
+      27265796,
+      30414851,
+      30412805,
+      29360128
+    ],
+    "estimated_ms_by_owner": [
+      12.947406063447303,
+      12.939731226905751,
+      12.948754427971444,
+      12.947727783333331
+    ],
+    "shard_elements": 30414976,
+    "total_padded_bytes": 486639616
+  },
+  "rank": 1,
+  "rmsprop_trace": {
+    "calls": 0,
+    "checks": [],
+    "optimizer_steps": 3
+  },
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "status": "PASS",
+  "tables": [],
+  "torch": "2.11.0+cpu",
+  "unchanged_params": [],
+  "unchanged_tables": []
+}
