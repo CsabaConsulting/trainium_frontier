@@ -1,0 +1,62 @@
+{
+  "proposal_id": "20260926-p-exact-actual-loop-profile",
+  "status": "PENDING_INDEPENDENT_REVIEW_OPERATOR_BINDING",
+  "owner_role": "implementer",
+  "selected_by": "Supervisor under Poojith ALL IN P diagnostic directive",
+  "launch_authorized": false,
+  "classification": "DIAGNOSTIC_ONLY",
+  "hypothesis": "A bounded capture of one real steady training iteration can locate device/host bottlenecks without reconstructing model or optimizer math.",
+  "single_causal_change": "External default-OFF filtered trace and installed Neuron profiler around exact source step20; no train.py edits.",
+  "mechanism_class": "diagnostic",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "forecast_status": "Not a quality arm or proposed speedup; no BPB outcome predicted or selected.",
+  "candidate_shortlist": [
+    {"idea": "Profile actual exact main through runpy and annotations", "why_ranked": "Preserves current OwnedOptimizer, real dataloader, cache refresh and schedule; captures precisely one window."},
+    {"idea": "Reuse old prof_driver reconstructed loop", "why_ranked": "Rejected: stale optimizer/defaults and ablation monkeypatches do not represent adopted source."},
+    {"idea": "neuron-explorer inspect entire command", "why_ranked": "Installed help lacks a steady-step selector; collecting cold compilation and whole run is not the requested bounded profile."},
+    {"idea": "Tensor dispatch interception for dtype assertions", "why_ranked": "Rejected: could alter graph capture/retrace or device execution; preserve unknown dtype coverage instead."}
+  ],
+  "selection_rationale": "Human requested measured bottlenecks before duplicate/no-op optimization. K1 batching/ownership is already active, so actual-loop evidence is needed.",
+  "p_improve": null,
+  "estimated_host_hours": 1.5,
+  "host_hours_scope": "Conservative combined upper bound of two 2700-second diagnostic walls; expected warm-cache duration much shorter, not measured. Does not reserve or launch either host.",
+  "trainium_feasibility": "Existing installed profiler API source and enum availability verified by Operator. Full-chip4/LNC2, same117M base or existing8x1024 source. Device trace rank0 only limits memory/coverage; API session and artifact completeness remain unproven.",
+  "cheapest_falsifier": "Exact-source AST/argv/std fixture checks (passed); independent wrapper review; one native window fails closed if unsupported or incomplete.",
+  "prior_result_refs": ["b2bcd79379bc29c1c4218a6e223e20e35f6c416a:research/v2/lanes/k1-muon-batching/AUDIT.md", "63ebb7f0:research/v2/operator/20260926-profile-capability-trn22/", "research/scratch/prof_driver.py"],
+  "evidence": ["BINDING.json", "RUNBOOK.md", "test_profile_actual_loop.py"],
+  "duplicate_search_terms": ["prof_driver", "neuron-explorer", "NeuronConfig", "steady profile", "actual loop", "Muon batched"],
+  "control": {
+    "git_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "run_label": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Each profile retains its host/source profile. Cross-host base/architecture data are diagnostic and cannot establish a same-host throughput win.",
+    "timing_reference": "Recorded steps10-19 preceding the one captured step, subject to graph stability and trace-hook overhead disclosure. Not a matched quality control."
+  },
+  "candidate": {
+    "branch": "codex/20260926-p-actual-loop-profile",
+    "files_allowed": ["research/v2/lanes/p-profile/"],
+    "expected_diff": "One external diagnostic wrapper, stdlib tests and binding/docs only.",
+    "run_label": "fs-20260926-profile-recursive6ef7-trn21-r1",
+    "alternative_architecture_labels": ["fs-20260926-profile-architecture93ae-trn22-r1", "fs-20260926-profile-architecture3e79-trn22-r1"],
+    "launch_command": "RUNBOOK.md bound inner argv via existing reviewed manual Operator route; BINDING.json exact args/hashes. Supervisor selects at most one architecture alternative."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": "IMPLEMENTER_8_STDLIB_RECEIPT_TESTS_NORMAL_AND_OPTIMIZED_PASS",
+    "numerical_equivalence": "TINY_EXACT6EF7_FIXED_CLOCK_CPU_PAIR_PASS_ONLY: all4 ranks'3 losses,22 parameter digests and ownership identical with P hooks+CPU profiler. Not full-size, native or architecture proof.",
+    "causality": "No model/source/evaluator edits; existing source checks not replaced",
+    "smoke_run": false,
+    "human_run_approval": "Standing diagnostic task selection; does not replace independent new-wrapper review or Operator preflight"
+  },
+  "success_criteria": {
+    "quality": "Not applicable; no evaluation or quality selection.",
+    "throughput": "No win threshold. Deliver observed CPU/runtime/device evidence with coverage limits and an honestly defined approximate MFU if data permits.",
+    "correctness": "Exact source/argv/environment, four ranks, precisely one completed capture after real warmup, finite native work, ordinary checkpoint and clean exit, nonempty relevant artifacts, independent interpretation. No silent failures."
+  },
+  "abort_conditions": ["Any source/support hash or installed API mismatch", "Independent review or source-specific gates absent", "Host busy, STOP asserted, lock unavailable or insufficient disk", "Profiler/runtime error, NaN, missing rank/trace/checkpoint, event overflow or early exit", "Hard Operator wall limit reached; preserve failure artifacts and quiesce own job"],
+  "human_approved_by": "Poojith requested P diagnostic; exact wrapper review and Operator launch are pending",
+  "verdict": null
+}
