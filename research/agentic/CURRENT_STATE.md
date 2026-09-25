@@ -1,6 +1,53 @@
 # Current state
 
-Last reconciled: 2026-09-25 22:09 UTC (26 September IST)
+Last reconciled: 2026-09-25 22:30 UTC (26 September IST)
+
+## Latest: architecture nonconfirmation; provisional adoption withdrawn
+
+22:35UTC update: root read full fresh K2 report/spec and native packet,
+replayed1748archive and117binding checks normal/-O. Scoped conditional release
+`research/v2/verification/20260926-k2-reporting-native-assignment.md` permits
+one tiny600+60s four-rank source18b936 diagnostic after trn22eval and assigned
+checkpointCPU plus fresh quiescence. No native result or speedup exists yet.
+Stable-source pair90independent mechanics checks also replayed normal/-O;
+it remains unassigned. Both hosts actually busy at22:30:17, originallocksheld,
+oldqueuesabsent,26.640/30.270GiBfree; rawselfaudit8091292f. Statehosts/queue
+live fields now replace obsolete top-level snapshots; historical notes retained.
+
+Exact3e79/trn21 fresh20M is0.9931291951444726, delta+0.0016552011510382325
+vs same-host c5c. Actual3631steps, fifth805.080502s, charged1789.216414s,
+over_budgetFalse. Raw03a5fbf3 independently authenticated73+54checks normal/-O;
+post-eval checkpointb2962643 retained/rehashverified. Together with genuine
+trn22 .986340, unchanged decide.py returnsDISCARD (mixed-sign deltas and
+.0068289 disagreement), despite negative mean delta. The provisional adoption
+is withdrawn in20260926-architecture3e79-nonconfirmation.json; original rows
+and nomination remain historical. Confirmed6ef7 mean.9901674436550496 remains.
+Do not advertise the single .986340 as reproducible or the clean file as ready.
+
+Analyst846fb926 establishes compile-contaminated early LR/WD clocks differ
+between the two runs. Cause of the full BPB spread remains UNPROVEN. A separate
+default-OFF one-factor schedule-clock implementation is in progress, preserving
+all official budget, startup, stop and checkpoint accounting. Fresh review and
+CPU/native gates still apply; no automatic native or research-base replacement.
+
+trn21 actual Recursive architecture four-arm113M CPU finished22:23:25UTC;
+root249own checks normal/-O authenticate all91files/16rank receipts, exact
+default/OFFlosses,65updates/ownership/checkpoint/logits. It is only CPU evidence.
+One scoped cold-five release63a0f870 followed reviewed61-check binding.
+Actual cold launch22:29:03.775502UTC, source75b944, fourworkers/original lock
+and six empty/effective caches observed by Operator3e343d6e. This separately
+requested schedule-stack test is not parent adoption; no full/eval automatic.
+
+trn22 LR.012 training finished3629steps/1789.406680s charged; fresh20M started
+22:28:32.699889UTC. Preserve evaluation, then assigned checkpoint-only CPU
+diagnostic30d27e8c after complete retrieval/quiescence. No new score yet.
+
+Fresh K2 successor632870c3 limited source-suitabilityPASS; own independent
+CPU evidence is archived, root full report/authentication pending. S1/S2
+bindingb9efe473 (90checks) and K2binding56562e0e (117checks) are separately
+reviewed; no native release follows until Supervisor reads/authenticates.
+Original K2REFUSE and clean3f5035REFUSE remain in history. No submission.
+This section supersedes older running/nomination/confirmation-pending states.
 
 ## Latest: Recursive source review accepted; next CPU slot assigned
 
