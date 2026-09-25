@@ -1,0 +1,91 @@
+{
+  "proposal_id": "20260925-sb-architecture-fp8-offline-integration",
+  "status": "implemented_reduced_cpu_only_not_launchable",
+  "owner_role": "implementer",
+  "scope": "Supervisor-assigned offline integration under the existing S-B goal. Not an independently accepted stack or a hardware proposal.",
+  "hypothesis": "The separately reviewed architecture and FP8 changes can coexist without changing either single-feature mode or dense default behavior; joint native efficiency and fixed-budget BPB remain unknown.",
+  "single_causal_change": "Integration only: add the exact FP8 projection implementation from 50a90137 to the exact architecture implementation from 1e21c3d7, retaining the shared timer fix once. This is not a one-factor quality experiment.",
+  "mechanism_class": "offline_stack_integration",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "estimated_host_hours": 0,
+  "candidate_shortlist": [
+    {"idea": "Architecture alone", "status": "higher-priority full-size CPU/native/quality work pending"},
+    {"idea": "FP8 alone", "status": "higher-priority full-size CPU/native and >=3% whole-step timing gate pending"},
+    {"idea": "Combined S-B", "status": "offline preparation only; must not preempt the individual arms"},
+    {"idea": "Recursive schedule or doubled batch in S-B", "status": "not integrated; no outcome-based authorization yet"}
+  ],
+  "selection_rationale": "Prepare the narrow integration while hosts are occupied, without promoting unmeasured component changes into an accepted stack.",
+  "source_components": {
+    "architecture": {"commit": "1e21c3d797eed764f108c41546b270065ad5650c", "sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5"},
+    "fp8": {"commit": "50a901374ae6f76b35b8556d32fd72b1ece28fc6", "sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858"},
+    "dense": {"commit": "b18fb3586494c21f10008a9c63fd2056d1e6c00a", "sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"}
+  },
+  "candidate": {
+    "branch": "codex/sb-architecture-fp8-integration-20260925",
+    "files_allowed": ["workflow/proposals/research-v2/train.py"],
+    "sha256": "a2f6b188db8418f4bccf4f2704db1a68bd9c3588bcc69d1fc7819701db39a238",
+    "expected_diff": "215 insertions and 13 deletions relative to93ae: FP8 helpers/Linear marking/CLI/runtime setup/training MLP selection and saved flag; architecture and timer bodies unchanged.",
+    "run_label": null,
+    "launch_command": null,
+    "combined_flags": ["--unet-8x1024", "--attention-layers", "0,2,4,6,7", "--fp8-proj"],
+    "default_total_batch_size": 131072,
+    "batch_262144": "Not baked in or selected; any later optional batch proposal is separate.",
+    "recursive_schedule": "Not present."
+  },
+  "control": {
+    "git_commit": null,
+    "run_label": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "No hardware control assigned. Any future native stack work requires a new completed host-specific proposal and comparable reviewed control."
+  },
+  "trainium_feasibility": "Production8x1024 uses the inherited FP8 K-multiple256/N-multiple128 projection layouts. Native compiler/SBUF/HBM/backward/full-step interaction is unmeasured. Laptop tests use at most8x128 and never allocate the production shape.",
+  "cheapest_falsifier": "Reduced four-rank three-step isolation against the two exact components and dense control, plus trained combined checkpoint/logit/causality checks.",
+  "prior_result_refs": [
+    "research/v2/verification/20260925-l2-unet8x1024-independent-review.md",
+    "research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+    "research/v2/sb-architecture-fp8/identity-dense.json",
+    "research/v2/sb-architecture-fp8/identity-arch.json",
+    "research/v2/sb-architecture-fp8/identity-fp8.json",
+    "research/v2/sb-architecture-fp8/self-check.json"
+  ],
+  "evidence": [
+    "workflow/parallel_ai_lanes.md",
+    "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md (canonical controller)",
+    "https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html",
+    "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html",
+    "AWS NKI Library Apache-2.0 commit92d11f63, core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py; attribution inherited from L1"
+  ],
+  "duplicate_search_terms": ["S-B", "unet-8x1024", "fp8-proj", "ROW-FP8", "partial attention"],
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": true,
+    "scope_of_true_values": "Implementer reduced-size self-checks only, not independent G2 approval",
+    "exact_size_g2": false,
+    "native_compile": false,
+    "native_numerics": false,
+    "fp8_whole_step_at_least_3pct_faster": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "launch_authorized": false
+  },
+  "success_criteria": {
+    "offline": "All seven reduced G2 receipts PASS; single-feature modes and both-OFF match exact reference losses, ownership plans and all parameter digests over3 steps; combined causal/frozen checkpoint behavior preserved.",
+    "quality": "Unmeasured. No BPB claim or adoption; individual arm results and later independently reviewed stack/control proposal required.",
+    "throughput": "Unmeasured. FP8 requires >=3% faster whole-step native time, not a component speedup; current individual timing work comes first.",
+    "correctness": "Independent review plus exact full-size CPU and native checkpoint/causality/finite/budget gates remain mandatory before hardware eligibility."
+  },
+  "abort_conditions": [
+    "Any isolation, checkpoint or causality test fails",
+    "Component semantics conflict",
+    "Any attempted hardware work without independent review and separate native authorization",
+    "Individual FP8 whole-step timing fails or individual architecture evidence does not justify a stack"
+  ],
+  "human_approved_by": null,
+  "verdict": "OFFLINE_PREPARATION_ONLY_NATIVE_PERFORMANCE_BPB_PENDING"
+}

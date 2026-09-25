@@ -1,0 +1,46 @@
+{
+  "verdict": "PASS_IMPLEMENTER_SELF_CHECK_ONLY",
+  "seed": 42,
+  "source_sha256": "a2f6b188db8418f4bccf4f2704db1a68bd9c3588bcc69d1fc7819701db39a238",
+  "torch": "2.13.0+cpu",
+  "max_shape": "8x128,vocab64,seq32; two models at once",
+  "threads": 1,
+  "checks": {
+    "exact_component_AST_and_unchanged_loop_loader_eval_optimizer_batch": true,
+    "four_independent_CLI_modes_and_default_OFF_preset_without_allocation": true,
+    "dense_three_step_exact_losses_gradients_and_weights": [
+      4.157082557678223,
+      3.026930809020996,
+      1.4036445617675781
+    ],
+    "architecture_three_step_exact_losses_gradients_and_weights": [
+      4.160877704620361,
+      3.039668321609497,
+      1.4281131029129028
+    ],
+    "fp8_three_step_exact_losses_gradients_and_weights": [
+      4.1570844650268555,
+      3.021883964538574,
+      1.4042450189590454
+    ],
+    "combined_36_projections_no_unused_tables_FP32_masters_learned_scalar_skips": true,
+    "combined_three_finite_optimizer_steps": [
+      4.160888671875,
+      3.0385212898254395,
+      1.4280568361282349
+    ],
+    "combined_causality_determinism_batch_independence_input_sensitive": true,
+    "combined_weights_only_strict_reload_exact_trained_toggles_and_logits": true,
+    "legacy_toggles_default_OFF_and_missing_skip_rejected": true
+  },
+  "native_executed": false,
+  "exact_size_g2": false,
+  "performance_claim": false,
+  "bpb_measured": false,
+  "limitations": [
+    "CPU FP8 numerical reference only",
+    "Test-only BF16 dtype and eval mask32",
+    "Synthetic tokens only",
+    "Independent review pending"
+  ]
+}

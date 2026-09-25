@@ -450,6 +450,184 @@ USE_SELECTIVE_GATE = False
 SELECTIVE_GATE_CHANNELS = 32
 USE_FUSED_QKV = False
 USE_CAUSAL_FASTPATH = True
+USE_FP8_PROJ = False
+
+_FP8_PROJ_KERNELS = None
+
+def _fp8_row_reference(values):
+    """CPU numerical reference for Trn2 legacy E4M3 (finite range +/-240).
+
+    OCP e4m3fn agrees with legacy E4M3 inside this clipped range. Scales
+    depend only on one token or one output-channel row, never other tokens.
+    This is a CPU reference, not the native forward implementation.
+    """
+    values = values.to(torch.bfloat16).float()
+    scale = (values.abs().amax(dim=-1, keepdim=True) / 240.0).clamp_min(1e-6)
+    quantized = (values / scale).clamp(-240.0, 240.0).to(torch.float8_e4m3fn).float()
+    return quantized, scale, (quantized * scale).to(torch.bfloat16)
+
+def _build_fp8_projection_kernels():
+    """Native Trn2 E4M3 double-row GEMM; no aten FP8 matmul or upcast GEMM.
+
+    Quantizer/FP8 transpose layout adapted from this repository's
+    nki_library_row_weight_prepare.py and fp8_mlp_token_rows_nki.py.
+    The 2-byte PSUM stride follows AWS NKI Library (Apache-2.0), commit
+    92d11f63, core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py.
+    https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html
+    """
+    global nl, nisa
+    import nki
+    import nki.language as nl
+    import nki.isa as nisa
+    from torch_neuronx import wrap_nki
+
+    @nki.jit
+    def prepare_weight(weight, lanes: int):
+        outputs, channels = weight.shape
+        assert weight.dtype == nl.bfloat16
+        assert outputs % (128 * lanes) == 0 and channels % 256 == 0
+        assert channels <= 8192
+        packed = nl.ndarray((128, channels // 128, outputs), dtype=nl.uint8, buffer=nl.shared_hbm)
+        # Broadcast output-channel scales once while preparing current weights.
+        scales = nl.ndarray((128, outputs), dtype=nl.float32, buffer=nl.shared_hbm)
+        effective = nl.ndarray(weight.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        for block in nl.affine_range(outputs // (128 * lanes)):
+            first = (block * lanes + nl.program_id(0)) * 128
+            rows = nl.ds(first, 128)
+            source = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            absolute = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            maximum = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            scale = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            reciprocal = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            quantized = nl.ndarray((128, channels), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+            restored = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.dma_copy(dst=source, src=weight[rows, :])
+            nisa.tensor_scalar_reduce(dst=absolute, data=source, op0=nl.abs,
+                operand0=0.0, reduce_op=nl.maximum, reduce_res=maximum)
+            nisa.tensor_scalar(dst=scale, data=maximum, op0=nl.multiply,
+                operand0=1.0 / 240.0, op1=nl.maximum, operand1=1e-6)
+            nisa.reciprocal(dst=reciprocal, data=scale)
+            nisa.activation(dst=quantized, data=source, op=nl.copy, scale=reciprocal)
+            nisa.activation(dst=restored, data=quantized, op=nl.copy, scale=scale)
+            nisa.dma_copy(dst=effective[rows, :], src=restored)
+            scale_rows = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+            scale_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+            scale_columns = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=scale_rows, src=scale.broadcast(dim=1, size=128))
+            nisa.nc_transpose(dst=scale_t, data=scale_rows)
+            nisa.tensor_copy(dst=scale_columns, src=scale_t)
+            nisa.dma_copy(dst=scales[:, rows], src=scale_columns)
+            for ci in nl.affine_range(channels // 128):
+                transposed = nl.ndarray((128, 128, 2), dtype=nl.float8_e4m3, buffer=nl.psum)
+                tile = nl.ndarray((128, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                nisa.nc_transpose(dst=transposed.ap(pattern=[[256, 128], [2, 128]]),
+                    data=quantized[:, ci * 128:(ci + 1) * 128])
+                nisa.tensor_copy(dst=tile, src=transposed[:, :, 0])
+                nisa.dma_copy(dst=packed[:, ci, rows], src=tile.view(nl.uint8))
+        return packed, scales, effective
+
+    @nki.jit
+    def projection(x, packed_weight, weight_scale, lanes: int):
+        tokens, channels = x.shape
+        outputs = packed_weight.shape[-1]
+        assert x.dtype == nl.bfloat16 and packed_weight.dtype == nl.uint8
+        assert tokens % (128 * lanes) == 0 and channels % 256 == 0
+        assert outputs % 128 == 0 and channels <= 8192
+        assert packed_weight.shape == (128, channels // 128, outputs)
+        assert weight_scale.shape == (128, outputs)
+        assert channels * outputs + 4 * 128 * outputs + 8 * 128 * channels + 2 * 1024 ** 2 <= nl.tile_size.sbuf_size_bytes
+        output_width = 512 if outputs % 512 == 0 else (256 if outputs % 256 == 0 else 128)
+        result = nl.ndarray((tokens, outputs), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        effective_x = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        # Reuse current weights across all token tiles. Streaming the full
+        # matrix anew per 128 tokens would erase the Tensor Engine benefit.
+        weights = nl.ndarray((128, channels // 128, outputs), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+        scales = nl.ndarray((128, outputs), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.dma_copy(dst=weights, src=packed_weight.view(nl.float8_e4m3))
+        nisa.dma_copy(dst=scales, src=weight_scale)
+        for block in nl.affine_range(tokens // (128 * lanes)):
+            first = (block * lanes + nl.program_id(0)) * 128
+            rows = nl.ds(first, 128)
+            source = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            absolute = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            maximum = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            scale = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            reciprocal = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            quantized = nl.ndarray((128, channels), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+            restored = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+            inputs = nl.ndarray((128, channels // 128, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+            nisa.dma_copy(dst=source, src=x[rows, :])
+            nisa.tensor_scalar_reduce(dst=absolute, data=source, op0=nl.abs,
+                operand0=0.0, reduce_op=nl.maximum, reduce_res=maximum)
+            nisa.tensor_scalar(dst=scale, data=maximum, op0=nl.multiply,
+                operand0=1.0 / 240.0, op1=nl.maximum, operand1=1e-6)
+            nisa.reciprocal(dst=reciprocal, data=scale)
+            nisa.activation(dst=quantized, data=source, op=nl.copy, scale=reciprocal)
+            nisa.activation(dst=restored, data=quantized, op=nl.copy, scale=scale)
+            nisa.dma_copy(dst=effective_x[rows, :], src=restored)
+            for ci in nl.affine_range(channels // 128):
+                transposed = nl.ndarray((128, 128, 2), dtype=nl.float8_e4m3, buffer=nl.psum)
+                nisa.nc_transpose(dst=transposed.ap(pattern=[[256, 128], [2, 128]]),
+                    data=quantized[:, ci * 128:(ci + 1) * 128])
+                nisa.tensor_copy(dst=inputs[:, ci, :], src=transposed[:, :, 0])
+            for group in nl.affine_range(outputs // output_width):
+                columns = nl.ds(group * output_width, output_width)
+                acc = nl.ndarray((128, output_width), dtype=nl.float32, buffer=nl.psum)
+                weighted = nl.ndarray((128, output_width), dtype=nl.float32, buffer=nl.sbuf)
+                rounded = nl.ndarray((128, output_width), dtype=nl.bfloat16, buffer=nl.sbuf)
+                for pair in nl.affine_range(channels // 256):
+                    nisa.nc_matmul(dst=acc, stationary=inputs[:, pair * 2:pair * 2 + 2, :],
+                        moving=weights[:, pair * 2:pair * 2 + 2, columns], accumulate=pair > 0,
+                        perf_mode=nisa.matmul_perf_mode.double_row)
+                # Output-channel then token-row dequantization, both in FP32.
+                nisa.tensor_tensor(dst=weighted, data1=acc, data2=scales[:, columns], op=nl.multiply)
+                nisa.activation(dst=rounded, data=weighted, op=nl.copy, scale=scale)
+                nisa.dma_copy(dst=result[rows, columns], src=rounded)
+        return result, effective_x
+    return wrap_nki(prepare_weight), wrap_nki(projection)
+
+def _ensure_fp8_projection_kernels():
+    global _FP8_PROJ_KERNELS
+    if _FP8_PROJ_KERNELS is None:
+        _FP8_PROJ_KERNELS = _build_fp8_projection_kernels()
+
+class _FP8Projection(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, weight):
+        shape = x.shape
+        flat = x.reshape(-1, shape[-1]).to(torch.bfloat16)
+        wb = weight.to(torch.bfloat16)
+        if x.device.type == 'neuron':
+            _ensure_fp8_projection_kernels()
+            if flat.shape[1] % 256 or weight.shape[0] % 128 or flat.shape[1] > 8192:
+                raise ValueError('--fp8-proj native shape requires K % 256 == N % 128 == 0 and K <= 8192')
+            prepare, project = _FP8_PROJ_KERNELS
+            weight_lanes = 2 if weight.shape[0] % 256 == 0 else 1
+            packed, scales, effective_w = prepare[weight_lanes](wb, weight_lanes)
+            padding = (-flat.shape[0]) % 256
+            native_x = F.pad(flat, (0, 0, 0, padding)) if padding else flat
+            result, effective_x = project[2](native_x, packed, scales, 2)
+            result, effective_x = result[:flat.shape[0]], effective_x[:flat.shape[0]]
+        elif x.device.type == 'cpu':
+            qx, sx, effective_x = _fp8_row_reference(flat)
+            qw, sw, effective_w = _fp8_row_reference(wb)
+            result = ((qx @ qw.T) * sw.T * sx).to(torch.bfloat16)
+        else:
+            raise RuntimeError('--fp8-proj supports native Neuron and the explicit CPU reference only')
+        ctx.save_for_backward(effective_x, effective_w)
+        ctx.input_shape, ctx.input_dtype, ctx.weight_dtype = shape, x.dtype, weight.dtype
+        return result.reshape(*shape[:-1], weight.shape[0]).to(x.dtype)
+
+    @staticmethod
+    def backward(ctx, gradient):
+        effective_x, effective_w = ctx.saved_tensors
+        gradient = gradient.reshape(-1, effective_w.shape[0]).to(torch.bfloat16)
+        # STE through scaling/rounding, with the actual forward operands.
+        # Token scales stay inside the token reduction of dW. Products use
+        # BF16; returned FP32 gradients accumulate into the FP32 masters.
+        dx = (gradient @ effective_w).reshape(ctx.input_shape).to(ctx.input_dtype)
+        dw = (gradient.T @ effective_x).to(ctx.weight_dtype)
+        return dx, dw
 
 def doc_boundary_mask(idx: torch.Tensor) -> torch.Tensor:
     """Additive mask: 0 where i,j fall in the same packed document (by BOS-delimited segment), -inf otherwise.
@@ -1475,15 +1653,25 @@ class Linear(nn.Linear):
     actually holds, never what the global wishes it held.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, fp8_projection=False, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fp8_projection = bool(fp8_projection)
         self._cached_weight: torch.Tensor | None = None
         self.weight_transposed = False
 
     def refresh_weight_cache(self, dtype: torch.dtype) -> None:
+        if self.fp8_projection:
+            # FP8 preparation reads the current master inside each forward.
+            # No stale layout cache or unused BF16 cast survives an update.
+            self._cached_weight = None
+            return
         self._cached_weight = self.weight.to(dtype=dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.fp8_projection:
+            if self.weight_transposed or self.bias is not None or self.weight.dtype != torch.float32:
+                raise ValueError('--fp8-proj needs ordinary bias-free FP32 master weights')
+            return _FP8Projection.apply(x, self.weight)
         if USE_WEIGHT_CACHE and self._cached_weight is not None and (self._cached_weight.dtype == x.dtype):
             w = self._cached_weight
         else:
@@ -1674,15 +1862,15 @@ class CausalSelfAttention(nn.Module):
         if coalesced == 'all':
             pass
         elif coalesced == 'vfc':
-            self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
-            self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
+            self.c_q = Linear(config.n_embd, config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
+            self.c_k = Linear(config.n_embd, config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
         elif USE_FUSED_QKV:
-            self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False)
+            self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
         else:
-            self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
-            self.c_k = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False)
-            self.c_v = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False)
-        self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
+            self.c_q = Linear(config.n_embd, config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
+            self.c_k = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False, fp8_projection=USE_FP8_PROJ)
+            self.c_v = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False, fp8_projection=USE_FP8_PROJ)
+        self.c_proj = Linear(config.n_embd, config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
         self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
         self.ve_gate_bi = _rng_neutral(lambda: Linear(VE_GATE_CHANNELS, self.n_head, bias=False)) if has_ngram_bigram(layer_idx, config.n_layer) else None
@@ -1777,9 +1965,9 @@ class MLP(nn.Module):
         if self.swiglu_hidden:
             hidden = self.swiglu_hidden
         fc_out = 2 * hidden if self.swiglu_hidden else hidden
-        self.c_fc = None if coalesced in ('all', 'vfc') else Linear(config.n_embd, fc_out, bias=False)
+        self.c_fc = None if coalesced in ('all', 'vfc') else Linear(config.n_embd, fc_out, bias=False, fp8_projection=USE_FP8_PROJ)
         self.c_gate = Linear(config.n_embd, hidden, bias=False) if USE_GATED_MLP else None
-        self.c_proj = Linear(hidden, config.n_embd, bias=False)
+        self.c_proj = Linear(hidden, config.n_embd, bias=False, fp8_projection=USE_FP8_PROJ)
 
     def forward(self, x: torch.Tensor, fc: torch.Tensor | None=None) -> torch.Tensor:
         h = self.c_fc(x) if fc is None else fc
@@ -3216,6 +3404,7 @@ ARCH_TOGGLE_NAMES = ['PACK_FACTOR', 'INIT_SCALE', 'USE_VE', 'WINDOW_PATTERN', 'S
 ARCH_TOGGLE_NAMES.extend(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8', 'ATTENTION_LAYERS'))
 SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELECTIVE_GATE', 'USE_FUSED_QKV', 'USE_TRANSPOSED_LINEAR', 'USE_NGRAM_VE', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_DIM', 'USE_OUT_BIGRAM', 'USE_HEAD_GATE', 'HEAD_GATE_CHANNELS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'N_KV_HEADS', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN'}
 SHAPE_CRITICAL_TOGGLES.update(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8', 'ATTENTION_LAYERS'))
+ARCH_TOGGLE_NAMES.append('USE_FP8_PROJ')
 
 def current_toggles() -> dict:
     g = globals()
@@ -3492,7 +3681,7 @@ def main() -> None:
     global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
     global USE_WEIGHT_EMA, WEIGHT_EMA_DECAYS, WEIGHT_EMA_START_FRAC
     global USE_COMPILE_MUON
-    global USE_TRANSPOSED_LINEAR
+    global USE_TRANSPOSED_LINEAR, USE_FP8_PROJ
     global USE_BYTE_WTE_INIT, BYTE_WTE_INIT_MIX, BYTE_WTE_INIT_NGRAM, BYTE_WTE_INIT_STD
     global USE_COALESCED_SWIGLU, COALESCED_SWIGLU_HIDDEN
     global USE_CAUTIOUS_WD, SCALAR_BETA1, SCALAR_BETA2
@@ -3502,6 +3691,8 @@ def main() -> None:
     global MUON_DEPTH_MOM_BOTTOM, MUON_DEPTH_MOM_TOP, MUON_DEPTH_MOM_REF
     parser = argparse.ArgumentParser(description='Neuron Competition R1 baseline')
     parser.add_argument('--device-type', type=str, default='')
+    parser.add_argument('--fp8-proj', action=argparse.BooleanOptionalAction, default=False,
+        help='Row-scaled legacy E4M3 MLP and attention projection forward, BF16 STE backward, FP32 masters. Native NKI on Neuron; CPU numerical reference. Default OFF.')
     parser.add_argument('--num-steps', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NUM_STEPS', NUM_STEPS)))
     parser.add_argument('--debug-numerics-steps', type=int, default=0, help='Diagnostic only: synchronize and inspect loss/parameters/gradients at each stage of the first N steps. Invalidates speed measurements.')
     parser.add_argument('--max-train-seconds', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS', MAX_TRAIN_SECONDS)))
@@ -3649,6 +3840,11 @@ def main() -> None:
     _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
     parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    USE_FP8_PROJ = args.fp8_proj
+    if USE_FP8_PROJ and (args.transposed_linear or args.parallel_block_coalesce != 'none'):
+        parser.error('--fp8-proj requires ordinary separate projection weights')
+    if USE_FP8_PROJ and (args.loss_scale != 1.0 or args.loss_scale_dynamic):
+        parser.error('--fp8-proj is defined without loss scaling; use --loss-scale 1 and --no-loss-scale-dynamic')
     if args.unet_8x1024:
         args.depth, args.n_embd = 8, 1024
         args.unet_skip = args.partial_attn_8 = True
@@ -3880,6 +4076,11 @@ def main() -> None:
     if USE_NKI_NGRAM_RMS and (device_type != 'neuron' or not _HAS_NKI):
         parser.error('--nki-ngram-rms requires a Neuron device and available NKI backend')
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+    if USE_FP8_PROJ and device_type == 'neuron':
+        _ensure_fp8_projection_kernels()
+    if USE_FP8_PROJ:
+        print0('FP8_PROJECTION ' + json.dumps(dict(backend='nki_legacy_e4m3_double_row' if device_type == 'neuron' else 'cpu_reference',
+            projections='mlp_fc_proj_and_attention_qkvo', backward='bf16_ste', masters='fp32', loss_scaling=False)))
     global COMPUTE_DTYPE
     COMPUTE_DTYPE = compute_dtype_for(device)
     print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')
@@ -4922,12 +5123,13 @@ def _install_submission_training():
         original_init(model)
         assert USE_BF16_NORM_OUTPUT and COMPUTE_DTYPE == torch.bfloat16
         before_rng = torch.get_rng_state().clone()
-        _submission_mlp_install(model, 'neuron', module, forward_backend='native')
+        if not USE_FP8_PROJ:
+            _submission_mlp_install(model, 'neuron', module, forward_backend='native')
         if not ce_installed:
             _submission_ce_install(module)
             ce_installed = True
         assert torch.equal(before_rng, torch.get_rng_state())
-        print('SUBMISSION_TRAIN_INTEGRATION ' + json.dumps(dict(source_commit='1da6c0714c0755fd3b078e972fbb0aefbb43bf6d', native_forward_custom_mlp_backward=True, optimizer_ownership=True, adaptive_nki_ce=True, loader_and_timing_hooks_unchanged=True)), flush=True)
+        print('SUBMISSION_TRAIN_INTEGRATION ' + json.dumps(dict(source_commit='1da6c0714c0755fd3b078e972fbb0aefbb43bf6d', native_forward_custom_mlp_backward=not USE_FP8_PROJ, optimizer_ownership=True, adaptive_nki_ce=True, loader_and_timing_hooks_unchanged=True)), flush=True)
 
     def setup_optimizer(model, *args, **kwargs):
         optimizer = original_setup_optimizer(model, *args, **kwargs)
