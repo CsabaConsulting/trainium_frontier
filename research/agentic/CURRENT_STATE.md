@@ -1,6 +1,54 @@
 # Current state
 
-Last reconciled: 2026-09-25 18:45 UTC (26 September IST)
+Last reconciled: 2026-09-25 19:07 UTC (26 September IST)
+
+## Controlling CT gate and fresh-review handoff
+
+Read `workflow/COMPILE_TIME_GATE_2026-09-26.md`, then
+`workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md` and ALL IN. These supersede
+the older snapshots below. CT/K1/K2 are critical path. Freeze minimum<=0.970
+public; other ALL IN targets remain. User deadline-cutoff0.972official is a
+forecast, not a measurement or public-to-official calibration.
+
+Original architecture93ae is **compile-limited**, not an intrinsic capacity
+verdict. Authenticated20M1.017340669168314, delta+0.025826710837802,2246steps,
+about270k tokens/s. Startup lower bound1544.745seconds; exactuncapped total
+unknown. Historical fixed-budget DISCARD is retained without selector edits.
+New full3e79 rerun is PARKED: first cold~5step startup-only test, full ONLY
+if actual uncapped launch-to-fifth-boundary<=900seconds; otherwise report/park.
+Targets600base/870architecture. Existing rehearsal observer can measure it
+without modifying prepare.py. Operator is binding that short test; no new
+native launch is claimed yet.
+
+Full8x1024 CPU3e79 OFF/ON finished18:49:05UTC: both match original93ae on
+all12losses/65digests. Prior Verifier technical review is not the new fresh
+review gate. A genuinely fresh isolated Astra CLI reviewer started19:07:18UTC,
+PID425117, only diff/spec/rawreceipts, no inherited history/notes/branch;
+inputmanifest96a204756ce2f465f6cf9dbee24dab4997703107a9c5494696faa933cb4354c5.
+Independent reference execution/verdict pending. Opus refusal had no text:
+stop_reason=refusal,result="". No retries. Submission compliance staysClaude
+viaPoojith. Receipt `research/v2/bedrock/20260926-opus55-refusal.json`.
+
+trn21 at19:02UTC: existing6ef7control step2160,268227tokens/s,747source-seconds
+remaining; automatic20Meval preserved. NextP(actual-loop wrapper being
+prepared), prospective262k batch, then seeddiagnostics. trn22 is idle since
+18:49:05UTC, lastpreflight19:01:12:39.3GiBfree,nojob/holders,lockfree. Its
+15minuteidlealert was delivered; cause is freshreview+CTbinding, not machine
+failure. Reserved for shortCTtest; seed44prepared but un-staged.
+
+CT-A owner fp8_local_implementer: finish sourceboundP then graphspecialization
+work. CT-B owner fp8_independent_verifier: compiler/cachecoordination research
+after dispatching the separate reviewer; cannot verify its own CTpatch.
+K1's batching and four-rankownership already exist in6ef7 (audit archived);
+profile actual remaining cost before promising a gain. K2 newkernel not yet
+implemented. No claim of two-family builders or new BPB improvement.
+
+The existing15minuteheartbeat now carries CT/latestreview/ALLIN, not the
+old150USDcap. Capremoved;1000USDalert requested but unconfigured. KnownOpus
+usage archived, dollarcostunknown. App goal remainsACTIVE; its older mission
+text is superseded by direct human instructions and these files.
+
+Older snapshots below are history, not current launch authority.
 
 ## Latest human priorities and completed results
 

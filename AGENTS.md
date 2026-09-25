@@ -2,6 +2,30 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Latest compile-time gate (26 September IST)
+
+Read `workflow/COMPILE_TIME_GATE_2026-09-26.md` first. It supersedes the
+earlier immediate full architecture rerun: cold startup-only ~5steps first,
+full ONLY if measured startup<=900seconds, otherwise park. CT is priority1
+alongside K1/K2, two independent racers; target600seconds base/870architecture.
+Every patch reports cold startup, with an offset needed if base exceeds870.
+trn22 does CT startup tests; trn21 preserves its active control then P, batch,
+seeds. Original93ae is compile-limited, not an intrinsic architecture verdict;
+retain its actual fixed-budget result and unmodified selector output.
+
+## Latest amendments: fresh reviewer and moving cutoff (26 September 00:30 IST)
+
+Read `workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md` first, then ALL IN.
+Only the architecture decision-tree follow-up may preempt K1/K2 gates, timing
+or full runs. Freeze minimum is <=0.970 public; other ALL IN targets remain.
+The first arch+schedule vehicle goes to Poojith after cold replay and Claude
+audit even outside top ten. No automatic upload or correctness waiver.
+Opus refused with empty text; never retry/reword. Replacement review must be
+a fresh Astra session given only diff/spec/receipts, no inherited context,
+notes or Implementer branch, and execute its own CPU exactness test. Default
+REFUSE until complete. Older conflicting cross-family-only and gain-bar prose
+is superseded narrowly; all other scientific and human-only gates stay.
+
 ## Controlling human directive: ALL IN FOR FIRST (26 September)
 
 Read `workflow/ALL_IN_FOR_FIRST_2026-09-26.txt` fully. It replaces conflicting
@@ -19,7 +43,7 @@ causal explanations are hypotheses until sourced and reproduced. Existing
 Muon batching/ownership already exists: audit differences, not no-op patches.
 The app goal's old text remains historical; this newer direct instruction wins.
 
-## Newest human priorities: 26 September, next twelve hours
+## Earlier human priorities: next twelve hours (superseded where conflicting)
 
 Read `workflow/NEXT_12_HOURS_2026-09-26.md` first. Architecture's final20M
 result drives the next branch; investigate its double compilation. FP8 gets

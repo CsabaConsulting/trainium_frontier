@@ -1,5 +1,21 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**LATEST COMPILE GATE:** `COMPILE_TIME_GATE_2026-09-26.md` overrides the
+immediate full architecture rerun: cold~5step startup test first, full only
+if measured startup<=900seconds. CT priority1 alongside K1/K2; base target600,
+architecture870. trn22 CT tests then qualified arch; trn21 activecontrol/eval
+then P,batch,seeds. Prior fixed-budget result retained but compile-limited,
+not a matched-work architecture verdict. No selector/evaluator changes.
+
+**LATEST AMENDMENTS:** `FRESH_REVIEW_AND_CUTOFF_2026-09-26.md` controls:
+fresh Astra review with only diff/spec/receipts and its own executed exactness
+test; default REFUSE, no inherited Implementer context/notes/branch. No Opus
+retry or rewording. Claude submission audit through Poojith remains. Only
+architecture follow-up preempts K1/K2. Freeze minimum <=0.970 public; other
+ALL IN targets remain. Early arch+schedule submission package may be outside
+top ten after cold replay/audit. Conflicting older priority/gain-bar/family-only
+sections below are overridden, not legality or the human-only upload rule.
+
 **CONTROLLING ALL IN DIRECTIVE:** Read `ALL_IN_FOR_FIRST_2026-09-26.txt`
 fully. It supersedes conflicting priorities below, removes the150USD/day
 Bedrock cap, requests1000USD/day alert and two-family builders/review, and

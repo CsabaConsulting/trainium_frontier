@@ -2,7 +2,9 @@
 
 This is a compact index, not a replacement for run logs. Append one row after a verified verdict.
 
-Latest priority authority: `workflow/NEXT_12_HOURS_2026-09-26.md`.
+Latest priority authority: `workflow/COMPILE_TIME_GATE_2026-09-26.md`,
+`workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md`
+and `workflow/ALL_IN_FOR_FIRST_2026-09-26.txt`.
 Old step-count gates and old-shape scalar-queue recommendations below are
 historical where superseded; preserve their original experiment facts.
 

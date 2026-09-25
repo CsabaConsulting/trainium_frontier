@@ -1,4 +1,22 @@
 {
+  "latest_handoff_20260925_1907z": {
+    "controlling_directive": "workflow/COMPILE_TIME_GATE_2026-09-26.md",
+    "review_amendment": "workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md",
+    "standing_directive": "workflow/ALL_IN_FOR_FIRST_2026-09-26.txt",
+    "architecture_inference": "COMPILE_LIMITED_NOT_INTRINSIC_ARCHITECTURE_VERDICT",
+    "architecture_full_rerun_authorized": false,
+    "architecture_next": "COLD_STARTUP_ONLY_5_STEPS_AFTER_FRESH_REVIEW_AND_PREFLIGHT",
+    "architecture_full_gate_startup_max_seconds": 900,
+    "cold_startup_targets_seconds": {"base": 600, "architecture": 870},
+    "fresh_reviewer": {"model_requested": "gpt-6-astra", "started_utc": "2026-09-25T19:07:18.510196Z", "pid": 425117, "input_manifest_sha256": "96a204756ce2f465f6cf9dbee24dab4997703107a9c5494696faa933cb4354c5", "verdict": "PENDING_NOT_A_GATE_PASS"},
+    "opus_refusal": "research/v2/bedrock/20260926-opus55-refusal.json",
+    "freeze_minimum_public20m": 0.970,
+    "top_ten_official_user_snapshot": 0.9785,
+    "deadline_cutoff_official_forecast_from_user": 0.972,
+    "milestones_public20m": {"2026-09-26T23:00:00+05:30": 0.983, "2026-09-27T23:00:00+05:30": 0.970, "2026-09-28T18:00:00+05:30": 0.960, "2026-09-29T18:00:00+05:30": 0.947},
+    "heartbeat_latest_directive_updated": true,
+    "new_confirmed_quality_result": false
+  },
   "latest_handoff_20260925_1839z": {
     "evidence_time_utc": "2026-09-25T18:39:16Z",
     "controlling_directive": "workflow/NEXT_12_HOURS_2026-09-26.md",
@@ -65,7 +83,7 @@
     "bedrock_budget": "Existing150USD/day unchanged; forwarded Csaba message is not new spending authorization"
   },
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T18:39:16Z",
+  "written_utc": "2026-09-25T19:07:40Z",
   "latest_handoff_20260925_1555z": {
     "trn21": {
       "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
@@ -132,13 +150,13 @@
   },
   "active_standing_directive": {
     "compile_correction": "workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md",
-    "latest_correction": "workflow/NEXT_12_HOURS_2026-09-26.md",
-    "path": "workflow/codex_directive_final_push.txt",
-    "sha256": "dd3a2d852f9d9b546aa891f11b3e27c0654d45833c4814aff4a7f3e1d846050c",
+    "latest_correction": "workflow/COMPILE_TIME_GATE_2026-09-26.md",
+    "path": "workflow/ALL_IN_FOR_FIRST_2026-09-26.txt",
+    "sha256": "75df50a9d39517d11b51f9b2ca01aaf91bd49d96de32ad1f58b2ec9ae1d36d20",
     "overrides": "Older missions and conflicting priorities, including the app goal's stale MOONSHOT wording; legality and human-only actions remain",
     "lane_prompts": "workflow/parallel_ai_lanes.md",
     "table_first_policy": "OVERRIDDEN; A1 DISCARD, A2 human-aborted, no table adoption",
-    "priority_correction": "workflow/NEXT_12_HOURS_2026-09-26.md"
+    "priority_correction": "workflow/COMPILE_TIME_GATE_2026-09-26.md"
   },
   "laptop_restart_recovery_20260925_1512z": {
     "local_boot_ist": "2026-09-25T20:36:27+05:30",
@@ -667,12 +685,12 @@
     "trn21": {
       "label": "fs-20260925-l3-base-repeat-trn21-r2-full",
       "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
-      "status": "CONTROL_TRAIN_LAUNCHED_NO_RESULT",
+      "status": "CONTROL_TRAINING_NO_RESULT",
       "started_utc": "2026-09-25T18:31:24.188473Z",
-      "last_process_check_utc": "2026-09-25T18:31:24.188473Z",
+      "last_process_check_utc": "2026-09-25T19:02:00Z",
       "queue_pid": 2983496,
       "torchrun_pid": 2983498,
-      "training_steps": null,
+      "training_steps": 2160,
       "public_20m": null,
       "over_budget": null,
       "submission_eligible": false,
@@ -684,14 +702,16 @@
       "resolved_manifest_sha256": "4913757b051d42ff65d52d29ce9a41180489a7176794e97bb7e5fde51913ce3d",
       "launch_allowed": true,
       "launch_scope": "Already-active exact6ef7 control only; future jobs need completed packet/preflight",
-      "next_priority": "Checked architecture compilefix or FP8 timing; no old6x scalar tail"
+      "next_priority": "After activecontrol and eval: P actual-loop profile, batch262k, seedcheck; ready K1/K2 take priority"
     },
     "trn22": {
       "label": null,
-      "label_note": "Exact batchCPUreference label pending archived launch receipt; never guessed",
-      "status": "ARCHITECTURE_COMPLETE_BATCH_CPU_REFERENCE_ACTIVE",
-      "last_process_check_utc": "2026-09-25T18:39:15.709128Z",
-      "cpu_pid": 3098786,
+      "label_note": "No job active; CT short packet preparing, prior full binding parked",
+      "status": "IDLE_AWAITING_FRESH_REVIEW_AND_CT_STARTUP_ONLY_BINDING",
+      "last_process_check_utc": "2026-09-25T19:01:12Z",
+      "cpu_pid": null,
+      "idle_since_utc": "2026-09-25T18:49:05.649Z",
+      "idle_over_15m_alerted": true,
       "pending_staged_fallback_count": 0,
       "fallback_labels": [],
       "resolved_manifest": "research/v2/operator/20260926-overnight-park-old6x-fallbacks/trn22/resolved-no-old6x-fallbacks.json",
@@ -699,8 +719,8 @@
       "launch_allowed": true,
       "native_launch_authorized": false,
       "cpu_assignment": "research/v2/verification/20260926-architecture-priming-cpu-assignment.md",
-      "launch_scope": "Exact assigned3e79 CPU OFF/ON packet only, after completed batchCPU and fresh per-probe preflight; no native job armed",
-      "next_priority": "Exact93ae cachepriming fullsizeCPU then one compilefix rerun; reviewedFP8timing may fill safe slot",
+      "launch_scope": "Completed CPU assignment only; NO FULL architecture launch. Separate short CT assignment after freshreview/preflight required.",
+      "next_priority": "Cold startup-only CTbase/arch tests; full architecture only if measured startup<=900s",
       "previous_run": {
         "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
         "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
