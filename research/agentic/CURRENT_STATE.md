@@ -1,6 +1,18 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:11 UTC
+Last reconciled: 2026-09-25 02:13 UTC
+
+## Current handoff: trn22 r4 disabled package static PASS; source transfer is next
+
+The trn22 r4
+[disabled, hash-bound package](../v2/disk-monitor/r4-hold/GATE_CONTRACT.json)
+has [independent static PASS](../v2/disk-monitor/r4-hold/INDEPENDENT_VERIFIER_RECEIPT.md)
+for consistency only. The request remains `dispatch_authorized=false`; its
+base and pair bindings are `STATIC_ONLY`. None can launch or arm a monitor.
+The next trn22 stage is a separate exact-source artifact/manifest, read-only
+host feasibility, independently reviewed transfer/extraction plan and narrow
+Supervisor source-stage assignment. Source-matched G2, fresh host checks and
+native one-shot authority remain later gates. No new scored control or BPB.
 
 ## Current handoff: trn21 checkout implementation PASS; exact request still HOLD
 

@@ -2,6 +2,13 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:13 UTC, trn22 r4's
+[disabled exact-hash draft](disk-monitor/r4-hold/GATE_CONTRACT.json)
+[passed independent static review](disk-monitor/r4-hold/INDEPENDENT_VERIFIER_RECEIPT.md).
+It is intentionally non-dispatchable; host source transfer/staging, exact
+source G2 disposition, fresh preflight and one-shot native authority are not
+done. No BPB.
+
 At 02:11 UTC, the frozen trn21 checkout implementation
 [passed independent local review](authorizations/trn21-c5c-a0-stage-r2-extraction/INDEPENDENT_IMPLEMENTATION_REVIEW.md).
 The Verifier requires a separately reviewed exact request and failure-path

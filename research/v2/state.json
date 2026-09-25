@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T02:11:15Z",
+  "written_utc": "2026-09-25T02:13:54Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -194,7 +194,7 @@
       "a0_stage_r2_extraction_request_status": "IMPLEMENTER_DRAFT_IN_PROGRESS_DISPATCH_HOLD_FAILURE_PATH_POSTFLIGHT_REQUIRED"
     },
     "trn22": {
-      "status": "A0_R4_446B_SOURCE_INDEPENDENT_PASS_BINDING_HOLD_NO_SCORE",
+      "status": "A0_R4_446B_SOURCE_AND_DISABLED_PACKAGE_INDEPENDENT_PASS_TRANSFER_HOLD_NO_SCORE",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-24T23:39:25Z",
       "root_disk_bytes": 268435456000,
@@ -230,7 +230,12 @@
       "a0_r4_next_frozen_source_commit": "446b657695f086f9b484fa601c9a3b61c2495912",
       "a0_r4_next_source_status": "INDEPENDENT_LOCAL_SOURCE_PASS_NATIVE_HOLD",
       "a0_r4_446b_independent_pass": "research/v2/disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md",
-      "a0_r4_446b_independent_pass_sha256": "2a5f2b0c51a852a154f7fef44de092ddbbaaf45cc72aa36ca4fd90921f6b17b7"
+      "a0_r4_446b_independent_pass_sha256": "2a5f2b0c51a852a154f7fef44de092ddbbaaf45cc72aa36ca4fd90921f6b17b7",
+      "a0_r4_disabled_package": "research/v2/disk-monitor/r4-hold/GATE_CONTRACT.json",
+      "a0_r4_disabled_package_sha256": "b79ab8e1ddbceac7aa9dac55b2d6c4fa275cbf432cf84f61d02ce9aaa7bade84",
+      "a0_r4_disabled_package_independent_review": "research/v2/disk-monitor/r4-hold/INDEPENDENT_VERIFIER_RECEIPT.md",
+      "a0_r4_disabled_package_independent_review_sha256": "81432fa70ca65f71dcb09dc7c8f828178d68a7f76303f058e681eedc5c4001ea",
+      "a0_r4_disabled_package_dispatch_authorized": false
     }
   },
   "breakers": {
@@ -271,8 +276,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn21 c5c A0 persistent transfer and frozen checkout implementation passed separate independent reviews; exact one-attempt request with failure-path full postflight and new Supervisor checkout authority remain HOLD. trn22 r4 source passed independent local safety review but exact package and host/native gates remain HOLD. Neither host has a scored control or BPB improvement.",
-  "updated_utc": "2026-09-25T02:11:15Z",
+  "last_event": "trn21 c5c A0 transfer and checkout code passed separate independent reviews; exact one-attempt request and checkout authority remain HOLD. trn22 r4 source and disabled exact-hash package passed separate independent local reviews, but source transfer/staging, G2, fresh host and native authority remain HOLD. Neither host has a scored control or BPB improvement.",
+  "updated_utc": "2026-09-25T02:13:54Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
