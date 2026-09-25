@@ -1,14 +1,16 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:07 UTC
+Last reconciled: 2026-09-25 07:15 UTC
 
 The operational launcher-source r8 successor `d3f39dd8` received an
 [independent HOLD](../v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_HOLD_R8.md)
 at `b197f86c`: a request-controlled `PATH` can select an unbounded fake
 `timeout`, and a shell wrapper can hide an optimized Python child. A distinct
-r9 repair is under implementation. The trn21 r6 transfer repair `71d6701f`
-is disabled and under independent static review; its live one-second timing
-feasibility remains unknown. Neither changes the scored-run HOLD.
+r9 repair is under implementation. The disabled trn21 r6 transfer repair
+`71d6701f` has
+[independent static PASS](../v2/verification/20260925-trn21-r6-post-label-disabled-independent-static-PASS.md)
+at `8f9e4402`, but dispatch remains HOLD because live one-second timing
+feasibility is unknown. Neither changes the scored-run HOLD.
 
 The distinct trn22 final-r3 transfer request `d571ea61` received an
 [independent HOLD](../v2/verification/20260925-trn22-fifo-final-r3-independent-HOLD.md)

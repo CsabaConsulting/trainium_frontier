@@ -1,13 +1,19 @@
 # Workflow installation and incremental launch status
 
+At 07:15 UTC, disabled trn21 r6 transfer repair `71d6701f` received
+[independent static PASS](verification/20260925-trn21-r6-post-label-disabled-independent-static-PASS.md)
+at `8f9e4402` for its exact six-file package. Both the supplied and independent
+synthetic suites passed in normal and optimized Python. It is still a
+**dispatch HOLD**: no live trn21 measurement establishes the required
+one-second final-scan-to-open timing, and there is no enabled request,
+Supervisor assignment, host transfer or scored run.
+
 At 07:07 UTC, launcher-source r8 `d3f39dd8` received
 [independent HOLD](launcher-safety/INDEPENDENT_SOURCE_VERIFIER_HOLD_R8.md)
 at `b197f86c`: although its earlier timeout/fingerprint paths are fixed,
 request-controlled `PATH` can select a fake unbounded timeout and a shell
 wrapper can hide an optimized Python child. Both were reproduced without
-host contact. A distinct r9 repair is underway. The trn21 r6 transfer
-repair `71d6701f` is disabled and under independent static review; its live
-one-second transfer timing remains unmeasured. No host scored work began.
+host contact. A distinct r9 repair is underway. No host scored work began.
 
 At 07:03 UTC, the distinct trn22 final-r3 transfer-only candidate
 `d571ea61` received [independent HOLD](verification/20260925-trn22-fifo-final-r3-independent-HOLD.md)
