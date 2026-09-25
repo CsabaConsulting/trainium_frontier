@@ -1,0 +1,49 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/home/ubuntu/trainium_recursive_batch262144_cpu_20260925_trn22_r1/g2/fs-20260925-recursive-batch262144-base-trn22-g2-r1/tmp/g2-2o1p27ny/out"
+  ],
+  "cross_rank_mismatches": [],
+  "losses": [
+    9.011688232421875,
+    9.02107048034668,
+    9.049201011657715
+  ],
+  "n_changed": 62,
+  "n_params": 62,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "plan_summary": {
+    "elements_by_owner": [
+      27265796,
+      30414851,
+      30412805,
+      29360128
+    ],
+    "estimated_ms_by_owner": [
+      12.947406063447303,
+      12.939731226905751,
+      12.948754427971444,
+      12.947727783333331
+    ],
+    "shard_elements": 30414976,
+    "total_padded_bytes": 486639616
+  },
+  "rank": 3,
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "status": "PASS",
+  "tables": [],
+  "torch": "2.11.0+cpu",
+  "unchanged_params": [],
+  "unchanged_tables": []
+}
