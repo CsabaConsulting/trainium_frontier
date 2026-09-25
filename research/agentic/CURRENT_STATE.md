@@ -11,7 +11,12 @@ under the same lifetime lock and fresh guard. Independent root audit61dcc0fa
 passes73checks normal/-O. No BPB yet; lower snapshot below is historical.
 Control fallback review14778ce6 passes175checks normal/-O, root replayed;
 both remain disabled/unassigned. K2 reporting34check replay passed; one fresh
-input-only successor review is requested, not yet an observed session.
+input-only successor Astra review actually started22:14:09.770689UTC,
+manifest47e5203a059347d6b4d6e5aa9202b0f1d5325ec3a81a08db01ce692dc81ba911,
+defaultREFUSE and no native/quality authority. Stable-source pairaf4f986c is
+prepared DISABLED; root read complete packet and replayed8 tiny stdlib tests
+normal/-O. Independent review follows the fresh session. Native cache reuse
+remains unmeasured; no host assignment or source/command adoption.
 
 Fresh input-only Recursive reviewer completed22:03:36UTC with narrow PASS for
 the next full113M CPU qualification, not native/quality/adoption. Archives
