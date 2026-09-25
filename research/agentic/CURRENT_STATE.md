@@ -1,6 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:03 UTC
+Last reconciled: 2026-09-25 02:06 UTC
+
+## Current handoff: trn22 r4 source safety PASS; exact launch bindings still HOLD
+
+The frozen trn22 r4 repair at `446b657695f086f9b484fa601c9a3b61c2495912`
+[passed independent local source safety review](../v2/disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md):
+72 implementation tests and four independent adversarial tests pass. The
+review covers source behavior only. The checked-in r3 request still pins older
+code and is not dispatchable; an exact r4 package, independent package review,
+source-matched G2 disposition, fresh host preflight and one-shot authority are
+still missing. A separate Implementer is preparing HOLD-only bindings. No
+native run or BPB result follows from this PASS.
 
 ## Current handoff: trn21 persistent transfer independently PASS; checkout review pending
 

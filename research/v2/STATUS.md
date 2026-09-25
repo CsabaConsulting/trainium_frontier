@@ -2,6 +2,13 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:06 UTC, trn22 r4 frozen source 446b6576
+[passed independent local safety review](disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md).
+This is not host or dispatch clearance: the old r3 request/bindings do not
+match, and exact r4 package/static review, G2 disposition, fresh host preflight
+and one-shot native authorization remain. A HOLD-only binding package is in
+preparation. No scored A0 or BPB result.
+
 At 02:03 UTC, trn21's archived three-artifact persistent-ext4 transfer
 [passed independent result review](authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_TRANSFER_RESULT_RECEIPT.md).
 It proves transfer only, not checkout or fresh host readiness. The separate
