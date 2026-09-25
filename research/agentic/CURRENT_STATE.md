@@ -17,7 +17,9 @@ Operator reports actual starts with in-lock ps AND neuron-ls PASS:
   flock3008344, common lock inode596823. Native profile result pending.
 - trn22 cold five-step architecture3e79: 19:39:16.740019 UTC / 01:09:16 IST;
   driver3106602, flock3106601, inode832589. Cold startup gate pending;
-  no eval or automatic full run. Both launch receipts are being retrieved.
+  no eval or automatic full run. Both launch/under-lock receipts are archived
+  in canonical7c48d8a3; four-worker/cold-cache proof is f0d688ff. All four
+  workers live on both hosts at19:39:56/19:40:34 respectively, no errors yet.
 
 Completed control fresh20M =0.9899528600562257, 3662steps, budget pass.
 That is only -0.00010322968 versus the prior same-host identical configuration,
@@ -26,7 +28,9 @@ below900cap but misses600target. Raw records are archived (e78c9e7a/faa999bc).
 No new confirmed technique gain; frozen schedule-base mean remains0.9901674436550496.
 
 K2-A default-off candidate25b731f7 is isolated, not merged/adopted. Fresh
-independent review operation assigned; native correctness/timing unproved.
+independent Astra review started19:40:43UTC, session
+01a0da15-9827-7cc0-8845-a39138c52543, only diff/spec/raw receipts; own tiny CPU
+reference and verdict pending. Native correctness/timing remain unproved.
 No other host launcher is authorized. Future batch/seed/full packets must
 reuse the common lock plus in-lock checks, never reactivate historical queues.
 
