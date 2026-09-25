@@ -1,23 +1,29 @@
 # Current state
 
-Last reconciled: 2026-09-25 03:49 UTC
+Last reconciled: 2026-09-25 04:07 UTC
 
-## Current handoff: CPU request static PASS; trn22 transfer final HOLD
+## Current handoff: repaired transfer static PASS; final authority still HOLD
 
 The trn21 [CPU-only G2 request](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-request/RUNBOOK.md)
 received [independent offline PASS for its disabled binding only](../v2/verification/20260925-trn21-c5c-a0-g2-request-independent-review.md).
-The enabled one-attempt CPU wrapper, separate final review, fresh exact-root
-preflight, Supervisor assignment and four-rank numeric result remain pending.
+An [enabled CPU-only final request candidate](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/RUNBOOK.md)
+is now under a separate independent review; its actual PASS file and Supervisor
+assignment do not exist. Fresh exact-root host checks and four-rank numeric
+result remain pending.
 The [clean 446b source-stage plan for trn21](../v2/authorizations/trn21-c5c-a0-r4-source-stage-hold/RUNBOOK.md)
-is also disabled and under implementation; it preserves the accepted e65
+and its [transfer-only implementation](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/RUNBOOK.md)
+are disabled and under independent review; they preserve the accepted e65
 checkout. No native launch may use e65's older safety launcher.
 
 The trn22 [r4 transfer enablement candidate](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/FINAL_ENABLEMENT_RUNBOOK.md)
 received an [independent final HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md).
 Adversarial tests found that preflight boot/mount identity was not bound to
 the write session and a host STOP inserted after the probe did not prevent
-target creation. A separate Implementer is repairing both; no PASS authority
-file or Supervisor assignment exists. No trn22 host transfer occurred.
+target creation. A separate Implementer repaired both in a disabled package;
+that package now has [independent static PASS](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_REPAIR_STATIC_REVIEW.md)
+with 36 passing offline tests. A new exact enabled request is being prepared.
+There is still no final PASS authority file or Supervisor assignment, and no
+trn22 host transfer occurred.
 Both scored controls, S0 cold replays and table runs remain unstarted; no
 new BPB improvement is confirmed. The Sep 25 noon-IST S0 package target is
 at risk and must not be declared ready without its cold replays.

@@ -2,6 +2,15 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 04:07 UTC, trn22's repaired but disabled transfer package
+[passed independent static review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_REPAIR_STATIC_REVIEW.md)
+after 36 passing offline tests. The old enabled request is disabled; a new
+final request, separate final review, fresh host checks and one-use Supervisor
+assignment remain before any transfer. On trn21, an enabled CPU-only G2
+request candidate and a disabled clean-446b transfer package are each under
+separate review. Neither host has a scored control or new BPB; S0 cold replays
+remain unstarted.
+
 At 03:49 UTC, trn21's disabled CPU G2 request
 [passed independent static review](verification/20260925-trn21-c5c-a0-g2-request-independent-review.md)
 for binding only; enabled one-use CPU authority and host/numeric checks are
