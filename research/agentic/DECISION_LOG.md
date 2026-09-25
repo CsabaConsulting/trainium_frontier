@@ -2,8 +2,15 @@
 
 This is a compact index, not a replacement for run logs. Append one row after a verified verdict.
 
+Latest priority authority: `workflow/NEXT_12_HOURS_2026-09-26.md`.
+Old step-count gates and old-shape scalar-queue recommendations below are
+historical where superseded; preserve their original experiment facts.
+
 | Date | Proposal | Commit | Control | Result | Verdict | Evidence |
 |---|---|---|---|---|---|---|
+| 2026-09-26 | Completed old dense matrix LR0.0175 | c5c410af source | trn21 c5c0.9914739939934344 | public20M0.992122757617654, delta+0.0006487636242196171,3669steps | DISCARD; no more old6x LR points | `research/v2/verification/20260925-matrixlr0175-result-review/REVIEW.md` |
+| 2026-09-26 | FP8 compiled VJP diagnostic | 921271d7 source | eager/manual native controls | all4ranks compiled component dX/dW zero; operands/upstream nonzero | HOLD correctness; diagnostic timing before repair, not accepted speedup | `research/v2/verification/20260925-fp8-vjp-native-result-review/REVIEW.md` |
+| 2026-09-26 | Initial differentiable cache refresh on architecture | b4d83b5d /3e79a7c1 | exact93ae | independent tiny4rank/3step loss,65gradient/update and checkpoint identity | PASS source/tiny only; exact8x1024 CPU assigned, no native adoption | `research/v2/verification/20260926-architecture-initial-cache-review/REVIEW.md` |
 | 2026-09-21 | Establish agent operating contract | 7f9aaaf5 baseline | n/a | No run | Adopt | `research/agentic/README.md` |
 | 2026-09-21 | Reconcile latest fresh-start handoff | 9a4caa7b research evidence | n/a | No run | Analyze source197, then conditionally pursue complete ROW-FP8 backward | `research/agentic/RESEARCH_HANDOFF_AUDIT_2026-09-21.md` |
 | 2026-09-22 | Attribute Source197 layer-position regression | 282935ca source evidence | layer 0 vs layer 5, one identical library replacement | Forward graph delta 193.388 ms; +16.344 GB spill reload; direct library work changes modestly | Caller-boundary constraint identified; hold ROW-FP8 backward and propose one bounded boundary/layout gate | `research/agentic/SOURCE197_OFFLINE_ATTRIBUTION.md` |

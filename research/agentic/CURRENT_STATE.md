@@ -1,6 +1,64 @@
 # Current state
 
-Last reconciled: 2026-09-25 18:18 UTC
+Last reconciled: 2026-09-25 18:45 UTC (26 September IST)
+
+## Latest human priorities and completed results
+
+Read `workflow/NEXT_12_HOURS_2026-09-26.md` first. Latest user screenshot:
+tocsa15th at0.9901 official, first0.9464, tenth0.9785. Official gaps0.0437
+and0.0116; no public-to-official prediction. Existing15-minute heartbeat
+carries the09:00IST milestone-risk warning; the app goal stays ACTIVE.
+
+Architecture93ae lost: fresh20M **1.017340669168314**, versus same-host
+c5c0.991513958330512, delta **+0.025826710837802**. Training2,246steps,
+source training1784.6s/charged estimate1785.0s. Independently audited process
+span2663.505610s with proven saturated900s allowance gives conservative
+charged-through-exit bound1763.505610s. Uncapped actual startup is unknown;
+first-five durations sum1544.77s. Warm is not cold evidence. Raw final eval
+is archived, independent score audit pending. Human branch: reduce compilation
+and rerun ONCE; no architecture adoption/replicate/LR retuning from this loss.
+
+Initial cache-refresh3e79 on exact93ae has independent source/tiny gradient,
+update and checkpoint identity PASS. Four added lines, defaultOFF; work stays
+inside first-step timing. Actual8x1024 CPU OFF/ON packet has root static PASS
+and is assigned to trn22. Native cold rerun remains separately gated. Two
+forward/backward model specializations were observed on every rank; avoiding
+one is a hypothesis, not a measured saving. Full all-rank inventory:
+`research/v2/lanes/initial-cache-refresh/graph-inventory.json`.
+
+trn21 genuine adopted6ef7 control started18:31:24UTC. At18:42:25UTC its
+first step was419.62s/loss9.0112 with active compiler descendants. Preserve
+this run and attached fresh20M. Every unstarted old6x scalar fallback is
+parked by immutable manifest replacement; no files deleted. Do not claim
+the obsolete scalar tails are six ready jobs per host.
+
+trn22 architecture eval completed18:37:24UTC. Batch262144 full-parameter
+CPU sequence finished18:41:08UTC; all three probes PASS, default matches6ef7
+on12losses/62digests. ON accumulation2; independent numeric acceptance pending.
+No native batch assignment: prospective screen requires>=5%tokens/s gain
+over about100steady steps. Next is assigned architecture cache-refresh CPU;
+native cold packet is being prepared, not launched.
+
+FP8 four-rank diagnostic proves zero compiled component dX/dW while eager/
+manual native VJP works. This is a real bug, not just tolerance; whole-model
+gradients are unmeasured. Human-selected bounded OFF/ON timing precedes repair
+but remains diagnostic/work-equivalence UNPROVEN. Missing backward math cannot
+be accepted as speedup. Corrected performance/gradients still need validation.
+
+Clean port4083 full-parameter CPU matches6ef7ON:12losses,62parameter digests,
+ownership and reload checks PASS. No cold replay/submission readiness. Schedule
+alone is below the upload bar. Downloads untouched. Old6x LR0.0175 finished
+0.992122757617654, delta+0.0006487636242196171: independently audited DISCARD,
+now in ledger. Confirmed research mean stays0.9901674436550496; no new official
+improvement, increased spending or AWS/submission action is claimed.
+
+Evidence: `research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/final-evaluation/`,
+`research/v2/verification/20260925-architecture93ae-budget-exit-update/`,
+`research/v2/verification/20260926-architecture-initial-cache-review/`,
+`research/v2/verification/20260926-architecture-priming-cpu-assignment.md`,
+`research/v2/operator/20260926-overnight-park-old6x-fallbacks/`.
+
+Older snapshots below retain history, not current process or queue state.
 
 ## Latest verified progress and next boundaries, 18:18 UTC
 
