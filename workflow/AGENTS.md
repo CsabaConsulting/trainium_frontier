@@ -1,5 +1,11 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**LATER CORRECTION (21:11 IST):**
+`RESUME_AND_TABLE_CORRECTION_2026-09-25.md` resumes work, authorizes explicit
+fixed-budget A1/A2 step-window exemptions, replaces Fable builders with local
+GPT-6 Astra L1/L2, and sets the conditional table/schedule/architecture queue.
+It overrides conflicting routing and priorities below and in FINAL PUSH.
+
 **NEWEST HUMAN OVERRIDE (2026-09-25 IST):** Read the byte-identical
 `workflow/codex_directive_final_push.txt` and the top of the repository-root
 `AGENTS.md` first. The Final Push directive supersedes this file's older freeze,

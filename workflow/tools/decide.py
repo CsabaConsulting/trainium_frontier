@@ -7,12 +7,13 @@ workflow/templates/run-record.json). Output: a verdict JSON for one arm, or a co
   python workflow/tools/decide.py --ledger research/v2/ledger.jsonl --arm A2
   python workflow/tools/decide.py --ledger research/v2/ledger.jsonl --drift
 
-Rules (v2-2026-09-24; change only with human approval, and bump RULES_VERSION):
+Rules (change only with human approval, and bump RULES_VERSION):
   valid run      : status=="evaluated", over_budget False, causality_passed not False, finite BPB,
                    eval_tokens==20_971_520, eval_seq_len==1024, git_dirty False
   control        : kind=="control", same host, same base_sha256, valid; pooled mean of up to the
                    last 3 controls on that host for that base (>=1 required, >=2 preferred)
-  step ratio     : arm/control steps in [0.90, 1.10] unless kind=="throughput_arm" (else CONFOUNDED)
+  step ratio     : arm/control steps in [0.90, 1.10] except throughput_arm or explicitly
+                   authorized throughput-exempt table_arm at requested 1800 s budget
   big-win hold   : delta <= -0.010 or public_20m < 0.975 -> HOLD (independent cold replay + audit)
   one host       : delta <= -0.0006 -> NOMINATE (replicate on the other host)
                    delta >= +0.0005 -> DISCARD
@@ -31,7 +32,7 @@ import math
 import sys
 from pathlib import Path
 
-RULES_VERSION = "v2-2026-09-24"
+RULES_VERSION = "v2-2026-09-25-table-budget-exemption"
 EVAL_TOKENS, EVAL_SEQ = 20_971_520, 1024
 NOMINATE, DISCARD_SINGLE = -0.0006, 0.0005
 ADOPT_MEAN, ADOPT_DISAGREE, DISCARD_MEAN = -0.0010, 0.0015, -0.0003
@@ -39,6 +40,19 @@ HOLD_DELTA, HOLD_ABS = -0.010, 0.975
 STEP_WINDOW = (0.90, 1.10)
 DRIFT = 0.0010
 HIGH_PRIOR = {"table_arm", "data_order_arm"}
+
+
+def step_window_exempt(run):
+    """Poojith's 25-Sep correction; preserve table-arm high-prior semantics.
+
+    This is an explicit per-run declaration, not a blanket waiver of short,
+    invalid or over-budget runs. All other validity/quality gates still apply.
+    """
+    return run.get("kind") == "throughput_arm" or (
+        run.get("kind") == "table_arm"
+        and run.get("throughput_exempt") is True
+        and run.get("training_budget_seconds") == 1800
+    )
 
 
 def load(path: str) -> list[dict]:
@@ -108,7 +122,10 @@ def decide_arm(rows, arm_id):
         out["verdict"] = "INSUFFICIENT"
         out["why"] = "; ".join(h["error"] for h in per_host if "error" in h)
         return out
-    if kind != "throughput_arm" and any(not (STEP_WINDOW[0] <= h["step_ratio"] <= STEP_WINDOW[1]) for h in per_host):
+    out["step_window_exempt_hosts"] = [r["host"] for r in latest.values() if step_window_exempt(r)]
+    if any(not step_window_exempt(latest[h["host"]])
+           and not (STEP_WINDOW[0] <= h["step_ratio"] <= STEP_WINDOW[1])
+           for h in per_host):
         out["verdict"] = "CONFOUNDED"
         out["why"] = f"step ratio outside {STEP_WINDOW}; not a same-budget comparison"
         return out

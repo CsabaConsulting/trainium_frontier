@@ -2,6 +2,17 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Latest correction (Poojith, 25 September 21:11 IST)
+
+Read `workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md` first. Work is resumed.
+The fixed-1800-second A1/A2 table arms are explicitly step-window exempt;
+all quality/budget/correctness gates remain. L1/L2 now use **local GPT-6 Astra**,
+not Fable. Do not retry or reword Fable refusals. The next-job branch is based
+on a valid same-host table delta <= -0.003: replicate, all-VE tables, Recursive
+schedule on that table base, then table-base LR brackets; cancel old-base
+fallbacks if that branch wins. Otherwise schedule and architecture precede
+fallbacks. Cold table startup must be measured before any submission.
+
 ## Controlling standing directive: FINAL PUSH TO #1 (Poojith, 2026-09-25 IST)
 
 The newest human directive is preserved **verbatim** at
