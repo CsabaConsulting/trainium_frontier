@@ -10,17 +10,73 @@ Deployment and selection of an experiment remain separate decisions.
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shlex
 import subprocess
+import sys
 
 from fresh_start_sync import HOSTS, ROOT, SSH
 
 
 REMOTE_SCRIPT = r'''
-import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, stat, subprocess, sys
+import datetime, fcntl, hashlib, json, os, pathlib, re, shutil, socket, stat, subprocess, sys
+# This interpreter is independent of the local launcher and the later
+# training child's env -i. Refuse optimization before checkout, lock, receipt,
+# manifest or guard side effects; assert statements elsewhere cannot save us.
+if sys.flags.optimize != 0 or 'PYTHONOPTIMIZE' in os.environ:
+    raise RuntimeError('optimized Python is forbidden in the remote launcher')
 m = json.load(sys.stdin)
+if not isinstance(m, dict) or m.get('dispatch_authorized') is not True:
+    raise RuntimeError('one-label remote dispatch is not authorized')
+label = m.get('label')
+if not isinstance(label, str) or re.fullmatch(r'fs-[A-Za-z0-9_.-]+', label) is None:
+    raise RuntimeError('invalid remote science label')
+if (not isinstance(m.get('expected_commit'), str)
+        or re.fullmatch(r'[0-9a-f]{40}', m['expected_commit']) is None):
+    raise RuntimeError('invalid remote expected commit')
+if (not isinstance(m.get('remote'), str)
+        or not pathlib.Path(m['remote']).is_absolute()
+        or '..' in pathlib.Path(m['remote']).parts):
+    raise RuntimeError('invalid remote checkout path')
+if m.get('host') not in ('trn21', 'trn22') or m.get('expected_hostname') != socket.gethostname():
+    raise RuntimeError('remote host identity mismatch')
+config = m.get('monitor_interlock')
+if not isinstance(config, dict):
+    raise RuntimeError('paired remote interlock is required')
+interlock_paths = {}
+for key in ('pair_binding_path', 'interlock_path', 'no_spawn_path'):
+    value = config.get(key)
+    if (not isinstance(value, str) or not pathlib.Path(value).is_absolute()
+            or '..' in pathlib.Path(value).parts):
+        raise RuntimeError('invalid remote interlock path: ' + key)
+    interlock_paths[key] = pathlib.Path(value)
+if len({path.parent for path in interlock_paths.values()}) != 1:
+    raise RuntimeError('remote interlock paths have different parents')
+if len(set(interlock_paths.values())) != 3:
+    raise RuntimeError('remote interlock paths are not distinct')
+command = m.get('command')
+if (not isinstance(command, list) or not command
+        or not all(isinstance(arg, str) for arg in command)
+        or command[0] != 'timeout'
+        or any(arg.startswith('PYTHONOPTIMIZE=') for arg in command)):
+    raise RuntimeError('invalid bounded remote command')
+environment = m.get('environment')
+if (not isinstance(environment, dict)
+        or not all(isinstance(key, str) and isinstance(value, str)
+                   for key, value in environment.items())
+        or 'PYTHONOPTIMIZE' in environment
+        or environment.get('NEURON_LOGICAL_NC_CONFIG') not in ('1', '2')
+        or '--optlevel=1' not in environment.get('NEURON_CC_FLAGS', '')):
+    raise RuntimeError('unsafe remote child environment')
+if (type(m.get('min_free_bytes')) is not int
+        or m['min_free_bytes'] != 13 * 1024**3 // 2
+        or type(m.get('pre_launch_required_free_bytes')) is not int
+        or m['pre_launch_required_free_bytes'] < 10 * 1024**3):
+    raise RuntimeError('remote disk threshold mismatch')
+if type(m.get('runner_owns_manifest', False)) is not bool:
+    raise RuntimeError('invalid manifest ownership policy')
 stage = 'before_checkout'
 spawn_call_started = False
 
@@ -60,7 +116,8 @@ def write_no_spawn_before_popen(stage, error):
 
 try:
     r = pathlib.Path(m['remote'])
-    assert r.is_dir(), 'checkout missing'
+    if not r.is_dir() or r.is_symlink():
+        raise RuntimeError('checkout missing or symlinked')
     stage = 'checkout_import'
     sys.path.insert(0, str(r / 'research'))
     from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, MIN_OPERATIONAL_FREE_BYTES, preflight, sufficient_free_space
@@ -72,28 +129,39 @@ try:
     # never an authorization to kill by marker or numeric PID.
     stage = 'early_disk'
     free = shutil.disk_usage(r).free
-    assert m.get('min_free_bytes') == MIN_OPERATIONAL_FREE_BYTES, 'request operational floor mismatch'
-    assert sufficient_free_space(free), 'less than 6.5 GiB operational free space'
+    if m.get('min_free_bytes') != MIN_OPERATIONAL_FREE_BYTES:
+        raise RuntimeError('request operational floor mismatch')
+    if not sufficient_free_space(free):
+        raise RuntimeError('less than 6.5 GiB operational free space')
     stage = 'source_identity'
     source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
                     'research/fresh_start_host.py', 'research/fresh_start_guard.py',
                     'research/fresh_start_launch.py', 'research/fresh_start_backup.py',
-                    'research/fresh_start_monitor_interlock.py',
+                    'research/fresh_start_monitor_interlock.py', 'research/fresh_start_sync.py',
                     'research/v2/disk-monitor/root_free_guard_monitor.py',
                     'research/v2/disk-monitor/paired_root_free_guard_monitor.py']
+    fingerprints = m.get('fingerprint_paths', [])
+    if (not isinstance(fingerprints, list)
+            or any(not isinstance(path, str) or path not in source_paths
+                   for path in fingerprints)):
+        raise RuntimeError('invalid source fingerprint paths')
     dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
     new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
-    assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
+    if dirty.strip() or new.strip():
+        raise RuntimeError('experiment source is not committed')
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()
-    assert commit == m['expected_commit'], 'unexpected source commit: ' + commit
+    if commit != m['expected_commit']:
+        raise RuntimeError('unexpected source commit: ' + commit)
     stage = 'label_identity'
     fdir = r / 'research/run-logs'
     manifest = fdir / (m['label'] + '.launch.json')
     log = fdir / (m['label'] + '.log')
-    assert not manifest.exists() and not log.exists(), 'label already exists'
+    if os.path.lexists(manifest) or os.path.lexists(log):
+        raise RuntimeError('label already exists')
     if m.get('runner_owns_manifest'):
         log = fdir / (m['label'] + '.driver.log')
-    assert not log.exists(), 'driver label already exists'
+    if os.path.lexists(log):
+        raise RuntimeError('driver label already exists')
     stage = 'interlock_import'
     from fresh_start_monitor_interlock import (require_live_pair, write_interlock_pass,
                                                write_no_spawn)
@@ -166,26 +234,87 @@ except BaseException as error:
 '''
 
 
+def require_unoptimized_python():
+    """Refuse before local receipt or SSH; remote has an independent gate."""
+    if sys.flags.optimize != 0 or "PYTHONOPTIMIZE" in os.environ:
+        raise RuntimeError("optimized Python is forbidden in the local launcher")
+
+
+def validate_request(request):
+    """Reject an unreviewed or malformed request before local side effects."""
+    if not isinstance(request, dict) or request.get("dispatch_authorized") is not True:
+        raise RuntimeError("one-label dispatch is not authorized")
+    host = request.get("host")
+    if not isinstance(host, str) or host not in HOSTS:
+        raise RuntimeError("unknown dispatch host")
+    if (not isinstance(request.get("expected_hostname"), str)
+            or not request["expected_hostname"]):
+        raise RuntimeError("missing expected host identity")
+    label = request.get("label")
+    if not isinstance(label, str) or re.fullmatch(r"fs-[A-Za-z0-9_.-]+", label) is None:
+        raise RuntimeError("invalid science label")
+    expected_commit = request.get("expected_commit")
+    if (not isinstance(expected_commit, str)
+            or re.fullmatch(r"[0-9a-f]{40}", expected_commit) is None):
+        raise RuntimeError("invalid expected commit")
+    remote_value = request.get("remote")
+    if not isinstance(remote_value, str):
+        raise RuntimeError("invalid checkout path")
+    remote = Path(remote_value)
+    if (remote.parent != Path("/home/ubuntu") or '..' in remote.parts
+            or not remote.name.startswith("trainium_freshstart_")):
+        raise RuntimeError("invalid checkout path")
+    config = request.get("monitor_interlock")
+    if not isinstance(config, dict):
+        raise RuntimeError("paired interlock is required")
+    paths = {}
+    for key in ("pair_binding_path", "interlock_path", "no_spawn_path"):
+        value = config.get(key)
+        if (not isinstance(value, str) or not Path(value).is_absolute()
+                or '..' in Path(value).parts):
+            raise RuntimeError("invalid interlock path: " + key)
+        paths[key] = Path(value)
+    if len({path.parent for path in paths.values()}) != 1:
+        raise RuntimeError("interlock paths have different parents")
+    if len(set(paths.values())) != 3:
+        raise RuntimeError("interlock paths are not distinct")
+    command = request.get("command")
+    if (not isinstance(command, list) or not command
+            or not all(isinstance(arg, str) for arg in command)
+            or command[0] != "timeout"
+            or any(arg.startswith("PYTHONOPTIMIZE=") for arg in command)):
+        raise RuntimeError("a bounded command without Python optimization is required")
+    environment = request.get("environment")
+    if (not isinstance(environment, dict)
+            or not all(isinstance(key, str) and isinstance(value, str)
+                       for key, value in environment.items())
+            or "PYTHONOPTIMIZE" in environment
+            or environment.get("NEURON_LOGICAL_NC_CONFIG") not in ("1", "2")
+            or "--optlevel=1" not in environment.get("NEURON_CC_FLAGS", "")):
+        raise RuntimeError("unsafe child environment")
+    from fresh_start_host import MIN_OPERATIONAL_FREE_BYTES
+    if (type(request.get("min_free_bytes")) is not int
+            or request["min_free_bytes"] != MIN_OPERATIONAL_FREE_BYTES
+            or type(request.get("pre_launch_required_free_bytes")) is not int
+            or request["pre_launch_required_free_bytes"] < 10 * 1024**3):
+        raise RuntimeError("disk threshold mismatch")
+    if type(request.get("runner_owns_manifest", False)) is not bool:
+        raise RuntimeError("invalid manifest ownership policy")
+    fingerprints = request.get("fingerprint_paths", [])
+    if (not isinstance(fingerprints, list)
+            or any(not isinstance(path, str) or Path(path).is_absolute()
+                   or any(part.startswith(".") for part in Path(path).parts)
+                   for path in fingerprints)):
+        raise RuntimeError("invalid source fingerprint paths")
+
+
 def main():
+    require_unoptimized_python()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("request", type=Path)
     args = parser.parse_args()
     request = json.loads(args.request.read_text())
-    assert request.get('dispatch_authorized') is True, 'one-label dispatch is not authorized'
-    assert isinstance(request.get('monitor_interlock'), dict), 'paired interlock is required'
-    assert request["host"] in HOSTS
-    assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", request["label"])
-    assert re.fullmatch(r"[0-9a-f]{40}", request["expected_commit"])
-    remote = Path(request["remote"])
-    assert remote.parent == Path("/home/ubuntu") and remote.name.startswith("trainium_freshstart_")
-    command = request["command"]
-    assert isinstance(command, list) and command and all(isinstance(a, str) for a in command)
-    assert command[0] == "timeout", "a bounded command is required"
-    assert isinstance(request["environment"], dict)
-    assert request["environment"].get("NEURON_LOGICAL_NC_CONFIG") in ("1", "2")
-    assert "--optlevel=1" in request["environment"].get("NEURON_CC_FLAGS", "")
-    from fresh_start_host import MIN_OPERATIONAL_FREE_BYTES
-    assert request.get("min_free_bytes") == MIN_OPERATIONAL_FREE_BYTES
+    validate_request(request)
     receipt = ROOT / "research/run-logs" / (request["label"] + ".dispatch.json")
     with receipt.open("x") as output:
         # Preserve the intended action locally even if the remote host disappears.

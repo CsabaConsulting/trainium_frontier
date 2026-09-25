@@ -9,6 +9,7 @@ import io
 import json
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -30,9 +31,15 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
         return {
             'remote': str(remote),
             'label': 'fs-synthetic-r4-early-refusal',
+            'dispatch_authorized': True,
+            'host': 'trn22',
+            'expected_hostname': socket.gethostname(),
             'expected_commit': 'a' * 40,
             'min_free_bytes': host.MIN_OPERATIONAL_FREE_BYTES,
-            'environment': {},
+            'pre_launch_required_free_bytes': 10 * 1024**3,
+            'command': ['timeout', '1s', 'true'],
+            'environment': {'NEURON_LOGICAL_NC_CONFIG': '2',
+                            'NEURON_CC_FLAGS': '--optlevel=1'},
             'monitor_interlock': {
                 'pair_binding_path': str(root / 'pair-binding.json'),
                 'no_spawn_path': str(root / 'no-spawn.json'),
@@ -69,7 +76,7 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
             request = self.request(root, root / 'missing-checkout')
             with patch.object(subprocess, 'Popen',
                               side_effect=AssertionError('guard spawn reached')):
-                with self.assertRaisesRegex(AssertionError, 'checkout missing'):
+                with self.assertRaisesRegex(RuntimeError, 'checkout missing'):
                     self.execute_remote(request)
             self.assert_no_spawn_receipt(root, request, 'before_checkout')
 
@@ -105,9 +112,11 @@ class R4EarlyRefusalImplementationTest(unittest.TestCase):
             request['expected_commit'] = case.binding['expected_commit']
             request['monitor_interlock']['pair_binding_path'] = str(case.pair_path)
             request['monitor_interlock']['no_spawn_path'] = case.pair['no_spawn_path']
+            request['monitor_interlock']['interlock_path'] = str(
+                case.pair_path.parent / 'interlock.json')
             with patch.object(subprocess, 'Popen',
                               side_effect=AssertionError('guard spawn reached')):
-                with self.assertRaisesRegex(AssertionError, 'checkout missing'):
+                with self.assertRaisesRegex(RuntimeError, 'checkout missing'):
                     self.execute_remote(request)
             receipt_path = Path(case.pair['no_spawn_path'])
             case.system.files[receipt_path] = {}
