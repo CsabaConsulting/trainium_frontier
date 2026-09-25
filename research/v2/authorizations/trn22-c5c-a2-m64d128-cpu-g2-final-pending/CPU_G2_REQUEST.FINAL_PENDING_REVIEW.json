@@ -1,0 +1,133 @@
+{
+  "schema": "trn22-c5c-a2-m64d128-cpu-g2-final-pending-v1",
+  "status": "IMPLEMENTER_FINAL_PENDING_INDEPENDENT_REVIEW_FRESH_BINDING_AND_SUPERVISOR_ASSIGNMENT_NO_DISPATCH",
+  "prepared_by_role": "implementer",
+  "authority": {
+    "cpu_g2_dispatch_authorized": false,
+    "host_contact_authorized": false,
+    "source_stage_authorized": false,
+    "native_training_authorized": false,
+    "evaluation_authorized": false,
+    "aws_action_authorized": false,
+    "cleanup_authorized": false,
+    "submission_authorized": false,
+    "independent_final_review": null,
+    "supervisor_one_attempt_assignment": null,
+    "fresh_host_binding": null,
+    "operator_result": null
+  },
+  "lineage": {
+    "disabled_r3_request_path": "research/v2/g2-probes/fs-20260925-g2-a2-c5c-m64d128-trn22-r3-hold/G2_REQUEST.HOLD.json",
+    "disabled_r3_request_sha256": "1fe26626e5c5a0880637bb704818e0733e2a4d3aa94cb6ea1c502a9583a0dbd8",
+    "disabled_r3_plan_path": "research/v2/g2-probes/fs-20260925-g2-a2-c5c-m64d128-trn22-r3-hold/plan_g2.py",
+    "disabled_r3_plan_sha256": "425133400f38ce4d6fa2f986b7e6357392365aace7e79d482f02812dca7498ae",
+    "independent_static_pass_path": "research/v2/verification/20260925-a2-c5c-m64d128-trn22-r3-disabled-g2-independent-static-PASS.md",
+    "independent_static_pass_sha256": "ed86b23dbc8f70122d56e7afa4f2adf28434c3336a12fb2a2e923bfbccdda68b",
+    "snapshot_path": "research/v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md",
+    "snapshot_sha256": "3665847467803f05f1a61a040f0b38e7a88e486bc7af52b2fbfcf24472343777",
+    "snapshot_is_not_fresh_preflight": true
+  },
+  "host": {
+    "name": "trn22",
+    "endpoint": "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",
+    "expected_hostname": "ip-172-31-32-253",
+    "source_checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2",
+    "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "source_checkout_device": 66305,
+    "source_checkout_inode": 2432738,
+    "source_checkout_uid": 1000,
+    "source_checkout_mode": "0775",
+    "git_pointer_inode": 2432740,
+    "git_pointer_mode": "0664",
+    "git_pointer_sha256": "dc53f6887bc5f9c2c1bbdbbd60911cdbeb076f7c57bafd796ee5b96f69ecbf1b",
+    "linked_gitdir_inode": 2432736,
+    "linked_gitdir_mode": "0775",
+    "same_uid_or_privileged_race_not_excluded": true,
+    "require_fresh_same_session_nofollow_source_and_gitdir_bridge": true
+  },
+  "science": {
+    "label": "fs-20260925-g2-a2-c5c-m64d128-trn22-r4",
+    "scratch_root": "/home/ubuntu/trainium-v2-g2-a2-c5c-m64d128-20260925-trn22-r4",
+    "cpu_only": true,
+    "synthetic_data": true,
+    "real_prepare_import": true,
+    "seed": 42,
+    "nproc": 4,
+    "steps": 2,
+    "micro_rows": 2,
+    "micro_tokens": 256,
+    "g2_timeout_seconds": 3600,
+    "trace_rmsprop": true,
+    "keep_raw_workdir_and_checkpoint": true,
+    "expected_table_keys": [
+      "ngram_embeds.b1.weight", "ngram_embeds.t1.weight",
+      "ngram_embeds.b5.weight", "ngram_embeds.t5.weight"
+    ],
+    "train_argv": [
+      "--n-embd", "1024", "--ngram-ve", "--ngram-ve-layers", "1,-1",
+      "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128",
+      "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
+      "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude",
+      "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+      "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+      "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
+    ]
+  },
+  "source": {
+    "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "g2_tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "contained_tool_sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d",
+    "queue_sha256": "1e9dcc4fd5f38e62829dc19460d2337662184ecfbd4d21d8a20f15993be9dd00"
+  },
+  "capacity": {
+    "minimum_fresh_root_free_bytes": 34359738368,
+    "minimum_fresh_root_free_inodes": 10000,
+    "scratch_peak_projection_bytes": 25769803776,
+    "operational_root_floor_bytes": 6979321856,
+    "projected_peak_memory_bytes": 85899345920,
+    "minimum_fresh_memory_available_bytes": 103079215104,
+    "projection_is_conservative_policy_not_measurement": true,
+    "fresh_values_required_in_both_audit_and_run_session": true,
+    "fresh_host_values": null
+  },
+  "execution": {
+    "one_run_per_host": true,
+    "unique_label_required": true,
+    "fixed_attempt_marker_path": "/home/poojith-devan/.local/state/trainium-a2-c5c-m64d128-trn22-r4-cpu-g2-attempt-once.jsonl",
+    "marker_o_excl_nofollow_fsync_before_any_ssh": true,
+    "strict_host_key_ssh_required": true,
+    "local_and_host_stop_breaker_lock_device_gate_required": true,
+    "fresh_full_readonly_audit_before_run_required": true,
+    "repeat_full_audit_and_source_bridge_in_run_session_required": true,
+    "exact_scratch_tmp_creation_after_marker_required": true,
+    "contained_launch_wait_failure_stop_quiesce_required": true,
+    "unconditional_distinct_session_readonly_postflight_required": true,
+    "preserve_partial_on_any_failure": true,
+    "same_label_retry_authorized": false,
+    "raw_four_rank_and_eight_rms_records_required": true,
+    "independent_raw_per_table_attribution_required": true
+  },
+  "bindings": {
+    "final_independent_review_path": "research/v2/authorizations/trn22-c5c-a2-m64d128-cpu-g2-final-pending/INDEPENDENT_FINAL_CPU_G2_REVIEW.PASS.json",
+    "supervisor_assignment_path": "research/v2/authorizations/trn22-c5c-a2-m64d128-cpu-g2-final-pending/SUPERVISOR_CPU_ONLY_ASSIGNMENT.json",
+    "operator_runner_sha256": null,
+    "remote_runner_sha256": null,
+    "scratch_guard_sha256": null,
+    "commands_sha256": null,
+    "ssh_audit_argv_sha256": null,
+    "ssh_run_argv_sha256": null,
+    "stdin_payload_sha256": null
+  },
+  "result": {
+    "operator_preflight": null,
+    "scratch_creation": null,
+    "cpu_g2_receipt": null,
+    "raw_rank_receipts": null,
+    "raw_rms_trace_records": null,
+    "checkpoint_sha256": null,
+    "distinct_session_postflight": null,
+    "independent_numeric_review": null
+  },
+  "next_gate": "Independent final review must pin exact request/runner/command bytes and conservative projection. Fresh host values, local and host STOP/breakers/lock/device/source identities, one-attempt marker and Supervisor assignment remain unbound. This implementer request does not authorize host contact or dispatch."
+}
