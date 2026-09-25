@@ -21,6 +21,8 @@ HOST = "ip-172-31-32-253"
 UID = 1000
 ROOT = "/home/ubuntu"
 MOUNT_SOURCE = "/dev/root"
+MOUNT_MAJOR_MINOR = "259:1"
+HISTORICAL_DEVICE_NAME = "/dev/nvme0n1p1"
 TARGET_NAME = "trainium-c5c-r4-446b-one-commit-20260925.trn22-stage-r1.tar.gz"
 TARGET = ROOT + "/" + TARGET_NAME
 CHECKOUT = ROOT + "/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r4"
@@ -80,9 +82,44 @@ def _mount():
     if not matches:
         raise RuntimeError("no mount covers /home/ubuntu")
     selected = max(matches, key=lambda pair: pair[0])[1]
-    if selected["filesystem"] != "ext4" or selected["source"] != MOUNT_SOURCE:
+    if (selected["filesystem"] != "ext4" or selected["source"] != MOUNT_SOURCE or
+            selected["major_minor"] != MOUNT_MAJOR_MINOR):
         raise RuntimeError("persistent root ext4 source does not match frozen target")
     return selected
+
+
+def _block_aliases(mount):
+    """Read-only kernel-device reconciliation of both historical root names."""
+    major, minor = (int(value) for value in mount["major_minor"].split(":"))
+    expected_rdev = os.makedev(major, minor)
+    names = {}
+    for path in (MOUNT_SOURCE, HISTORICAL_DEVICE_NAME):
+        try:
+            named = os.lstat(path)
+        except FileNotFoundError:
+            if path != MOUNT_SOURCE:
+                raise RuntimeError("historical root block-device name is absent")
+            names[path] = {"exists": False, "mount_source_string_only": True}
+            continue
+        resolved = os.stat(path)
+        if not stat.S_ISBLK(resolved.st_mode) or resolved.st_rdev != expected_rdev:
+            raise RuntimeError("root-name alias resolves to a different block device")
+        names[path] = {"exists": True,
+                       "name_type": "symlink" if stat.S_ISLNK(named.st_mode) else
+                                    "block" if stat.S_ISBLK(named.st_mode) else "other",
+                       "name_device": named.st_dev, "name_inode": named.st_ino,
+                       "resolved_device": resolved.st_dev,
+                       "resolved_inode": resolved.st_ino,
+                       "resolved_rdev_major_minor": "%d:%d" %
+                                                    (os.major(resolved.st_rdev), os.minor(resolved.st_rdev))}
+    sysfs = "/sys/dev/block/" + mount["major_minor"]
+    link = os.readlink(sysfs)
+    real = os.path.realpath(sysfs)
+    if not real.startswith("/sys/devices/") or not real.endswith("/nvme0n1p1"):
+        raise RuntimeError("sysfs root block-device binding is unexpected")
+    return {"mount_major_minor": mount["major_minor"],
+            "historical_names": names, "sysfs_link": link,
+            "sysfs_realpath": real}
 
 
 def _open_parent():
@@ -143,15 +180,18 @@ def _identity(parent_fd, ancestry):
     if _dir_identity(parent) != ancestry["ubuntu"]:
         raise RuntimeError("stage parent identity changed")
     fs = os.statvfs(ROOT)
+    mount = _mount()
     return {"hostname": socket.gethostname(), "uid": os.geteuid(),
             "boot_id": boot, "mount_namespace": os.readlink("/proc/self/ns/mnt"),
-            "mount": _mount(), "ancestry": ancestry,
+            "mount": mount, "block_aliases": _block_aliases(mount),
+            "ancestry": ancestry,
             "root_free_bytes": fs.f_bavail * fs.f_frsize,
             "root_free_inodes": fs.f_favail}
 
 
 def _stable(before, after):
-    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount",
+                "block_aliases", "ancestry"):
         if before[key] != after[key]:
             raise RuntimeError("host/boot/mount/parent drift: " + key)
 

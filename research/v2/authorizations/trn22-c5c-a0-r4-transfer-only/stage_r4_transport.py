@@ -12,17 +12,21 @@ import os
 from pathlib import Path
 import shlex
 import stat
+import subprocess
 
 
 HERE = Path(__file__).resolve().parent
 REMOTE = HERE / "stage_r4_remote.py"
-REMOTE_SHA256 = "d02dbf6d9efee6062a20fe620743460ab247240964e9266875a1599f95bcfd50"
+REMOTE_SHA256 = "2920dfc78b1bf3941e9eaf500e41a44f7f5e29f9799273c04eb7ddc7de3d756e"
 SOURCE = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trainium-c5c-r4-446b-one-commit-20260925.tar.gz")
 SOURCE_BYTES = 104154875
 SOURCE_SHA256 = "767d1d0ce0526b822c680fccc5d79ed0423827d6f2ce3570b8d7d8b5c5d7c84a"
 TARGET = "/home/ubuntu/trainium-c5c-r4-446b-one-commit-20260925.trn22-stage-r1.tar.gz"
 ENDPOINT = "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com"
 IDENTITY_FILE = "/home/poojith-devan/Desktop/Trainium/trn2.pem"
+KNOWN_HOSTS = Path("/home/poojith-devan/.ssh/known_hosts")
+KNOWN_HOSTS_SHA256 = "e42405d8dd82c56be05b849dbe1d050dafe2ebf2678ab197857174b44057cce3"
+HOST_FINGERPRINT = "SHA256:bXvW4P20oehuJWPMDLUS72E1aPY58rq/kOqUybiB44U"
 SCHEMA = "trn22-c5c-a0-r4-transfer-only-v1"
 PRE_FREE = 13177973911
 POST_FREE = 10737418240
@@ -91,15 +95,90 @@ def checked_local_source():
         os.close(fd)
 
 
+def checked_ssh_identity():
+    """Read-only pinned ED25519 host-key proof; never print key contents."""
+    parent, named = KNOWN_HOSTS.parent.lstat(), KNOWN_HOSTS.lstat()
+    private = Path(IDENTITY_FILE).lstat()  # Metadata only; never read the PEM.
+    if (not stat.S_ISDIR(parent.st_mode) or parent.st_uid != os.getuid() or
+            stat.S_IMODE(parent.st_mode) & 0o077 or
+            not stat.S_ISREG(named.st_mode) or named.st_uid != os.getuid() or
+            named.st_nlink != 1 or stat.S_IMODE(named.st_mode) & 0o077 or
+            not stat.S_ISREG(private.st_mode) or private.st_uid != os.getuid() or
+            private.st_nlink != 1 or stat.S_IMODE(private.st_mode) != 0o600):
+        raise RuntimeError("SSH known-hosts or private-key metadata is unsafe")
+    fd = os.open(KNOWN_HOSTS, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        opened = os.fstat(fd)
+        if (opened.st_dev, opened.st_ino, opened.st_size) != (
+                named.st_dev, named.st_ino, named.st_size):
+            raise RuntimeError("known-hosts inode changed before hash")
+        digest = hashlib.sha256()
+        while True:
+            block = os.read(fd, 1024 * 1024)
+            if not block:
+                break
+            digest.update(block)
+        if (digest.hexdigest() != KNOWN_HOSTS_SHA256 or
+                (os.fstat(fd).st_dev, os.fstat(fd).st_ino, os.fstat(fd).st_size) !=
+                (named.st_dev, named.st_ino, named.st_size)):
+            raise RuntimeError("pinned known-hosts bytes changed")
+    finally:
+        os.close(fd)
+    hostname = ENDPOINT.split("@", 1)[1]
+    found = subprocess.run(["ssh-keygen", "-F", hostname, "-f", str(KNOWN_HOSTS)],
+                           capture_output=True, timeout=20, check=False)
+    if found.returncode != 0:
+        raise RuntimeError("pinned host entry not found")
+    entries = [line for line in found.stdout.splitlines() if line and not line.startswith(b"#")]
+    ed25519 = [line for line in entries if len(line.split()) >= 3 and
+               line.split()[1] == b"ssh-ed25519"]
+    if len(ed25519) != 1:
+        raise RuntimeError("expected exactly one pinned ED25519 host entry")
+    fingerprint = subprocess.run(["ssh-keygen", "-l", "-E", "sha256", "-f", "-"],
+                                 input=ed25519[0] + b"\n", capture_output=True,
+                                 timeout=20, check=False)
+    if (fingerprint.returncode != 0 or
+            HOST_FINGERPRINT.encode("ascii") not in fingerprint.stdout.split() or
+            b"(ED25519)" not in fingerprint.stdout.split()):
+        raise RuntimeError("trn22 ED25519 host fingerprint mismatch")
+    # The second hash closes the read-only ssh-keygen race. Any later drift is
+    # caught again immediately before each separately configured SSH process.
+    checked = os.open(KNOWN_HOSTS, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        info = os.fstat(checked)
+        if (info.st_dev, info.st_ino, info.st_size) != (
+                named.st_dev, named.st_ino, named.st_size):
+            raise RuntimeError("known-hosts inode changed after fingerprint check")
+        again = hashlib.sha256()
+        while True:
+            block = os.read(checked, 1024 * 1024)
+            if not block:
+                break
+            again.update(block)
+        if again.hexdigest() != KNOWN_HOSTS_SHA256:
+            raise RuntimeError("known-hosts changed while checking the host key")
+    finally:
+        os.close(checked)
+    return {"known_hosts_sha256": KNOWN_HOSTS_SHA256,
+            "host_fingerprint": HOST_FINGERPRINT,
+            "host_key_algorithm": "ssh-ed25519"}
+
+
 def build_ssh_argv(operation):
     if operation not in ("probe", "write", "verify"):
         raise ValueError("only fixed probe/write/verify operations exist")
+    checked_ssh_identity()
     source = reviewed_remote_source()
     words = ["exec", "python3", "-c", source, operation]
     command = " ".join(shlex.quote(word) for word in words)
     if shlex.split(command) != words:
         raise RuntimeError("remote command quoting drift")
-    return ["ssh", "-T", "-i", IDENTITY_FILE, "-o", "BatchMode=yes",
+    return ["ssh", "-F", "/dev/null", "-T", "-i", IDENTITY_FILE,
+            "-o", "UserKnownHostsFile=" + str(KNOWN_HOSTS),
+            "-o", "GlobalKnownHostsFile=/dev/null",
+            "-o", "HostKeyAlgorithms=ssh-ed25519",
+            "-o", "UpdateHostKeys=no", "-o", "VerifyHostKeyDNS=no",
+            "-o", "BatchMode=yes",
             "-o", "IdentitiesOnly=yes", "-o", "StrictHostKeyChecking=yes",
             "-o", "ConnectTimeout=20", ENDPOINT, command]
 
@@ -114,14 +193,29 @@ def _fresh(when, max_age_seconds=180):
 
 def _identity(receipt):
     before, after = receipt["identity_before"], receipt["identity_after"]
-    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount",
+                "block_aliases", "ancestry"):
         if before.get(key) != after.get(key):
             raise RuntimeError("host/boot/mount changed during one SSH process: " + key)
     if before["hostname"] != "ip-172-31-32-253" or before["uid"] != 1000:
         raise RuntimeError("wrong trn22 host or UID")
     mount = before["mount"]
-    if mount["filesystem"] != "ext4" or mount["source"] != "/dev/root":
+    if (mount["filesystem"] != "ext4" or mount["source"] != "/dev/root" or
+            mount["major_minor"] != "259:1"):
         raise RuntimeError("not the fixed trn22 persistent ext4 source")
+    aliases = before["block_aliases"]
+    names = aliases["historical_names"]
+    if (aliases["mount_major_minor"] != mount["major_minor"] or
+            set(names) != {"/dev/root", "/dev/nvme0n1p1"} or
+            names["/dev/nvme0n1p1"].get("exists") is not True or
+            names["/dev/nvme0n1p1"].get("resolved_rdev_major_minor") != "259:1" or
+            (names["/dev/root"].get("exists") is True and
+             names["/dev/root"].get("resolved_rdev_major_minor") != "259:1") or
+            (names["/dev/root"].get("exists") is False and
+             names["/dev/root"].get("mount_source_string_only") is not True) or
+            not aliases["sysfs_realpath"].startswith("/sys/devices/") or
+            not aliases["sysfs_realpath"].endswith("/nvme0n1p1")):
+        raise RuntimeError("root-device aliases have not been reconciled")
     ancestry = before["ancestry"]
     for name, expected_uid in (("root", 0), ("home", 0), ("ubuntu", 1000)):
         item = ancestry[name]
@@ -256,7 +350,8 @@ def compare_sessions(write, verify):
             verify["streamed_sha256"] is not None or
             write["target_stat"] != verify["target_stat"]):
         raise RuntimeError("cross-session stream, inode or mode mismatch")
-    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount",
+                "block_aliases", "ancestry"):
         if write["identity_after"][key] != verify["identity_before"][key]:
             raise RuntimeError("cross-session host/boot/mount drift: " + key)
     if write["process_identity"] == verify["process_identity"]:
@@ -274,7 +369,8 @@ def compare_sessions(write, verify):
 def compare_postflight(pre, post, *, persistence=None):
     validate_probe(pre, before_write=True)
     validate_probe(post, before_write=False)
-    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount",
+                "block_aliases", "ancestry"):
         if pre["identity_after"][key] != post["identity_before"][key]:
             raise RuntimeError("pre/postflight host/boot/mount drift: " + key)
     if pre["old_inventory"] != post["old_inventory"]:
