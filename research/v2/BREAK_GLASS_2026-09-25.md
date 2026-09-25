@@ -48,11 +48,31 @@ win. Report failures with their actual error text, redacting only secrets.
 
 ## Job order
 
-1. trn21: S0 cold replay, bare launch, fresh compile cache (submission gate).
-2. trn22: research-v2 dense base control with matrix LR 0.015.
-3. trn21: A1 last-layer tables on research-v2.
-4. trn22: A2 layers 1,-1 on research-v2.
-5. Cross-host replicates, then D1 epoch-value in the next free slot.
+The first S0 cold replay (`fs-20260925-s0-cold-replay-trn21-r1`)
+launched on trn21 but failed before step 1 during Neuron compilation. Its
+label is consumed, and its logs remain protected evidence. The trn22 c5c A0
+control launched; trn21 c5c A0 launched after the S0 failure.
+
+The newer direct instruction from Poojith keeps S0 as the submission gate:
+
+1. Read the detailed `neuronx-cc` error for the failed S0 module, or record
+   that no compiler log exists in the failing debug directory and identify
+   the first actual error in the available logs. Do not infer a code or cache
+   cause from a missing `.neff` alone.
+2. Immediately after trn21 A0 finishes, test S0 under a **new unique label**
+   with the normal warm research cache and bare launch. This separates
+   possible S0-code failure from the cold-start condition.
+3. On the next compatible host slot, cold-test the known-good `116188` file
+   with an explicitly created, fresh empty cache directory and enough disk.
+   Its exact source, flagged launch, proposal, and unique label must be bound
+   before dispatch. If it also fails cold, investigate the setup rather than
+   blaming S0 code.
+4. Only after those diagnostics and applicable native gates, resume A1/A2;
+   keep their preparation moving in parallel so hardware does not idle.
+
+S0 is **not submittable** until it completes a clean cold-cache full run,
+fresh-process public-20M evaluation, and independent post-launch review.
+No failed label may be retried or erased.
 
 Report to Poojith at first launch, each completed run (steps, public-20M BPB,
 delta versus comparable control), and any failure. Research-base adoption is

@@ -104,6 +104,14 @@ role separation from the Implementer, data/evaluator protections, or the
 human-only submission rule. It does not itself authorize later A1/A2 or stack
 runs without their applicable checks. Details: `research/v2/BREAK_GLASS_2026-09-25.md`.
 
+The first trn21 S0 cold replay failed before step 1 at Neuron compilation.
+Poojith's subsequent direct instruction prioritizes a read-only compiler
+postmortem, a new-label warm-cache S0 run after the trn21 c5c A0 control, and
+a separate new-label cold-cache test of the known-good 116188 file. These are
+diagnostic contrasts, not permission to retry a consumed label or skip
+proposals and preflights. S0 remains ineligible for submission until a clean
+cold-cache full run and fresh-process public-20M evaluation are verified.
+
 ## Definition of done for one experiment
 
 The proposal, commit, exact launch command, environment, box, log, parsed metrics, checkpoint
