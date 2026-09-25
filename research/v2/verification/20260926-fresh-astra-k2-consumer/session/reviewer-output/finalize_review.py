@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Write review outputs and hash all retained artifacts; never changes candidate."""
+import hashlib
+import json
+from pathlib import Path
+
+root = Path('/work')
+packet = Path('/packet')
+audit = json.loads((root / 'packet_audit.json').read_text())
+cpu = json.loads((root / 'cpu_results.json').read_text())
+probe = json.loads((root / 'checker_failure_results.json').read_text())
+if not cpu['pass'] or not probe['defect_reproduced']:
+    raise RuntimeError('review evidence does not match decision premise')
+for entry in audit['reconstructed']:
+    if hashlib.sha256((root / entry['path']).read_bytes()).hexdigest() != entry['sha256']:
+        raise RuntimeError('candidate bytes changed')
+thread_env = {'OMP_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1',
+              'NUMEXPR_NUM_THREADS': '1', 'VECLIB_MAXIMUM_THREADS': '1'}
+executions = [
+    {'argv': ['/opt/cpu/bin/python', '-B', '/work/reconstruct_packet.py'],
+     'stdout': 'reconstruction.stdout.txt', 'stderr': 'reconstruction.stderr.txt', 'exit_code': 0},
+    {'argv': ['/opt/cpu/bin/python', '-B', '/work/off_probe.py'], 'environment': thread_env,
+     'stdout': 'off_normal.stdout.json', 'stderr': 'off_normal.stderr.txt', 'exit_code': 0},
+    {'argv': ['/opt/cpu/bin/python', '-O', '-B', '/work/off_probe.py'], 'environment': thread_env,
+     'stdout': 'off_optimized.stdout.json', 'stderr': 'off_optimized.stderr.txt', 'exit_code': 0},
+    {'argv': ['/opt/cpu/bin/python', '-B', '/work/independent_exactness.py'], 'environment': thread_env,
+     'stdout': 'cpu.stdout.jsonl', 'stderr': 'cpu.stderr.txt', 'exit_code': 0},
+    {'argv': ['/opt/cpu/bin/python', '-B', '/work/checker_failure_probe.py'], 'environment': thread_env,
+     'stdout': 'checker_failure.stdout.jsonl', 'stderr': 'checker_failure.stderr.txt', 'exit_code': 0,
+     'exit_code_meaning': 'Expected checker defect successfully reproduced; not checker suitability approval'}]
+(root / 'execution_log.json').write_text(json.dumps({'sequential': True, 'test_executions': executions,
+    'failed_attempts_removed': False, 'native_executed': False,
+    'stderr_note': 'Both Torch processes emitted cpuinfo processor-parse warning; raw stderr retained. Failure probe also retains six expected serialization tracebacks.'}, indent=2) + '\n')
+
+decision = {
+    'decision': 'REFUSE',
+    'scope': 'Suitability of supplied tiny consumer and standalone checker for a future bounded native falsifier',
+    'candidate_commit_as_supplied': audit['candidate_commit'],
+    'native_executed': False, 'launch_authorized': False, 'production_adoption': False,
+    'whole_step_speedup': 'unmeasured',
+    'source_adoption': False,
+    'abstract_cpu_reference': 'PASS at tested fixed bounds; no native inference',
+    'checker_suitability': 'REFUSE pending concrete failure-reporting fix',
+    'reasons': [{
+        'id': 'R1', 'classification': 'checker_failure_reporting_defect',
+        'path': 'reconstructed/research/v2/lanes/k2-resident-consumer/check_native.py',
+        'lines': [86, 155, 175, 178, 185, 187],
+        'finding': 'Nonfinite actual outputs produce nonfinite max_abs; strict JSON serialization fails for both the case and the retained receipt, leaving an invalid partial rank JSON file.',
+        'evidence': ['checker_failure_results.json', 'checker_failure.stdout.jsonl',
+                     'checker_failure.stderr.txt', 'checker_failure_artifacts/positive_inf.rank0.json',
+                     'checker_failure_artifacts/negative_inf.rank0.json', 'checker_failure_artifacts/quiet_nan.rank0.json'],
+        'impact': 'Fails closed, but cannot reliably preserve the structured failure receipt for an explicitly targeted falsifier outcome. Does not falsely mark nonfinite outputs exact.',
+        'required_resolution': 'Make nonfinite diagnostics JSON-safe without relaxing exact byte/dtype/shape comparison, preserve complete refusal receipts on failure, and rerun finite/nonfinite failure-path checks.'}],
+    'evidence_summary': {'input_hashes_match': True, 'reconstructed_files': 3,
+        'diff_git_blob_hashes_match': True, 'candidate_edits': False,
+        'own_cpu_cases_passed': 22, 'supplied_fixture_cpu_cases_passed': 20,
+        'negative_controls_detected': 10, 'invalid_metadata_cases_rejected': 5,
+        'off_checks_passed': 8, 'off_forbidden_import_attempts': 0,
+        'nonfinite_serialization_failures_reproduced': 3,
+        'actual_cpu_embedding_gradients_used': True},
+    'remaining_evidence': [
+        'Resolution and retest of R1 before limited checker suitability can pass.',
+        'Native NKI API availability, dynamic-loop/gather/address semantics, allocation and compiler legality remain unverified.',
+        'Native BF16/FP32 transfer and accumulation rounding, signed zeros and subnormal preservation remain unverified.',
+        'Direct and repeated native calls, eager custom autograd and compiled enclosing autograd on all four ranks remain unexecuted.',
+        'No host-driver binding, production metadata route, full-size/model correctness, training quality acceptance or whole-step speed evidence is supplied.'],
+    'not_a_refusal_reason': 'Native behavior being unknown by itself; that is the intended purpose of a future falsifier.',
+    'report': 'report.md', 'artifact_manifest': 'artifact_manifest.json'
+}
+(root / 'decision.json').write_text(json.dumps(decision, indent=2) + '\n')
+
+report = '''**Decision: REFUSE.** The abstract accumulation passed the bounded CPU evidence, but the supplied checker has a reproduced failure-reporting defect for nonfinite outputs. This decision concerns suitability of this exact source/checker packet for a future tiny native falsifier. Unknown native behavior alone is not the reason for refusal.
+
+`native_executed:false`, `launch_authorized:false`, `production_adoption:false`, `whole_step_speedup:unmeasured`. No implementation, source adoption, native launch, production integration, full-size correctness, quality acceptance, or relaxed threshold is approved.
+
+**Blocking finding R1 — nonfinite results break the failure receipt.** In [check_native.py](/work/reconstructed/research/v2/lanes/k2-resident-consumer/check_native.py:86), `compare()` places a Python NaN or infinity in `max_abs` when an actual output is nonfinite. The case serializer at line 155 uses `allow_nan=False`, so it raises before the explicit exactness exception. The exception handler retains the offending case in `receipt`; the final serializer at line 185 raises again after partially writing the rank JSON. The following stdout receipt, process-group cleanup, and intended error return are then bypassed by the exception.
+
+I reproduced this using the two verbatim Python helper definitions extracted from the reconstructed checker, actual 1×1 CPU tensors, and the same strict JSON calls. This did not execute native `main()`, build a kernel, mock native success, or edit the candidate. Inputs +infinity (`7f800000`), -infinity (`ff800000`), and quiet NaN (`7fc00000`) against +0 each produced `exact:false`, `finite:false`, two serialization exceptions, and an invalid partial JSON file. Finite exact, finite mismatching, and signed-zero mismatching controls serialized successfully. Small scalar inputs isolate the helper/serializer defect; the same nonfinite `max_abs` is possible with the checker's fixed output shape.
+
+This failure remains fail-closed: it does **not** falsely accept a nonfinite gradient. It does prevent complete structured failure evidence for an outcome this falsifier explicitly promises to handle. That concrete checker defect prevents the limited suitability pass. See [structured reproduction](/work/checker_failure_results.json), [raw stderr](/work/checker_failure.stderr.txt), and [retained partial NaN receipt](/work/checker_failure_artifacts/quiet_nan.rank0.json). These malformed files are intentional preserved failure artifacts, not missing final review outputs.
+
+Resolution requires JSON-safe nonfinite diagnostics and complete refusal receipts without weakening byte, shape, or dtype checks, followed by failure-path retesting. I made no candidate changes. Native setup/import/process-group/synchronization errors also occur before the checker's main receipt `try` block (lines 44–73); those fail closed via process errors but lack that structured receipt path. This is a static coverage limitation, not a claim that any API is unsupported here.
+
+**Packet integrity and receipt scope.** I used only `/packet`, my files in `/work`, and installed CPU libraries. No network, provider, external repository, credentials, other reviewer/agent, installation, distributed worker, native import, or native compilation was used. Ordinary Python evaluation of the extracted helpers is not native compilation. The packet identifies candidate `077481d0476cebfd79ddc751f8f63e61c1fbf82f`; without a repository this commit identity cannot be externally authenticated.
+
+All four entries in the supplied input manifest matched their byte counts and SHA256 values. I reconstructed only the three complete new-file hunks and verified their line counts and Git blob SHA1 values against the diff. The files remained byte-identical throughout review:
+
+| Reconstructed file | Lines | SHA256 |
+| --- | ---: | --- |
+| `check_native.py` | 196 | `17e2d2ad417407c12327e1446aed857f273d445946839357102e93dea46d4435` |
+| `consumer_nki.py` | 71 | `57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843` |
+| `reference.py` | 150 | `14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f` |
+
+The normal and optimized receipts have identical 20-case records. I recomputed their output hashes, group bounds, active/skipped counts, row-3 values, and recorded wrong-grouping results, and all matched. Their scope is exactly `PASS_STDLIB_REFERENCE_ONLY`: they explicitly deny Torch/native execution and leave native legality/exactness unproved. Their claimed commands, timestamps, execution provenance, peak traced allocations (7,603,477 and 7,591,445 bytes), and omitted implementer test coverage cannot be authenticated from JSON alone. My reconstruction establishes there is no production `train.py` hunk in this packet; it does not inspect an absent production repository. Details are in [packet_audit.json](/work/packet_audit.json) and the receipt audit within [cpu_results.json](/work/cpu_results.json).
+
+**Independent CPU evidence.** [independent_exactness.py](/work/independent_exactness.py) is my own test program. Its oracle decodes finite FP32 values as signed integer multiples of 2^-149, adds exactly, and rounds ties to even after every occurrence. Seven explicit oracle checks include both zero signs, subnormal addition, transition to the smallest normal, even/odd halfway rounding, and cancellation. A separately written emulator follows the intended two-group control flow using Python float addition rounded with `struct`, pointers, decrementing counts, sentinel 256, and inactive selection. It emulates the intended indexing, not NKI `.ap`, DMA, or compiler semantics.
+
+Each case compares complete FP32 bytes among the independent oracle, the emulator, supplied `dense()` and `consumer()`, and actual single-thread CPU `torch.nn.functional.embedding` backward with FP32 weights and BF16/FP32 upstreams. The custom native autograd wrapper was not executed. Routing is independently built by a stable token-index sort and checked against supplied metadata and per-row visits. Every unused row must contain positive-zero bits; all 256 rows must be stored.
+
+All **42 cases passed**: 11 independently designed fixtures in both dtypes (22 cases), plus the 10 supplied fixtures in both dtypes (20 cases). My fixtures cover permuted unique IDs, interleaving across rows 0/127/128/255, unequal lane exhaustion, 256 occurrences in either group, zero-trip groups, logical empty input with fixed storage, duplicates across token tiles, large and small cancellation, signed zeros, subnormals and the normal boundary, and retention of a finished row while other lanes continue. All kernel-model storage is fixed at V=256, C=128, T=256; logical empty is tested against a real empty CPU embedding backward too. The proposed native checker itself limits logical-empty testing to direct calls, as its source explicitly records.
+
+All **10 negative controls were detected**. Reversing occurrences or reducing two token tiles changes `[2^25, 2, -2^25]` at row 127 from +0 to 2, and `[2, 2^-23, -2]` from +0 to 2^-23; all 128 channels differ in each control, in both input dtypes. Rounding the final FP32 `1 + 2^-8` gradient to BF16 is also detected in both dtype cases. Five malformed metadata cases (reordering, count, start, maximum, out-of-bounds position) are rejected by the supplied validator. Inputs, metadata, traces, all compared outputs, and deliberate wrong outputs are retained in [cpu_artifacts](/work/cpu_artifacts); binary arrays use little-endian FP32, with BF16 inputs expanded exactly to FP32 for storage.
+
+[off_probe.py](/work/off_probe.py) ran in separate normal and `-O` processes before CPU Torch testing. Eight checks passed: default/explicit-OFF factory calls refused before any native import, and checker OFF calls returned `DISABLED`, even with other options populated. An import guard recorded zero Torch/NKI/torch_neuronx attempts; a trap proved no support hashing occurred through the OFF branch; no output directory was created. This establishes supplied OFF behavior, not behavior of an absent production integration.
+
+Execution was sequential with `/opt/cpu/bin/python`, Python 3.14.4 and Torch 2.13.0+cpu, five CPU thread environment limits set to 1, and Torch intra/inter-op pools set to 1. Denormal flushing was explicitly disabled, supported on this CPU. Tensors were at most 256×128; the sequential harness has a conservative live tensor-storage bound of 4 MiB, below 64 MiB (this is an allocation bound, not total interpreter/library RSS). The separate serializer probe used 1×1 tensors. No full model, workers, tensor-size expansion, or correctness tolerance was used. Both Torch processes emitted a cpuinfo processor-information warning; it is preserved in stderr and did not prevent the exact byte comparisons. All test processes returned 0; for the failure probe that means successful reproduction of the defect, not candidate approval. Six expected serialization exception tracebacks and partial files remain intact. No failed attempt was deleted and no threshold was changed.
+
+**Source interpretation and remaining gates.** The supplied metadata builder gives per-row stable token positions and exact group maxima. Under the intended gather semantics, each active iteration consumes the next occurrence and makes one FP32 addition; no row reduction, atomic, tree, or segment reassociation appears. A row begins at +0, inactive iterations retain its bits, and each output row is stored once. The independent CPU results support that abstract arithmetic. Uploaded synthetic CPU metadata is the only route here; its construction and transfer are outside optional component timing.
+
+The proposed checker uses shape/dtype/byte comparisons, repeated direct calls, CPU dense backward, and eager/compiled enclosing custom-autograd checks for nonempty cases. Missing gradients are explicit failures; rounded finite outputs cannot pass the byte/dtype gate. Those are appropriate narrow checks, subject to R1. I do not treat unknown native behavior as a source defect. NKI API availability, register/dynamic-loop legality, indirect addressing and skip semantics, broadcasts, allocation, int32 handling, BF16 loads, native rounding, signed zeros/subnormals, and eager/compiled backend compatibility are all **unverified**. A future unsupported primitive/compile error would establish unsupported execution of this candidate, not disprove the abstract recurrence. A real native byte mismatch on supported execution would falsify native exactness for that case. Four-rank execution, host binding, full-model correctness, production routing, timing, and quality gates remain separate and unsatisfied.
+
+[decision.json](/work/decision.json) contains the machine-readable decision; [execution_log.json](/work/execution_log.json) records commands and exits. Raw stdout/stderr, test sources, per-case results, reconstructed files, and failure artifacts are included in [artifact_manifest.json](/work/artifact_manifest.json) with SHA256 values. The manifest excludes its own recursive hash and explicitly records that convention.
+'''
+(root / 'report.md').write_text(report)
+
+manifest = {'algorithm': 'SHA256', 'self_hash_policy': 'artifact_manifest.json is excluded because a recursive self-hash is not defined',
+            'native_executed': False, 'launch_authorized': False, 'production_adoption': False,
+            'whole_step_speedup': 'unmeasured', 'packet_inputs': [], 'work_artifacts': []}
+for path in sorted(packet.rglob('*')):
+    if path.is_file():
+        data = path.read_bytes()
+        manifest['packet_inputs'].append({'path': str(path), 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
+for path in sorted(root.rglob('*')):
+    if path.is_file() and path.name != 'artifact_manifest.json':
+        data = path.read_bytes()
+        manifest['work_artifacts'].append({'path': str(path.relative_to(root)), 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
+(root / 'artifact_manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+print(json.dumps({'decision': decision['decision'], 'work_artifacts_hashed': len(manifest['work_artifacts']),
+                  'packet_inputs_hashed': len(manifest['packet_inputs']), 'candidate_bytes_unchanged': True}))

@@ -1,0 +1,62 @@
+{
+  "decision": "REFUSE",
+  "scope": "Suitability of supplied tiny consumer and standalone checker for a future bounded native falsifier",
+  "candidate_commit_as_supplied": "077481d0476cebfd79ddc751f8f63e61c1fbf82f",
+  "native_executed": false,
+  "launch_authorized": false,
+  "production_adoption": false,
+  "whole_step_speedup": "unmeasured",
+  "source_adoption": false,
+  "abstract_cpu_reference": "PASS at tested fixed bounds; no native inference",
+  "checker_suitability": "REFUSE pending concrete failure-reporting fix",
+  "reasons": [
+    {
+      "id": "R1",
+      "classification": "checker_failure_reporting_defect",
+      "path": "reconstructed/research/v2/lanes/k2-resident-consumer/check_native.py",
+      "lines": [
+        86,
+        155,
+        175,
+        178,
+        185,
+        187
+      ],
+      "finding": "Nonfinite actual outputs produce nonfinite max_abs; strict JSON serialization fails for both the case and the retained receipt, leaving an invalid partial rank JSON file.",
+      "evidence": [
+        "checker_failure_results.json",
+        "checker_failure.stdout.jsonl",
+        "checker_failure.stderr.txt",
+        "checker_failure_artifacts/positive_inf.rank0.json",
+        "checker_failure_artifacts/negative_inf.rank0.json",
+        "checker_failure_artifacts/quiet_nan.rank0.json"
+      ],
+      "impact": "Fails closed, but cannot reliably preserve the structured failure receipt for an explicitly targeted falsifier outcome. Does not falsely mark nonfinite outputs exact.",
+      "required_resolution": "Make nonfinite diagnostics JSON-safe without relaxing exact byte/dtype/shape comparison, preserve complete refusal receipts on failure, and rerun finite/nonfinite failure-path checks."
+    }
+  ],
+  "evidence_summary": {
+    "input_hashes_match": true,
+    "reconstructed_files": 3,
+    "diff_git_blob_hashes_match": true,
+    "candidate_edits": false,
+    "own_cpu_cases_passed": 22,
+    "supplied_fixture_cpu_cases_passed": 20,
+    "negative_controls_detected": 10,
+    "invalid_metadata_cases_rejected": 5,
+    "off_checks_passed": 8,
+    "off_forbidden_import_attempts": 0,
+    "nonfinite_serialization_failures_reproduced": 3,
+    "actual_cpu_embedding_gradients_used": true
+  },
+  "remaining_evidence": [
+    "Resolution and retest of R1 before limited checker suitability can pass.",
+    "Native NKI API availability, dynamic-loop/gather/address semantics, allocation and compiler legality remain unverified.",
+    "Native BF16/FP32 transfer and accumulation rounding, signed zeros and subnormal preservation remain unverified.",
+    "Direct and repeated native calls, eager custom autograd and compiled enclosing autograd on all four ranks remain unexecuted.",
+    "No host-driver binding, production metadata route, full-size/model correctness, training quality acceptance or whole-step speed evidence is supplied."
+  ],
+  "not_a_refusal_reason": "Native behavior being unknown by itself; that is the intended purpose of a future falsifier.",
+  "report": "report.md",
+  "artifact_manifest": "artifact_manifest.json"
+}

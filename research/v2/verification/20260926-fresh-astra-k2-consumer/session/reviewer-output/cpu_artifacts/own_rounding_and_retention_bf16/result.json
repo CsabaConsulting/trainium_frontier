@@ -1,0 +1,44 @@
+{
+  "name": "rounding_and_retention",
+  "dtype": "bf16",
+  "origin": "own",
+  "input_sha256": "77a5a95550b2f59281f4cdf31f0dde7f1478be922ed074642ed3c81233b78ec0",
+  "expected_sha256": "275436257ec10ba73c7ba464514e77101212a71752454900ee37b3457ae0822a",
+  "torch_sha256": "275436257ec10ba73c7ba464514e77101212a71752454900ee37b3457ae0822a",
+  "checks": {
+    "emulator": {
+      "exact": true,
+      "differing_elements": 0,
+      "first": null
+    },
+    "torch_cpu_embedding": {
+      "exact": true
+    },
+    "supplied_dense": {
+      "exact": true
+    },
+    "supplied_consumer": {
+      "exact": true
+    },
+    "supplied_metadata": {
+      "exact": true
+    },
+    "stable_visits": {
+      "exact": true
+    },
+    "all_rows_stored": {
+      "exact": true
+    },
+    "unused_rows_positive_zero": {
+      "exact": true
+    }
+  },
+  "group_rounds": [
+    253,
+    1
+  ],
+  "active_gathers": 256,
+  "inactive_skips": 32256,
+  "artifact_directory": "cpu_artifacts/own_rounding_and_retention_bf16",
+  "pass": true
+}

@@ -1,0 +1,44 @@
+{
+  "name": "subnormal_and_boundary",
+  "dtype": "bf16",
+  "origin": "own",
+  "input_sha256": "d04aeb8376a51d95f876b145a146f24e8ff7e5cb8777e8d9c8dfe17475425f8d",
+  "expected_sha256": "69eb9c005535a8cf96cc62a3d0931c902bd3443a20c7101ab73606cf8bb8db8f",
+  "torch_sha256": "69eb9c005535a8cf96cc62a3d0931c902bd3443a20c7101ab73606cf8bb8db8f",
+  "checks": {
+    "emulator": {
+      "exact": true,
+      "differing_elements": 0,
+      "first": null
+    },
+    "torch_cpu_embedding": {
+      "exact": true
+    },
+    "supplied_dense": {
+      "exact": true
+    },
+    "supplied_consumer": {
+      "exact": true
+    },
+    "supplied_metadata": {
+      "exact": true
+    },
+    "stable_visits": {
+      "exact": true
+    },
+    "all_rows_stored": {
+      "exact": true
+    },
+    "unused_rows_positive_zero": {
+      "exact": true
+    }
+  },
+  "group_rounds": [
+    52,
+    204
+  ],
+  "active_gathers": 256,
+  "inactive_skips": 32512,
+  "artifact_directory": "cpu_artifacts/own_subnormal_and_boundary_bf16",
+  "pass": true
+}

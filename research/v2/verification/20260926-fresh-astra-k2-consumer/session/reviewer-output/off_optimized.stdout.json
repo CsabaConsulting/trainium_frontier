@@ -1,0 +1,46 @@
+{
+  "optimization": 1,
+  "checks": [
+    {
+      "kind": "factory",
+      "kwargs": {},
+      "error": "EXPERIMENT_DISABLED: no native module imported",
+      "pass": true
+    },
+    {
+      "kind": "factory",
+      "kwargs": {
+        "enabled": false
+      },
+      "error": "EXPERIMENT_DISABLED: no native module imported",
+      "pass": true
+    },
+    {
+      "kind": "checker",
+      "args": [],
+      "exit_code": 0,
+      "stdout": "{\"status\": \"DISABLED\", \"native_imported\": false, \"native_executed\": false}\n",
+      "pass": true
+    },
+    {
+      "kind": "checker",
+      "args": [
+        "--timing-repeats",
+        "5",
+        "--out-dir",
+        "/work/off_must_not_exist",
+        "--expected-kernel-sha256",
+        "incorrect",
+        "--expected-reference-sha256",
+        "incorrect"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"status\": \"DISABLED\", \"native_imported\": false, \"native_executed\": false}\n",
+      "pass": true
+    }
+  ],
+  "forbidden_import_attempts": [],
+  "off_directory_created": false,
+  "native_executed": false,
+  "pass": true
+}

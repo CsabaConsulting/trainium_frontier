@@ -1,0 +1,88 @@
+{
+  "sequential": true,
+  "test_executions": [
+    {
+      "argv": [
+        "/opt/cpu/bin/python",
+        "-B",
+        "/work/reconstruct_packet.py"
+      ],
+      "stdout": "reconstruction.stdout.txt",
+      "stderr": "reconstruction.stderr.txt",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/cpu/bin/python",
+        "-B",
+        "/work/off_probe.py"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "stdout": "off_normal.stdout.json",
+      "stderr": "off_normal.stderr.txt",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/cpu/bin/python",
+        "-O",
+        "-B",
+        "/work/off_probe.py"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "stdout": "off_optimized.stdout.json",
+      "stderr": "off_optimized.stderr.txt",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/cpu/bin/python",
+        "-B",
+        "/work/independent_exactness.py"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "stdout": "cpu.stdout.jsonl",
+      "stderr": "cpu.stderr.txt",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/cpu/bin/python",
+        "-B",
+        "/work/checker_failure_probe.py"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "stdout": "checker_failure.stdout.jsonl",
+      "stderr": "checker_failure.stderr.txt",
+      "exit_code": 0,
+      "exit_code_meaning": "Expected checker defect successfully reproduced; not checker suitability approval"
+    }
+  ],
+  "failed_attempts_removed": false,
+  "native_executed": false,
+  "stderr_note": "Both Torch processes emitted cpuinfo processor-parse warning; raw stderr retained. Failure probe also retains six expected serialization tracebacks."
+}
