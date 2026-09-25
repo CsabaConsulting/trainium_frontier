@@ -1,0 +1,266 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/tmp/g2-hnjcr5wo/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "128",
+    "--depth",
+    "8",
+    "--unet-skip",
+    "--partial-attn-8",
+    "--attention-layers",
+    "0,2,4,6,7",
+    "--initial-cache-refresh",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800"
+  ],
+  "elapsed_s": 4.4,
+  "host": "poojith",
+  "micro_batch": [
+    2,
+    128
+  ],
+  "nproc": 4,
+  "observation_driver_sha256": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+  "plan_sha256": null,
+  "prepare": {
+    "dir": "/home/poojith-devan/Desktop/Trainium/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.14.4",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-hnjcr5wo/out"
+      ],
+      "cache_observations": null,
+      "classification": "AttributeError in <lambda>:4724",
+      "error": "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'",
+      "rank": 0,
+      "schedule_observations": null,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens",
+        "test-only compile delay after first optimizer step; actual model/loop remains CPU synthetic"
+      ],
+      "status": "FAIL",
+      "torch": "2.13.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4948, in <module>\n    main()\n    ~~~~^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4085, in main\n    optimizer.step(update_adamw=adam_step_now)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4724, in <lambda>\n    optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)\n                                                                ~~~~~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-startup-adjusted-schedule-20260926/research/v2/lanes/startup-adjusted-schedule/g2_schedule_observe.py\", line 34, in step\n    records.append([{k: group[k] for k in keys if k in group} for group in self.param_groups])\n                                                                           ^^^^^^^^^^^^^^^^^\n",
+        "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'\n"
+      ],
+      "train_py_frame": {
+        "code": "optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)",
+        "function": "<lambda>",
+        "line": 4724
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-hnjcr5wo/out"
+      ],
+      "cache_observations": null,
+      "classification": "AttributeError in <lambda>:4724",
+      "error": "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'",
+      "rank": 1,
+      "schedule_observations": null,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.13.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4948, in <module>\n    main()\n    ~~~~^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4085, in main\n    optimizer.step(update_adamw=adam_step_now)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4724, in <lambda>\n    optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)\n                                                                ~~~~~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-startup-adjusted-schedule-20260926/research/v2/lanes/startup-adjusted-schedule/g2_schedule_observe.py\", line 34, in step\n    records.append([{k: group[k] for k in keys if k in group} for group in self.param_groups])\n                                                                           ^^^^^^^^^^^^^^^^^\n",
+        "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'\n"
+      ],
+      "train_py_frame": {
+        "code": "optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)",
+        "function": "<lambda>",
+        "line": 4724
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-hnjcr5wo/out"
+      ],
+      "cache_observations": null,
+      "classification": "AttributeError in <lambda>:4724",
+      "error": "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'",
+      "rank": 2,
+      "schedule_observations": null,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.13.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4948, in <module>\n    main()\n    ~~~~^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4085, in main\n    optimizer.step(update_adamw=adam_step_now)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4724, in <lambda>\n    optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)\n                                                                ~~~~~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-startup-adjusted-schedule-20260926/research/v2/lanes/startup-adjusted-schedule/g2_schedule_observe.py\", line 34, in step\n    records.append([{k: group[k] for k in keys if k in group} for group in self.param_groups])\n                                                                           ^^^^^^^^^^^^^^^^^\n",
+        "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'\n"
+      ],
+      "train_py_frame": {
+        "code": "optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)",
+        "function": "<lambda>",
+        "line": 4724
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-hnjcr5wo/out"
+      ],
+      "cache_observations": null,
+      "classification": "AttributeError in <lambda>:4724",
+      "error": "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'",
+      "rank": 3,
+      "schedule_observations": null,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.13.0+cpu",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4948, in <module>\n    main()\n    ~~~~^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4085, in main\n    optimizer.step(update_adamw=adam_step_now)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py\", line 4724, in <lambda>\n    optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)\n                                                                ~~~~~~~~~~~~^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-startup-adjusted-schedule-20260926/research/v2/lanes/startup-adjusted-schedule/g2_schedule_observe.py\", line 34, in step\n    records.append([{k: group[k] for k in keys if k in group} for group in self.param_groups])\n                                                                           ^^^^^^^^^^^^^^^^^\n",
+        "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'\n"
+      ],
+      "train_py_frame": {
+        "code": "optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)",
+        "function": "<lambda>",
+        "line": 4724
+      }
+    }
+  ],
+  "reason": "AttributeError in <lambda>:4724",
+  "schedule_observer_sha256": "ba69c2461fcc53c97669ece35677df760248159391d79b15038aef1ffa210f8e",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x128 tokens",
+    "test-only compile delay after first optimizer step; actual model/loop remains CPU synthetic"
+  ],
+  "steps": 3,
+  "support_pins": {
+    "research/v2/lanes/initial-cache-refresh/g2_observe.py": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+    "workflow/tools/preflight_dryrun.py": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "workflow/tools/stub_prepare/prepare.py": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2"
+  },
+  "timed_out": false,
+  "torch": "2.13.0+cpu",
+  "torchrun_log_tail": [
+    "muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=3 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 3 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 8,",
+    "  \"n_head\": 1,",
+    "  \"n_embd\": 128,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "architecture: unet_skip_pairs=4 attention_layers=(0, 2, 4, 6, 7) value_embedding_layers=('7',) ngram_tables=()",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [1097728, 1097728, 1081376, 1246484], \"estimated_ms_by_owner\": [0.54060993125, 0.54060993125, 0.54060993125, 0.5306206444841626], \"shard_elements\": 1246592, \"total_padded_bytes\": 19945472}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=4,523,316 flops_per_token=2.871266e+07",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [1097728, 1097728, 1081376, 1246484], \"estimated_ms_by_owner\": [0.54060993125, 0.54060993125, 0.54060993125, 0.5306206444841626], \"shard_elements\": 1246592, \"total_padded_bytes\": 19945472}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [1097728, 1097728, 1081376, 1246484], \"estimated_ms_by_owner\": [0.54060993125, 0.54060993125, 0.54060993125, 0.5306206444841626], \"shard_elements\": 1246592, \"total_padded_bytes\": 19945472}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [1097728, 1097728, 1081376, 1246484], \"estimated_ms_by_owner\": [0.54060993125, 0.54060993125, 0.54060993125, 0.5306206444841626], \"shard_elements\": 1246592, \"total_padded_bytes\": 19945472}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/poojith-devan/Desktop/Trainium-architecture-initial-cache-refresh-20260925/workflow/proposals/research-v2/train.py",
+  "train_py_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "verdict": "FAIL"
+}

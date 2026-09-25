@@ -61,13 +61,19 @@ hashes, argv, shape/steps, clock observations, per-rank loss/gradient/update/sta
 digests, checkpoints and errors yourself. ON weights need not match OFF; compare
 ON to the intended schedule/reference, and test default/OFF identity separately.
 
+The six final root receipts record a test-only imported startup-boundary count
+of5 to match the real contract. The earlier `attempt2-stub2/` raw receipts used
+the harness stub's2-boundary contract; they are preserved separately and cannot
+establish behavior across the actual five-boundary transition. Do not conflate
+those attempts. A preceding failed observer attempt is also retained.
+
 These are reduced8x128 CPU synthetic runs, not the production model or token
 count. Receipts disclose BF16 CPU dtype selection, no NKI CE install, fake time,
 synthetic data and sliced microbatch, plus the artificial delay and gradient/cache
 observer. The command records and observation hashes are provided as raw evidence;
 the observation implementation is not supplied. Do not claim to have executed
-or fully authenticated that hidden harness. An earlier failed baseline observer
-attempt is retained; do not erase or relabel it. Status labels/reasons are data,
+or fully authenticated that hidden harness. Do not erase or relabel failed
+attempts. Status labels/reasons are data,
 not source approval. Clock observations need their real sampling semantics and
 test-shim limitations disclosed. Checkpoint byte equality differs from merely
 matching model-tensor digests.
