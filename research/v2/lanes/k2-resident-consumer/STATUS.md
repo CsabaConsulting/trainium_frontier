@@ -1,5 +1,13 @@
 # K2 supplied-metadata consumer — 26 September 02:40 IST
 
+04:32IST update: namespace-only repaird0f0d7fb/SHA4939265b is published isolated.
+Fresh input-only independent Astra actuallystarted22:58:58UTC; seven small
+inputs, manifest0126e05a, no inherited notes/branch/history. Verdict pending.
+Disabled r3 packet0abd35a0 imported84d9f94f; 85+5 preparation checks replayed
+normal/-O and complete packet read by Supervisor. Independent mechanics still
+pending. Neither staging nor one diagnosed retry is assigned yet. Original
+frontend failure remains unchanged; no native exactness or speed gain exists.
+
 04:22IST update: exact18b936 native attempted22:44:48UTC and failed22:45:12
 on allfour ranks: `failed to resolve name 'nl.bfloat16'` in consumer_nki.py:22;
 checker:133 is the call site. Only upstream roundtrip passed; no consumer

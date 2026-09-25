@@ -1,5 +1,20 @@
 # Current state
 
+## 23:02 UTC: both jobs preserved; K2 fresh review actually running
+
+trn21 continues the full75b944 Recursive architecture experiment launched
+22:56:53UTC, with fresh20M attached. trn22 stable-source S1 was still compiling
+at23:01:43UTC (~844s); no fifth-boundary result yet. S2 remains conditional on
+the exact driver's cold/evidence gates. Do not call cache reuse fixed.
+
+Fresh K2 namespace-only reviewer actually started22:58:58.396421UTC, new isolated
+Astra session, seven input files/32,019bytes. Launch f5010ac6 imported as d0f7a19c;
+root read spec/provenance and replayed22 input checks normal/-O. Source verdict
+pending. Disabled retry packet0abd35a0 imported as84d9f94f; main read complete
+packet and replayed85+5 preparation checks normal/-O. Independent mechanics
+pending, no Operator release. Clock36a862 cold-five packet remains preparation.
+Confirmed BPB and upload HOLD unchanged. No new AWS actions or deletions.
+
 ## 22:58 UTC: full quality run actually launched; research continues
 
 trn21 exact75b944+Recursive full1800 actually launched22:56:53.920340UTC
