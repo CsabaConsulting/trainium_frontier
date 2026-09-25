@@ -1,6 +1,30 @@
 # Current state
 
-Last reconciled: 2026-09-25 13:35 UTC
+Last reconciled: 2026-09-25 13:51 UTC
+
+## Live cache-contrast handoff, 13:51 UTC
+
+Both c5c A0 controls have reached real training steps. The trn21 Operator
+reported step 670 with finite loss and about 269k tokens/s; trn22 likewise
+remains in training. Neither has completed its separate public-20M evaluation,
+so neither is a scored control yet. Independent bounded post-launch *identity*
+reviews passed for both hosts; result use still awaits complete artifacts and
+independent result review. The best confirmed public-20M mean remains
+0.9919537735; no new BPB improvement has been established.
+
+Two one-use diagnostics are now assigned for the first compatible free host
+slots, without overlapping the controls or their evaluations:
+`fs-20260925-s0-warm-diagnostic-trn21-r2` on trn21, and
+`fs-20260925-116188-cold-contrast-trn22-r1` on trn22. The latter's exact
+assignment passed independent final review at `d346801a` and was enabled at
+`6c814592`; each Operator must still pass fresh disk, quiescence, source,
+evaluator and cache checks. The original S0 r1 had no `log-neuron-cc.txt` in
+the failed module's debug directory; its earliest recorded error was a
+`python3` segfault before the reported NKI RNG `module.neff` read failure.
+Neither contrast by itself clears S0: a new, proven cold-cache S0 full replay,
+checkpoint, fresh-process public-20M evaluation and independent review are
+still required before submission. A1/A2 remain behind their exact CPU G2 and
+native smoke gates.
 
 ## Live break-glass handoff, 13:35 UTC
 
