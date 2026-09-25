@@ -1,16 +1,19 @@
-# trn21 e65 → r10 r4 source-stage request — FINAL REVIEW PENDING / HOLD
+# trn21 e65 → r10 r5 local STOP repair — DISABLED / HOLD
 
 The exact disabled r4 source at `826d1dc5` received independent **static-only**
 PASS at `b8c9c36b4fa5b72a225d8d55aa223b8e2b341bec`, receipt SHA-256
 `dd251ab06b59fe01136773d1c4f178869bf9f98771ffb58ee2cd81a9fe648d32`.
-This successor adds one canonical exact `REQUEST.ENABLED_PENDING_FINAL_REVIEW.json`
-for **SOURCE STAGE ONLY**. Its `dispatch_authorized: true` and
-`source_stage_authorized: true` express request intent, not launch authority:
-the independent request-bound final **stage** PASS and Supervisor one-attempt
-assignment files are absent. The executable entrypoint therefore exits HOLD
-before marker, journal, or SSH. No host contact, transfer, new checkout,
-native run, AWS action, cleanup, breaker change, evaluation, or submission
-occurred. This package remains distinct from the held
+The later enabled r4 request `49f2941f` received independent final **HOLD**
+at `06451f16d48026b9a167edf803ce57fdec787ce4`, receipt SHA-256
+`0b9200787ed6a1d79b9b056d7f3068329fd89cf15fbbc0bd4df96aa1f654a515`:
+a STOP/breaker arriving during the local SSH identity check could permit a
+read-only remote timeout probe before the next local gate. This distinct r5
+Implementer repair adds that gate and **removes** the held r4 enabled request.
+Only `REQUEST.HOLD.json` remains, with both dispatch and source-stage flags
+false. No independent r5 static/final PASS or Supervisor assignment exists;
+the executable entrypoint exits HOLD before marker, journal, or SSH. No host
+contact, transfer, new checkout, native run, AWS action, cleanup, breaker
+change, evaluation, or submission occurred. This package remains distinct from the held
 `c03e3ac3` trn21 r10 stage; that frozen r1 package and its independent
 `31e022d5` HOLD remain untouched. Historical transfer packages and the
 accepted e65 checkout remain untouched. Do not substitute held full-capsule
@@ -24,19 +27,22 @@ in the pre-open helper and rejected two sequential whole-home label scans
 before any actual `O_EXCL`. Its fixed result and timing attempt are consumed;
 neither is a source-stage attempt, and neither may be rerun.
 
-This r4 changes the remote pre-open scan sequence, the local final receipt
-validator, and the local timeout identity gate. One whole-home label scan
+The inherited r4 remote source and local final receipt validator remain
+unchanged. One whole-home label scan
 remains immediately before `O_EXCL`, after the full write-phase `_probe`
 scan, and the existing whole-home post-open scan remains mandatory **before
-payload**. All full activity/Neuron,
-STOP, root byte/inode, source/Git, checkpoint/cache, protected-stage-file,
-mount/lock/ACL/group, distinct-session, one-shot and local active Desktop
+payload**. This r5 changes only the local operator STOP boundary: after each
+bounded `_ssh_identity()`, it rechecks local active Desktop STOP/breakers
+**before** the first possible remote timeout-probe SSH. The phase wrapper
+constructs its command before identity so a STOP arriving during that work
+is also seen at the new gate. Existing post-probe STOP checks remain.
+All full activity/Neuron, STOP, root byte/inode, source/Git,
+checkpoint/cache, protected-stage-file, mount/lock/ACL/group,
+distinct-session, one-shot and local active Desktop
 controller checks remain. The stage label, target, bundle, science bytes and
-one-attempt marker are unchanged. Independent review of these exact r4 bytes
-has been completed **statically**; a separate independent final review of
-this exact enabled request is still required. The frozen operator comments
-describing an absent enabled request predate this final-pending request; its
-executable gate requires the request, exact final review, and assignment.
+one-attempt marker are unchanged. The previous r4 static PASS does **not**
+review this changed r5 operator; new independent static and final request
+reviews are required before any later enabled source-stage request.
 
 ## Frozen local subject
 
@@ -49,11 +55,11 @@ executable gate requires the request, exact final review, and assignment.
 | Local one-shot marker | `/home/poojith-devan/Desktop/Trainium-source-artifacts/trn21-c5c-a0-r10-incremental-stage-r2.one-attempt.jsonl` (absent in this package) |
 | Git bundle | `e65-to-r10.bundle`, 109,800 B, SHA-256 `b191ba0b5272d062c61ed9e35cfbb7efcb67e1df49cbe3959be28c906073d20e` |
 | Remote source | `remote_incremental.py`, SHA-256 `6f0da61a76595a6fea18662d07d7311c504ab3a4b641ac972c440438bda08bf6` |
-| Local entry | `operator_once.py`, SHA-256 `b397a79246f2c854faf6f5a9bdbaa27f85f7fe3fd234958a01e8783c635996be` |
-| Disabled request | `REQUEST.HOLD.json`, SHA-256 `910bea1646e8f3e0715b8f9bf5c8d84385d12778f12223d5afbb9c5134801d56` |
-| Exact enabled stage-only request | `REQUEST.ENABLED_PENDING_FINAL_REVIEW.json`, SHA-256 `cc2bddbdda631c79f6fc8b6a7555504a4d994c3c3a5665d203c74e1fdfd72a76` |
+| Local entry | `operator_once.py`, SHA-256 `f48a35c460498a81a56cc73f68f5130a4d91f319a88be7c0ad6a1668f80de70b` |
+| Disabled request | `REQUEST.HOLD.json`, SHA-256 `2f2451cdcc03828fea1f9d7ee85726604ef7cc99daba1b7ecb9dc1e85f8686be` |
+| Held r4 request (not present here) | `49f2941f` request SHA-256 `cc2bddbdda631c79f6fc8b6a7555504a4d994c3c3a5665d203c74e1fdfd72a76`; independent final HOLD `06451f16`, receipt SHA-256 `0b9200787ed6a1d79b9b056d7f3068329fd89cf15fbbc0bd4df96aa1f654a515` |
 | Independent r4 static receipt | `research/v2/verification/20260925-trn21-r10-stage-r4-single-final-scan-independent-static-PASS.md`, SHA-256 `dd251ab06b59fe01136773d1c4f178869bf9f98771ffb58ee2cd81a9fe648d32` at `b8c9c36b` |
-| Offline tests | `test_incremental_stage.py`, SHA-256 `df5dd0a82771dc74affcf4d47171453abdd2a10851a53bf89c67c40215590de5`; `test_final_boundary_r2.py`, SHA-256 `a3df70766254e7deb73ff9712763ce2f7ac8e75b1920cca735408a824ddf3204`; `test_final_pending_request.py`, SHA-256 `005e0a55785dc9382468162aaedbd7c94af172261e231591c309564e728d7f3b` |
+| Offline tests | `test_incremental_stage.py`, SHA-256 `d993e860f0d9f22a8512986491fc44081b38a4eafba922ff5e512e012ac49083`; `test_final_boundary_r2.py`, SHA-256 `a3df70766254e7deb73ff9712763ce2f7ac8e75b1920cca735408a824ddf3204`; `test_r5_stop_boundary.py`, SHA-256 `e914317840ff77e218285fca5c3014ed356a7bbbc86fb6328d465ec53506d506` |
 
 The bundle verifies with e65 as its only prerequisite and r10 as its only
 HEAD. The `e65..r10` inventory is 141 Git objects: 15 commits, 61 trees,
@@ -65,12 +71,14 @@ Hugging Face or OpenAI token-signature hits. The scan does not prove that
 arbitrary natural-language content has no sensitive value; independent
 review must check the exact bundle too. No credential bytes were printed.
 
-The exact request machine-binds the reviewed r4 operator, remote source,
-bundle, e65/r10 commits, r10 source-review receipt, trn21 paths, label and
-marker. The frozen operator schema does **not** accept an extra r4 static
-review field. The final independent reviewer must therefore explicitly cite
-the `b8c9c36b` receipt and its empty-provisional/noncooperating-actor risk;
-adding an unrecognized request key would fail the exact authority gate.
+Any future exact enabled request must machine-bind this new r5 operator,
+unchanged r4 remote source/bundle, e65/r10 commits, r10 source-review
+receipt, trn21 paths, label and marker. The frozen authority schema does
+not accept an extra static-review field. A future independent final reviewer
+must explicitly cite any independent r5 static review plus the inherited
+empty-provisional/noncooperating-actor risk; adding an unrecognized request
+key would fail the exact authority gate. The held r4 request hash cannot
+serve as a request hash for this changed operator.
 
 `train.py` is still SHA-256
 `c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586`;
@@ -125,21 +133,23 @@ alternates, and strict full Git fsck.
 
 ## Future guarded stage (not authorized now)
 
-1. The separate Verifier has statically reviewed the r4 source, **not** this
-   enabled request or live timing. Only the actual independent final **stage**
-   PASS bound to request SHA-256
-   `cc2bddbdda631c79f6fc8b6a7555504a4d994c3c3a5665d203c74e1fdfd72a76`
-   and a Supervisor one-shot assignment can complete `stage_once` authority.
-   Both fixed future files are absent here; do not synthesize or infer them.
-   The older checked-in HOLD JSON cannot be edited into authority.
+1. A separate Verifier must review this exact disabled r5 source and the
+   r4 final HOLD repair. Only a **new** exact enabled source-stage request,
+   actual request-bound independent final **stage** PASS, and Supervisor
+   one-shot assignment can complete `stage_once` authority. All three fixed
+   future files are absent here; do not synthesize or infer them. The
+   checked-in HOLD JSON cannot be edited into authority, and the r4 final
+   HOLD cannot be converted into PASS by assigning its old request.
 2. After local STOP/breaker and pinned trn21 SSH identity checks, the future
    Operator uses bounded, read-only pinned SSH to check **remote**
-   `/usr/bin/timeout --version` for GNU coreutils, then rechecks local STOP
-   and active Desktop breakers before exclusively creating a one-attempt
+   `/usr/bin/timeout --version` for GNU coreutils, but first rechecks local
+   STOP and active Desktop breakers immediately **after** local identity.
+   It rechecks again after the remote probe before exclusively creating a one-attempt
    marker. This SSH probe is reached only after the exact enabled request,
    independent final stage PASS and Supervisor assignment; none exists here.
-   Each subsequent phase repeats the same remote timeout probe and local
-   STOP/breaker recheck before its pinned SSH command. Local
+   Each subsequent phase rechecks STOP/breakers after local identity,
+   repeats the remote timeout probe, then rechecks again before its pinned
+   SSH command. Local
    `/usr/bin/timeout` is uutils on this controller and is not the binary
    wrapping the remote phase; the r3 local-GNU check would have falsely
    blocked the marker. A remote non-GNU version, failed pinned transport,
@@ -198,26 +208,20 @@ alternates, and strict full Git fsck.
    review, followed by distinct native A0 request, paired monitors/observer,
    fresh host checks and one-shot authority.
 
-## Exact future entrypoint — DO NOT RUN in this final-pending state
+## Invocation disabled
 
-If and only if the request-bound independent final stage PASS, Supervisor
-one-attempt assignment, exact clean source hashes, fresh host checks and
-active Desktop STOP/breaker gates all hold, the designated Operator may use
-this one absolute command from the clean r4 worktree:
-
-`/usr/bin/python3 -B /home/poojith-devan/Desktop/Trainium-trn21-r10-stage-r4-single-final-scan/research/v2/authorizations/trn21-c5c-a0-r10-incremental-stage-r2-hold/operator_once.py`
-
-Do not substitute the historical Documents checkout, the active Desktop
-controller checkout, a copied package, `-O`, a different endpoint or marker,
-or an ad-hoc SSH command. This command is documentation for a **future**
-separately authorized Operator, not an Implementer instruction to run it.
-The Operator still must read the live active Desktop
-`/home/poojith-devan/Desktop/Trainium/research/v2/state.json` and obey STOP
-files in that checkout, the Documents checkout, and this package. A remote
-GNU-timeout probe is an SSH contact and is not allowed before final authority.
-No r4 live one-second timing has been established; any authorized stage may
-HOLD at the unchanged freshness gate, retaining its one-attempt marker and
-any partial without cleanup or retry.
+Do **not** invoke this r5 operator against trn21. No enabled request, r5
+independent static/final PASS, or Supervisor assignment exists in this
+worktree. A future reviewed request must name an exact clean worktree and
+absolute command separately. Do not substitute the historical Documents
+checkout, the active Desktop controller checkout, a copied package, `-O`,
+a different endpoint or marker, or an ad-hoc SSH command. The active Desktop
+`/home/poojith-devan/Desktop/Trainium/research/v2/state.json` and STOP files
+in that checkout, the Documents checkout, and this package remain controlling.
+A remote GNU-timeout probe is an SSH contact and is not allowed before final
+authority. No r4/r5 live one-second timing has been established; any later
+authorized stage may HOLD at the unchanged freshness gate, retaining its
+one-attempt marker and any partial without cleanup or retry.
 
 ## Cross-host science comparability remains a separate gate
 

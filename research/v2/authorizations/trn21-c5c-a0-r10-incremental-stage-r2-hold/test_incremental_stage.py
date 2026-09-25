@@ -522,7 +522,7 @@ class IncrementalStageTests(unittest.TestCase):
             self.assertEqual(operator._ssh_phase("preflight", None, b"", b"# empty\n"),
                              {"phase": "preflight"})
         self.assertEqual(len(calls), 2)
-        self.assertEqual(stop.call_count, 2)
+        self.assertEqual(stop.call_count, 3)
 
     def test_remote_timeout_mismatch_blocks_phase_before_contact(self):
         with mock.patch.object(operator, "_local_stop_and_breakers"), \
@@ -536,13 +536,13 @@ class IncrementalStageTests(unittest.TestCase):
 
     def test_stop_during_remote_timeout_probe_blocks_phase(self):
         with mock.patch.object(operator, "_local_stop_and_breakers", side_effect=[
-                None, RuntimeError("late local STOP")]) as stop, \
+                None, None, RuntimeError("late local STOP")]) as stop, \
              mock.patch.object(operator, "_ssh_identity"), \
              mock.patch.object(operator.subprocess, "run", return_value=types.SimpleNamespace(
                  returncode=0, stderr=b"", stdout=b"timeout (GNU coreutils) 9.1\n")) as run:
             with self.assertRaisesRegex(RuntimeError, "late local STOP"):
                 operator._ssh_phase("preflight", None, b"", b"# empty\n")
-        self.assertEqual(stop.call_count, 2)
+        self.assertEqual(stop.call_count, 3)
         self.assertEqual(run.call_count, 1)
 
     def test_stop_during_pre_marker_probe_preserves_unconsumed_marker(self):
@@ -564,12 +564,12 @@ class IncrementalStageTests(unittest.TestCase):
                  mock.patch.object(operator, "_regular", return_value=b"operator"), \
                  mock.patch.object(operator, "_authority"), \
                  mock.patch.object(operator, "_local_stop_and_breakers", side_effect=[
-                     None, RuntimeError("late local STOP")]) as stop, \
+                     None, None, RuntimeError("late local STOP")]) as stop, \
                  mock.patch.object(operator, "_ssh_identity"), \
                  mock.patch.object(operator, "_remote_timeout_identity") as probe:
                 with self.assertRaisesRegex(RuntimeError, "late local STOP"):
                     operator.stage_once(remote_call=contact)
-            self.assertEqual(stop.call_count, 2)
+            self.assertEqual(stop.call_count, 3)
             probe.assert_called_once_with()
             contact.assert_not_called()
             self.assertFalse(marker.exists())

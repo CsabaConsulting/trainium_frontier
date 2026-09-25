@@ -230,7 +230,6 @@ def _remote_timeout_identity():
 
 def _ssh_phase(phase, prior, data, remote_source):
     _local_stop_and_breakers()
-    _ssh_identity()
     # A fresh isolated Python process executes exact, hash-checked source.
     program = ("import json,sys\n"
                "if sys.flags.optimize: raise SystemExit('optimized Python HOLD')\n"
@@ -245,6 +244,10 @@ def _ssh_phase(phase, prior, data, remote_source):
                "/usr/bin/python3", "-I", "-B", "-c", program, phase,
                json.dumps(prior, sort_keys=True, separators=(",", ":"))]
     remote_command = " ".join(shlex.quote(item) for item in command)
+    _ssh_identity()
+    # STOP or a breaker may change during command construction or the
+    # bounded local identity check; neither may precede new SSH contact.
+    _local_stop_and_breakers()
     _remote_timeout_identity()
     # STOP may have appeared during the SSH probe; it cannot be overridden by
     # the earlier clean controller snapshot, and must block this phase.
@@ -338,6 +341,9 @@ def stage_once(remote_call=_ssh_phase):
                remote_hash, operator_hash)
     _local_stop_and_breakers()
     _ssh_identity()
+    # The identity check itself can take time; a late local STOP must block
+    # even the read-only remote timeout probe, before marker consumption.
+    _local_stop_and_breakers()
     _remote_timeout_identity()
     # A STOP arriving during the remote identity probe must not consume the
     # one-attempt marker or enter any staging phase.
