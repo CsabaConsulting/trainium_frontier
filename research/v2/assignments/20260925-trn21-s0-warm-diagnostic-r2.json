@@ -1,0 +1,22 @@
+{
+  "schema": "trainium-one-use-supervisor-assignment-v1",
+  "scope": "TRN21_S0_WARM_CACHE_DIAGNOSTIC_ONLY",
+  "label": "fs-20260925-s0-warm-diagnostic-trn21-r2",
+  "host": "trn21",
+  "proposal": "research/v2/proposals/20260925-s0-warm-cache-diagnostic-trn21-r2.json",
+  "source_path": "workflow/candidates/S0/train.py",
+  "train_sha256": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "cpu_g2_pass": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-s0-bare-trn22-r1.json",
+  "training_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+  "source_staging": "Plain scp/rsync of exact train.py into a new unique sandbox; rehash on host before launch; import unchanged trusted prepare.py from pinned checkout via PYTHONPATH",
+  "cache_policy": "After trn21 A0 and its eval fully exit, use the authenticated populated research train cache; set documented NEURON_COMPILE_CACHE_URL to the pre-existing /var/tmp/neuron-compile-cache, verify it is populated, and record six research cache path identities plus effective compiler flags. Do not delete or overwrite caches. A warm run is not cold submission proof.",
+  "evaluation": "Fresh-process trusted prepare.py eval-public, context 1024, 20971520 public tokens, after full 1800-second train and checkpoint; retrieve logs and score",
+  "earliest_condition": "trn21 c5c A0 r1 training AND evaluation completed or failed, full postflight quiescence and fresh unique-label/disk/identity preflight passed",
+  "expires_at_utc": "2026-09-25T20:00:00Z",
+  "launch_authorized": true,
+  "independent_prelaunch_review_required": false,
+  "independent_postlaunch_receipt_review_required_before_result_use": true,
+  "submission_authorized": false,
+  "authority": "Poojith direct S0 cache-diagnostic instruction and earlier explicit S0 replay prelaunch-review waiver, 2026-09-25 IST; this is a diagnostic one-use assignment, not a submission clearance"
+}
