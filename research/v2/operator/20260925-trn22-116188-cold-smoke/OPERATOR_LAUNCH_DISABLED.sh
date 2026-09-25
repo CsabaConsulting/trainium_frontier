@@ -21,6 +21,7 @@ expected_prepare=5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bb
 
 python3 - "$assignment" "$review" "$expected_source" "$expected_prepare" "$root" "$trusted" <<'PY'
 import json, pathlib, sys
+from datetime import datetime, timezone
 p, review_path, source_sha, prepare_sha, root, trusted = sys.argv[1:]
 a = json.loads(pathlib.Path(p).read_text())
 repo = pathlib.Path(p).parents[3]
@@ -45,6 +46,9 @@ assert a['fresh_cache_paths'] == {
 }
 assert a['assignment_status'] == 'ASSIGNED' and a['launch_authorized'] is True
 assert a['submission_authorized'] is False
+expiry = datetime.fromisoformat(a['expires_at_utc'].replace('Z', '+00:00'))
+assert expiry.tzinfo is not None and expiry.utcoffset().total_seconds() == 0
+assert datetime.now(timezone.utc) < expiry, 'one-use assignment expired'
 assert a['cpu_g2_120s_argv_status'] == ('BREAK_GLASS_BASE_G2_PASS_PLUS_INDEPENDENTLY_CHECKED_SOLE_CLI_'
     '--max-train-seconds_120_DELTA; NO_EXACT_120_SECOND_G2_RECEIPT')
 proposal_sha = __import__('hashlib').sha256((repo / a['proposal']).read_bytes()).hexdigest()
