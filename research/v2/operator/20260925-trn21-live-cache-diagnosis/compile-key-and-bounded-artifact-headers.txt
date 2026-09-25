@@ -1,0 +1,158 @@
+SOURCE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/compile.py
+105:
+106:        Returns:
+107:            str: Execution handle (cache key) for the compiled graph.
+108:        """
+109:        logger.debug(f"CompileGraph.compile() called: model={self.model_name}")
+110:
+111:        # Strip non-deterministic attributes before serializing for C++ backend.
+112:        # This ensures persistent cache keys are consistent across ranks.
+113:        # Note: Artifacts are already saved with debug_dump_path intact by this point.
+114:        attrs = self.mlir.operation.attributes
+115:        for attr_name in _NON_DETERMINISTIC_ATTRS:
+116:            if attr_name in attrs:
+117:                del attrs[attr_name]
+118:
+119:        if self.use_tensorizer:
+120:            run_pipeline_with_repro_report(
+121:                self.mlir,
+122:                "builtin.module(stablehlo-legalize-to-linalg)",
+123:                "Lowering StableHLO IR -> Linalg IR",
+124:            )
+125:
+126:        bytecode_buffer = io.BytesIO()
+127:        self.mlir.operation.write_bytecode(bytecode_buffer)
+128:        mlir_bytes = bytecode_buffer.getvalue()
+129:
+130:        # Cache key composition gated on TORCH_NEURONX_NEFF_KEY_FROM_HLO,
+131:        # mirroring the C++ CompilationCacheKey behavior:
+132:        #   - on  (dev/CI): pure MLIR-content hash. C++ rehashes mlir_bytes
+133:        #     for the persistent key; global_version_hash is excluded so
+134:        #     benign Python edits don't invalidate the on-disk NEFF cache.
+135:        #   - off (default/prod): legacy mlir_hash + ":" + global_version_hash.
+136:        #     The C++ persistent key derives from this base_key, so any
+137:        #     Python source change in the lowering directories busts the cache.
+138:        if os.environ.get("TORCH_NEURONX_NEFF_KEY_FROM_HLO") == "1":
+139:            content_key = hashlib.sha256(mlir_bytes).hexdigest()
+140:        else:
+141:            from torch_neuronx.utils import global_version_hash
+142:
+143:            content_key = hashlib.sha256(mlir_bytes).hexdigest() + ":" + global_version_hash()
+144:
+145:        exec_handle = torch_neuronx._C.compile_graph(
+146:            content_key,
+147:            mlir_bytes,
+148:            self.has_collectives,
+149:            use_tensorizer=self.use_tensorizer,
+150:        )
+151:
+152:        # Track for MegaCache integration
+153:        _add_compiled_cache_key(ArtifactType.NEURON_NEFF, exec_handle)
+154:
+155:        logger.debug(f"Compilation complete: execution_cache_key={exec_handle}")
+156:        return exec_handle
+SOURCE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/utils/stablehlo_utils.py
+1:"""
+2:StableHLO Module I/O Parser
+3:Extracts input/output shapes and dtypes from torch_mlir StableHLO modules.
+4:"""
+5:
+6:import hashlib
+7:import io
+8:from dataclasses import dataclass
+9:
+10:import torch
+11:
+12:
+13:def compute_cache_key(stablehlo_mlir) -> str:
+14:    """Generate a cache key from a StableHLO graph.
+15:
+16:    Creates a SHA-256 hash from the StableHLO module text and I/O specifications.
+17:
+18:    Note: Non-deterministic attributes (e.g., torch.debug_dump_path) should be
+19:    stripped before calling this function.
+20:
+21:    Args:
+22:        stablehlo_mlir: Compiled StableHLO MLIR module.
+23:
+24:    Returns:
+25:        str: 64-character hex cache key for C++ consumption.
+26:
+27:    Raises:
+28:        RuntimeError: If cache key generation fails.
+29:
+30:    Example:
+31:        >>> stablehlo_mlir = convert_fx_to_stablehlo(gm, example_inputs)
+32:        >>> cache_key = compute_cache_key(stablehlo_mlir)
+33:    """
+34:    try:
+35:        hasher = hashlib.sha256()
+36:
+37:        # Hash module text with location info disabled
+38:        buf = io.StringIO()
+39:        stablehlo_mlir.operation.print(file=buf, enable_debug_info=False)
+40:        hasher.update(buf.getvalue().encode("utf-8"))
+41:
+42:        # I/O tensor specs (shapes, dtypes)
+43:        io_specs = parse_module_io(stablehlo_mlir)
+44:        for input_spec in io_specs.inputs:
+45:            hasher.update(str(input_spec.shape).encode("utf-8"))
+46:            hasher.update(str(input_spec.dtype).encode("utf-8"))
+47:        for output_spec in io_specs.outputs:
+48:            hasher.update(str(output_spec.shape).encode("utf-8"))
+49:            hasher.update(str(output_spec.dtype).encode("utf-8"))
+50:
+51:        cache_key = hasher.hexdigest()[:64]
+52:        return cache_key
+53:
+54:    except Exception as e:
+55:        raise RuntimeError(f"Failed to generate cache key from StableHLO: {e}") from e
+56:
+57:
+58:# MLIR element type -> torch.dtype mapping
+59:MLIR_TO_TORCH_DTYPE = {
+60:    "f32": torch.float32,
+61:    "f64": torch.float64,
+62:    "f16": torch.float16,
+63:    "bf16": torch.bfloat16,
+64:    "i64": torch.int64,
+65:    "i32": torch.int32,
+66:    "i16": torch.int16,
+67:    "i8": torch.int8,
+68:    "i1": torch.bool,
+69:    "ui8": torch.uint8,
+70:    "ui16": torch.uint16,
+71:    "ui32": torch.uint32,
+72:    "ui64": torch.uint64,
+73:    "complex<f32>": torch.complex64,
+74:    "complex<f64>": torch.complex128,
+75:    "f8E5M2": torch.float8_e5m2,
+76:    "f8E4M3FN": torch.float8_e4m3fn,
+77:}
+78:
+79:
+80:@dataclass(frozen=True)
+SOURCE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/compilation/hlo_cache.py
+108:
+109:        # Load HLO bytes
+110:        hlo_bytes = backend._get_hlo_cache(key + "_hlo")
+111:        if hlo_bytes is None:
+112:            return None
+113:
+114:        # Integrity check disabled: NKI HLO bytes differ across ranks due to
+115:        # non-determinism in backend_config. The HLO is functionally identical.
+116:        # Re-enable when NKI backend_config non-determinism is resolved.
+117:        # if hashlib.sha256(hlo_bytes).hexdigest() != manifest.get("hlo_sha256"):
+118:        #     logger.warning("HLO cache integrity check failed, ignoring entry")
+119:        #     return None
+BOUNDED_DEBUG_HEADERS
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/kernel_info_sg000001.json", "bytes": 898, "mtime": 1790354213.6207273, "prefix_bytes_examined": 898, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/tensorizer_metric_store_sg0002.json", "bytes": 46828, "mtime": 1790354213.3912973, "prefix_bytes_examined": 32768, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/kernel_info_sg000000.json", "bytes": 1034, "mtime": 1790354211.2954073, "prefix_bytes_examined": 1034, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/kernel_info_sg000002.json", "bytes": 896, "mtime": 1790354209.021938, "prefix_bytes_examined": 896, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/tensorizer_metric_store_sg0003.json", "bytes": 47080, "mtime": 1790354200.5813236, "prefix_bytes_examined": 32768, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/tensorizer_metric_store_sg0004.json", "bytes": 47058, "mtime": 1790354200.5463238, "prefix_bytes_examined": 32768, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/hilo_metric_store.json", "bytes": 27781, "mtime": 1790354199.7383254, "prefix_bytes_examined": 27781, "path_metadata_matches": []}
+{"path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/72a640fa11bbbaf0cc9a80b4c79a6b16/neuronxcc-8y14ug4n/debug_info_hlo_partitions.json", "bytes": 209169, "mtime": 1790354199.6883254, "prefix_bytes_examined": 32768, "path_metadata_matches": []}
+LATEST_LOG ["SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}", "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}", "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}", "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}", "muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]", "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]", "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]", "step 00000 | loss 9.0112 | lrm 1.000 | dt 418.69s | tok/s 313 | remaining_steps 999999 | remaining_time 1381s | epoch 1"]
+UTC 2026-09-25T16:36:54.763673+00:00

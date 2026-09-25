@@ -1,0 +1,354 @@
+FILE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/cache/CompilationCacheKey.cpp
+1:#include "torch_neuronx/csrc/core/cache/CompilationCacheKey.h"
+2:
+3:#include <xxhash.h>
+4:
+5:#include <algorithm>
+6:#include <iomanip>
+7:#include <sstream>
+8:#include <stdexcept>
+9:
+10:#include "torch_neuronx/csrc/core/cache/CacheUtils.h"
+11:#include "torch_neuronx/csrc/core/utils/PlatformUtils.h"
+12:
+13:namespace at::neuron {
+14:
+15:namespace {
+16:
+17:// Separator byte between fields in the hash input to prevent ambiguous concatenations.
+18:// 0xFF is chosen because it cannot appear in valid UTF-8 strings.
+19:constexpr uint8_t kFieldSeparator = 0xFF;
+20:
+21:}  // namespace
+22:
+23:std::string CompilationCacheKey::BuildCompilerExtension() const {
+24:  return platform_target_ + "_" + logical_neuron_cores_ + "_" + optimization_level_ + "_" +
+25:         compiler_args_ + "_v" + compiler_version_;
+26:}
+27:
+28:const char* CompilationCacheKey::SourceName(CacheKeySource source) {
+29:  switch (source) {
+30:    case CacheKeySource::EAGER:
+31:      return "EAGER";
+32:    case CacheKeySource::TORCH_COMPILE:
+33:      return "TORCH_COMPILE";
+34:    default:
+35:      return "UNKNOWN";
+36:  }
+37:}
+38:
+39:CompilationCacheKey::CompilationCacheKey(const std::string& base_key,
+40:                                         const std::string& compiler_args,
+41:                                         const std::string& optimization_level,
+42:                                         const std::vector<uint8_t>* hlo_bytes_ptr,
+43:                                         CacheKeySource source)
+44:    : base_key_(base_key),
+45:      compiler_args_(compiler_args),
+46:      optimization_level_(optimization_level),
+47:      platform_target_(utils::GetPlatformTarget()),
+48:      logical_neuron_cores_(utils::GetLogicalNeuronCores()),
+49:      compiler_version_(utils::GetCompilerVersion()),
+50:      hlo_bytes_ptr_(hlo_bytes_ptr),
+51:      source_(source) {}
+52:
+53:CompilationCacheKey::CompilationCacheKey(const std::string& key, CacheKeySource source)
+54:    : base_key_(key), source_(source) {}
+55:
+56:const std::string* CompilationCacheKey::GetPersistentKey() const {
+57:  if (base_key_.empty()) {
+58:    return nullptr;
+59:  }
+60:  // When HLO-content keying is enabled, the persistent key requires HLO
+61:  // bytes — without them, persistent caching is not possible (e.g.,
+62:  // NeffDirectKernelExecution paths). Caller must skip the persistent cache
+63:  // lookup when this returns nullptr.
+64:  // When disabled (legacy / production default), persistent key derives from
+65:  // base_key, which is always present once we pass the IsEmpty check above.
+66:  if (utils::IsHloContentKeyEnabled() && (hlo_bytes_ptr_ == nullptr || hlo_bytes_ptr_->empty())) {
+67:    return nullptr;
+68:  }
+69:  if (persistent_key_.empty()) {
+70:    persistent_key_ = ComputePersistentKey();
+71:    key_str_.clear();
+72:  }
+73:  return &persistent_key_;
+74:}
+75:
+76:std::string CompilationCacheKey::ComputePersistentKey() const {
+77:  // Persistent NEFF key composition is gated by TORCH_NEURONX_NEFF_KEY_FROM_HLO:
+78:  //   - on  (dev/CI): hash(hlo_bytes || compiler_config) — content-addressed.
+79:  //                   Lets benign Python source edits re-trace/re-lower (cheap)
+80:  //                   but still hit the on-disk NEFF cache when HLO bytes are
+81:  //                   unchanged, enabling cross-commit cache reuse.
+82:  //   - off (default/prod): hash(base_key || compiler_config) — legacy.
+83:  //                   Any source change in base_key invalidates the NEFF.
+84:  // GetPersistentKey() guarantees hlo_bytes_ptr_ is valid when the flag is on.
+85:  std::string compiler_config = BuildCompilerExtension();
+86:  const bool use_hlo = utils::IsHloContentKeyEnabled();
+87:  const size_t input_size = use_hlo ? hlo_bytes_ptr_->size() : base_key_.size();
+88:
+89:  std::vector<uint8_t> combined;
+90:  combined.reserve(input_size + 1 + compiler_config.size());
+91:
+92:  if (use_hlo) {
+93:    combined.insert(combined.end(), hlo_bytes_ptr_->begin(), hlo_bytes_ptr_->end());
+94:  } else {
+95:    combined.insert(combined.end(), reinterpret_cast<const uint8_t*>(base_key_.data()),
+96:                    reinterpret_cast<const uint8_t*>(base_key_.data()) + base_key_.size());
+97:  }
+98:  combined.push_back(kFieldSeparator);
+99:
+100:  combined.insert(
+101:      combined.end(), reinterpret_cast<const uint8_t*>(compiler_config.data()),
+102:      reinterpret_cast<const uint8_t*>(compiler_config.data()) + compiler_config.size());
+103:
+104:  // 32-char hex string
+105:  return cache_utils::ComputeXXH3Hash128(combined);
+106:}
+107:
+108:const std::string& CompilationCacheKey::ToString() const {
+109:  if (key_str_.empty() && !base_key_.empty()) {
+110:    std::ostringstream oss;
+111:    oss << "{key=" << base_key_ << ", platform=" << platform_target_
+112:        << ", lnc=" << logical_neuron_cores_ << ", compiler_args=" << compiler_args_
+113:        << ", optimization_level=" << optimization_level_ << ", source=" << SourceName(source_);
+114:    if (!persistent_key_.empty()) {
+115:      oss << ", persistent_key=" << persistent_key_;
+116:    }
+117:    oss << "}";
+118:    key_str_ = oss.str();
+119:  }
+120:  return key_str_;
+121:}
+122:
+123:}  // namespace at::neuron
+FILE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/cache/CompilationCacheKey.h
+1:#pragma once
+2:
+3:#include <cstdint>
+4:#include <functional>
+5:#include <string>
+6:#include <vector>
+7:
+8:namespace at::neuron {
+9:
+10:/**
+11: * @brief Identifies which frontend generated a cache key (for metrics/debugging only).
+12: */
+13:enum class CacheKeySource : uint8_t {
+14:  EAGER,          // Eager mode
+15:  TORCH_COMPILE,  // torch.compile
+16:  UNKNOWN
+17:};
+18:
+19:/**
+20: * @brief Unified cache key for compiled NEFFs.
+21: *
+22: * The key supports two levels optimized for different use cases:
+23: *
+24: * 1. In-memory key: `base_key`
+25: *    Used for in-memory cache lookup. The `base_key` is a string from the
+26: *    frontend (e.g., op_name + shapes + dtypes from eager, or a hash string
+27: *    from torch.compile). Includes Python source/version info so that any
+28: *    upstream change forces a re-trace/re-lower.
+29: *
+30: * 2. Persistent key: gated by TORCH_NEURONX_NEFF_KEY_FROM_HLO.
+31: *    Computed lazily when persistent cache access is needed.
+32: *
+33: *    - Flag on  (dev/CI):  hash(hlo_bytes || compiler_config)
+34: *      Content-derived from the lowered HLO/MLIR bytes plus compiler config
+35: *      (platform, lnc, optimization level, compiler args, neuronx-cc version).
+36: *      Does NOT include base_key — benign Python edits re-trace/re-lower
+37: *      (cheap) but still hit the on-disk NEFF cache when HLO bytes are
+38: *      unchanged, enabling cross-commit cache reuse.
+39: *      Returns nullptr if HLO bytes are not available (e.g., NeffDirect
+40: *      paths); callers gracefully skip the persistent cache in that case.
+41: *
+42: *    - Flag off (default/prod):  hash(base_key || compiler_config)
+43: *      Legacy behavior. Any change in base_key (source/version_hash) busts
+44: *      the persistent cache. Always available once the key is non-empty.
+45: *
+46: * ## In-memory key identity:  base_key
+47: * ## Persistent key identity (flag on):  hash(hlo_bytes || compiler_config)
+48: * ## Persistent key identity (flag off): hash(base_key || compiler_config)
+49: *
+50: */
+51:class CompilationCacheKey {
+52: public:
+53:  /**
+54:   * @brief Default constructor (empty/invalid key).
+55:   */
+56:  CompilationCacheKey() = default;
+57:
+58:  /**
+59:   * @brief Construct from base key string + compiler metadata.
+60:   *
+61:   * @param base_key Frontend-provided computation identifier string
+62:   * @param compiler_args Additional compiler arguments
+63:   * @param optimization_level Optimization level
+64:   * @param hlo_bytes_ptr Pointer to raw hlo bytes data
+65:   * @param source Which frontend produced this (metadata only, not part of key)
+66:   */
+67:  CompilationCacheKey(const std::string& base_key, const std::string& compiler_args,
+68:                      const std::string& optimization_level,
+69:                      const std::vector<uint8_t>* hlo_bytes_ptr = nullptr,
+70:                      CacheKeySource source = CacheKeySource::UNKNOWN);
+71:
+72:  /**
+73:   * @brief Construct from a key string + source.
+74:   *
+75:   * For execution-only paths (e.g., NeffDirectKernelExecution).
+76:   *
+77:   * @param key The in-memory key string
+78:   * @param source Which frontend produced this (metadata only, not part of key)
+79:   */
+80:  CompilationCacheKey(const std::string& key, CacheKeySource source);
+81:
+82:  /**
+83:   * @brief Get the in-memory key string (base_key).
+84:   *
+85:   * Used for in-memory map lookup and returned to Python for execute_compiled_graph.
+86:   */
+87:  const std::string& GetKey() const { return base_key_; }
+88:
+89:  /** @brief Update the in-memory key (e.g., after merging prologues). Invalidates cached strings.
+90:   */
+91:  void SetKey(std::string new_key) {
+92:    base_key_ = std::move(new_key);
+93:    persistent_key_.clear();
+94:    key_str_.clear();
+95:  }
+96:
+97:  /**
+98:   * @brief Get persistent key, computing lazily on first call.
+99:   *
+100:   * Computes XXH3_128 over either (hlo_bytes || compiler_config) or
+101:   * (base_key || compiler_config) depending on
+102:   * TORCH_NEURONX_NEFF_KEY_FROM_HLO.
+103:   *
+104:   * Returns nullptr when:
+105:   *   - The key is empty (default-constructed), OR
+106:   *   - HLO-content keying is enabled and no HLO bytes were provided
+107:   *     (e.g., the (key, source) constructor used by NeffDirectKernelExecution).
+108:   * Callers must check for nullptr and skip the persistent cache when so.
+109:   */
+110:  const std::string* GetPersistentKey() const;
+111:
+112:  /**
+113:   * @brief Compute the persistent cache key.
+114:   *
+115:   * Hash input depends on TORCH_NEURONX_NEFF_KEY_FROM_HLO:
+116:   *   - on:  hlo_bytes || compiler_config (caller must ensure hlo_bytes_ptr_
+117:   *          is non-null/non-empty; GetPersistentKey() handles the guard)
+118:   *   - off: base_key  || compiler_config
+119:   *
+120:   * @return 32-char hex string (XXH3_128)
+121:   */
+122:  std::string ComputePersistentKey() const;
+123:
+124:  /**
+125:   * @brief Check if this key is empty/invalid.
+126:   */
+127:  bool IsEmpty() const { return base_key_.empty(); }
+128:
+129:  bool operator==(const CompilationCacheKey& other) const { return base_key_ == other.base_key_; }
+130:  bool operator!=(const CompilationCacheKey& other) const { return base_key_ != other.base_key_; }
+131:
+132:  /** @brief Compiler args included in the key. */
+133:  const std::string& GetCompilerArgs() const { return compiler_args_; }
+134:
+135:  /** @brief Optimization level included in the key. */
+136:  const std::string& GetOptimizationLevel() const { return optimization_level_; }
+137:
+138:  /** @brief Which frontend generated this key. */
+139:  CacheKeySource GetSource() const { return source_; }
+140:
+141:  /**
+142:   * @brief Full string description for debugging.
+143:   */
+144:  const std::string& ToString() const;
+145:
+146:  /**
+147:   * @brief Build compiler config string from stored metadata.
+148:   *
+149:   * Combines platform_target, logical_neuron_cores, optimization_level, and
+150:   * compiler_args. Used as hash input for persistent key computation.
+151:   */
+152:  std::string BuildCompilerExtension() const;
+153:
+154:  /** @brief Get source name string for logging. */
+155:  static const char* SourceName(CacheKeySource source);
+156:
+157:  /** @brief Invalidate cached persistent key and ToString.
+158:   *  Call after the underlying HLO bytes content has changed
+159:   *  so that GetPersistentKey() recomputes from the updated bytes. */
+160:  void InvalidateCachedStrings() const {
+161:    persistent_key_.clear();
+162:    key_str_.clear();
+163:  }
+164:
+165:  /** @brief Set the HLO bytes pointer for persistent key computation.
+166:   *  Invalidates any previously cached persistent key. */
+167:  void SetHloBytesPtr(const std::vector<uint8_t>* hlo_bytes_ptr) const {
+168:    hlo_bytes_ptr_ = hlo_bytes_ptr;
+169:    InvalidateCachedStrings();
+170:  }
+171:
+172: private:
+173:  // In-memory cache key
+174:  std::string base_key_;
+175:
+176:  // Compiler metadata
+177:  std::string compiler_args_;
+178:  std::string optimization_level_;
+179:
+180:  // Platform metadata
+181:  std::string platform_target_;
+182:  std::string logical_neuron_cores_;
+183:
+184:  // neuronx-cc compiler version (sourced from NEURONXCC_VERSION env var).
+185:  // Included in BuildCompilerExtension so a compiler upgrade busts the cache.
+186:  std::string compiler_version_;
+187:
+188:  // Non-owning pointer to HLO bytes for persistent key computation.
+189:  // Lifetime managed by the kernel execution object that owns this key.
+190:  mutable const std::vector<uint8_t>* hlo_bytes_ptr_ = nullptr;
+191:
+192:  // Source frontend (for logging/metrics only, not part of identity).
+193:  CacheKeySource source_ = CacheKeySource::UNKNOWN;
+194:
+195:  // Persistent key (computed lazily on first GetPersistentKey() call).
+196:  mutable std::string persistent_key_;
+197:
+198:  // Cached ToString result (computed lazily).
+199:  mutable std::string key_str_;
+200:};
+201:
+202:}  // namespace at::neuron
+203:
+204:// std::hash specialization for unordered_map
+205:namespace std {
+206:template <>
+207:struct hash<at::neuron::CompilationCacheKey> {
+208:  size_t operator()(const at::neuron::CompilationCacheKey& key) const noexcept {
+209:    return std::hash<std::string>{}(key.GetKey());
+210:  }
+211:};
+212:}  // namespace std
+NKI_REFERENCES
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py:149:        #    Enable with NKI_DUMP_PERSISTENT_CACHE=1.
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py:150:        if cache_key is not None and os.environ.get("NKI_DUMP_PERSISTENT_CACHE", "0") == "1":
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/NeuronBindings.cpp:1973:  // HLO persistent cache: write serialized HLO entry
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/NeuronBindings.cpp:1994:      "Write serialized HLO cache entry to persistent cache", py::arg("key"), py::arg("data"));
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/NeuronBindings.cpp:1996:  // HLO persistent cache: read serialized HLO entry
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/NeuronBindings.cpp:2014:      "Read serialized HLO cache entry from persistent cache, returns None if not found",
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/compilation/CompilationBackend.h:28:  //   hlo_bytes: Serialized HLO IR
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNode.cpp:77:    : IrNode(op_name, cache_key, std::move(ir_serialized), IrNodeType::STABLEHLO, std::move(inputs),
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNode.cpp:98:    : IrNode(op_name, std::move(cache_key), ir_serialized, IrNodeType::STABLEHLO, std::move(inputs),
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNode.cpp:147:  this->ir_serialized = xla_kernel->GetHloBytes();
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNodeManager.h:463:  void SerializeMlirModule(StableHloNode* node);
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNodeManager.cpp:544:void IrNodeManager::SerializeMlirModule(StableHloNode* node) {
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/concatenation/IrNode.h:170:   * @param ir_serialized Serialized StableHLO IR
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/backend.py:271:            # Serialize HLO bytes for embedding in NeuronOutputCode.
+/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/fx/passes/remove_none_outputs.py:2:FX pass to remove None outputs from backward graphs and preserve metadata for restoration.
+UTC 2026-09-25T16:36:12.275463+00:00
