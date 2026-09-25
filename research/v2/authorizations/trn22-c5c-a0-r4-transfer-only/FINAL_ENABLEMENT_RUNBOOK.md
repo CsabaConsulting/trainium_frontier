@@ -1,4 +1,12 @@
-# trn22 r4 exact transfer-only successor: final review pending
+# Historical b80c final request (SUPERSEDED; current package HOLD)
+
+**Do not use the procedure or hashes below for dispatch.** The independent
+final Verifier put this candidate on HOLD at canonical `de7e29bb` because
+preflight-to-write identity and live host STOP/process gates were missing.
+The repaired draft is documented in `CONTINUITY_REPAIR_HOLD.md`; its frozen
+request now says `dispatch_authorized: false`, and new code hashes invalidate
+the prior static PASS. Everything below describes the superseded b80c
+candidate as historical evidence only.
 
 **Current dispatch verdict: HOLD.** This is an Implementer-prepared request,
 not an Operator assignment. No SSH, host/AWS contact, source transfer, checkout,

@@ -24,8 +24,11 @@ class FinalTransferRequestTests(unittest.TestCase):
         self.assertEqual(binding["request_sha256"], final.REQUEST_SHA256)
         self.assertEqual(request["source_commit"], final.SOURCE_COMMIT)
         self.assertEqual(request["capsule_sha256"], final.core.transport.SOURCE_SHA256)
-        self.assertEqual(request["repaired_static_review_sha256"],
+        self.assertEqual(request["historical_repaired_static_review_sha256_not_authority"],
                          final.REPAIRED_STATIC_REVIEW_SHA256)
+        self.assertFalse(request["dispatch_authorized"])
+        self.assertTrue(request["preflight_to_write_identity_binding_required"])
+        self.assertTrue(request["live_remote_stop_process_safety_before_o_excl_required"])
         self.assertFalse(request["source_checkout_authorized"])
         self.assertFalse(request["native_run_authorized"])
         self.assertFalse(request["eval_authorized"])
@@ -39,7 +42,23 @@ class FinalTransferRequestTests(unittest.TestCase):
                                     side_effect=AssertionError("marker reached")),
                   mock.patch.object(final.core, "_run_ssh",
                                     side_effect=AssertionError("SSH reached"))):
-                with self.assertRaisesRegex(RuntimeError, "FINAL REVIEW HOLD"):
+                with self.assertRaisesRegex(RuntimeError, "DISPATCH HOLD"):
+                    final.run_once()
+
+    def test_old_or_forged_review_files_cannot_enable_disabled_repair(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            review = root / "forged-review.json"
+            assignment = root / "forged-assignment.json"
+            review.write_text('{"verdict":"PASS"}', encoding="utf-8")
+            assignment.write_text('{"dispatch_authorized":true}', encoding="utf-8")
+            with (mock.patch.object(final, "FINAL_REVIEW", review),
+                  mock.patch.object(final, "ASSIGNMENT", assignment),
+                  mock.patch.object(final, "_consume_fixed_marker",
+                                    side_effect=AssertionError("marker reached")),
+                  mock.patch.object(final.core, "_run_ssh",
+                                    side_effect=AssertionError("SSH reached"))):
+                with self.assertRaisesRegex(RuntimeError, "DISPATCH HOLD"):
                     final.run_once()
 
     def test_flag_or_code_binding_drift_cannot_inherit_static_pass(self):

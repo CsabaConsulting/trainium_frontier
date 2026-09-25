@@ -5,6 +5,8 @@ one-shot Supervisor transfer-only assignment are prerequisites to execution.
 There is no extraction, checkout, deletion, rename, retry, or training path.
 """
 
+import base64
+import binascii
 import datetime
 import hashlib
 import json
@@ -31,6 +33,10 @@ OBSERVER = ROOT + "/trainium_a0_boundary_observer_20260925_r1"
 LABEL = "fs-20260925-v2-c5c-a0-control-trn22-r4"
 BYTES = 104154875
 SHA256 = "767d1d0ce0526b822c680fccc5d79ed0423827d6f2ce3570b8d7d8b5c5d7c84a"
+SOURCE_COMMIT = "446b657695f086f9b484fa601c9a3b61c2495912"
+WRITE_BINDING_SCHEMA = "trn22-r4-preflight-write-binding-v1"
+STABLE_IDENTITY_KEYS = ("hostname", "uid", "boot_id", "mount_namespace",
+                        "mount", "block_aliases", "ancestry")
 PRE_FREE = 13177973911
 POST_FREE = 10737418240
 MIN_INODES = 10000
@@ -61,6 +67,66 @@ PROCESS_MARKERS = ("train.py", "eval-public", "torchrun", "preflight_dryrun.py",
 
 def _utc():
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _canonical_bytes(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _all_stop_paths():
+    return STOP_PATHS + [CHECKOUT + "/research/agentic/STOP",
+                         CHECKOUT + "/research/v2/STOP"]
+
+
+def _decode_write_binding(token):
+    if not isinstance(token, str) or len(token) > 65536:
+        raise RuntimeError("missing or oversized exact preflight binding")
+    try:
+        raw = base64.b64decode(token.encode("ascii"), altchars=b"-_", validate=True)
+        if len(raw) > 49152:
+            raise RuntimeError("oversized decoded preflight binding")
+        binding = json.loads(raw)
+    except (UnicodeError, ValueError, binascii.Error) as error:
+        raise RuntimeError("malformed exact preflight binding") from error
+    if not isinstance(binding, dict) or raw != _canonical_bytes(binding):
+        raise RuntimeError("noncanonical exact preflight binding")
+    return binding
+
+
+def _require_preflight_binding(binding, live_identity):
+    required = {"schema", "source_commit", "target", "capsule_sha256",
+                "preflight_utc", "preflight_process_identity",
+                "preflight_receipt_sha256", "identity_pin"}
+    if not isinstance(binding, dict) or set(binding) != required:
+        raise RuntimeError("incomplete exact preflight binding")
+    if (binding["schema"] != WRITE_BINDING_SCHEMA or
+            binding["source_commit"] != SOURCE_COMMIT or
+            binding["target"] != TARGET or
+            binding["capsule_sha256"] != SHA256 or
+            not isinstance(binding["preflight_receipt_sha256"], str) or
+            re.fullmatch(r"[0-9a-f]{64}", binding["preflight_receipt_sha256"]) is None or
+            not isinstance(binding["preflight_process_identity"], dict) or
+            set(binding["preflight_process_identity"]) != {"pid", "start_ticks"} or
+            not all(isinstance(binding["preflight_process_identity"][key], int) and
+                    binding["preflight_process_identity"][key] > 0
+                    for key in ("pid", "start_ticks")) or
+            not isinstance(binding["identity_pin"], dict) or
+            set(binding["identity_pin"]) != set(STABLE_IDENTITY_KEYS) or
+            binding["identity_pin"] != {key: live_identity[key]
+                                         for key in STABLE_IDENTITY_KEYS}):
+        raise RuntimeError("preflight-to-write host/boot/mount identity mismatch")
+    try:
+        preflight_time = datetime.datetime.fromisoformat(binding["preflight_utc"])
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("malformed preflight time") from error
+    if preflight_time.tzinfo is None:
+        raise RuntimeError("preflight time has no timezone")
+    age = (datetime.datetime.now(datetime.timezone.utc) - preflight_time).total_seconds()
+    if not -5 <= age <= 180:
+        raise RuntimeError("preflight expired before remote write")
+    if binding["preflight_process_identity"] == _process_identity():
+        raise RuntimeError("write did not enter a distinct SSH process")
+    return hashlib.sha256(_canonical_bytes(binding)).hexdigest()
 
 
 def _mount():
@@ -416,8 +482,7 @@ def probe():
                    CHECKOUT + "/research/run-logs/" + LABEL + ".postflight.json",
                    OBSERVER + "/" + LABEL + ".observer.json",
                    OBSERVER + "/" + LABEL + ".observer.stderr.log")}
-        stops = {path: _safe_path(path) for path in STOP_PATHS + [
-            CHECKOUT + "/research/agentic/STOP", CHECKOUT + "/research/v2/STOP"]}
+        stops = {path: _safe_path(path) for path in _all_stop_paths()}
         protected = _protected()
         checkpoint_fuser = _fuser(CHECKPOINT)
         processes = _processes()
@@ -438,27 +503,87 @@ def probe():
         os.close(parent_fd)
 
 
-def _transfer_receipt(operation, before, after, metadata, read_sha, streamed_sha=None):
+def _transfer_receipt(operation, before, after, metadata, read_sha, streamed_sha=None,
+                      prewrite_evidence=None):
     _stable(before, after)
     if metadata["bytes"] != BYTES or read_sha != SHA256:
         raise RuntimeError("capsule bytes or SHA mismatch")
-    return {"schema": SCHEMA, "operation": operation,
+    receipt = {"schema": SCHEMA, "operation": operation,
             "status": "HASH_VERIFIED_IN_THIS_SESSION_ONLY", "utc": _utc(),
             "process_identity": _process_identity(), "path": TARGET,
             "expected_bytes": BYTES, "expected_sha256": SHA256,
             "streamed_sha256": streamed_sha, "readback_sha256": read_sha,
             "target_stat": metadata, "identity_before": before,
             "identity_after": after}
+    if prewrite_evidence is not None:
+        receipt["prewrite_evidence"] = prewrite_evidence
+    return receipt
 
 
-def write(input_stream):
+def _require_no_stops_or_processes():
+    stops = {path: _safe_path(path) for path in _all_stop_paths()}
+    if len(stops) != len(_all_stop_paths()) or any(
+            item.get("exists") is not False for item in stops.values()):
+        raise RuntimeError("live host STOP appeared before archive creation")
+    processes = _processes()
+    if (processes.get("matched") != [] or
+            processes.get("unreadable_cmdlines") != 0):
+        raise RuntimeError("live host process busy or uncertain before archive creation")
+    return {"stops": stops, "processes": processes}
+
+
+def _live_prewrite_safety():
+    """Rerun live host gates after preflight, before the sole O_EXCL create."""
+    safety = _require_no_stops_or_processes()
+    checkpoint_fuser = _fuser(CHECKPOINT)
+    lock = _fuser(ROOT + "/.cache/trainium_freshstart/device0.lock")
+    neuron0 = _fuser("/dev/neuron0")
+    neuron_ls = _neuron_ls()
+    label = _label_scan()
+    if (checkpoint_fuser.get("path_exists") is not True or
+            checkpoint_fuser.get("rc") != 1 or
+            checkpoint_fuser.get("pids") != [] or
+            checkpoint_fuser.get("stderr_empty") is not True or
+            lock.get("pids") != [] or
+            (lock.get("path_exists") and lock.get("rc") != 1) or
+            (lock.get("path_exists") and lock.get("stderr_empty") is not True) or
+            neuron0.get("path_exists") is not True or neuron0.get("rc") != 1 or
+            neuron0.get("pids") != [] or neuron0.get("stderr_empty") is not True or
+            neuron_ls.get("rc") != 0 or neuron_ls.get("stderr_empty") is not True or
+            neuron_ls.get("json_valid") is not True or
+            neuron_ls.get("schema_valid") is not True or
+            neuron_ls.get("device_count", 0) < 1 or
+            neuron_ls.get("non_diagnostic_pids") != [] or
+            label.get("rc") != 0 or label.get("match_count") != 0 or
+            label.get("matches") != [] or label.get("truncated") is not False or
+            label.get("stderr_empty") is not True):
+        raise RuntimeError("live host checkpoint, lock, Neuron or label is busy/uncertain")
+    return {**safety, "checkpoint_fuser": checkpoint_fuser,
+            "shared_lock_fuser": lock, "neuron0_fuser": neuron0,
+            "neuron_ls": neuron_ls, "science_label_scan": label}
+
+
+def write(input_stream, binding):
     parent_fd, ancestry = _open_parent()
     try:
         before = _identity(parent_fd, ancestry)
+        binding_sha = _require_preflight_binding(binding, before)
         if before["root_free_bytes"] < PRE_FREE or before["root_free_inodes"] < MIN_INODES:
             raise RuntimeError("fresh persistent root free-space/inode gate failed")
         if _safe_path(TARGET)["exists"]:
             raise FileExistsError("one-shot target already exists; no overwrite or retry")
+        live_safety = _live_prewrite_safety()
+        before_create = _identity(parent_fd, ancestry)
+        _stable(before, before_create)
+        _require_preflight_binding(binding, before_create)
+        if (before_create["root_free_bytes"] < PRE_FREE or
+                before_create["root_free_inodes"] < MIN_INODES):
+            raise RuntimeError("persistent root space/inode gate changed before archive creation")
+        # A STOP/process may appear while fuser/neuron/label checks are running.
+        # Check them again immediately before the exclusive create.
+        last_safety = _require_no_stops_or_processes()
+        if _safe_path(TARGET)["exists"]:
+            raise FileExistsError("one-shot target appeared before exclusive create")
         fd = os.open(TARGET_NAME, os.O_RDWR | os.O_CREAT | os.O_EXCL |
                      os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=parent_fd)
         try:
@@ -489,8 +614,12 @@ def write(input_stream):
             after = _identity(parent_fd, ancestry)
             if after["root_free_bytes"] < POST_FREE:
                 raise RuntimeError("post-write free-space floor failed; target retained")
+            evidence = {"preflight_binding_sha256": binding_sha,
+                        "preflight_receipt_sha256": binding["preflight_receipt_sha256"],
+                        "live_prewrite_safety": live_safety,
+                        "last_stop_process_check": last_safety}
             return _transfer_receipt("write", before, after, metadata, read_sha,
-                                     streamed.hexdigest())
+                                     streamed.hexdigest(), prewrite_evidence=evidence)
         finally:
             os.close(fd)
     finally:
@@ -519,11 +648,13 @@ def verify():
 
 
 def main():
-    if len(sys.argv) != 2 or sys.argv[1] not in ("probe", "write", "verify"):
+    if (len(sys.argv) < 2 or sys.argv[1] not in ("probe", "write", "verify") or
+            len(sys.argv) != (3 if sys.argv[1] == "write" else 2)):
         raise SystemExit("fixed reviewed operation required: probe|write|verify")
     operation = sys.argv[1]
     result = (probe() if operation == "probe" else
-              write(sys.stdin.buffer) if operation == "write" else verify())
+              write(sys.stdin.buffer, _decode_write_binding(sys.argv[2]))
+              if operation == "write" else verify())
     print(json.dumps(result, sort_keys=True, separators=(",", ":")), flush=True)
 
 

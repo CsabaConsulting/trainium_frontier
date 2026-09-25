@@ -29,7 +29,7 @@ CONTROL_STATE = Path("/home/poojith-devan/Desktop/Trainium/research/v2/state.jso
 JOURNAL = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trn22-c5c-a0-r4-transfer-only-one-attempt.jsonl")
 SOURCE_CONTRACT_SHA256 = "79878b16f459d4c12b32cb0ebb85d205dad86d584ae09654e0e8161920deab69"
 SOURCE_REVIEW_SHA256 = "d49e8c03567210283074c44a2f2937594ada39f43e399f97d176c373c1a32c1e"
-FROZEN_HOLD_REQUEST_SHA256 = "9b36cead881506cca3c2bb95fe5bb0f03c1f0a773482e1a8bb1ce1f7ba2af85d"
+FROZEN_HOLD_REQUEST_SHA256 = "2b7249002ec301962153efdfc3b003454dff9c2ba6fe80a09b780e10adb8ab0c"
 
 
 def _sha(data):
@@ -124,6 +124,8 @@ def _validate_authority_bundle(request_bytes, review_bytes, assignment_bytes):
             } or
             request.get("one_attempt") is not True or
             request.get("fresh_probe_per_attempt_required") is not True or
+            request.get("preflight_to_write_identity_binding_required") is not True or
+            request.get("live_remote_stop_process_safety_before_o_excl_required") is not True or
             request.get("raw_ssh_argv_exit_stdout_stderr_journal_required") is not True or
             request.get("final_read_only_postflight_even_on_failure_required") is not True or
             any(request.get(key) is not False for key in (
@@ -241,8 +243,8 @@ class Journal:
         os.close(self.parent_fd)
 
 
-def _run_ssh(operation, journal):
-    argv = transport.build_ssh_argv(operation)
+def _run_ssh(operation, journal, *, preflight=None):
+    argv = transport.build_ssh_argv(operation, preflight=preflight)
     started = _utc()
     source_fd = None
     if operation == "write":
@@ -316,9 +318,12 @@ def run_once():
             transport.validate_probe(pre, before_write=True)
             journal.emit("FRESH_PREFLIGHT_PASS", old_inventory=pre["old_inventory"])
             _check_controller_breakers()
-            written = _run_ssh("write", journal)
+            written = _run_ssh("write", journal, preflight=pre)
+            continuity = transport.compare_preflight_write(pre, written)
+            journal.emit("PREFLIGHT_TO_WRITE_CONTINUITY_PASS", result=continuity)
             verified = _run_ssh("verify", journal)  # A distinct SSH process.
-            persistence = transport.compare_sessions(written, verified)
+            persistence = transport.compare_sessions(written, verified,
+                                                     preflight=pre)
             journal.emit("CROSS_SESSION_PERSISTENCE_PASS", result=persistence)
         except BaseException as error:
             failure = repr(error)
