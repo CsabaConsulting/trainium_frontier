@@ -1,5 +1,20 @@
 # P status — 2026-09-26 IST
 
+## 02:12 IST capability and K1 attribution update
+
+Read-only installed-tool inventorycd298eba found the removed neuron-profile
+shim and installed neuron-explorer2.32.0.498-b1f3998. Its complete help supports
+session-dir and console summary-json; no decoder has been run on the4.13GB
+trace. Correct session/NEFF pairing and bounded, non-competing CPU execution
+remain prerequisites. Presence/help is not proof of decode compatibility.
+
+The local K1 follow-up correlates exact-source pack/gather/final-writeback
+events on all four SHA-verified runtime traces. Final full writeback spans
+6.8–8.2ms, with overlapping intervals, so the proposed quarter-copy omission
+does not currently justify a native5%screen. See
+`research/v2/analysis/20260926-k1-writeback-runtime/`; no new source or host edit.
+Current active jobs are architecture and seed43; preserve both and their evals.
+
 ## Native capture and bounded analysis completed (01:45 IST update)
 
 Exact6ef7 P ran on trn21 from19:38:22 to19:52:38UTC,22steps,exit0.

@@ -1,6 +1,43 @@
 # Current state
 
-Last reconciled: 2026-09-25 20:29 UTC (26 September IST)
+Last reconciled: 2026-09-25 20:42 UTC (26 September IST)
+
+## Current: both training; batch authenticated; next compile gate in preparation
+
+The guard met its original deadline and old queue processes are stopped, not
+starved. At20:38:20UTC the sole Operator observed both original four-rank jobs
+and common lifetime locks healthy. trn22 architecture is atstep2690, epoch2,
+266834tokens/s with477source-seconds remaining. trn21 seed43 cleared both
+compilations and reachedstep110,266267tokens/s,loss3.9807. Final20M scores and
+through-exit budget receipts remain pending. Free disk30.58/35.28GiB; no cleanup.
+
+Batch final-result and seed-launch authentication is independently accepted
+(2bdb9edf,71checks normally and under -O, replayed by Supervisor). Batch gain
+remains4.9977495155%, below its precommitted5%screen; no rounded PASS, full run
+or quality claim. Seed is variance-only. The exact seed training start is
+20:23:59.044411UTC; the earlier .044191 timestamp was its guard completion.
+
+Basebcbd technical source/reduced-CPU prerequisite passed784 own checks
+(313ce755); full117M G2 has NOT run. A genuinely fresh isolated Astra reviewer
+started20:38:21.489014UTC with only diff/spec/raw receipts, input manifest
+56172b63b560d7a437a2fbf601b175be7b872e2e2e265adce7302daa03956fae.
+Its verdict is pending. The trn22 CPU-only qualification slot is provisional
+after architecture+eval; no assignment or native launch is authorized yet.
+A separate true-cold five-step binding is being prepared, default disabled.
+
+K1 runtime attribution now correlates the optimizer's final full writeback
+with6.8–8.2ms coarse spans. This does not support spending a native slot on
+omitting just the owner's quarter of that copy; it is neither a benchmark nor
+a universal speedup bound. See `research/v2/analysis/20260926-k1-writeback-runtime/`.
+K2 resident-row proposal is research-only (3f984419), not an implemented kernel.
+
+Installed profiler capability is archivedcd298eba: the old neuron-profile shim
+is removed; neuron-explorer2.32 is present with summary-json/session-dir help.
+No large device trace has been decoded; pairing/resource bounds still need
+qualification. No measured embedding bottleneck or new kernel speedup follows.
+
+No new confirmed BPB improvement; schedule-base mean remains0.9901674436550496.
+The snapshots below are historical, not permission for any next launch.
 
 ## Current: architecture and seed43 running; batch screen below threshold
 

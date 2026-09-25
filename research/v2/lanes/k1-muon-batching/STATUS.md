@@ -1,5 +1,21 @@
 # K1 Muon batching — source audit, 26 September 2026
 
+## 02:12 IST evidence update
+
+The completed P trace is now correlated against the exact OwnedOptimizer tail.
+Full parameter writeback spans6.8–8.2ms across ranks; these are overlapping
+runtime intervals, not exclusive instruction time or a causal speedup bound.
+Omitting only the owner's approximately quarter-copy lacks evidence for the
+required5%whole-step gain, so that residual proposal is not selected for a
+native slot. Literal batching remains already present. This does not close
+other K1 possibilities. Analysis and reproducible SHA/AST checks are at
+`research/v2/analysis/20260926-k1-writeback-runtime/`.
+
+There is no active K1 model Implementer at this moment: the local Implementer
+is preparing the base-cache cold binding. Earlier ownership/discovery notes
+below are historical, not evidence of a second racing agent. Installed device
+decoder capability is identified; device-instruction cost attribution pending.
+
 Done: exact adopted6ef7 already performs the requested same-shape batched
 Newton–Schulz and four-rank owner-compute plus one all-gather. No production
 patch or new default-OFF no-op flag was made. This is a duplicate-mechanism
