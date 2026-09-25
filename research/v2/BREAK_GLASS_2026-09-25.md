@@ -6,12 +6,27 @@ older per-run migration and adoption-acknowledgement requirements where they
 conflict, but it does not authorize AWS lifecycle changes, protected cleanup,
 secret disclosure, evaluator/data changes, or leaderboard submissions.
 
+## Latest human clarification (2026-09-25, before tonight's launch)
+
+- For the **S0 cold replay** and the **research-v2 base control**, Poojith
+  explicitly waived independent **pre-launch** review. One Operator performs
+  exact-file transfer, host SHA-256 verification, disk/Neuron preflight,
+  launch and fresh-process evaluation. A different reviewer checks the
+  receipts **after launch and before using either result**. This does not
+  waive an exact-byte CPU G2 PASS where one exists, the completed proposal,
+  or the role split from the Implementer.
+- Both hosts must be **training by 20:00 IST**. If either is not, stop other
+  work and report the exact failed command and actual error (secrets redacted).
+- The cross-process mount-identity comparison in the new staging tool may be
+  relaxed or skipped; it is not a gate for the plain transfer manual path.
+  Still check the intended destination is new and the host/source SHA is exact.
+- Code lanes continue only insofar as they do not block either launch.
+
 ## Timebox and route
 
-- If the new staging tool has not produced one successful launch by **20:30
-  IST today (15:00 UTC)**, stop debugging it as a blocker and use the proven
-  Sep 24 manual LR 0.015 path. Continue tool debugging separately, without
-  leaving hardware idle for it.
+- The earlier 20:30-IST staging timebox is superseded by the 20:00-IST
+  both-host launch deadline. Use the proven Sep 24 manual LR 0.015 path now;
+  continue staging-tool debugging separately, without blocking hardware.
 - Prepare the manual path now; tonight's jobs start as soon as their minimum
   gates pass. Do not silently retry a failed unique run label.
 
