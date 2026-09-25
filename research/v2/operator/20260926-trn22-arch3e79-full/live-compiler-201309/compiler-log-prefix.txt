@@ -1,0 +1,194 @@
+2026-09-25T20:07:43Z INFO 3113033 [root]: /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff
+2026-09-25T20:07:43Z INFO 3113033 [root]: NeuronX Compiler version 2.26.6360.0+6f180f47 Python version 3.12.3 HWM version 2.26.0.6360++6f180f47 NumPy version 2.5.1
+2026-09-25T20:07:43Z INFO 3113035 [root]: XLA detected
+2026-09-25T20:07:43Z INFO 3113035 [root]: Pipeline: HLOToTensorizer Frontend StaticIOTranspose WalrusDriver NeffWrapper
+2026-09-25T20:07:44Z INFO 3113035 [root]: Intermediate files stored in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/62d83d1be6b077653b4348a319b8f934/neuronxcc-u2zw_b8v, output in /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/62d83d1be6b077653b4348a319b8f934
+2026-09-25T20:07:44Z INFO 3113035 [pipeline.Pipeline.0]: Job Pipeline len(in_states) 1
+2026-09-25T20:07:44Z INFO 3113035 [pipeline.Pipeline.0]: Processing input #0
+2026-09-25T20:07:44Z INFO 3113035 [pipeline.Pipeline.0]: Running pipeline Pipeline.0
+2026-09-25T20:07:44Z INFO 3113035 [pipeline.Pipeline.0]: Starting job job.HLOToTensorizer.0
+2026-09-25T20:07:44Z INFO 3113035 [job.HLOToTensorizer.0]: Job HLOToTensorizer len(in_states) 1
+2026-09-25T20:07:44Z INFO 3113035 [job.HLOToTensorizer.0]: Processing input #0
+2026-09-25T20:07:44Z INFO 3113035 [job.HLOToTensorizer.0]: Executing: /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/hlo2penguin --input /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/62d83d1be6b077653b4348a319b8f934/module.mlir --out-dir ./ --output penguin.py --remat --target-instance=trn2 --logical-nc-config=2 --verbose=error --logfile=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/62d83d1be6b077653b4348a319b8f934/log-neuron-cc.txt --ml-dtypes-version=0.5.4 --logfile-verbose=info --modular-flow-mac-target=200000000000 --partition --emit-tensor-level-dropout-ops --native-to-custom-softmax --partitioner-opts='--transformer'
+2026-09-25 20:07:44.097308: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 7742030872576 threshold 200000000000 num non-trivial Ops 543
+2026-09-25 20:07:44.097533: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Histogram before graph level optimizations - Total HLO instructions: 1303
+             reshape       245  18.80% ################################################################
+           parameter       223  17.11% ##########################################################
+            multiply       180  13.81% ###############################################
+           broadcast       171  13.12% ############################################
+           transpose       113   8.67% #############################
+                 dot        78   5.99% ####################
+             convert        70   5.37% ##################
+              reduce        55   4.22% ##############
+                 add        41   3.15% ##########
+              divide        31   2.38% ########
+            subtract        31   2.38% ########
+   get-tuple-element        25   1.92% ######
+         custom-call        21   1.61% #####
+               power         8   0.61% ##
+            constant         7   0.54% #
+             compare         1   0.08% 
+               tuple         1   0.08% 
+                 pad         1   0.08% 
+                iota         1   0.08% 
+
+
+2026-09-25 20:07:44.100692: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 20:07:44.100727: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 20:07:44.100839: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Pre-Opt Histogram - Total HLO instructions: 1262
+             reshape       244  19.33% ################################################################
+           parameter       223  17.67% ##########################################################
+            multiply       218  17.27% #########################################################
+           broadcast       118   9.35% ##############################
+           transpose        97   7.69% #########################
+                 dot        78   6.18% ####################
+             convert        70   5.55% ##################
+              reduce        55   4.36% ##############
+                 add        41   3.25% ##########
+            constant        36   2.85% #########
+            subtract        31   2.46% ########
+   get-tuple-element        25   1.98% ######
+         custom-call        21   1.66% #####
+             compare         1   0.08% 
+              divide         1   0.08% 
+               tuple         1   0.08% 
+                 pad         1   0.08% 
+                iota         1   0.08% 
+
+
+2026-09-25 20:07:44.101001: I hilo/hlo_passes/IoStatistics.cc:69] [INFO] IoStatistics: total inputs: 223
+2026-09-25 20:07:44.101004: I hilo/hlo_passes/IoStatistics.cc:70] [INFO] IoStatistics: total outputs: 65
+2026-09-25 20:07:44.101006: I hilo/hlo_passes/IoStatistics.cc:71] [INFO] IoStatistics: total passthrough tensors: 0
+2026-09-25 20:07:44.101009: I hilo/hlo_passes/IoStatistics.cc:72] [INFO] IoStatistics: total outputs read from: 0
+2026-09-25 20:07:44.101011: I hilo/hlo_passes/IoStatistics.cc:73] [INFO] IoStatistics: total redundant outputs: 1
+2026-09-25 20:07:44.101013: I hilo/hlo_passes/IoStatistics.cc:74] [INFO] IoStatistics: total ifmap size (KiB): 10689172
+2026-09-25 20:07:44.101015: I hilo/hlo_passes/IoStatistics.cc:75] [INFO] IoStatistics: total ofmap size (KiB): 253992
+2026-09-25 20:07:44.101017: I hilo/hlo_passes/IoStatistics.cc:76] [INFO] IoStatistics: total must-alias size (KiB): 0
+2026-09-25 20:07:44.101019: I hilo/hlo_passes/IoStatistics.cc:77] [INFO] IoStatistics: total may-alias size (KiB): 0
+2026-09-25 20:07:44.105228: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 7742030872576
+2026-09-25 20:07:44.105279: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 11205801260
+2026-09-25 20:07:44.105293: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 1381.79
+2026-09-25 20:07:44.105316: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Pre-Partition Histogram after graph level optimizations - Total HLO instructions: 1179
+           parameter       223  18.91% ################################################################
+            multiply       219  18.58% ##############################################################
+             reshape       179  15.18% ###################################################
+           broadcast       116   9.84% #################################
+           transpose        81   6.87% #######################
+                 dot        78   6.62% ######################
+             convert        70   5.94% ####################
+              reduce        55   4.66% ###############
+                 add        41   3.48% ###########
+            constant        36   3.05% ##########
+            subtract        31   2.63% ########
+   get-tuple-element        25   2.12% #######
+         custom-call        21   1.78% ######
+             compare         1   0.08% 
+               tuple         1   0.08% 
+                 pad         1   0.08% 
+                iota         1   0.08% 
+
+
+2026-09-25 20:07:44.105636: I hilo/hlo2penguin/lowering_utils/FrontendDriver.cc:1024] [INFO] Found compute bound graph
+2026-09-25 20:07:44.105663: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 7742030872576 threshold 200000000000 num non-trivial Ops 543
+2026-09-25 20:07:44.105686: I hilo/partition/Partition.cc:808] [INFO] Partitioner configs:ModularFlow BO LBL SA ConcatGraphs: 1 MaxDisj:2 MaxSep:4 LPM:1
+2026-09-25 20:07:44.105860: I hilo/partition/Partition.cc:670] [INFO] Attempting to start Hierarchy splitter ...
+[INFO] Could not start Hierarchy splitter, falling back...
+[INFO] Markers NOT detected
+2026-09-25 20:07:44.105948: I hilo/partition/SplitFinder.cc:195] [INFO] Potential split-points stats: #CC 0 #AR 0 #AG 0 #BN 0 #Clamp 0 #Dot 78 #Conv 0 #fsdpAG 0
+2026-09-25 20:07:44.105952: I hilo/partition/Partition.cc:116] [INFO] needsModular_SplitFinder? Yes.
+2026-09-25 20:07:44.105954: I hilo/partition/SplitFinder.cc:272] [INFO] #splitCodes 1 #potentialSplitInsts 0
+2026-09-25 20:07:44.106130: I hilo/partition/SplitFinder.cc:433] Number of split insts 78
+2026-09-25 20:07:44.107452: I hilo/partition/SplitFinder.cc:494] [INFO] Num of unique Module Definitions: 23
+2026-09-25 20:07:44.107462: I hilo/partition/SplitFinder.cc:501] [INFO] DefMap: 0 1 2 3 4 5 6 7 8 9 3 11 6 7 14 9 16 9 3 11 6 7 22 9 24 9 3 11 6 7 30 9 24 9 3 11 6 7 38 39 39 39 39 43 44 43 44 39 39 39 39 43 44 43 44 39 39 39 39 43 44 43 44 39 39 39 39 43 44 69 39 39 39 73 39 43 44 77
+2026-09-25 20:07:44.107627: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 39 len 24 NumReps: 3 macs 2061584302080
+2026-09-25 20:07:44.107632: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 7742030872576 nLayers: 3 layerMac: 687194767360 cliFlag? 0
+2026-09-25 20:07:44.107635: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 20:07:44.107638: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 63 len 4 NumReps: 4 macs 137438953472
+2026-09-25 20:07:44.107640: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 7742030872576 nLayers: 4 layerMac: 34359738368 cliFlag? 0
+2026-09-25 20:07:44.107642: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 20:07:44.107645: I hilo/partition/SplitFinder.cc:546] New disjoint wave: start 70 len 3 NumReps: 3 macs 103079215104
+2026-09-25 20:07:44.107648: I hilo/partition/Partition.cc:156] [INFO] estimateLayersPerModule: modular? 1 graphMac: 7742030872576 nLayers: 3 layerMac: 34359738368 cliFlag? 0
+2026-09-25 20:07:44.107649: I hilo/partition/Partition.cc:200] [INFO] estimateLayersPerModule LPM: 1
+2026-09-25 20:07:44.107652: I hilo/partition/SplitFinder.cc:580] [INFO] Attempting to identify and split optimizer at end
+2026-09-25 20:07:44.107761: I hilo/partition/Partition.cc:693] [INFO] Number of splitPoints: 9
+2026-09-25 20:07:44.110208: I hilo/partition/AttrsSplitter.cc:150] [INFO] Alias legality verification of partitions PASSED.
+2026-09-25 20:07:44.110227: I hilo/partition/AttrsSplitter.cc:336] [INFO] No transposable_weight_idx attrs found
+2026-09-25 20:07:44.110310: I hilo/partition/Partition.cc:469] [INFO] Generating intermediate IO report..
+2026-09-25 20:07:44.110424: I hilo/partition/MemoryAnalysis.cc:174] [INFO] Peak intermediate memory demand is at Partition 0. Num live intermediates at peak is 8 and memory usage is 1006632960 bytes.
+2026-09-25 20:07:44.110427: I hilo/partition/MemoryAnalysis.cc:182] [INFO] Please refer to LiveRangeReport_PostHloPart.txt for detailed intermediate lifetime info.
+2026-09-25 20:07:44.110434: I hilo/partition/Partition.cc:472] [INFO] Generating intermediate IO report.. Done.
+2026-09-25 20:07:44.111526: I hilo/partition/Netlister.cc:201] [INFO] DefMap: 0 1 1 1 4 4 4 4 8
+2026-09-25 20:07:44.115310: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 1154
+           parameter       218  18.89% ################################################################
+            multiply       216  18.72% ###############################################################
+             reshape       174  15.08% ###################################################
+           broadcast       116  10.05% ##################################
+           transpose        76   6.59% ######################
+             convert        70   6.07% ####################
+                 dot        70   6.07% ####################
+              reduce        55   4.77% ################
+                 add        41   3.55% ############
+            constant        36   3.12% ##########
+            subtract        31   2.69% #########
+   get-tuple-element        25   2.17% #######
+         custom-call        21   1.82% ######
+                copy         1   0.09% 
+             compare         1   0.09% 
+               tuple         1   0.09% 
+                 pad         1   0.09% 
+                iota         1   0.09% 
+
+
+2026-09-25 20:07:44.115410: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 20:07:44.115437: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 20:07:44.122423: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 6917397151744
+2026-09-25 20:07:44.122469: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 11826558134
+2026-09-25 20:07:44.122477: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 1169.81
+2026-09-25 20:07:44.122500: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 1094
+           parameter       218  19.93% ################################################################
+            multiply       216  19.74% ###############################################################
+             reshape       174  15.90% ###################################################
+           broadcast        87   7.95% #########################
+           transpose        76   6.95% ######################
+             convert        70   6.40% ####################
+                 dot        70   6.40% ####################
+              reduce        55   5.03% ################
+                 add        41   3.75% ############
+            subtract        31   2.83% #########
+   get-tuple-element        25   2.29% #######
+         custom-call        21   1.92% ######
+            constant         6   0.55% #
+             compare         1   0.09% 
+               tuple         1   0.09% 
+                 pad         1   0.09% 
+                iota         1   0.09% 
+
+
+2026-09-25 20:07:44.122663: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO instructions: 5
+           parameter         2  40.00% ################################################################
+               tuple         1  20.00% ################################
+                 dot         1  20.00% ################################
+            multiply         1  20.00% ################################
+
+
+2026-09-25 20:07:44.122678: I hilo/hlo_passes/NativeToCustomSoftmaxDx.cc:232] [INFO] Number of Native SoftmaxDx's detected and replaced: 0
+2026-09-25 20:07:44.122683: I hilo/hlo_passes/NativeToCustomSoftmax.cc:141] [INFO] Number of Native Softmax's detected and replaced: 0
+2026-09-25 20:07:44.122866: I hilo/hlo_passes/HloMacCount.cc:27] [INFO] HloMacCount has found 137438953472
+2026-09-25 20:07:44.122871: I hilo/hlo_passes/HloMacCount.cc:33] [INFO] Traffic has found 343932928
+2026-09-25 20:07:44.122876: I hilo/hlo_passes/HloMacCount.cc:38] [INFO] AIF 799.22
+2026-09-25 20:07:44.122884: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram after graph level optimizations - Total HLO instructions: 5
+           parameter         2  40.00% ################################################################
+               tuple         1  20.00% ################################
+                 dot         1  20.00% ################################
+            multiply         1  20.00% ################################
+
+
+2026-09-25 20:07:44.122959: I hilo/hlo_passes/InstructionHistogram.cc:100] [INFO] 
+Post-Partition Histogram before graph level optimizations - Total HLO 
