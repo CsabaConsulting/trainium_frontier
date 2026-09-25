@@ -11,12 +11,13 @@
   "fingerprints": {
     "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "workflow/tools/preflight_dryrun.py": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
-    "research/v2/queue.json": "1e9dcc4fd5f38e62829dc19460d2337662184ecfbd4d21d8a20f15993be9dd00"
+    "research/v2/queue.json": "e4dbafc9132a7046499df46eea869b57b213c8e338f3d2da05c2ca53b1d1ea30"
   },
   "topology": {"neuron_logical_nc_config": 2, "nproc_per_node": 4, "seed": 42, "max_train_seconds": 1800},
   "table_expectation": {"keys": ["b5", "t5"], "rows_per_table": 524288, "dim": 128, "dtype": "bfloat16", "optimizer": "rmsprop", "table_parameters_total": 134217728},
   "control_argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"],
-  "a1_argv": ["--n-embd", "1024", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015", "--ngram-ve", "--ngram-ve-layers=-1", "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128", "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop", "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude"],
+  "a1_argv": ["--n-embd", "1024", "--ngram-ve", "--ngram-ve-layers=-1", "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128", "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop", "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"],
+  "a1_argv_derivation": "Literal order-preserving splice of research/v2/queue.json base_command: replace --no-ngram-ve in place with A1 argv_delta.with; do not append or reorder it.",
   "g2": {
     "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-g2",
     "steps": 2,
