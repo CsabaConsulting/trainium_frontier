@@ -2,6 +2,17 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 03:49 UTC, trn21's disabled CPU G2 request
+[passed independent static review](verification/20260925-trn21-c5c-a0-g2-request-independent-review.md)
+for binding only; enabled one-use CPU authority and host/numeric checks are
+still absent. Its separate clean 446b source-stage HOLD plan is prepared but
+not transferred. The trn22 r4
+[transfer final review is HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md):
+preflight identity did not bridge to write, and a STOP appearing after the
+probe did not block target creation in offline tests. An independent repair
+is underway; no transfer, checkout, native training, evaluation or new BPB
+result followed. The noon-IST S0 package target is at risk.
+
 At 03:36 UTC, a source audit found a native-launch blocker on trn21: its
 accepted e65/c5c checkout has the same `train.py` and `prepare.py` blobs as
 the reviewed 446b/r4 source, but lacks the r4 paired-monitor interlock and
