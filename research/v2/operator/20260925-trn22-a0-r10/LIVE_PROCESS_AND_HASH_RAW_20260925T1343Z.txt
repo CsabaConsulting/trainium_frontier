@@ -1,0 +1,14 @@
+Read-only SSH stdout/stderr at 2026-09-25 13:43:55 UTC.
+Command: date -u; ps -p 2998266,2998283,2998284,2998285,2998286 -o pid,ppid,etimes,args; fuser /dev/neuron0 2>&1; sha256sum <package>/train.py <train-sandbox>/train.py; df -B1 / | tail -n 1
+
+Fri Sep 25 13:43:55 UTC 2026
+    PID    PPID ELAPSED COMMAND
+2998266 2998252    1436 /home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
+2998283 2998266    1434 /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
+2998284 2998266    1434 /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
+2998285 2998266    1434 /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
+2998286 2998266    1434 /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
+/dev/neuron0:        2998266 2998283m 2998284m 2998285m 2998286m
+c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manual-source-r1/train.py
+c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manual-work/train/train.py
+/dev/root      258906374144 201778917376 57110679552  78% /
