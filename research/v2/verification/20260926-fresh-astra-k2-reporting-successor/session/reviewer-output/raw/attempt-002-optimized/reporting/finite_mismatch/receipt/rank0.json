@@ -1,0 +1,36 @@
+{
+  "scope": "EXTRACTED_CPU_REPORTING_ONLY",
+  "cases": [
+    {
+      "name": "finite_mismatch",
+      "dtype": "torch.float32",
+      "checks": [
+        {
+          "name": "finite_mismatch",
+          "exact": false,
+          "actual_dtype": "torch.float32",
+          "shape": [
+            1,
+            1
+          ],
+          "finite": true,
+          "nonzero": 1,
+          "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+          "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+          "max_abs": 1.0
+        }
+      ],
+      "status": "FAIL_EXACTNESS"
+    }
+  ],
+  "tolerance": {
+    "atol": 0,
+    "rtol": 0,
+    "criterion": "identical bytes"
+  },
+  "launch_authorized": false,
+  "status": "REFUSE_OR_UNSUPPORTED",
+  "error": "Traceback (most recent call last):\n  File \"extracted_reporting_harness\", line 161, in report_case\nRuntimeError: EXACTNESS_FALSIFIED: finite_mismatch/fp32\n",
+  "diagnostic_elapsed_seconds": 0.00013213899728725664,
+  "elapsed_scope": "checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher"
+}

@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/work/raw/attempt-003-boundaries.script.py", line 127, in setup_checks
+    try: ret=checker['main']()
+             ~~~~~~~~~~~~~~~^^
+  File "/work/source/check_native.py", line 70, in main
+    dist.init_process_group('neuron')
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/work/raw/attempt-003-boundaries.script.py", line 80, in init
+    if scenario=='init': raise RuntimeError('INJECTED_INIT_FAILURE')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: INJECTED_INIT_FAILURE

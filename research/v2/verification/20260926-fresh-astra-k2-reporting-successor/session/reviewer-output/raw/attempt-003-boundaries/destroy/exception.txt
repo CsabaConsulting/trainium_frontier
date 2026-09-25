@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/work/raw/attempt-003-boundaries.script.py", line 127, in setup_checks
+    try: ret=checker['main']()
+             ~~~~~~~~~~~~~~~^^
+  File "/work/source/check_native.py", line 196, in main
+    dist.destroy_process_group()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/work/raw/attempt-003-boundaries.script.py", line 86, in destroy
+    if scenario=='destroy': raise RuntimeError('INJECTED_DESTROY_FAILURE')
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: INJECTED_DESTROY_FAILURE

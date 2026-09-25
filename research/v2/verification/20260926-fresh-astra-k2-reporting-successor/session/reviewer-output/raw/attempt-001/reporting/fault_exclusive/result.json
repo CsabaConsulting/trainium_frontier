@@ -1,0 +1,28 @@
+{
+  "name": "fault_exclusive",
+  "mode": "exclusive",
+  "rank": 0,
+  "input_checks": [
+    {
+      "name": "finite_mismatch",
+      "exact": false,
+      "actual_dtype": "torch.float32",
+      "shape": [
+        1,
+        1
+      ],
+      "finite": true,
+      "nonzero": 1,
+      "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+      "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+      "max_abs": 1.0
+    }
+  ],
+  "expected_cleanup_calls": 1,
+  "actual_cleanup_calls": 1,
+  "returned": null,
+  "exception": "FileExistsError: [Errno 17] File exists: '/work/raw/attempt-001/reporting/fault_exclusive/receipt/rank0.json'",
+  "receipt_file_exists": true,
+  "receipt_status": "REFUSE_OR_UNSUPPORTED",
+  "case_status": "FAIL_EXACTNESS"
+}

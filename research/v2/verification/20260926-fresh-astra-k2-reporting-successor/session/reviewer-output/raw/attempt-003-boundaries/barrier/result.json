@@ -1,0 +1,43 @@
+{
+  "scenario": "barrier",
+  "argv": [
+    "check_native.py",
+    "--enable-experimental",
+    "--label",
+    "bounded-setup-test",
+    "--out-dir",
+    "/work/raw/attempt-003-boundaries/barrier/destination",
+    "--expected-kernel-sha256",
+    "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
+    "--expected-reference-sha256",
+    "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f"
+  ],
+  "events": [
+    "set_num_threads:1",
+    "set_num_interop_threads:1",
+    "seed:42",
+    "init:neuron",
+    "device:neuron",
+    "barrier",
+    "destroy"
+  ],
+  "stubbed_imports": [
+    "torch",
+    "torch.distributed",
+    "torch.nn.functional",
+    "torch_neuronx",
+    "consumer_nki",
+    "reference"
+  ],
+  "returned": 1,
+  "exception_type": null,
+  "init_calls": 1,
+  "destroy_calls": 1,
+  "expected": {
+    "init_calls": 1,
+    "destroy_calls": 1,
+    "returned": 1,
+    "exception_type": null
+  },
+  "native_executed": false
+}

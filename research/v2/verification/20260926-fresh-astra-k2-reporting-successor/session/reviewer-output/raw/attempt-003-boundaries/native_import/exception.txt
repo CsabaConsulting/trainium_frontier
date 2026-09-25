@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/work/raw/attempt-003-boundaries.script.py", line 127, in setup_checks
+    try: ret=checker['main']()
+             ~~~~~~~~~~~~~~~^^
+  File "/work/source/check_native.py", line 48, in main
+    import torch_neuronx  # Native backend registration; never fall back to CPU.
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/work/raw/attempt-003-boundaries.script.py", line 111, in imports
+    if scenario=='native_import': raise ImportError('INJECTED_NATIVE_IMPORT_FAILURE')
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: INJECTED_NATIVE_IMPORT_FAILURE

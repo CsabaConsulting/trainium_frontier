@@ -1,0 +1,668 @@
+[
+  {
+    "name": "finite_exact",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_exact",
+        "exact": true,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 0.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 0,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "TINY_CONSUMER_EXACT_ONLY",
+    "case_status": "EXACT"
+  },
+  {
+    "name": "finite_mismatch",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "signed_zero_mismatch",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "signed_zero_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 0.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "positive_inf",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "positive_inf",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "inf"
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "negative_inf",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "negative_inf",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d9265d7acb11b75517ee713afcd928260e65557829bab071f03d67ee93edb8ea",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "inf"
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "quiet_nan",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "quiet_nan",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "ef1eaf26cea96eb18f8fa3137abdf23f52852a855c22ae6f169d21a379dcd739",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "nan"
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "finite_ulp",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_ulp",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "04b5d07b643b23cefc7c81ecc26e7ea2c8cfbd224bcac3189e7334b66c6e895b",
+        "expected_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "max_abs": 1.1920928955078125e-07
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "negative_zero_exact",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "negative_zero_exact",
+        "exact": true,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "expected_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "max_abs": 0.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 0,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "TINY_CONSUMER_EXACT_ONLY",
+    "case_status": "EXACT"
+  },
+  {
+    "name": "reverse_signed_zero",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "reverse_signed_zero",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "expected_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "max_abs": 0.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "finite_opposite_max",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_opposite_max",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "6048235e823ffe3c303299c2d9ad4cbd9e5ec680a5dc19c9c4eb97538ea6498f",
+        "expected_sha256": "abc4c4e7eee2ce04c6be04358adf5b3d0958255a80f712a8b6d4f4fdda588276",
+        "max_abs": 6.805646932770577e+38
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "smallest_subnormal_mismatch",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "smallest_subnormal_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "67abdd721024f0ff4e0b3f4c2fc13bc5bad42d0b7851d456d88d203d15aaa450",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.401298464324817e-45
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "missing_gradient",
+    "mode": "normal",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "backward",
+        "exact": false,
+        "missing_gradient": true
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_exclusive",
+    "mode": "exclusive",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "FileExistsError: [Errno 17] File exists: '/work/raw/attempt-002-optimized/reporting/fault_exclusive/receipt/rank0.json'",
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_absent",
+    "mode": "absent",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_invalid_json",
+    "mode": "invalid_json",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "ValueError: Out of range float values are not JSON compliant: nan",
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_invalid_type",
+    "mode": "invalid_type",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "TypeError: Object of type object is not JSON serializable",
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_is_dir",
+    "mode": "is_dir",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "OSError: INJECTED_IS_DIR_FAILURE",
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_open",
+    "mode": "open",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "PermissionError: INJECTED_OPEN_FAILURE",
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_write",
+    "mode": "write",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "OSError: INJECTED_WRITE_FAILURE",
+    "receipt_file_exists": false,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_stdout",
+    "mode": "stdout",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "BrokenPipeError: INJECTED_STDOUT_FAILURE",
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "fault_destroy",
+    "mode": "destroy",
+    "rank": 0,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": null,
+    "exception": "RuntimeError: INJECTED_DESTROY_FAILURE",
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "rank_1",
+    "mode": "normal",
+    "rank": 1,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "rank_2",
+    "mode": "normal",
+    "rank": 2,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  },
+  {
+    "name": "rank_3",
+    "mode": "normal",
+    "rank": 3,
+    "input_checks": [
+      {
+        "name": "finite_mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 1.0
+      }
+    ],
+    "expected_cleanup_calls": 1,
+    "actual_cleanup_calls": 1,
+    "returned": 1,
+    "exception": null,
+    "receipt_file_exists": true,
+    "receipt_status": "REFUSE_OR_UNSUPPORTED",
+    "case_status": "FAIL_EXACTNESS"
+  }
+]

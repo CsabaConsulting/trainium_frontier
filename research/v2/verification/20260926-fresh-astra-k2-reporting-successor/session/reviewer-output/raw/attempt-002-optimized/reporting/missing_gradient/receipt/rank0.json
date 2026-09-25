@@ -1,0 +1,27 @@
+{
+  "scope": "EXTRACTED_CPU_REPORTING_ONLY",
+  "cases": [
+    {
+      "name": "missing_gradient",
+      "dtype": "torch.float32",
+      "checks": [
+        {
+          "name": "backward",
+          "exact": false,
+          "missing_gradient": true
+        }
+      ],
+      "status": "FAIL_EXACTNESS"
+    }
+  ],
+  "tolerance": {
+    "atol": 0,
+    "rtol": 0,
+    "criterion": "identical bytes"
+  },
+  "launch_authorized": false,
+  "status": "REFUSE_OR_UNSUPPORTED",
+  "error": "Traceback (most recent call last):\n  File \"extracted_reporting_harness\", line 161, in report_case\nRuntimeError: EXACTNESS_FALSIFIED: missing_gradient/fp32\n",
+  "diagnostic_elapsed_seconds": 5.5081000027712435e-05,
+  "elapsed_scope": "checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher"
+}

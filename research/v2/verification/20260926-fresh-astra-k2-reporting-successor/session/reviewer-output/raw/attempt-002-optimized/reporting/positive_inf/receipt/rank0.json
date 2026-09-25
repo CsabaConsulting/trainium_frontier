@@ -1,0 +1,37 @@
+{
+  "scope": "EXTRACTED_CPU_REPORTING_ONLY",
+  "cases": [
+    {
+      "name": "positive_inf",
+      "dtype": "torch.float32",
+      "checks": [
+        {
+          "name": "positive_inf",
+          "exact": false,
+          "actual_dtype": "torch.float32",
+          "shape": [
+            1,
+            1
+          ],
+          "finite": false,
+          "nonzero": 1,
+          "actual_sha256": "d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708",
+          "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+          "max_abs": null,
+          "max_abs_nonfinite": "inf"
+        }
+      ],
+      "status": "FAIL_EXACTNESS"
+    }
+  ],
+  "tolerance": {
+    "atol": 0,
+    "rtol": 0,
+    "criterion": "identical bytes"
+  },
+  "launch_authorized": false,
+  "status": "REFUSE_OR_UNSUPPORTED",
+  "error": "Traceback (most recent call last):\n  File \"extracted_reporting_harness\", line 161, in report_case\nRuntimeError: EXACTNESS_FALSIFIED: positive_inf/fp32\n",
+  "diagnostic_elapsed_seconds": 6.45239997538738e-05,
+  "elapsed_scope": "checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher"
+}

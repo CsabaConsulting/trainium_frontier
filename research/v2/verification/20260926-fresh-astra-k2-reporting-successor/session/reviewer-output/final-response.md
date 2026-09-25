@@ -1,0 +1,3 @@
+PASS for diagnostic/component source suitability only. Independent CPU tests passed; unchanged setup cleanup gaps are documented. Native correctness remains unproved, and hardware is not authorized.
+
+Artifacts: [report](/work/REPORT.md), [decision](/work/decision.json), [commands](/work/commands.sh), [raw evidence guide](/work/ARTIFACTS.md), and [verified hash manifest](/work/artifact-manifest.json).
