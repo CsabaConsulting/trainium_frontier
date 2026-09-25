@@ -135,6 +135,14 @@ def receipt(operation, *, pid, utc_seconds=0, preflight=None):
                 "neuron_ls": copy.deepcopy(preflight["neuron_ls"]),
                 "science_label_scan": copy.deepcopy(preflight["science_label_scan"]),
             },
+            "last_live_precreate_safety": {
+                **copy.deepcopy(stopped),
+                "checkpoint_fuser": copy.deepcopy(preflight["checkpoint_fuser"]),
+                "shared_lock_fuser": copy.deepcopy(preflight["shared_lock_fuser"]),
+                "neuron0_fuser": copy.deepcopy(preflight["neuron0_fuser"]),
+                "neuron_ls": copy.deepcopy(preflight["neuron_ls"]),
+                "science_label_scan": copy.deepcopy(preflight["science_label_scan"]),
+            },
             "last_stop_process_check": copy.deepcopy(stopped),
         }
     return result
