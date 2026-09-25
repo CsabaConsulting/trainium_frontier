@@ -1,16 +1,20 @@
 # Current state
 
-Last reconciled: 2026-09-25 09:56 UTC
+Last reconciled: 2026-09-25 10:09 UTC
 
-The disabled trn22 direct e65→r10 stage `3d26e963` received
-[independent HOLD](../v2/verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)
-at `3a7cda68`: the pinned r4 review-receipt SHA is mistyped (60 rather
-than 64 hex characters). Its bundle and inherited offline safety checks
-otherwise passed. A distinct disabled r2 commit is correcting only this
-binding, with regression coverage, before new independent review. No host
-contact or attempt occurred. This exact pin failure and the separate A2
-tool-path HOLD explain why no new scored control/table run is launchable;
-priority remains common-r10 staging, matched controls, then tables.
+The trn22 r10 stage's mistyped receipt pin was corrected at `020bfa7e` and
+received source-only static PASS at `aff8762e`, but a later
+[independent HOLD addendum](../v2/verification/20260925-r10-stage-controller-state-active-root-independent-HOLD.md)
+at `3aa386a2` found a more important shared defect: both trn21 and trn22
+operators read breaker state from an older Documents worktree rather than
+the active Desktop controller. The two state files demonstrably differed.
+Final staging from either r2 source is HOLD; neither contacted a host. Two
+distinct disabled r3 repairs (`7205abf5` for trn21 and `b3ec7406` for
+trn22) bind the active state and add stale-state regressions; each needs
+its own independent exact-byte review. A separate trn22 timing package is
+static-only and must be rebound after its operator hash changes. No new
+scored control/table run or BPB exists. Priority remains common-r10
+staging, matched A0 controls, then A1/A2 tables.
 
 The disabled trn21 e65→r10 r2 source-stage repair `3e846589` received
 [independent STATIC PASS only](../v2/verification/20260925-trn21-r10-incremental-stage-r2-independent-static-PASS.md)
