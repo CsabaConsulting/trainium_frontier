@@ -1,5 +1,12 @@
 # Workflow installation and incremental launch status
 
+At 08:39 UTC, the disabled trn22 r2 read-only timing diagnostic `384eb822`
+received [independent STATIC PASS only](verification/20260925-trn22-r9-final-continuity-timing-r4-independent-static-PASS.md)
+at `9aa9a124`. It has no enabled request or host timing receipt and cannot
+measure the distinct r3 stage repair `80c96851`, now under independent
+source review. A separate r3 read-only timing package is in implementation.
+Both scored launches HOLD; no BPB changed.
+
 At 08:33 UTC, disabled trn21 e65→r10 small-bundle stage `c03e3ac3`
 received [independent HOLD](verification/20260925-trn21-r10-incremental-stage-independent-HOLD.md)
 at `31e022d5`. Offline witnesses reproduce pre-write STOP, label,

@@ -1,6 +1,14 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:33 UTC
+Last reconciled: 2026-09-25 08:39 UTC
+
+The disabled trn22 r2 read-only timing diagnostic `384eb822` received
+[independent STATIC PASS only](../v2/verification/20260925-trn22-r9-final-continuity-timing-r4-independent-static-PASS.md)
+at `9aa9a124`. No host timing attempt was authorized or made. It does not
+measure the distinct trn22 r3 stage repair `80c96851`, whose disabled source
+is now under independent static review. An Implementer is preparing a
+separate read-only r3 timing diagnostic. None of these receipts lifts the
+stage or native launch HOLD; no scored control, table run, or new BPB exists.
 
 The disabled trn21 e65→r10 small-bundle stage `c03e3ac3` received
 [independent HOLD](../v2/verification/20260925-trn21-r10-incremental-stage-independent-HOLD.md)
