@@ -1,0 +1,89 @@
+{
+  "utc": "2026-09-25T21:06:51.748554+00:00",
+  "completed_probe": "candidate-on",
+  "terminal": {
+    "cpu_only": true,
+    "exit_code": 0,
+    "label": "fs-20260926-base-cache-on-trn22-g2-r1",
+    "reason": "all ranks completed the real training loop consistently",
+    "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+    "utc": "2026-09-25T21:06:19.514347+00:00",
+    "verdict": "PASS"
+  },
+  "outer": {
+    "command": [
+      "/usr/bin/flock",
+      "-n",
+      "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/g2/fs-20260926-base-cache-on-trn22-g2-r1/host_driver.py"
+    ],
+    "driver_terminal_exists": true,
+    "ended_utc": "2026-09-25T21:06:19.522971+00:00",
+    "returncode": 0,
+    "started_utc": "2026-09-25T21:05:58.414962+00:00",
+    "status": "OUTER_COMMAND_EXITED",
+    "under_lock_receipt_exists": true
+  },
+  "g2_summary": {
+    "verdict": "PASS",
+    "elapsed_s": 20.6,
+    "train_py_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+    "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+    "torchrun_rc": 0,
+    "timed_out": false
+  },
+  "comparison": {
+    "command": [
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-B",
+      "/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/preflight_dryrun.py",
+      "--compare",
+      "/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/g2/fs-20260926-base-cache-reference-trn22-g2-r1/g2.json",
+      "/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/g2/fs-20260926-base-cache-on-trn22-g2-r1/g2.json"
+    ],
+    "returncode": 0,
+    "stdout": "{\n  \"a\": \"/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/g2/fs-20260926-base-cache-reference-trn22-g2-r1/g2.json\",\n  \"b\": \"/home/ubuntu/trainium_base_initial_cache_bcbd_cpu_20260926_trn22_r1/g2/fs-20260926-base-cache-on-trn22-g2-r1/g2.json\",\n  \"a_sha256\": \"6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3\",\n  \"b_sha256\": \"bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522\",\n  \"plan_equal\": true,\n  \"losses_identical\": true,\n  \"loss_differences\": {},\n  \"state_keys_only_in_one\": [],\n  \"param_digest_differences\": [],\n  \"n_params_compared\": 62,\n  \"identical\": true\n}\n",
+    "stderr": "",
+    "utc": "2026-09-25T21:06:51.748257+00:00"
+  },
+  "descendants": [],
+  "neuron_ls": [
+    {
+      "instance_type": "trn2.3xlarge",
+      "instance_id": "i-0673e54d9d66e6a1e",
+      "neuron_device": 0,
+      "bdf": "0000:33:00.0",
+      "cpu_affinity": "0-11",
+      "numa_node": "0",
+      "connected_to": null,
+      "nc_count": 4,
+      "logical_neuroncore_config": 2,
+      "memory_size": 103079215104,
+      "neuroncore_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "neuron_processes": []
+    }
+  ],
+  "local_state": {
+    "utc": "2026-09-25T21:06:46.212234+00:00",
+    "controller_state_sha256": "8226ccb21b076c6aa690b60187189c23b2ddbdb1101ffb53dfd222b2c48c0bb5",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": true,
+      "trn22": true
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  }
+}
