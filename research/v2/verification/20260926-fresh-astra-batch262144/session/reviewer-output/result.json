@@ -1,0 +1,181 @@
+{
+  "artifacts": {
+    "command": "reference_test_run1.command.json",
+    "input_hashes": "input_hashes.json",
+    "manifest": "artifact_manifest.json",
+    "raw_stderr": "reference_test_run1.stderr.txt",
+    "raw_stdout": "reference_test_run1.stdout.txt",
+    "report": "REVIEW.md",
+    "test_source": "reference_test.py"
+  },
+  "base_commit_metadata": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+  "blocking_findings_in_assigned_scope": [],
+  "candidate_commit_metadata": "4e361d15baef94f041501f558620422c55ae8c88",
+  "commit_associations_independently_verified": false,
+  "default_was_REFUSE_until_required_evidence_complete": true,
+  "findings": [
+    {
+      "finding": "Positive integer CLI preserves default; fractional, malformed, missing, zero and negative values reject.",
+      "location": "candidate.py:3616-3620",
+      "severity": "informational"
+    },
+    {
+      "finding": "Divisibility rejects after runtime/model setup; error wording reverses divides/divisible-by. Predicate is correct; neither location nor message was introduced by patch.",
+      "location": "candidate.py:3833-3872",
+      "severity": "low-existing"
+    },
+    {
+      "finding": "Logged loss is smoothed rank0 last-microbatch loss, not full-update/global mean. Gradient uses every microbatch.",
+      "location": "candidate.py:3983,4050,4075-4082",
+      "severity": "low-existing"
+    },
+    {
+      "finding": "Explicit batch ramp overrides accumulation and can scale LR; no-scaling conclusion requires intended batch-ramp OFF.",
+      "location": "candidate.py:3284-3297",
+      "severity": "scope-existing"
+    },
+    {
+      "finding": "Optional byte-weight loss averages separately normalized microbatches, not a single global byte-weighted ratio; intended ordinary-token mean unaffected.",
+      "location": "candidate.py:1395-1428",
+      "severity": "scope-existing"
+    },
+    {
+      "finding": "Weight-only checkpoint omits total batch and optimizer/RNG/loader state; load is warm start, not exact resume. Patch preserves schema.",
+      "location": "candidate.py:3158-3208,4099",
+      "severity": "scope-existing"
+    }
+  ],
+  "independence": "single fresh reviewer; no other agents, supplied test code, history, repository, network, or native execution",
+  "intended_tokens": {
+    "context": 1024,
+    "default": 131072,
+    "default_accumulation": 1,
+    "device_batch": 1,
+    "experimental": 262144,
+    "experimental_accumulation": 2,
+    "pack": 32,
+    "per_micro_global": 131072,
+    "world": 4
+  },
+  "receipt_evidence": {
+    "all_owner_plan_summaries_equal": true,
+    "changed_arm_different_parameter_digest_count": 62,
+    "crosschecks": "receipt_crosschecks.json",
+    "default_losses_exact": true,
+    "digest_limitation": "only 16 hex characters per final tensor; only rank0 supplies the maps; no initial tensors or checkpoint binaries",
+    "rank0_equal_parameter_digest_count": 62,
+    "source": "receipt_audit.json"
+  },
+  "refusals": [
+    {
+      "claim": "native correctness, startup, compilation, throughput or >=5% speedup",
+      "missing_evidence": "actual native production-microshape diagnostic; CPU receipts slice 2x256 and fake time",
+      "verdict": "REFUSE"
+    },
+    {
+      "claim": "quality, scientific adoption, changed default, full run, staging, hardware launch or merge authorization",
+      "missing_evidence": "separate user assignment/authority and applicable native/accounting/quality evidence",
+      "verdict": "REFUSE"
+    },
+    {
+      "claim": "independent verification of supplied checkpoints and cross-rank tensor identity",
+      "missing_evidence": "checkpoint binaries, non-rank0 digest maps and supplied harness are absent",
+      "verdict": "REFUSE"
+    }
+  ],
+  "scope": "source/CPU-only review of total-batch CLI in the supplied packet",
+  "source_hashes": {
+    "base": {
+      "bytes": 318875,
+      "lines": 4890,
+      "matches": true,
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+    },
+    "candidate": {
+      "bytes": 319299,
+      "lines": 4895,
+      "matches": true,
+      "sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9"
+    }
+  },
+  "test": {
+    "bounds": {
+      "context": 3,
+      "max_allocated_data_tokens_per_tensor": 240,
+      "max_reference_tokens_per_update": 72,
+      "microbatch": 2,
+      "parameter_elements_per_model": 165,
+      "steps": 3,
+      "vocabulary": 11,
+      "width": 7,
+      "world_replicas": 4
+    },
+    "cases": 11,
+    "checks": 352,
+    "criteria": {
+      "default_identity": "byte-for-byte, no tolerance",
+      "float32": {
+        "atol": 3e-06,
+        "rtol": 3e-05
+      },
+      "float64": {
+        "atol": 1e-12,
+        "rtol": 1e-10
+      }
+    },
+    "exact_claim": "identical full recorded toy histories (tensor values and SHA256 of raw tensor bytes) across base, candidate omitted flag, explicit 131072 in FP32 and FP64; no tolerance",
+    "exit_code": 0,
+    "max_absolute_errors": {
+      "float32": {
+        "clip_error": 5.587935447692871e-09,
+        "gradient": 1.4901161193847656e-08,
+        "loss": 2.384185791015625e-07,
+        "weight_error": 1.4901161193847656e-08
+      },
+      "float64": {
+        "clip_error": 1.0408340855860843e-17,
+        "gradient": 2.7755575615628914e-17,
+        "loss": 4.440892098500626e-16,
+        "weight_error": 5.551115123125783e-17
+      }
+    },
+    "mocks": [
+      "serial four-rank deterministic AVG",
+      "toy embedding/tanh/linear model",
+      "SGD with momentum instead of MuonAdamW/OwnedOptimizer",
+      "no-op debug hook"
+    ],
+    "omitted": [
+      "module main",
+      "full production model",
+      "real process group",
+      "NKI/BF16/native compilation",
+      "dataset/tokenizer",
+      "clock/timing",
+      "checkpoint binary/save-load execution",
+      "dynamic overflow",
+      "batch ramp ON",
+      "deferred Adam and flat-buffer branches"
+    ],
+    "results": "reference_results.json",
+    "settings": {
+      "deterministic_algorithms": true,
+      "device": "cpu",
+      "interop": 1,
+      "intraop": 1,
+      "python": "3.14.4",
+      "requested_thread_environment": {
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      },
+      "torch": "2.13.0+cpu"
+    },
+    "source": "reference_test.py"
+  },
+  "verdict": "PASS",
+  "warnings_preserved": [
+    "PyTorch emitted: Error in cpuinfo: failed to parse processor information from /proc/cpuinfo; test exit 0, all checks passed."
+  ]
+}

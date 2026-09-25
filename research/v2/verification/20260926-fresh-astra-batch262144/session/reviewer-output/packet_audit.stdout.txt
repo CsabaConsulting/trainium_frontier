@@ -1,0 +1,485 @@
+{
+  "source_hashes": {
+    "base": {
+      "bytes": 318875,
+      "lines": 4890,
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "matches": true
+    },
+    "candidate": {
+      "bytes": 319299,
+      "lines": 4895,
+      "sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+      "matches": true
+    }
+  },
+  "default_loss_exact_numeric_equality_all_ranks": true,
+  "default_loss_float_hex_equality_all_ranks": true,
+  "default_rank0_digest_map_exact_equality": true,
+  "default_rank0_digests_compared": 62,
+  "default_checkpoint_fields_equal": true,
+  "all_plan_hashes_and_summaries_equal": true,
+  "changed_arm_rank0_digests_differ": [
+    "lm_head.weight",
+    "transformer.h.0.attn.c_k.weight",
+    "transformer.h.0.attn.c_proj.weight",
+    "transformer.h.0.attn.c_q.weight",
+    "transformer.h.0.attn.c_v.weight",
+    "transformer.h.0.local_conv.weight",
+    "transformer.h.0.mlp.c_fc.weight",
+    "transformer.h.0.mlp.c_proj.weight",
+    "transformer.h.0.resid_lambda",
+    "transformer.h.0.x0_lambda",
+    "transformer.h.1.attn.c_k.weight",
+    "transformer.h.1.attn.c_proj.weight",
+    "transformer.h.1.attn.c_q.weight",
+    "transformer.h.1.attn.c_v.weight",
+    "transformer.h.1.attn.ve_gate.weight",
+    "transformer.h.1.local_conv.weight",
+    "transformer.h.1.mlp.c_fc.weight",
+    "transformer.h.1.mlp.c_proj.weight",
+    "transformer.h.1.resid_lambda",
+    "transformer.h.1.x0_lambda",
+    "transformer.h.2.attn.c_k.weight",
+    "transformer.h.2.attn.c_proj.weight",
+    "transformer.h.2.attn.c_q.weight",
+    "transformer.h.2.attn.c_v.weight",
+    "transformer.h.2.local_conv.weight",
+    "transformer.h.2.mlp.c_fc.weight",
+    "transformer.h.2.mlp.c_proj.weight",
+    "transformer.h.2.resid_lambda",
+    "transformer.h.2.x0_lambda",
+    "transformer.h.3.attn.c_k.weight",
+    "transformer.h.3.attn.c_proj.weight",
+    "transformer.h.3.attn.c_q.weight",
+    "transformer.h.3.attn.c_v.weight",
+    "transformer.h.3.attn.ve_gate.weight",
+    "transformer.h.3.local_conv.weight",
+    "transformer.h.3.mlp.c_fc.weight",
+    "transformer.h.3.mlp.c_proj.weight",
+    "transformer.h.3.resid_lambda",
+    "transformer.h.3.x0_lambda",
+    "transformer.h.4.attn.c_k.weight",
+    "transformer.h.4.attn.c_proj.weight",
+    "transformer.h.4.attn.c_q.weight",
+    "transformer.h.4.attn.c_v.weight",
+    "transformer.h.4.local_conv.weight",
+    "transformer.h.4.mlp.c_fc.weight",
+    "transformer.h.4.mlp.c_proj.weight",
+    "transformer.h.4.resid_lambda",
+    "transformer.h.4.x0_lambda",
+    "transformer.h.5.attn.c_k.weight",
+    "transformer.h.5.attn.c_proj.weight",
+    "transformer.h.5.attn.c_q.weight",
+    "transformer.h.5.attn.c_v.weight",
+    "transformer.h.5.attn.ve_gate.weight",
+    "transformer.h.5.local_conv.weight",
+    "transformer.h.5.mlp.c_fc.weight",
+    "transformer.h.5.mlp.c_proj.weight",
+    "transformer.h.5.resid_lambda",
+    "transformer.h.5.x0_lambda",
+    "transformer.wte.weight",
+    "value_embeds.1.weight",
+    "value_embeds.3.weight",
+    "value_embeds.5.weight"
+  ],
+  "changed_arm_first_micro_loss_same_each_rank": [
+    true,
+    true,
+    true,
+    true
+  ]
+}
+reference {
+  "steps": 3,
+  "nproc": 4,
+  "micro_batch": [
+    2,
+    256
+  ],
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "python": "3.12.3",
+  "torch": "2.11.0+cpu",
+  "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "elapsed_s": 20.0,
+  "torchrun_rc": 0,
+  "timed_out": false,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "embedded_ranks_equal_files": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "losses": [
+    [
+      9.010493278503418,
+      9.01767635345459,
+      9.073383331298828
+    ],
+    [
+      9.013445854187012,
+      9.026524543762207,
+      9.042193412780762
+    ],
+    [
+      9.0109281539917,
+      9.00779914855957,
+      9.035927772521973
+    ],
+    [
+      9.011688232421875,
+      9.02107048034668,
+      9.049201011657715
+    ]
+  ],
+  "plan_summary": {
+    "elements_by_owner": [
+      27265796,
+      30414851,
+      30412805,
+      29360128
+    ],
+    "estimated_ms_by_owner": [
+      12.947406063447303,
+      12.939731226905751,
+      12.948754427971444,
+      12.947727783333331
+    ],
+    "shard_elements": 30414976,
+    "total_padded_bytes": 486639616
+  },
+  "plan_all_equal": true,
+  "parameter_count_sum": 117453580,
+  "n_params": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "n_changed": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "unchanged_params": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "cross_rank_mismatches": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "checkpoint_check": {
+    "deterministic": true,
+    "logits_shape": [
+      1,
+      256,
+      8192
+    ],
+    "ok": true,
+    "path_exists": true
+  },
+  "tables": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "log_evidence": [
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "step 00000 | loss 9.0105 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 2 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0143 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00002 | loss 9.0361 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "training_seconds:  0.0",
+    "compiled:          False",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "total_tokens_M:    0.4",
+    "world_size:        4",
+    "lnc:               2",
+    "seq_len:           1024"
+  ],
+  "recorded_log_tail_is_actual_tail": true
+}
+default {
+  "steps": 3,
+  "nproc": 4,
+  "micro_batch": [
+    2,
+    256
+  ],
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "python": "3.12.3",
+  "torch": "2.11.0+cpu",
+  "train_py_sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+  "elapsed_s": 20.2,
+  "torchrun_rc": 0,
+  "timed_out": false,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "embedded_ranks_equal_files": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "losses": [
+    [
+      9.010493278503418,
+      9.01767635345459,
+      9.073383331298828
+    ],
+    [
+      9.013445854187012,
+      9.026524543762207,
+      9.042193412780762
+    ],
+    [
+      9.0109281539917,
+      9.00779914855957,
+      9.035927772521973
+    ],
+    [
+      9.011688232421875,
+      9.02107048034668,
+      9.049201011657715
+    ]
+  ],
+  "plan_summary": {
+    "elements_by_owner": [
+      27265796,
+      30414851,
+      30412805,
+      29360128
+    ],
+    "estimated_ms_by_owner": [
+      12.947406063447303,
+      12.939731226905751,
+      12.948754427971444,
+      12.947727783333331
+    ],
+    "shard_elements": 30414976,
+    "total_padded_bytes": 486639616
+  },
+  "plan_all_equal": true,
+  "parameter_count_sum": 117453580,
+  "n_params": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "n_changed": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "unchanged_params": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "cross_rank_mismatches": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "checkpoint_check": {
+    "deterministic": true,
+    "logits_shape": [
+      1,
+      256,
+      8192
+    ],
+    "ok": true,
+    "path_exists": true
+  },
+  "tables": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "log_evidence": [
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "step 00000 | loss 9.0105 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 2 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0143 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00002 | loss 9.0361 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "training_seconds:  0.0",
+    "compiled:          False",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "total_tokens_M:    0.4",
+    "world_size:        4",
+    "lnc:               2",
+    "seq_len:           1024"
+  ],
+  "recorded_log_tail_is_actual_tail": true
+}
+batch262144 {
+  "steps": 3,
+  "nproc": 4,
+  "micro_batch": [
+    2,
+    256
+  ],
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "python": "3.12.3",
+  "torch": "2.11.0+cpu",
+  "train_py_sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+  "elapsed_s": 22.6,
+  "torchrun_rc": 0,
+  "timed_out": false,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "embedded_ranks_equal_files": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "losses": [
+    [
+      9.010493278503418,
+      9.011966705322266,
+      9.005843162536621,
+      9.026580810546875,
+      9.11286735534668,
+      9.114635467529297
+    ],
+    [
+      9.013445854187012,
+      9.011241912841797,
+      9.02695083618164,
+      9.024360656738281,
+      9.079180717468262,
+      9.118800163269043
+    ],
+    [
+      9.0109281539917,
+      9.010210037231445,
+      9.029542922973633,
+      9.024055480957031,
+      9.099403381347656,
+      9.103178024291992
+    ],
+    [
+      9.011688232421875,
+      9.011569023132324,
+      9.02912712097168,
+      9.031883239746094,
+      9.095660209655762,
+      9.093542098999023
+    ]
+  ],
+  "plan_summary": {
+    "elements_by_owner": [
+      27265796,
+      30414851,
+      30412805,
+      29360128
+    ],
+    "estimated_ms_by_owner": [
+      12.947406063447303,
+      12.939731226905751,
+      12.948754427971444,
+      12.947727783333331
+    ],
+    "shard_elements": 30414976,
+    "total_padded_bytes": 486639616
+  },
+  "plan_all_equal": true,
+  "parameter_count_sum": 117453580,
+  "n_params": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "n_changed": [
+    62,
+    62,
+    62,
+    62
+  ],
+  "unchanged_params": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "cross_rank_mismatches": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "checkpoint_check": {
+    "deterministic": true,
+    "logits_shape": [
+      1,
+      256,
+      8192
+    ],
+    "ok": true,
+    "path_exists": true
+  },
+  "tables": [
+    [],
+    [],
+    [],
+    []
+  ],
+  "log_evidence": [
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=2 pack_factor=32",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "step 00000 | loss 9.0120 | lrm 1.000 | dt 0.00s | tok/s 262,144,000 | remaining_steps 2 | remaining_time 1800s | epoch 1",
+    "step 00001 | loss 9.0197 | lrm 1.000 | dt 0.00s | tok/s 262,144,000 | remaining_steps 1 | remaining_time 1800s | epoch 1",
+    "step 00002 | loss 9.0547 | lrm 1.000 | dt 0.00s | tok/s 262,144,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "training_seconds:  0.0",
+    "compiled:          False",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=2 last_grad_accum=2",
+    "total_tokens_M:    0.8",
+    "world_size:        4",
+    "lnc:               2",
+    "seq_len:           1024"
+  ],
+  "recorded_log_tail_is_actual_tail": true
+}
