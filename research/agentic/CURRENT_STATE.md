@@ -1,5 +1,29 @@
 # Current state
 
+## 23:47 UTC: architecture training authenticated; score pending
+
+Full75b944+Recursive trn21 training ended23:40:01UTC with3629steps,
+795.609s observed fifth and1789.163s charged through exit. Root64 independent
+checks normal/-O pass67831e4b. Retained checkpoint689c2fbd; original-lock
+fresh20M evaluator3098840 remains active. No new BPB claim yet. trn22 exact
+36a862 startup-clock full reachedstep80/266815tok_s at23:44:02UTC; its first
+five printed losses match cold-five, but actual full startup awaits terminal.
+
+P decode narrow classification repairb529468f independently passed22233aea,
+root311+14 normal/-O checks. Assignment27768550 is conditional on trn21
+full+eval terminal/retrieval/quiescence; local staging preparation only.
+Distinct symmetric grid2 K2 source9ce2e6a0 is in a genuinely fresh input-only
+Astra review begun23:42:28UTC, archivedfddfbe0c. Native trn21 binding710ea677
+is disabled pending source and independent mechanics; it follows P.
+New one-shot warm-start packet52c31b73 is in mechanical review for trn22's
+next idle boundary; it does not rearm the refused original cache pair/S2.
+
+Two actual compiler-input observations completed:169319bytes preserved,
+rawf424ae09/8d575da9, closed-graph mapping pending. No cache-hit claim. Old
+K2 failure and original S1 refusal remain. Confirmedpublicmean.9901674436550496;
+original.986340 did not confirm; no upload-ready candidate or six-ready-jobs
+claim. GoalACTIVE; current explicit host fields/queue snapshot govern.
+
 ## 23:31 UTC: both full experiments actually live
 
 trn21 full75b944+Recursive reached step2590/epoch2 at23:31:30,266884tok/s,

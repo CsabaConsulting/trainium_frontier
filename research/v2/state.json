@@ -1,4 +1,20 @@
 {
+  "latest_runtime_20260925_2347z": {
+    "supersedes": "Older current-host and next-job snapshots; historical failures and quality rows are unchanged",
+    "trn21": "75b944 training exit0 at23:40:01UTC:3629steps,1789.1628205840243 charged seconds; original-lock fresh20M evaluator3098840 active, score pending",
+    "training_authentication": "67831e4b:64 independent checks normal/-O; exact source/argv/checkpoint and evaluator handoff authenticated, not quality or postflight",
+    "trn22": "36a862 startup-clock full atstep80/266815tok_s at23:44:02UTC; first-five printed losses match exact cold-five; actual full fifth deferred to terminal",
+    "p_decode": "Repaired b529468f mechanics22233aea/root311+14 checks PASS;27768550 conditionally assigns next trn21 idle slot after full+eval retrieval/quiescence; prepared locally190c3dec, not launched",
+    "k2_new_source": "9ce2e6a0 symmetric grid2; fresh isolated Astra started23:42:28UTC, archivedfddfbe0c, verdict pending; distinct from parked failed route",
+    "k2_new_native": "710ea677 disabled trn21 packet, independent mechanics pending; future slot after P and accepted fresh source, not assigned",
+    "warm_observation": "52c31b73 new W1 five-step retained-cache observational packet in independent review; original S1pair REFUSED/noS2 remains; no cache-hit claim or launch authority",
+    "compiler_capture": "Two assigned current-process observations completedf424ae09/8d575da9;169319bytes authenticated; closed graph mapping pending, scope exhausted",
+    "confirmed_public20m_mean": 0.9901674436550496,
+    "single_0986340_confirmed": false,
+    "submission_ready": false,
+    "six_ready_jobs_per_host": false,
+    "goal_status": "ACTIVE_PROGRESS"
+  },
   "latest_runtime_20260925_2330z": {
     "supersedes": "Older live snapshots below; current hosts fields govern, raw history unchanged",
     "trn21": "75b944 Recursive architecture full: step2590 at23:31:30UTC,266884tok/s,526sremaining, epoch2; fresh20M attached",
@@ -981,37 +997,35 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-arch75b9-recursive-trn21-r1-full",
-      "status": "FULL_RESEARCH_TRAINING_FOUR_WORKERS_LIVE",
+    "status": "FULL_TRAIN_EXIT0_FRESH_PUBLIC20M_RUNNING",
       "source_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
       "started_utc": "2026-09-25T22:56:53.920340+00:00",
-      "last_process_check_utc": "2026-09-25T23:31:30Z",
+    "last_process_check_utc": "2026-09-25T23:44:02Z",
       "driver_pid": 3075974,
       "torchrun_pid": 3076005,
-      "worker_pids": [
-        3076020,
-        3076021,
-        3076022,
-        3076023
-      ],
+    "completed_training_worker_pids": [3076020, 3076021, 3076022, 3076023],
+    "eval_pid": 3098840,
       "original_lock_inode": 596823,
-      "free_disk_gib": 23.1,
+    "free_disk_gb_decimal": 24.351,
       "launch_allowed": true,
       "active_assignment": "research/v2/verification/20260926-architecture-recursive-full-trn21-assignment.md",
       "scope": "Exact75b944 Recursive ON;1800s+attachedfresh20M, unchanged original lifetime lock; no startup-adjustedflag; notcoldfull",
       "receipt": "research/v2/operator/20260926-trn21-architecture-recursive-full/launch/first-four-rank-evidence.json",
       "submission_eligible": false,
-      "last_observed_step": 2590,
-      "reported_tokens_per_second": 266884,
+    "completed_steps": 3629,
+    "steady_printed_tokens_per_second_median": 266902,
       "early_evidence": "research/v2/operator/20260926-trn21-architecture-recursive-full/early-training-evidence.json",
-      "startup_result": "UNCAPPED_HARNESS_FIFTH_PENDING_TERMINAL",
-      "fresh_public20m": "ATTACHED_PENDING"
+    "observed_uncapped_fifth_seconds": 795.6093858700478,
+    "charged_through_exit_seconds": 1789.1628205840243,
+    "training_authentication": "research/v2/verification/20260926-architecture-recursive-full-result/training-audit.json",
+    "fresh_public20m": "ACTIVE_SCORE_PENDING"
     },
     "trn22": {
       "label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
-      "status": "FULL_RESEARCH_FOUR_WORKERS_LIVE_STARTUP",
+    "status": "FULL_RESEARCH_FOUR_WORKERS_LIVE_TRAINING",
       "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
       "started_utc": "2026-09-25T23:29:53.434078+00:00",
-      "last_process_check_utc": "2026-09-25T23:30:03.299163+00:00",
+    "last_process_check_utc": "2026-09-25T23:44:02Z",
       "driver_pid": 3191010,
       "torchrun_pid": 3191041,
       "worker_pids": [
@@ -1025,7 +1039,12 @@
       "active_assignment": "research/v2/verification/20260926-startup-clock-full-trn22-assignment.md",
       "scope": "Exact36a862 startup-adjusted only;1800s+attachedfresh20M,noRecursive,reused acceptedcold caches; notcoldfull",
       "receipt": "research/v2/operator/20260926-trn22-startup-clock-full/launch/first-four-rank-evidence.json",
-      "qualified_cold_fifth_seconds": 845.6273377500474,
+    "qualified_cold_fifth_seconds": 845.6273377500474,
+    "last_observed_step": 80,
+    "reported_tokens_per_second": 266815,
+    "source_reported_seconds_remaining": 1763,
+    "free_disk_gb_decimal": 28.557,
+    "early_evidence": "research/v2/operator/20260926-trn22-startup-clock-full/early-training-compact-snapshot.json",
       "fresh_public20m": "ATTACHED_PENDING",
       "submission_eligible": false
     }

@@ -1,5 +1,10 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+05:17IST: full36a862 live atstep80/266815tok_s at05:14:02IST, fourworkers
+and original lock. First-five printedlosses equal qualified cold-five with
+lrm1.000; actual full uncappedfifth/chargedtime deferred to terminal. Attached
+fresh20M not yet started. No quality gain or cache-hit claim from early loss.
+
 05:01IST update: actual cold-five accepted55c773fc/root130checks,
 uncappedfifth845.6273377500474s. Full36a862+fresh20M releasedc8882640 and
 ACTUALLY launched04:59:53IST, raw127aed26, fourworkers/originalflock.

@@ -1,5 +1,14 @@
 # P status — 2026-09-26 IST
 
+## 05:17 IST conditional decoder handoff
+
+Exactb529468f repairs late-descendant success classification only. Independent
+22233aea plus root311+14 checks normal/-O pass; originalHOLD remains.27768550
+assigns one bounded saved-trace decode ontrn21 after currentfull75b9+fresh20M
+terminal/retrieval/quiescence. Operator190c3dec prepared locally; no remote
+copy/decode yet. Preserve source NTFF/all80NEFFs,600s/CPU300/AS16GiB/oneCPU
+limits and explicit descendant postflight. Coverage and device cost unknown.
+
 ## 02:12 IST capability and K1 attribution update
 
 Read-only installed-tool inventorycd298eba found the removed neuron-profile
