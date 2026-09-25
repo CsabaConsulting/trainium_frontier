@@ -12,6 +12,12 @@ evaluator, or submission was changed for this suggestion.
   on 32 A100 GPUs; selected models used 1T. Its released 125M model has
   30 layers, width 576, 9 attention heads and 3 KV heads. The 30-layer,
   width-512 entry in Table 11 is an *ablation*, not that released model.
+- [SmolLM-135M's released configuration](https://huggingface.co/HuggingFaceTB/SmolLM-135M/raw/main/config.json)
+  also has 30 layers, width 576, 9 attention heads and 3 KV heads. Its
+  [authors say](https://huggingface.co/blog/smollm) they adopted a design
+  similar to MobileLLM and trained this size on 600B tokens. This confirms
+  adoption of the deep-narrow design, but is not an independent
+  depth-versus-width ablation or a fixed-30-minute BPB result.
 - Csaba's research note at
   `CsabaConsulting/trainium_frontier@d3b2dba66a0c19f2d56e49d123a66cae8883d42f:research/depth-vs-width-review-2026-09-25.md`
   independently concludes that this is a poor immediate transfer to a
