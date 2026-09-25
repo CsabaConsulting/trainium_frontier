@@ -1,0 +1,83 @@
+{
+  "schema": "trn21-c5c-a0-source-stage-r2-transfer-only-supervisor-assignment-v1",
+  "issued_utc": "2026-09-25T01:21:36Z",
+  "status": "ASSIGNED_CONDITIONAL_EXACT_TRANSFER_ONLY",
+  "issued_by_role": "supervisor",
+  "assigned_operator": "trn21_g1_r2_guarded_eval_operator",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "stage_label": "fs-20260925-v2-c5c-a0-control-trn21-r1-source-stage-r2",
+  "science_label_reserved_not_launched": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "source_transfer_authorized_only_after_fresh_pass": true,
+  "checkout_or_extraction_authorized": false,
+  "cpu_g2_authorized": false,
+  "native_training_authorized": false,
+  "evaluation_authorized": false,
+  "aws_or_volume_action_authorized": false,
+  "deletion_overwrite_cleanup_or_same_path_retry_authorized": false,
+  "evidence": {
+    "prior_stage_hold": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-hold.md",
+    "prior_stage_hold_sha256": "1710449665cf889349a2527cf793a1a247ab88ecc903a9c6aaf2cf7823f46135",
+    "prior_readonly_addendum": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-forensic-addendum.md",
+    "prior_readonly_addendum_sha256": "60df65fd3080aa070f8ebf8a348baf5fa55dd8b6d3ad2a70b930cc4624e7eb11",
+    "science_proposal_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
+    "science_proposal_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
+    "trn21_g1_independent_pass": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+    "trn21_g1_independent_pass_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+    "stage_r2_contract": "research/v2/authorizations/trn21-c5c-a0-stage-r2/GATE_CONTRACT.json",
+    "stage_r2_contract_sha256": "631f3e7c1a2c4ec962b58be3b3a5399d323bae22d41add1aaca7884cd4efe069",
+    "stage_r2_runbook": "research/v2/authorizations/trn21-c5c-a0-stage-r2/RUNBOOK.md",
+    "stage_r2_runbook_sha256": "5dcd7962a116a126cafdc8e5e0023c17e53c9a6d7d88035e22df9672f325191b",
+    "stage_r2_independent_static_pass": "research/v2/authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md",
+    "stage_r2_independent_static_pass_sha256": "36a97e1e33f192ff34691230131bab3c895a1126d1be32d167f4ae96034324f8"
+  },
+  "exact_transfer": {
+    "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "root_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "writer_repo_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2/stage_r2_remote_writer.py",
+    "writer_sha256": "a87fb4efe9b3e7b4c0b4f60855edb1ebf98f8a02cd66224cd36fb90d7d5b20eb",
+    "builder_repo_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2/stage_r2_transport.py",
+    "builder_sha256": "cd60f0abd8897fa9091b107f065a4ec2e863b7f063ea7d7fb06e58829d18e336",
+    "artifacts": [
+      {
+        "name": "capsule",
+        "local_source": "/dev/shm/trainium-c5c-e65-one-commit-20260925.tar.gz",
+        "new_host_target": "/home/ubuntu/trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz",
+        "bytes": 104005787,
+        "sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264"
+      },
+      {
+        "name": "preflight",
+        "local_source": "workflow/tools/preflight_dryrun.py",
+        "new_host_target": "/home/ubuntu/trainium-v2-g2-preflight-dryrun-20260925-trn21-stage-r2.py",
+        "bytes": 23550,
+        "sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8"
+      },
+      {
+        "name": "contained",
+        "local_source": "workflow/tools/contained.py",
+        "new_host_target": "/home/ubuntu/trainium-v2-g2-contained-20260925-trn21-stage-r2.py",
+        "bytes": 9185,
+        "sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d"
+      }
+    ],
+    "old_tmpfs_target_forbidden": "/dev/shm/trainium-c5c-e65-one-commit-20260925.trn21.tar.gz"
+  },
+  "fresh_preflight_required_before_each_write": [
+    "Use the already pinned trn21 SSH identity and strict host key, without reading or printing credentials; verify hostname ip-172-31-34-85 and UID 1000.",
+    "Record boot ID, mount namespace, ext4 root device/mount and /home/ubuntu parent device/inode/UID/mode; independently prove /, /home and /home/ubuntu ancestry is non-writable by others, since the writer does not check /home permissions.",
+    "Require root free >=10737418240 bytes and preserve the unchanged 6979321856-byte native floor; verify all three new targets and new checkout are absent before any write.",
+    "Require global/trn21 STOP and breakers closed, no train/eval/G2/guard process, no Neuron or host-lock holder, and the science label/output absent.",
+    "Reauthenticate both protected checkpoint byte-count/SHA pairs and all six historical warm-cache device/inode identities from GATE_CONTRACT.json without changing them.",
+    "Rehash the local private regular 0600 capsule and both CPU tools; rehash writer and builder, and retain the reviewed safe-member scan evidence."
+  ],
+  "operator_execution_and_receipt": [
+    "Before each execution archive exact complete SSH argv/hash, artifact source bytes/hash, writer bytes/hash, target, operation and fresh preflight receipt; use only the reviewed builder and literal reviewed writer.",
+    "One exclusive no-follow write per absent exact target. Save unredacted non-secret stdout/stderr/exit and complete writer receipt; never print key material.",
+    "After each write, use a new pinned SSH process to verify exact file bytes/hash and host/boot/mount/parent/target identity. After all three, use an additional distinct read-only SSH verification per artifact.",
+    "A write-session SHA alone is not persistence proof. Require the reviewed cross-session comparator and retain every raw receipt for a separate Verifier.",
+    "On any absent target after write, mismatch, process failure, root-free breach, changed identity, open breaker, asset drift or uncertain state: stop, archive HOLD, leave partial/new host files intact; do not delete, overwrite, rename or retry a consumed path.",
+    "No checkout creation/extraction, CPU G2, native train, eval or submission from this assignment. Return a durable exact transfer receipt for independent review; a separate request is required for extraction."
+  ]
+}
