@@ -147,6 +147,7 @@ class PairMonitorTest(unittest.TestCase):
         s.procs[child_pid] = base.ProcInfo(
             child_pid, os.getuid(), 100002, guard_pid, child_pid, child_pid,
             tuple(self.request["command"]), "/usr/bin/timeout")
+        s.owned_pids.update((guard_pid, child_pid))
         return guard_pid, child_pid
 
     def test_live_peer_does_not_signal(self):
@@ -185,7 +186,9 @@ class PairMonitorTest(unittest.TestCase):
         with self.assertRaises(base.MonitorError) as raised:
             self.monitor.tick()
         self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [guard_pid + 100000])
+        self.assertEqual(self.system.signals[0], guard_pid + 100000)
+        self.assertIn(("KILL", guard_pid + 100000), self.system.signals)
+        self.assertNotIn(self.peer_pid + 100000, self.system.signals)
 
     def test_pre_guard_failure_waits_for_authenticated_receipt(self):
         self.bind_peer()
@@ -193,6 +196,7 @@ class PairMonitorTest(unittest.TestCase):
         def synthetic_term(pidfd):
             self.system.signals.append(pidfd)
             self.system.procs[guard_pid] = None
+            self.system.procs[guard_pid + 1] = None
             self.system.files[self.monitor.postflight_path] = {
                 "label": self.binding["label"], "host_clean": True,
                 "command_returncode": 143,
@@ -208,6 +212,7 @@ class PairMonitorTest(unittest.TestCase):
         def synthetic_term(pidfd):
             self.system.signals.append(pidfd)
             self.system.procs[12345] = None
+            self.system.procs[12346] = None
             self.system.files[self.monitor.postflight_path] = {
                 "label": self.binding["label"], "host_clean": True,
                 "command_returncode": 143,

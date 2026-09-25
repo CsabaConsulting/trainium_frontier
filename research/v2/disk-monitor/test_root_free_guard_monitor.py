@@ -46,6 +46,8 @@ class FakeSystem:
         self.procs = {}
         self.signals = []
         self.pidfds = []
+        self.pidfd_identities = {}
+        self.owned_pids = set()
         self.closed = []
         self.fail_free = False
 
@@ -77,10 +79,27 @@ class FakeSystem:
 
     def open_pidfd(self, pid):
         self.pidfds.append(pid)
-        return pid + 100000
+        pidfd = pid + 100000
+        self.pidfd_identities[pidfd] = (pid, self.procs[pid].birth_ticks)
+        return pidfd
+
+    def pidfd_alive(self, pidfd):
+        pid, birth = self.pidfd_identities[pidfd]
+        proc = self.procs.get(pid)
+        return proc is not None and proc.birth_ticks == birth
 
     def term_pidfd(self, pidfd):
         self.signals.append(pidfd)
+
+    def kill_pidfd(self, pidfd):
+        self.signals.append(("KILL", pidfd))
+
+    def owned_processes(self, _label):
+        return [self.procs[pid] for pid in self.owned_pids
+                if self.procs.get(pid) is not None]
+
+    def has_marker(self, pid, _label):
+        return pid in self.owned_pids
 
     def close_pidfd(self, pidfd):
         self.closed.append(pidfd)
@@ -165,6 +184,7 @@ class GuardMonitorTest(unittest.TestCase):
         s.hashes[m.process_path] = "process-sha"
         s.procs[self.guard_pid] = self.guard
         s.procs[self.child_pid] = self.child
+        s.owned_pids.update((self.guard_pid, self.child_pid))
         s.time += 0.25
         self.assertIsNone(m.tick())
         self.assertEqual(m.state, "BOUND")
@@ -184,6 +204,7 @@ class GuardMonitorTest(unittest.TestCase):
         self.system.time += 0.25
         self.assertIsNone(self.monitor.tick())
         self.system.procs[self.guard_pid] = None
+        self.system.procs[self.child_pid] = None
         self.system.files[self.monitor.postflight_path] = {
             "label": self.binding["label"], "host_clean": True, "command_returncode": 0,
         }
@@ -191,7 +212,7 @@ class GuardMonitorTest(unittest.TestCase):
         self.assertEqual(self.monitor.tick(), 0)
         self.assertEqual(self.system.signals, [])
 
-    def test_reused_guard_pid_refuses_signal(self):
+    def test_reused_guard_pid_never_signals_replacement(self):
         self.stage_live_guard()
         self.system.procs[self.guard_pid] = monitor_module.ProcInfo(
             self.guard.pid, self.guard.uid, self.guard.birth_ticks + 1,
@@ -200,11 +221,11 @@ class GuardMonitorTest(unittest.TestCase):
         )
         self.system.free = self.binding["stop_free_bytes"]
         self.system.time += 0.25
-        with self.assertRaisesRegex(monitor_module.MonitorError, "birth ticks") as raised:
-            self.monitor.tick()
-        self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [])
-        self.assertIn("SIGNAL_REFUSED", [event for event, _ in self.journal.events])
+        self.assertIsNone(self.monitor.tick())
+        self.assertNotIn(self.guard_pid + 100000, self.system.signals)
+        self.assertNotIn(("KILL", self.guard_pid + 100000), self.system.signals)
+        self.assertIn(("KILL", self.child_pid + 100000), self.system.signals)
+        self.assertIn("KILL_REFUSED", [event for event, _ in self.journal.events])
 
     def test_foreign_guard_uid_refuses_binding(self):
         self.system.files[self.monitor.job_path] = self.job
@@ -228,7 +249,9 @@ class GuardMonitorTest(unittest.TestCase):
         with self.assertRaises(OSError) as raised:
             self.monitor.tick()
         self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [self.guard_pid + 100000])
+        self.assertEqual(self.system.signals[0], self.guard_pid + 100000)
+        self.assertIn(("KILL", self.guard_pid + 100000), self.system.signals)
+        self.assertIn(("KILL", self.child_pid + 100000), self.system.signals)
         self.assertEqual(self.monitor.stop_reason, "MONITOR_FAILURE")
 
     def test_missing_process_receipt_fails_without_signal(self):
@@ -254,7 +277,7 @@ class GuardMonitorTest(unittest.TestCase):
         self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
         self.assertEqual(self.system.signals, [])
 
-    def test_reused_child_pid_refuses_guard_signal(self):
+    def test_reused_child_pid_is_not_signaled_but_owned_guard_is_stopped(self):
         self.stage_live_guard()
         self.system.procs[self.child_pid] = monitor_module.ProcInfo(
             self.child.pid, self.child.uid, self.child.birth_ticks + 1,
@@ -263,10 +286,9 @@ class GuardMonitorTest(unittest.TestCase):
         )
         self.system.free = self.binding["stop_free_bytes"]
         self.system.time += 0.25
-        with self.assertRaisesRegex(monitor_module.MonitorError, "child PID reused") as raised:
-            self.monitor.tick()
-        self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [])
+        self.assertIsNone(self.monitor.tick())
+        self.assertEqual(self.system.signals, [self.guard_pid + 100000])
+        self.assertNotIn(("KILL", self.child_pid + 100000), self.system.signals)
 
     def test_poll_lag_stops_authenticated_guard(self):
         self.stage_live_guard()
@@ -274,17 +296,18 @@ class GuardMonitorTest(unittest.TestCase):
         with self.assertRaisesRegex(monitor_module.MonitorError, "poll gap") as raised:
             self.monitor.tick()
         self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [self.guard_pid + 100000])
+        self.assertEqual(self.system.signals[0], self.guard_pid + 100000)
+        self.assertIn(("KILL", self.guard_pid + 100000), self.system.signals)
 
-    def test_replaced_job_manifest_refuses_signal(self):
+    def test_replaced_job_manifest_triggers_owned_stop(self):
         self.stage_live_guard()
         self.system.hashes[self.monitor.job_path] = "changed-sha"
-        self.system.free = self.binding["stop_free_bytes"]
         self.system.time += 0.25
         with self.assertRaisesRegex(monitor_module.MonitorError, "job receipt changed") as raised:
             self.monitor.tick()
         self.assertEqual(self.monitor.fail_closed(raised.exception), 3)
-        self.assertEqual(self.system.signals, [])
+        self.assertEqual(self.system.signals[0], self.guard_pid + 100000)
+        self.assertIn(("KILL", self.guard_pid + 100000), self.system.signals)
 
     def test_real_proc_reader_observes_own_uid_and_birth_ticks(self):
         proc = monitor_module.RealSystem.proc(os.getpid())

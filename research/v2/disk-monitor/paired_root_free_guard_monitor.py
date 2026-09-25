@@ -3,8 +3,9 @@
 
 This wrapper does not launch training. Both roles must become ready and exchange
 fsynced samples before an operator may launch the exact reviewed request. Each
-role can authenticate and TERM only the same guard pidfd if its peer dies or
-stops sampling. Simultaneous process/host/kernel failure remains a boundary.
+role can authenticate and stop the same guard and owned child through pidfds
+if its peer dies or stops sampling. Simultaneous process/host/kernel failure
+remains a boundary.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ import root_free_guard_monitor as base
 
 
 PAIR_SCHEMA = "paired-root-free-guard-monitor-v1"
-LIVE_STATES = frozenset(("WAITING_FOR_GUARD", "BOUND", "STOPPING"))
+LIVE_STATES = frozenset(("WAITING_FOR_GUARD", "BOUND", "STOPPING", "KILLING"))
 MAX_SAMPLE_AGE_SECONDS = 1.0
 
 
@@ -236,7 +237,7 @@ class PairedGuardMonitor(base.GuardMonitor):
                 now = self.system.monotonic()
                 if self.system.exists(self.process_path):
                     self._bind()  # Verifies request/source, both PIDs, UID, birth, argv.
-                    self._stop_owned_guard("PEER_MONITOR_FAILURE", best_effort_journal=True)
+                    self._stop_owned_guard("PEER_MONITOR_FAILURE")
                     while True:
                         result = base.GuardMonitor.tick(self)
                         if result is not None:
@@ -257,6 +258,8 @@ class PairedGuardMonitor(base.GuardMonitor):
                                       reason=str(rescue_error)[:240])
                 except OSError:
                     pass
+                if self.state in ("BOUND", "STOPPING", "KILLING"):
+                    return base.GuardMonitor.fail_closed(self, rescue_error)
                 return 3
 
     def fail_closed(self, error: BaseException) -> int:

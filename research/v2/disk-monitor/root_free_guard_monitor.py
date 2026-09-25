@@ -3,8 +3,10 @@
 
 This is not a launcher or an authorization mechanism. A separately reviewed,
 one-attempt authorization is required before this program may be armed. It
-signals only the pidfd of the exact guard that wrote the expected process
-receipt; it never signals a process group or an unverified PID.
+first signals the pidfd of the exact guard that wrote the expected process
+receipt. If TERM does not quiesce the job, it escalates through authenticated
+pidfds for the bound child and exact run-marker descendants. It never signals
+a process group or an unverified numeric PID.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import select
 import signal
 import socket
 import stat
@@ -27,6 +30,8 @@ import time
 SCHEMA = "root-free-guard-monitor-v1"
 AUTH_SCHEMA = "one-shot-root-free-monitor-authorization-v1"
 TWO_GIB = 2 * 1024**3
+OWNERSHIP_MARKER = "TRAINIUM_FRESH_START_RUN_ID"
+DEFAULT_KILL_SETTLE_SECONDS = 30
 
 
 class MonitorError(RuntimeError):
@@ -134,6 +139,49 @@ class RealSystem:
         signal.pidfd_send_signal(pidfd, signal.SIGTERM, None, 0)
 
     @staticmethod
+    def kill_pidfd(pidfd: int) -> None:
+        signal.pidfd_send_signal(pidfd, signal.SIGKILL, None, 0)
+
+    @staticmethod
+    def pidfd_alive(pidfd: int) -> bool:
+        poller = select.poll()
+        poller.register(pidfd, select.POLLIN | select.POLLHUP | select.POLLERR)
+        events = poller.poll(0)
+        if not events:
+            return True
+        if any(flags & (select.POLLIN | select.POLLHUP) for _, flags in events):
+            return False
+        raise MonitorError("pidfd liveness could not be determined")
+
+    @staticmethod
+    def has_marker(pid: int, label: str) -> bool:
+        needle = (OWNERSHIP_MARKER + "=" + label).encode()
+        try:
+            return needle in (Path("/proc") / str(pid) / "environ").read_bytes().split(b"\0")
+        except (FileNotFoundError, ProcessLookupError):
+            return False
+
+    @staticmethod
+    def owned_processes(label: str) -> list[ProcInfo]:
+        """Find only processes bearing the exact inherited one-run marker."""
+        result = []
+        for root in Path("/proc").iterdir():
+            if not root.name.isdigit():
+                continue
+            pid = int(root.name)
+            if pid == os.getpid():
+                continue
+            try:
+                if root.stat().st_uid != os.getuid() or not RealSystem.has_marker(pid, label):
+                    continue
+                proc = RealSystem.proc(pid)
+                if proc is not None and proc.uid == os.getuid():
+                    result.append(proc)
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+        return result
+
+    @staticmethod
     def close_pidfd(pidfd: int) -> None:
         os.close(pidfd)
 
@@ -197,6 +245,7 @@ class GuardMonitor:
         self.guard: ProcInfo | None = None
         self.child: ProcInfo | None = None
         self.guard_pidfd: int | None = None
+        self.child_pidfd: int | None = None
         self.job_hash: str | None = None
         self.process_hash: str | None = None
         self.started_at = 0.0
@@ -204,6 +253,10 @@ class GuardMonitor:
         self.job_first_seen_at: float | None = None
         self.stop_at: float | None = None
         self.stop_reason: str | None = None
+        self.kill_at: float | None = None
+        self.kill_sent: set[tuple[int, int]] = set()
+        self.hold_reason: str | None = None
+        self.term_failed = False
         self.state = "NEW"
         self.result: int | None = None
 
@@ -231,6 +284,10 @@ class GuardMonitor:
             raise MonitorError("poll interval exceeds one second")
         if not 0 < int(b["bind_timeout_seconds"]) <= 180:
             raise MonitorError("invalid bind timeout")
+        if not 0 < int(b["post_stop_timeout_seconds"]) <= 120:
+            raise MonitorError("invalid TERM grace timeout")
+        if not 0 < int(b.get("kill_settle_timeout_seconds", DEFAULT_KILL_SETTLE_SECONDS)) <= 60:
+            raise MonitorError("invalid KILL settle timeout")
         if b["stop_free_bytes"] < b["floor_free_bytes"] + TWO_GIB:
             raise MonitorError("stop threshold lacks two-GiB reserve")
         if b["prelaunch_free_bytes"] <= b["stop_free_bytes"]:
@@ -279,8 +336,10 @@ class GuardMonitor:
                           or proc.birth_ticks != self.guard.birth_ticks):
             raise MonitorError("guard PID reused or birth ticks changed")
 
-    def _auth_child(self, proc: ProcInfo, guard_pid: int, *, first: bool) -> None:
-        if (proc.uid != self.binding["expected_uid"] or proc.ppid != guard_pid
+    def _auth_child(self, proc: ProcInfo, guard_pid: int, *, first: bool,
+                    allow_reparented: bool = False) -> None:
+        if (proc.uid != self.binding["expected_uid"]
+                or (not allow_reparented and proc.ppid != guard_pid)
                 or proc.pgrp != proc.pid or proc.session != proc.pid):
             raise MonitorError("owned child UID/parent/process-group mismatch")
         if proc.argv != tuple(self.request["command"]):
@@ -322,56 +381,251 @@ class GuardMonitor:
             raise MonitorError("process receipt has no live guard/child pair")
         self._auth_guard(guard, first=True)
         self._auth_child(child, guard_pid, first=True)
-        pidfd = self.system.open_pidfd(guard_pid)
+        guard_pidfd = self.system.open_pidfd(guard_pid)
+        child_pidfd = None
         try:
             again = self.system.proc(guard_pid)
             if again is None or again.birth_ticks != guard.birth_ticks:
                 raise MonitorError("guard changed while opening pidfd")
+            child_pidfd = self.system.open_pidfd(child_pid)
+            child_again = self.system.proc(child_pid)
+            if (child_again is None or child_again.birth_ticks != child.birth_ticks
+                    or not self.system.pidfd_alive(guard_pidfd)
+                    or not self.system.pidfd_alive(child_pidfd)):
+                raise MonitorError("guard or child changed while opening pidfd")
+            self._auth_guard(again, first=True)
+            self._auth_child(child_again, guard_pid, first=True)
             self.guard = guard
             self.child = child
-            self.guard_pidfd = pidfd
+            self.guard_pidfd = guard_pidfd
+            self.child_pidfd = child_pidfd
+            self.state = "BOUND"
             self.job_hash = self.system.sha256(self.job_path)
             self.process_hash = self.system.sha256(self.process_path)
-            self.state = "BOUND"
             self.journal.emit("GUARD_BOUND", guard_pid=guard.pid,
                               guard_uid=guard.uid, guard_birth_ticks=guard.birth_ticks,
                               child_pid=child.pid, child_birth_ticks=child.birth_ticks,
                               job_sha256=self.job_hash, process_sha256=self.process_hash)
         except BaseException:
             if self.guard_pidfd is None:
-                self.system.close_pidfd(pidfd)
+                self.system.close_pidfd(guard_pidfd)
+            if self.child_pidfd is None and child_pidfd is not None:
+                self.system.close_pidfd(child_pidfd)
             raise
 
-    def _stop_owned_guard(self, reason: str, *, best_effort_journal: bool = False) -> None:
-        if self.state not in ("BOUND", "STOPPING") or self.guard is None or self.guard_pidfd is None:
-            raise MonitorError("no authenticated owned guard to stop")
-        self._source_is_exact()
-        _, process = self._manifests_are_exact()
-        if process["guard_pid"] != self.guard.pid or process["child_pid"] != self.child.pid:
-            raise MonitorError("process receipt PID changed")
-        guard = self.system.proc(self.guard.pid)
-        child = self.system.proc(self.child.pid)
-        if guard is None or child is None:
-            raise MonitorError("guard or owned child exited before authenticated stop")
-        self._auth_guard(guard, first=False)
-        self._auth_child(child, guard.pid, first=False)
+    def _emit_safety(self, event: str, **fields: object) -> None:
+        # A full or unreadable root filesystem must not veto a pidfd signal.
         try:
-            self.journal.emit("TERM_INTENT", reason=reason, guard_pid=guard.pid,
-                              guard_birth_ticks=guard.birth_ticks, child_pid=child.pid)
+            self.journal.emit(event, **fields)
         except OSError:
-            if not best_effort_journal:
-                raise
-            print("disk monitor: journal failed before emergency TERM", file=sys.stderr, flush=True)
-        self.system.term_pidfd(self.guard_pidfd)
+            print(f"disk monitor: could not persist {event}", file=sys.stderr, flush=True)
+
+    def _bound_guard(self) -> ProcInfo | None:
+        if self.guard is None or self.guard_pidfd is None:
+            raise MonitorError("guard pidfd was never authenticated")
+        if not self.system.pidfd_alive(self.guard_pidfd):
+            return None
+        current = self.system.proc(self.guard.pid)
+        if current is None:
+            raise MonitorError("live guard pidfd has no readable process identity")
+        self._auth_guard(current, first=False)
+        return current
+
+    def _bound_child(self) -> ProcInfo | None:
+        if self.child is None or self.child_pidfd is None:
+            raise MonitorError("child pidfd was never authenticated")
+        if not self.system.pidfd_alive(self.child_pidfd):
+            return None
+        current = self.system.proc(self.child.pid)
+        if current is None:
+            raise MonitorError("live child pidfd has no readable process identity")
+        # The direct child may be reparented after the guard exits. Its pinned
+        # pidfd, birth, UID, session, executable and argv still identify it.
+        self._auth_child(current, self.guard.pid, first=False, allow_reparented=True)
+        if current.exe != self.child.exe:
+            raise MonitorError("owned child executable changed")
+        return current
+
+    def _owned_descendants(self) -> list[ProcInfo]:
+        if self.guard is None or self.child is None:
+            raise MonitorError("owned process roots are not bound")
+        result = []
+        for proc in self.system.owned_processes(self.label):
+            if proc.pid == self.guard.pid:
+                if proc.birth_ticks != self.guard.birth_ticks:
+                    raise MonitorError("marked guard PID was reused")
+                continue
+            if proc.pid == self.child.pid:
+                if proc.birth_ticks != self.child.birth_ticks:
+                    raise MonitorError("marked child PID was reused")
+                continue
+            if proc.uid != self.binding["expected_uid"] or proc.birth_ticks < self.guard.birth_ticks:
+                raise MonitorError("owned marker process has incompatible identity")
+            result.append(proc)
+        return result
+
+    def _quiescent(self) -> bool:
+        return (self._bound_guard() is None and self._bound_child() is None
+                and not self._owned_descendants())
+
+    def _stop_owned_guard(self, reason: str) -> None:
+        if self.state in ("STOPPING", "KILLING"):
+            return
+        if self.state != "BOUND":
+            raise MonitorError("no authenticated owned guard to stop")
+        guard = self._bound_guard()
         self.stop_reason = reason
         self.stop_at = self.system.monotonic()
         self.state = "STOPPING"
+        if guard is None:
+            self._emit_safety("TERM_GUARD_ALREADY_EXITED", reason=reason,
+                              guard_pid=self.guard.pid)
+            self._escalate_kill("GUARD_EXITED_BEFORE_TERM")
+            return
+        self._emit_safety("TERM_INTENT", reason=reason, guard_pid=guard.pid,
+                          guard_birth_ticks=guard.birth_ticks, child_pid=self.child.pid)
         try:
-            self.journal.emit("TERM_SENT", reason=reason, guard_pid=guard.pid)
-        except OSError:
-            if not best_effort_journal:
-                raise
-            print("disk monitor: journal failed after emergency TERM", file=sys.stderr, flush=True)
+            self.system.term_pidfd(self.guard_pidfd)
+        except ProcessLookupError:
+            self._emit_safety("TERM_GUARD_EXIT_RACE", guard_pid=guard.pid)
+            self._escalate_kill("GUARD_EXITED_DURING_TERM")
+            return
+        except OSError as error:
+            self.term_failed = True
+            self.hold_reason = f"guard TERM failed: {error}"
+            self._emit_safety("TERM_FAILED", error_type=type(error).__name__,
+                              reason=str(error)[:240])
+            self._escalate_kill("TERM_FAILED")
+            return
+        self._emit_safety("TERM_SENT", reason=reason, guard_pid=guard.pid)
+
+    def _kill_live_targets(self) -> None:
+        """KILL only bound pidfds and separately marker-authenticated pidfds."""
+        errors = []
+        try:
+            descendants = self._owned_descendants()
+        except Exception as error:
+            descendants = []
+            errors.append(f"descendant inventory: {error}")
+        for seen in descendants:
+            key = (seen.pid, seen.birth_ticks)
+            if key in self.kill_sent:
+                continue
+            pidfd = None
+            try:
+                pidfd = self.system.open_pidfd(seen.pid)
+                current = self.system.proc(seen.pid)
+                if current is None or not self.system.pidfd_alive(pidfd):
+                    continue
+                if (current.birth_ticks != seen.birth_ticks
+                        or current.uid != self.binding["expected_uid"]
+                        or current.argv != seen.argv or current.exe != seen.exe
+                        or not self.system.has_marker(seen.pid, self.label)):
+                    raise MonitorError("descendant changed before pidfd KILL")
+                self.system.kill_pidfd(pidfd)
+                self.kill_sent.add(key)
+                self._emit_safety("KILL_SENT", target="marked_descendant",
+                                  pid=seen.pid, birth_ticks=seen.birth_ticks)
+            except ProcessLookupError:
+                pass
+            except Exception as error:
+                errors.append(f"descendant {seen.pid}: {error}")
+            finally:
+                if pidfd is not None:
+                    self.system.close_pidfd(pidfd)
+        for target, bound, pidfd in (("child", self._bound_child, self.child_pidfd),
+                                     ("guard", self._bound_guard, self.guard_pidfd)):
+            try:
+                current = bound()
+                if current is None:
+                    continue
+                key = (current.pid, current.birth_ticks)
+                if key in self.kill_sent:
+                    continue
+                self.system.kill_pidfd(pidfd)
+                self.kill_sent.add(key)
+                self._emit_safety("KILL_SENT", target=target, pid=current.pid,
+                                  birth_ticks=current.birth_ticks)
+            except ProcessLookupError:
+                pass
+            except Exception as error:
+                errors.append(f"{target}: {error}")
+        if errors:
+            self.hold_reason = "; ".join(errors)[:240]
+            self._emit_safety("KILL_REFUSED", reason=self.hold_reason)
+
+    def _escalate_kill(self, reason: str) -> None:
+        if self.state == "KILLING":
+            return
+        if self.state not in ("BOUND", "STOPPING"):
+            raise MonitorError("KILL escalation lacks a bound guard")
+        if self.stop_reason is None:
+            self.stop_reason = reason
+        self.kill_at = self.system.monotonic()
+        self.state = "KILLING"
+        self._emit_safety("KILL_ESCALATION", reason=reason,
+                          guard_pid=self.guard.pid, child_pid=self.child.pid)
+        self._kill_live_targets()
+
+    def _hold(self, reason: str, *, quiescent: bool) -> int:
+        self.state = "HOLD"
+        self.result = 3
+        self._emit_safety("QUIESCENT_HOLD" if quiescent else "UNRESOLVED_HOLD",
+                          reason=reason[:240], guard_pid=self.guard.pid if self.guard else None,
+                          child_pid=self.child.pid if self.child else None)
+        print(f"disk monitor: HOLD: {reason}", file=sys.stderr, flush=True)
+        return 3
+
+    def _finish_quiescent(self, free: int | None, *, force_hold: bool = False) -> int:
+        if force_hold or self.hold_reason is not None or self.kill_at is not None:
+            return self._hold(self.hold_reason or "emergency stop reached quiescence after safety failure",
+                              quiescent=True)
+        try:
+            self._source_is_exact()
+            if not self.system.exists(self.postflight_path):
+                raise MonitorError("guard exited without postflight receipt")
+            postflight = self.system.read_json(self.postflight_path)
+            if postflight.get("label") != self.label or postflight.get("host_clean") is not True:
+                raise MonitorError("postflight identity or host-clean gate failed")
+        except Exception as error:
+            return self._hold(str(error), quiescent=True)
+        self.state = "FINISHED"
+        self.result = 0 if self.stop_reason is None and postflight.get("command_returncode") == 0 else 2
+        self._emit_safety("MONITOR_FINISHED", free_bytes=free,
+                          stopped_by_monitor=self.stop_reason is not None,
+                          postflight_host_clean=True, result=self.result)
+        return self.result
+
+    def _containment_step(self, free: int | None, *, force_hold: bool = False) -> int | None:
+        now = self.system.monotonic()
+        try:
+            if self._quiescent():
+                return self._finish_quiescent(free, force_hold=force_hold)
+        except Exception as error:
+            self.hold_reason = f"quiescence identity uncertain: {error}"
+            self._emit_safety("QUIESCENCE_UNCERTAIN", reason=str(error)[:240])
+            if self.state == "STOPPING":
+                self._escalate_kill("QUIESCENCE_UNCERTAIN")
+        if self.state == "STOPPING":
+            try:
+                guard_gone = not self.system.pidfd_alive(self.guard_pidfd)
+            except Exception as error:
+                guard_gone = True
+                self.hold_reason = f"guard pidfd liveness unreadable: {error}"
+            if (self.term_failed or guard_gone or self.stop_at is None
+                    or now - self.stop_at >= self.binding["post_stop_timeout_seconds"]):
+                self._escalate_kill("TERM_GRACE_EXPIRED" if not guard_gone else "GUARD_EXITED_WITH_OWNED_PROCESSES")
+        if self.state == "KILLING":
+            self._kill_live_targets()  # Discover children created during escalation.
+            try:
+                if self._quiescent():
+                    return self._finish_quiescent(free, force_hold=force_hold)
+            except Exception as error:
+                self.hold_reason = f"quiescence identity uncertain: {error}"
+            if now - self.kill_at >= self.binding.get("kill_settle_timeout_seconds", DEFAULT_KILL_SETTLE_SECONDS):
+                return self._hold(self.hold_reason or "owned guard or descendants remain after authenticated KILL",
+                                  quiescent=False)
+        return None
 
     def tick(self) -> int | None:
         s, b = self.system, self.binding
@@ -395,26 +649,23 @@ class GuardMonitor:
                 if self.state != "BOUND":
                     raise MonitorError("root free crossed stop threshold before guard authentication")
                 self._stop_owned_guard("LOW_ROOT_FREE")
-        if self.state in ("BOUND", "STOPPING"):
-            guard = s.proc(self.guard.pid)
+        if self.state == "BOUND":
+            guard = self._bound_guard()
             if guard is None:
-                if not s.exists(self.postflight_path):
-                    raise MonitorError("guard exited without postflight receipt")
-                postflight = s.read_json(self.postflight_path)
-                if postflight.get("label") != self.label or postflight.get("host_clean") is not True:
-                    raise MonitorError("postflight identity or host-clean gate failed")
-                self.state = "FINISHED"
-                self.result = 0 if self.stop_reason is None and postflight.get("command_returncode") == 0 else 2
-                self.journal.emit("MONITOR_FINISHED", free_bytes=free,
-                                  stopped_by_monitor=self.stop_reason is not None,
-                                  postflight_host_clean=True, result=self.result)
-                return self.result
-            self._auth_guard(guard, first=False)
-            if self.state == "BOUND" and free <= b["stop_free_bytes"]:
+                if self._quiescent():
+                    return self._finish_quiescent(free)
+                self._escalate_kill("GUARD_EXITED_WITH_OWNED_PROCESSES")
+            elif free <= b["stop_free_bytes"]:
                 self._stop_owned_guard("LOW_ROOT_FREE")
-            if (self.state == "STOPPING" and self.stop_at is not None
-                    and now - self.stop_at > b["post_stop_timeout_seconds"]):
-                raise MonitorError("guard did not finish after TERM")
+            else:
+                # After binding, drift is a reason to stop the owned job. It is
+                # never an authorization prerequisite for that emergency stop.
+                self._source_is_exact()
+                self._manifests_are_exact()
+        if self.state in ("STOPPING", "KILLING"):
+            result = self._containment_step(free)
+            if result is not None:
+                return result
         self.journal.emit("ROOT_SAMPLE", free_bytes=free, sample_monotonic=now,
                           state=self.state,
                           guard_pid=self.guard.pid if self.guard else None)
@@ -422,32 +673,53 @@ class GuardMonitor:
 
     def fail_closed(self, error: BaseException) -> int:
         kind = type(error).__name__
+        self.hold_reason = f"monitor failure: {kind}: {error}"[:240]
+        self._emit_safety("MONITOR_FAILURE", error_type=kind, reason=str(error)[:240],
+                          state=self.state)
         try:
-            self.journal.emit("MONITOR_FAILURE", error_type=kind, reason=str(error)[:240],
-                              state=self.state)
-        except OSError:
-            print(f"disk monitor: journal failure ({kind})", file=sys.stderr, flush=True)
-        if (self.state == "WAITING_FOR_GUARD"
-                and self.system.exists(self.job_path)
-                and self.system.exists(self.process_path)):
+            late_receipts = (self.state == "WAITING_FOR_GUARD"
+                             and self.system.exists(self.job_path)
+                             and self.system.exists(self.process_path))
+        except Exception as receipt_error:
+            late_receipts = False
+            self._emit_safety("LATE_RECEIPT_CHECK_FAILED",
+                              reason=str(receipt_error)[:240])
+        if late_receipts:
             try:
                 self._bind()
             except BaseException as bind_error:
-                try:
-                    self.journal.emit("LATE_BIND_REFUSED", error_type=type(bind_error).__name__,
-                                      reason=str(bind_error)[:240])
-                except OSError:
-                    pass
+                self._emit_safety("LATE_BIND_REFUSED", error_type=type(bind_error).__name__,
+                                  reason=str(bind_error)[:240])
         if self.state == "BOUND":
             try:
-                self._stop_owned_guard("MONITOR_FAILURE", best_effort_journal=True)
+                self._stop_owned_guard("MONITOR_FAILURE")
             except BaseException as stop_error:
+                self._emit_safety("SIGNAL_REFUSED", error_type=type(stop_error).__name__,
+                                  reason=str(stop_error)[:240])
                 try:
-                    self.journal.emit("SIGNAL_REFUSED", error_type=type(stop_error).__name__,
-                                      reason=str(stop_error)[:240])
+                    self._escalate_kill("TERM_AUTHENTICATION_FAILED")
+                except BaseException as escalation_error:
+                    return self._hold(f"authenticated KILL escalation failed: {escalation_error}",
+                                      quiescent=False)
+        if self.state not in ("STOPPING", "KILLING"):
+            return self._hold(self.hold_reason, quiescent=False)
+        poll = float(self.binding["poll_seconds"])
+        while True:
+            try:
+                try:
+                    free = self.system.free_bytes()
                 except OSError:
-                    print("disk monitor: authenticated stop refused", file=sys.stderr, flush=True)
-        return 3
+                    free = None
+                result = self._containment_step(free, force_hold=True)
+                if result is not None:
+                    return 3
+                self._emit_safety("ROOT_SAMPLE", free_bytes=free,
+                                  sample_monotonic=self.system.monotonic(),
+                                  state=self.state, guard_pid=self.guard.pid)
+                self.system.sleep(poll)
+            except BaseException as containment_error:
+                return self._hold(f"containment monitoring failed: {containment_error}",
+                                  quiescent=False)
 
     def run(self) -> int:
         poll = float(self.binding["poll_seconds"])
@@ -463,6 +735,8 @@ class GuardMonitor:
         finally:
             if self.guard_pidfd is not None:
                 self.system.close_pidfd(self.guard_pidfd)
+            if self.child_pidfd is not None:
+                self.system.close_pidfd(self.child_pidfd)
 
 
 def _load_authorized_binding(binding_path: Path, auth_path: Path) -> tuple[dict, dict, str]:
