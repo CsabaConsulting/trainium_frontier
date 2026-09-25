@@ -1,6 +1,37 @@
 # Current state
 
-Last reconciled: 2026-09-25 14:08 UTC
+Last reconciled: 2026-09-25 14:28 UTC
+
+## Live handoff, 14:28 UTC
+
+Both full-budget c5c/LR0.015 A0 controls finished training and their separate
+fresh public-20M/context-1024 evaluations returned zero. Trn22's 3,633-step
+control scored `0.991513958330512` and passed independent result-use review
+(`research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md`).
+Trn21's 3,675-step control has an Operator-reported `0.9914739939934344`;
+its raw retrieval and independent result review are still pending. These are
+same-host baselines for A1/A2, **not an adopted improvement** or an official
+submission score.
+
+The exact-116188, four-rank, 120-second **true-cold compile smoke** launched
+on trn22 at 14:21:54 UTC under its one-use assignment and independent
+launcher review. It is still compiling; no completed training step, checkpoint,
+BPB or cache-path verdict has been reported yet. The exact-S0 120-second
+**warm-cache compile smoke** on trn21 has an independently reviewed launcher
+but has not staged or launched; its Operator is finishing A0 artifact retrieval
+and quiescent postflight first. Both short runs are startup discriminators,
+not BPB tests. Passing requires at least 20 completed rank-0 boundaries and
+clean four-rank exit; a missing measured warm-cache hit limits only the cache
+causal explanation, not a clean S0-startup PASS.
+
+S0 remains a submission HOLD. Its first full, demonstrably cold, bare-launch
+1,800-second replay on trn22 is only a **disabled draft assignment**
+(`research/v2/assignments/20260925-s0-true-cold-full-trn22-r1.json`) until
+both smokes have independently reviewed PASS receipts, the trn22 effective
+cold-cache proof, an independent assignment review and fresh host preflight.
+Even one passing full replay will not clear the second cold replay and
+submission-audit requirements. The A1/A2 exact-size table CPU-G2 packets are
+being prepared behind the smokes; no table arm has run or scored on c5c.
 
 ## Current handoff, 14:08 UTC
 
