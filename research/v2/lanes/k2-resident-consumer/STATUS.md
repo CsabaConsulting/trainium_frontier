@@ -1,5 +1,15 @@
 # K2 supplied-metadata consumer — 26 September 02:40 IST
 
+Latest26September04:05IST: reporting-only successor18b9365a passed genuinely
+fresh independent source/CPU review632870c3. Supervisor read full report/spec
+and replayed1748archive checks normal/-O. Bindingdf48361a separately passed
+117independent checks, replayed. Scoped conditional one-shot native release is
+`research/v2/verification/20260926-k2-reporting-native-assignment.md` (9d41f874),
+behind trn22LRfresh20M and assignedcheckpointCPU. Not launched yet. Strict
+nonfinite/signedzero byte refusal stays; original077REFUSE below is preserved.
+No native/production routing/whole-step/quality improvement has been measured.
+Setup cleanup gaps and explicit orphan-PID postflight remain important.
+
 Implemented in isolation, default disabled; no production train.py integration.
 Fresh source gate **REFUSE** (archive90db28e0): NaN/Inf diagnostic max_abs values
 cause strict JSON serialization to fail, leaving partial rank receipts and

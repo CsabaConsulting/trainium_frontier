@@ -4,6 +4,16 @@ Last reconciled: 2026-09-25 22:30 UTC (26 September IST)
 
 ## Latest: architecture nonconfirmation; provisional adoption withdrawn
 
+22:40UTC update: K2 native conditional release9d41f874 and then stable-source
+S1/S2 conditional releasecdbb183e are installed with soleOperator, after
+trn22currenteval/checkpointCPU and fresh quiescence. Neither has launched.
+Startup-clock source36a86274 is published isolated, raw225f27d1 imported;
+fresh input-only review actuallybegan22:36:36.086050UTC, defaultREFUSE,
+manifestfef50271f26087f3a6ed286f217a05e27b96abc40eb1960a1d385813a13f11f4.
+Full113M CPU packet is prepared inparallel but disabled pending review.
+Downloadsreview-only README now explicitly flags failed replication; its
+train.py/launchcommand and old Downloads/train.py are unchanged. No upload.
+
 22:35UTC update: root read full fresh K2 report/spec and native packet,
 replayed1748archive and117binding checks normal/-O. Scoped conditional release
 `research/v2/verification/20260926-k2-reporting-native-assignment.md` permits

@@ -1,5 +1,13 @@
 # CT-B: compiler/cache coordination, bounded research
 
+Latest26September04:08IST: separate stable-source S1/S2 operational diagnostic
+af4f986c now has independent90-check mechanical PASS, rootreplayed normal/-O,
+and conditional releasecdbb183e behind trn22currenteval/checkpointCPU/K2.
+See20260926-stable-source-pair-assignment.md. No candidate arithmetic or
+submissioncommand edit. Native cache reuse remains UNMEASURED; missing actual
+NEFF reuse evidence must remainUNRESOLVED even with equalkeys/zerocompiletime.
+Current trn21is running75b9 cold-five, not this pair; old report below retained.
+
 2026-09-25 19:14 UTC. Separate racer B; no candidate edits, compiler execution,
 host calls, cache writes or tensor allocations. This is not independent review
 of a patch I implemented. Current authority is `workflow/COMPILE_TIME_GATE_2026-09-26.md`:
