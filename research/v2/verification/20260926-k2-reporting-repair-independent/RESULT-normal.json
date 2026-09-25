@@ -1,0 +1,414 @@
+{
+  "verdict": "PASS_REPORTING_REPAIR_ONLY",
+  "checks": 34,
+  "tests": [
+    "exact repaired checker",
+    "whole AST only compare reporting and finalizer",
+    "unchanged consumer_nki.py",
+    "unchanged reference.py",
+    "unchanged test_reference.py",
+    "byte criterion unchanged 5",
+    "byte criterion unchanged 6",
+    "positive infinity original strict JSON fails",
+    "positive infinity successor refuses with JSON-safe metrics",
+    "positive infinity all nonmetric fields preserved",
+    "negative infinity original strict JSON fails",
+    "negative infinity successor refuses with JSON-safe metrics",
+    "negative infinity all nonmetric fields preserved",
+    "quiet NaN original strict JSON fails",
+    "quiet NaN successor refuses with JSON-safe metrics",
+    "quiet NaN all nonmetric fields preserved",
+    "finite exact records unchanged",
+    "finite mismatch records unchanged",
+    "signed zero records unchanged",
+    "signed zero is byte mismatch despite zero absolute error",
+    "tiny finite mismatch records unchanged",
+    "original malformed file and skipped cleanup reproduced",
+    "repaired cleanup nonfinite",
+    "complete refusal nonfinite",
+    "repaired cleanup finite",
+    "complete refusal finite",
+    "repaired cleanup invalid other metric",
+    "encode before file creation",
+    "repaired cleanup existing file",
+    "existing file preserved",
+    "repaired cleanup broken stdout",
+    "stdout error does not erase valid file",
+    "repaired cleanup write error",
+    "write error stays failure"
+  ],
+  "original_commit": "077481d0476cebfd79ddc751f8f63e61c1fbf82f",
+  "repaired_commit": "18b9365aabb63fa85e1720fdefc11177ca8e7853",
+  "checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "largest_tensor_shape": [
+    1,
+    1
+  ],
+  "cases": [
+    {
+      "label": "positive infinity",
+      "actual_bits": 2139095040,
+      "expected_bits": 0,
+      "original_record_sanitized_for_archive": {
+        "name": "positive infinity",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null
+      },
+      "repaired_record": {
+        "name": "positive infinity",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "inf"
+      },
+      "original_serialization_error": "Out of range float values are not JSON compliant: inf",
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "negative infinity",
+      "actual_bits": 4286578688,
+      "expected_bits": 0,
+      "original_record_sanitized_for_archive": {
+        "name": "negative infinity",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d9265d7acb11b75517ee713afcd928260e65557829bab071f03d67ee93edb8ea",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null
+      },
+      "repaired_record": {
+        "name": "negative infinity",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "d9265d7acb11b75517ee713afcd928260e65557829bab071f03d67ee93edb8ea",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "inf"
+      },
+      "original_serialization_error": "Out of range float values are not JSON compliant: inf",
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "quiet NaN",
+      "actual_bits": 2143289344,
+      "expected_bits": 0,
+      "original_record_sanitized_for_archive": {
+        "name": "quiet NaN",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "ef1eaf26cea96eb18f8fa3137abdf23f52852a855c22ae6f169d21a379dcd739",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null
+      },
+      "repaired_record": {
+        "name": "quiet NaN",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": false,
+        "nonzero": 1,
+        "actual_sha256": "ef1eaf26cea96eb18f8fa3137abdf23f52852a855c22ae6f169d21a379dcd739",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": null,
+        "max_abs_nonfinite": "nan"
+      },
+      "original_serialization_error": "Out of range float values are not JSON compliant: nan",
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "finite exact",
+      "actual_bits": 1065353216,
+      "expected_bits": 1065353216,
+      "original_record_sanitized_for_archive": {
+        "name": "finite exact",
+        "exact": true,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "max_abs": 0.0
+      },
+      "repaired_record": {
+        "name": "finite exact",
+        "exact": true,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "max_abs": 0.0
+      },
+      "original_serialization_error": null,
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "finite mismatch",
+      "actual_bits": 1065353216,
+      "expected_bits": 1073741824,
+      "original_record_sanitized_for_archive": {
+        "name": "finite mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+        "max_abs": 1.0
+      },
+      "repaired_record": {
+        "name": "finite mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+        "expected_sha256": "d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d",
+        "max_abs": 1.0
+      },
+      "original_serialization_error": null,
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "signed zero",
+      "actual_bits": 2147483648,
+      "expected_bits": 0,
+      "original_record_sanitized_for_archive": {
+        "name": "signed zero",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 0.0
+      },
+      "repaired_record": {
+        "name": "signed zero",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 0,
+        "actual_sha256": "6d58692645c9d1cfaf13541cbd258f86193ef63c2f1d38f6bbca9617372d7bd6",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 0.0
+      },
+      "original_serialization_error": null,
+      "repaired_serialization_error": null
+    },
+    {
+      "label": "tiny finite mismatch",
+      "actual_bits": 897581056,
+      "expected_bits": 0,
+      "original_record_sanitized_for_archive": {
+        "name": "tiny finite mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "634e4cd78858b08c0b45ebd46c403f758c6cc096ba0897a7c7151b443d895253",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 9.5367431640625e-07
+      },
+      "repaired_record": {
+        "name": "tiny finite mismatch",
+        "exact": false,
+        "actual_dtype": "torch.float32",
+        "shape": [
+          1,
+          1
+        ],
+        "finite": true,
+        "nonzero": 1,
+        "actual_sha256": "634e4cd78858b08c0b45ebd46c403f758c6cc096ba0897a7c7151b443d895253",
+        "expected_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "max_abs": 9.5367431640625e-07
+      },
+      "original_serialization_error": null,
+      "repaired_serialization_error": null
+    }
+  ],
+  "finalizers": [
+    {
+      "version": "original",
+      "scenario": "nonfinite",
+      "error": "ValueError: Out of range float values are not JSON compliant: inf",
+      "cleanup_calls": 0,
+      "valid_refusal_file": false,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"positive infinity\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": false,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708\",\n          \"expected_sha256\": \"df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119\",\n          \"max_abs\": ",
+      "stdout_count": 0
+    },
+    {
+      "version": "original",
+      "scenario": "finite",
+      "error": null,
+      "cleanup_calls": 1,
+      "valid_refusal_file": true,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"finite mismatch\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": true,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c\",\n          \"expected_sha256\": \"d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d\",\n          \"max_abs\": 1.0\n        }\n      ]\n    }\n  ],\n  \"diagnostic_elapsed_seconds\": 1.0,\n  \"elapsed_scope\": \"checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher\"\n}\n",
+      "stdout_count": 1
+    },
+    {
+      "version": "original",
+      "scenario": "invalid other metric",
+      "error": "ValueError: Out of range float values are not JSON compliant: nan",
+      "cleanup_calls": 0,
+      "valid_refusal_file": false,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"positive infinity\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": false,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708\",\n          \"expected_sha256\": \"df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119\",\n          \"max_abs\": null,\n          \"max_abs_nonfinite\": \"inf\"\n        }\n      ]\n    }\n  ],\n  \"unrelated_bad_metric\": ",
+      "stdout_count": 0
+    },
+    {
+      "version": "original",
+      "scenario": "existing file",
+      "error": "FileExistsError: [Errno 17] File exists: '/tmp/k2-report-review-hcruwj9q/rank0.json'",
+      "cleanup_calls": 0,
+      "valid_refusal_file": false,
+      "file_contents": "preserved\n",
+      "stdout_count": 0
+    },
+    {
+      "version": "original",
+      "scenario": "broken stdout",
+      "error": "BrokenPipeError: injected stdout failure",
+      "cleanup_calls": 0,
+      "valid_refusal_file": true,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"positive infinity\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": false,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708\",\n          \"expected_sha256\": \"df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119\",\n          \"max_abs\": null,\n          \"max_abs_nonfinite\": \"inf\"\n        }\n      ]\n    }\n  ],\n  \"diagnostic_elapsed_seconds\": 1.0,\n  \"elapsed_scope\": \"checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher\"\n}\n",
+      "stdout_count": 0
+    },
+    {
+      "version": "original",
+      "scenario": "write error",
+      "error": "OSError: injected disk write failure",
+      "cleanup_calls": 0,
+      "valid_refusal_file": false,
+      "file_contents": null,
+      "stdout_count": 0
+    },
+    {
+      "version": "repaired",
+      "scenario": "nonfinite",
+      "error": null,
+      "cleanup_calls": 1,
+      "valid_refusal_file": true,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"positive infinity\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": false,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708\",\n          \"expected_sha256\": \"df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119\",\n          \"max_abs\": null,\n          \"max_abs_nonfinite\": \"inf\"\n        }\n      ]\n    }\n  ],\n  \"diagnostic_elapsed_seconds\": 1.0,\n  \"elapsed_scope\": \"checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher\"\n}\n",
+      "stdout_count": 1
+    },
+    {
+      "version": "repaired",
+      "scenario": "finite",
+      "error": null,
+      "cleanup_calls": 1,
+      "valid_refusal_file": true,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"finite mismatch\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": true,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c\",\n          \"expected_sha256\": \"d88c86f15bbea365d658ad95a81d45367c465f7af6f7264fb077f01747ddc77d\",\n          \"max_abs\": 1.0\n        }\n      ]\n    }\n  ],\n  \"diagnostic_elapsed_seconds\": 1.0,\n  \"elapsed_scope\": \"checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher\"\n}\n",
+      "stdout_count": 1
+    },
+    {
+      "version": "repaired",
+      "scenario": "invalid other metric",
+      "error": "ValueError: Out of range float values are not JSON compliant: nan",
+      "cleanup_calls": 1,
+      "valid_refusal_file": false,
+      "file_contents": null,
+      "stdout_count": 0
+    },
+    {
+      "version": "repaired",
+      "scenario": "existing file",
+      "error": "FileExistsError: [Errno 17] File exists: '/tmp/k2-report-review-yi3k79ln/rank0.json'",
+      "cleanup_calls": 1,
+      "valid_refusal_file": false,
+      "file_contents": "preserved\n",
+      "stdout_count": 0
+    },
+    {
+      "version": "repaired",
+      "scenario": "broken stdout",
+      "error": "BrokenPipeError: injected stdout failure",
+      "cleanup_calls": 1,
+      "valid_refusal_file": true,
+      "file_contents": "{\n  \"status\": \"REFUSE_OR_UNSUPPORTED\",\n  \"cases\": [\n    {\n      \"status\": \"FAIL_EXACTNESS\",\n      \"checks\": [\n        {\n          \"name\": \"positive infinity\",\n          \"exact\": false,\n          \"actual_dtype\": \"torch.float32\",\n          \"shape\": [\n            1,\n            1\n          ],\n          \"finite\": false,\n          \"nonzero\": 1,\n          \"actual_sha256\": \"d7173dd8a9e81deded3f2e4719ef149effbd21afd81da9d10ed50b5dff69a708\",\n          \"expected_sha256\": \"df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119\",\n          \"max_abs\": null,\n          \"max_abs_nonfinite\": \"inf\"\n        }\n      ]\n    }\n  ],\n  \"diagnostic_elapsed_seconds\": 1.0,\n  \"elapsed_scope\": \"checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher\"\n}\n",
+      "stdout_count": 0
+    },
+    {
+      "version": "repaired",
+      "scenario": "write error",
+      "error": "OSError: injected disk write failure",
+      "cleanup_calls": 1,
+      "valid_refusal_file": false,
+      "file_contents": null,
+      "stdout_count": 0
+    }
+  ],
+  "native_executed": false,
+  "model_instantiated": false,
+  "original_source_REFUSE_unchanged": true,
+  "native_binding_stale_disabled": true,
+  "native_launch_authorized": false
+}
