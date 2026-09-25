@@ -285,6 +285,10 @@ class IncrementalStageTests(unittest.TestCase):
         self.assertEqual(hold["prior_r3_independent_hold_sha256"],
                          operator.PRIOR_R3_HOLD_SHA256)
         self.assertEqual(hold["r4_static_pass_sha256"], operator.R4_STATIC_PASS_SHA256)
+        self.assertEqual(
+            operator.R4_STATIC_PASS_SHA256,
+            "5f1b18e45fda3e726ccde6063523ee2679f3a8dbc42480cc1e84936d1b78bb1d",
+        )
         self.assertEqual(hold["r10_source_pass_sha256"], operator.R10_SOURCE_PASS_SHA256)
         self.assertEqual(hold["bundle_sha256"], remote.BUNDLE_SHA256)
         for name, field in (("remote_incremental.py", "remote_source_sha256"),
