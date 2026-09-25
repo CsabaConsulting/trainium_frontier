@@ -30,3 +30,11 @@ This is CPU-only. It does not authorize the native rerun, prove native
 gradients/compile reduction, reset any breaker, delete artifacts or permit
 AWS actions. Full-size checks intentionally use standard G2; the tiny-only
 gradient observer is separate evidence, not silently deployed here.
+
+Root audit execution note: the first local audit attempt stopped on an audit
+script typo (`Array.index` versus `indexOf`); the second completed the CPU
+packet checks but stopped on an unrelated clean-port check assuming every
+rank writes checkpoint_check. Corrected audit passes all packet checks and
+the port's12 losses/62 digests, with checkpoint_check verified on writer rank0.
+These were local audit-script errors, not candidate/host failures; no host
+launch was dispatched before the corrected audit completed.
