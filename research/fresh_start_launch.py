@@ -2,8 +2,8 @@
 """Launch one bounded, manifested job on an idle campaign host.
 
 The JSON request supplies host (trn21/trn22), remote checkout, expected_commit,
-label, purpose, the exact trn22 A0 argv beginning with absolute GNU timeout,
-and explicit environment.
+label, purpose, one of the two exact A0 argv profiles beginning with absolute
+GNU timeout, and explicit environment.
 Set runner_owns_manifest for run_experiment.py: its log and launch manifest must
 not be pre-created. This helper never stops an existing process or edits source.
 Deployment and selection of an experiment remain separate decisions.
@@ -48,14 +48,24 @@ SOURCE_FINGERPRINT_PATHS = (
     'research/v2/disk-monitor/paired_root_free_guard_monitor.py',
 )
 
-def bounded_timeout_command(command, label, remote, environment):
-    # This is one reviewed A0 argv profile, not a shell or general command
+def bounded_timeout_command(command, host, label, remote, environment):
+    # These are two reviewed A0 argv profiles, not a shell or general command
     # parser. The remote script cannot import the local helper before checkout.
-    if (not isinstance(command, list) or not isinstance(label, str)
+    if (not isinstance(command, list) or not isinstance(host, str)
+            or not isinstance(label, str)
             or not isinstance(remote, str) or not isinstance(environment, dict)):
         return False
-    cache = ('/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1'
-             '/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train')
+    if host == 'trn21':
+        if (label != 'fs-20260925-v2-c5c-a0-control-trn21-r1'
+                or remote != '/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r10'):
+            return False
+        cache = ('/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1'
+                 '/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train')
+    elif host == 'trn22':
+        cache = ('/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1'
+                 '/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train')
+    else:
+        return False
     expected_environment = {
         'NEURON_CC_FLAGS': '--optlevel=1 --auto-cast matmult --auto-cast-type bf16',
         'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS': '1800',
@@ -120,8 +130,10 @@ if (not isinstance(m.get('remote'), str)
         or not pathlib.Path(m['remote']).is_absolute()
         or '..' in pathlib.Path(m['remote']).parts):
     raise RuntimeError('invalid remote checkout path')
-if m.get('host') != 'trn22' or m.get('expected_hostname') != socket.gethostname():
+if m.get('host') not in ('trn21', 'trn22') or m.get('expected_hostname') != socket.gethostname():
     raise RuntimeError('remote host identity mismatch')
+if m['host'] == 'trn21' and m['expected_hostname'] != 'ip-172-31-34-85':
+    raise RuntimeError('remote trn21 hostname mismatch')
 config = m.get('monitor_interlock')
 if not isinstance(config, dict):
     raise RuntimeError('paired remote interlock is required')
@@ -145,7 +157,7 @@ if (not isinstance(environment, dict)
         or '--optlevel=1' not in environment.get('NEURON_CC_FLAGS', '')):
     raise RuntimeError('unsafe remote child environment')
 command = m.get('command')
-if not bounded_timeout_command(command, label, m['remote'], environment):
+if not bounded_timeout_command(command, m['host'], label, m['remote'], environment):
     raise RuntimeError('invalid exact A0 remote command or environment')
 if (type(m.get('min_free_bytes')) is not int
         or m['min_free_bytes'] != 13 * 1024**3 // 2
@@ -231,6 +243,15 @@ try:
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()
     if commit != m['expected_commit']:
         raise RuntimeError('unexpected source commit: ' + commit)
+    if m['host'] == 'trn21':
+        # The new host profile must remain the selected c5c control even if a
+        # future request mistakenly binds a different clean Git commit.
+        for path, expected in (
+            ('train.py', 'c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586'),
+            ('prepare.py', '5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb'),
+        ):
+            if hashlib.sha256((r / path).read_bytes()).hexdigest() != expected:
+                raise RuntimeError('unexpected trn21 c5c source: ' + path)
     stage = 'label_identity'
     fdir = r / 'research/run-logs'
     manifest = fdir / (m['label'] + '.launch.json')
@@ -319,13 +340,23 @@ def require_unoptimized_python():
         raise RuntimeError("optimized Python is forbidden in the local launcher")
 
 
-def bounded_timeout_command(command, label, remote, environment):
-    """Match one exact A0 argv; other experiments need reviewed profiles."""
-    if (not isinstance(command, list) or not isinstance(label, str)
+def bounded_timeout_command(command, host, label, remote, environment):
+    """Match one of two exact A0 argv profiles; other jobs need review."""
+    if (not isinstance(command, list) or not isinstance(host, str)
+            or not isinstance(label, str)
             or not isinstance(remote, str) or not isinstance(environment, dict)):
         return False
-    cache = ("/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1"
-             "/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train")
+    if host == "trn21":
+        if (label != "fs-20260925-v2-c5c-a0-control-trn21-r1"
+                or remote != "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r10"):
+            return False
+        cache = ("/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1"
+                 "/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train")
+    elif host == "trn22":
+        cache = ("/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1"
+                 "/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train")
+    else:
+        return False
     expected_environment = {
         "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
         "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
@@ -383,11 +414,13 @@ def validate_request(request):
     if not isinstance(request, dict) or request.get("dispatch_authorized") is not True:
         raise RuntimeError("one-label dispatch is not authorized")
     host = request.get("host")
-    if not isinstance(host, str) or host != "trn22" or host not in HOSTS:
+    if not isinstance(host, str) or host not in ("trn21", "trn22") or host not in HOSTS:
         raise RuntimeError("unknown A0 dispatch host")
     if (not isinstance(request.get("expected_hostname"), str)
             or not request["expected_hostname"]):
         raise RuntimeError("missing expected host identity")
+    if host == "trn21" and request["expected_hostname"] != "ip-172-31-34-85":
+        raise RuntimeError("trn21 hostname mismatch")
     label = request.get("label")
     if not isinstance(label, str) or re.fullmatch(r"fs-[A-Za-z0-9_.-]+", label) is None:
         raise RuntimeError("invalid science label")
@@ -425,7 +458,7 @@ def validate_request(request):
             or "--optlevel=1" not in environment.get("NEURON_CC_FLAGS", "")):
         raise RuntimeError("unsafe child environment")
     command = request.get("command")
-    if not bounded_timeout_command(command, label, remote_value, environment):
+    if not bounded_timeout_command(command, host, label, remote_value, environment):
         raise RuntimeError("exact A0 command and environment are required")
     from fresh_start_host import MIN_OPERATIONAL_FREE_BYTES
     if (type(request.get("min_free_bytes")) is not int

@@ -49,7 +49,7 @@ FLOOR = 13 * 1024**3 // 2
 PRELAUNCH = 10 * 1024**3
 COMMIT = "a" * 40
 LABEL = "fs-synthetic-nonassert-r7"
-SOURCE_SHA256 = "e6d6d4bcc391d575f6c82bc4b0643b3a04c99b783bc0cc532bc92e65e0b12b9c"
+SOURCE_SHA256 = "1be19bc31d2bdcde8abe9fe90cc1ac884d6efd5f7be197d7bdbfe64c257dcff7"
 A0_REQUEST_PATH = (SOURCE_PATH.parent / "v2/disk-monitor/"
                    "fs-20260925-v2-c5c-a0-control-trn22-r3.request.DISABLED.json")
 A0_REQUEST = json.loads(A0_REQUEST_PATH.read_text())
@@ -132,7 +132,7 @@ def local_namespace(root, contacts, optimize=0,
         argparse=argparse, datetime=datetime, timezone=timezone, json=json,
         os=os, Path=Path, re=re, shlex=shlex,
         subprocess=types.SimpleNamespace(run=fake_ssh), sys=sys,
-        ROOT=root, HOSTS={"trn22": "fake-host"}, SSH=["fake-ssh"],
+        ROOT=root, HOSTS={"trn21": "fake-host-21", "trn22": "fake-host"}, SSH=["fake-ssh"],
         REMOTE_SCRIPT=REMOTE_SCRIPT,
         SOURCE_FINGERPRINT_PATHS=SOURCE_FINGERPRINT_PATHS,
     )
@@ -318,7 +318,9 @@ class RemoteNonAssertTests(unittest.TestCase):
                    pythonoptimize=None, disk_free=11 * 1024**3,
                    dirty=b"", untracked=b"", commit=COMMIT,
                    interlock_fails=False, mutation=None, allow_fake_guard=False,
-                   timeout_banner="timeout (GNU coreutils) 9.1\n"):
+                   timeout_banner="timeout (GNU coreutils) 9.1\n",
+                   request_factory=None, path_alias=None, hostname=None,
+                   real_science_source=False, source_corruption=None):
         with tempfile.TemporaryDirectory(prefix="launcher-r7-remote-offline-") as tmp:
             root = Path(tmp)
             checkout = root / "checkout"
@@ -328,12 +330,22 @@ class RemoteNonAssertTests(unittest.TestCase):
                 target = checkout / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text("synthetic source\n")
+            if real_science_source:
+                for name in ("train.py", "prepare.py"):
+                    (checkout / name).write_bytes((SOURCE_PATH.parent.parent / name).read_bytes())
+            if source_corruption is not None:
+                (checkout / source_corruption).write_text("wrong science source\n")
             monitor = root / "monitor"
             monitor.mkdir(mode=0o700)
             monitor.chmod(0o700)
-            request = request_template(checkout, monitor)
+            request = (request_template(checkout, monitor) if request_factory is None
+                       else request_factory(checkout, monitor))
             if mutation is not None:
                 mutation(request, root, checkout, monitor)
+            actual_hostname = socket.gethostname() if hostname is None else hostname
+            fake_pathlib = types.ModuleType("pathlib")
+            fake_pathlib.Path = (lambda value: checkout if str(value) == path_alias
+                                 else Path(value))
 
             calls = {"git": [], "guard": [], "interlock": [],
                      "preflight": [], "no_spawn": [], "timeout_version": []}
@@ -390,10 +402,12 @@ class RemoteNonAssertTests(unittest.TestCase):
             errors = io.StringIO()
             remote_namespace = {"__name__": "__main__"}
             with (patch.dict(sys.modules, {"fresh_start_host": fake_host,
-                                           "fresh_start_monitor_interlock": fake_interlock}),
+                                           "fresh_start_monitor_interlock": fake_interlock,
+                                           "pathlib": fake_pathlib}),
                   patch.object(sys, "stdin", io.StringIO(json.dumps(request))),
                   patch.object(sys, "path", list(sys.path)),
                   patch.object(sys, "flags", FlagsProxy(sys.flags, runtime_optimize)),
+                  patch.object(socket, "gethostname", return_value=actual_hostname),
                   patch.dict(os.environ, env, clear=True),
                   patch.object(subprocess, "check_output", side_effect=fake_git),
                   patch.object(subprocess, "run", side_effect=fake_timeout_version),

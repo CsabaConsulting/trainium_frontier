@@ -52,11 +52,11 @@ class ExactA0R9Tests(unittest.TestCase):
         frozen = copy.deepcopy(fake.A0_REQUEST)
         self.assertIs(frozen["dispatch_authorized"], False)
         self.assertFalse(launcher.bounded_timeout_command(
-            frozen["command"], frozen["label"], frozen["remote"],
+            frozen["command"], frozen["host"], frozen["label"], frozen["remote"],
             frozen["environment"]))
         frozen["command"] = fake.a0_command(frozen["label"], frozen["remote"])
         self.assertTrue(launcher.bounded_timeout_command(
-            frozen["command"], frozen["label"], frozen["remote"],
+            frozen["command"], frozen["host"], frozen["label"], frozen["remote"],
             frozen["environment"]))
         frozen["dispatch_authorized"] = True  # in-memory fake-contact probe only
         error, contacts, receipts = self.local.run_local(frozen)
@@ -66,7 +66,7 @@ class ExactA0R9Tests(unittest.TestCase):
 
         request = fake.request_template()
         self.assertTrue(launcher.bounded_timeout_command(
-            request["command"], request["label"], request["remote"],
+            request["command"], request["host"], request["label"], request["remote"],
             request["environment"]))
         self.assertEqual(request["command"][:7], [
             "/usr/bin/timeout", "--foreground", "--signal=TERM",
