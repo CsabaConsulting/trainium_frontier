@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "packet_files": [
+    {
+      "path": "candidate.diff",
+      "bytes": 324370,
+      "sha256": "3d448895dd6ecbca3a75cbdae0b08786a98fea0b5ea7204ad8a52a58f8fdffe7"
+    },
+    {
+      "path": "lane-spec.md",
+      "bytes": 2678,
+      "sha256": "225608c02f7a927f20fbd7515e2d54a9ee54708e003fa3bb7d44c7c7a3d9974a"
+    },
+    {
+      "path": "raw/tiny-base.json",
+      "bytes": 1384135,
+      "sha256": "842a2e36d7662e0e6a843a737fec1eb8d31d1d26ca9d95966e350db189dbe69b"
+    },
+    {
+      "path": "raw/tiny-default.json",
+      "bytes": 1384211,
+      "sha256": "13e5801681aea8588f38ddcd9866454f6895ddcaaf6b8ffdc1c4de47cb31cf58"
+    },
+    {
+      "path": "raw/tiny-off.json",
+      "bytes": 1384245,
+      "sha256": "08fbb5de1d51fabd44137c66a961f9c638bfba47506baee57c765759c7c6ac86"
+    },
+    {
+      "path": "raw/tiny-on.json",
+      "bytes": 1480850,
+      "sha256": "08b08c5ab2c79bafb5b197c6fa4375eee4ac59d4c3a5697cef29ff8b3653ed06"
+    }
+  ],
+  "sources": [
+    {
+      "path": "base.py",
+      "lines": 4890,
+      "bytes": 318875,
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+    },
+    {
+      "path": "candidate.py",
+      "lines": 4894,
+      "bytes": 319235,
+      "sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522"
+    }
+  ],
+  "changes": [
+    {
+      "base_line": 3473,
+      "candidate_line": 3474,
+      "text": "+    parser.add_argument('--initial-cache-refresh', action=argparse.BooleanOptionalAction, default=False, help='Refresh differentiable weight casts inside the timed first step before its first forward; default OFF.')"
+    },
+    {
+      "base_line": 3974,
+      "candidate_line": 3976,
+      "text": "+        if step == 0 and args.initial_cache_refresh:"
+    },
+    {
+      "base_line": 3974,
+      "candidate_line": 3977,
+      "text": "+            for m in cached_linears:"
+    },
+    {
+      "base_line": 3974,
+      "candidate_line": 3978,
+      "text": "+                m.refresh_weight_cache(COMPUTE_DTYPE)"
+    }
+  ]
+}

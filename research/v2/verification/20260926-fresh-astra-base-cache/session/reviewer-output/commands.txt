@@ -1,0 +1,37 @@
+Actual substantive commands executed in /work during this review, in execution order.
+Shell: bash. Tool process exit codes are recorded below. File edits used apply_patch.
+Inspection used only packet files and the reconstructed source; no packet-mentioned
+external path was followed. This log records the substantive artifact/test commands,
+not every read-only cat/sed/rg used to inspect them.
+
+1. Initial specification read (exit 0):
+cat /packet/lane-spec.md
+
+2. Reconstruct/authenticate (exit 0):
+python /work/reconstruct.py > /work/reconstruct.stdout.txt 2> /work/reconstruct.stderr.txt && cat /work/reconstruct.stdout.txt
+
+3. Initial receipt audit (exit 1: rank-zero-only checkpoint field):
+python /work/audit_receipts.py > /work/receipt_audit.stdout.txt 2> /work/receipt_audit.stderr.txt && cat /work/receipt_audit.stdout.txt
+
+4. Preserve failed audit (exit 0):
+mv /work/receipt_audit.stderr.txt /work/receipt_audit.attempt1.stderr.txt && mv /work/receipt_audit.stdout.txt /work/receipt_audit.attempt1.stdout.txt && cp /work/audit_receipts.py /work/audit_receipts.attempt1.py
+
+5. Corrected receipt audit after schema handling patch (exit 0):
+python /work/audit_receipts.py > /work/receipt_audit.stdout.txt 2> /work/receipt_audit.stderr.txt && cat /work/receipt_audit.stdout.txt
+
+6. First bounded reference attempt (exit 1: extra FP32 same-dtype cache diagnostic):
+timeout 60s env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python /work/reference_test.py > /work/reference.stdout.txt 2> /work/reference.stderr.txt
+
+7. Preserve first reference attempt before patch (exit 0):
+mkdir -p /work/attempt1 && cp /work/reference_test.py /work/reference_results.json /work/reference_raw.pt /work/reference.stdout.txt /work/reference.stderr.txt /work/attempt1/
+
+8. Final bounded reference, with FP32 aliasing explicitly recorded outside BF16 cases (exit 0):
+timeout 60s env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python /work/reference_test.py > /work/reference.stdout.txt 2> /work/reference.stderr.txt
+
+9. Final artifact checks/manifest creation (exit 0). Executed twice, the second
+   time after correcting report line references and updating this log:
+env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python /work/finalize.py > /work/finalize.stdout.txt 2> /work/finalize.stderr.txt
+
+All three core programs can be rerun in order: reconstruct.py, audit_receipts.py,
+reference_test.py. They do not launch training. Re-running overwrites their current
+outputs; the preserved attempt1 files remain separately available.

@@ -1,0 +1,1383 @@
+{
+  "status": "PASS",
+  "scope": "supplied reduced CPU observations only",
+  "comparisons": [
+    {
+      "arm": "default",
+      "rank": 0,
+      "mismatches": []
+    },
+    {
+      "arm": "default",
+      "rank": 1,
+      "mismatches": []
+    },
+    {
+      "arm": "default",
+      "rank": 2,
+      "mismatches": []
+    },
+    {
+      "arm": "default",
+      "rank": 3,
+      "mismatches": []
+    },
+    {
+      "arm": "off",
+      "rank": 0,
+      "mismatches": []
+    },
+    {
+      "arm": "off",
+      "rank": 1,
+      "mismatches": []
+    },
+    {
+      "arm": "off",
+      "rank": 2,
+      "mismatches": []
+    },
+    {
+      "arm": "off",
+      "rank": 3,
+      "mismatches": []
+    },
+    {
+      "arm": "on",
+      "rank": 0,
+      "mismatches": []
+    },
+    {
+      "arm": "on",
+      "rank": 1,
+      "mismatches": []
+    },
+    {
+      "arm": "on",
+      "rank": 2,
+      "mismatches": []
+    },
+    {
+      "arm": "on",
+      "rank": 3,
+      "mismatches": []
+    }
+  ],
+  "arms": {
+    "base": {
+      "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "argv": [
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-27bk5jxw/out"
+      ],
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-recursive-initial-cache-refresh-20260925/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "observer_sha256": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+      "ranks": [
+        {
+          "rank": 0,
+          "losses": [
+            9.010208129882812,
+            9.008219718933105,
+            9.043983459472656
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": "1bc4752a2f82da10dd944c1a58bcdc2859ccb4bedea59222d3e77bb41efe098c",
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              128,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          }
+        },
+        {
+          "rank": 1,
+          "losses": [
+            9.009979248046875,
+            9.013689041137695,
+            9.040295600891113
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 2,
+          "losses": [
+            9.01078987121582,
+            9.018407821655273,
+            9.022828102111816
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 3,
+          "losses": [
+            9.01054859161377,
+            9.014764785766602,
+            9.031126976013184
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        }
+      ]
+    },
+    "default": {
+      "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+      "argv": [
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-4n7j4vu9/out"
+      ],
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-recursive-initial-cache-refresh-20260925/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "observer_sha256": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+      "ranks": [
+        {
+          "rank": 0,
+          "losses": [
+            9.010208129882812,
+            9.008219718933105,
+            9.043983459472656
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": "1bc4752a2f82da10dd944c1a58bcdc2859ccb4bedea59222d3e77bb41efe098c",
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              128,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          }
+        },
+        {
+          "rank": 1,
+          "losses": [
+            9.009979248046875,
+            9.013689041137695,
+            9.040295600891113
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 2,
+          "losses": [
+            9.01078987121582,
+            9.018407821655273,
+            9.022828102111816
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 3,
+          "losses": [
+            9.01054859161377,
+            9.014764785766602,
+            9.031126976013184
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        }
+      ]
+    },
+    "off": {
+      "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+      "argv": [
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--no-initial-cache-refresh"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-x5uer6j6/out"
+      ],
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-recursive-initial-cache-refresh-20260925/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "observer_sha256": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+      "ranks": [
+        {
+          "rank": 0,
+          "losses": [
+            9.010208129882812,
+            9.008219718933105,
+            9.043983459472656
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": "1bc4752a2f82da10dd944c1a58bcdc2859ccb4bedea59222d3e77bb41efe098c",
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              128,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          }
+        },
+        {
+          "rank": 1,
+          "losses": [
+            9.009979248046875,
+            9.013689041137695,
+            9.040295600891113
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 2,
+          "losses": [
+            9.01078987121582,
+            9.018407821655273,
+            9.022828102111816
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 3,
+          "losses": [
+            9.01054859161377,
+            9.014764785766602,
+            9.031126976013184
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 0,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        }
+      ]
+    },
+    "on": {
+      "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+      "argv": [
+        "--n-embd",
+        "128",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--recursive-schedule",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--initial-cache-refresh"
+      ],
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-fqzvtvzb/out"
+      ],
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x128 tokens"
+      ],
+      "prepare": {
+        "dir": "/home/poojith-devan/Desktop/Trainium-recursive-initial-cache-refresh-20260925/workflow/tools/stub_prepare",
+        "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+        "stub": true
+      },
+      "observer_sha256": "a1b9108c3aa3af22cd819e6c0553e6c5c2bb7f3887bc0d3c1b8b4e6d856db03d",
+      "ranks": [
+        {
+          "rank": 0,
+          "losses": [
+            9.010208129882812,
+            9.008219718933105,
+            9.043983459472656
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": "1bc4752a2f82da10dd944c1a58bcdc2859ccb4bedea59222d3e77bb41efe098c",
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 40,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 0,
+              "forward_calls": 0,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": {
+            "deterministic": true,
+            "logits_shape": [
+              1,
+              128,
+              8192
+            ],
+            "ok": true,
+            "path_exists": true
+          }
+        },
+        {
+          "rank": 1,
+          "losses": [
+            9.009979248046875,
+            9.013689041137695,
+            9.040295600891113
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 40,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 0,
+              "forward_calls": 0,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 2,
+          "losses": [
+            9.01078987121582,
+            9.018407821655273,
+            9.022828102111816
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 40,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 0,
+              "forward_calls": 0,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        },
+        {
+          "rank": 3,
+          "losses": [
+            9.01054859161377,
+            9.014764785766602,
+            9.031126976013184
+          ],
+          "n_params": 62,
+          "n_changed": 62,
+          "checkpoint_file_sha256_reported": null,
+          "first_forward_cache_entries": 40,
+          "first_forward_present_caches": 40,
+          "refresh_record_histogram": [
+            {
+              "completed_steps": 0,
+              "forward_calls": 0,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 1,
+              "forward_calls": 1,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 2,
+              "forward_calls": 2,
+              "grad_enabled": true,
+              "records": 40
+            },
+            {
+              "completed_steps": 3,
+              "forward_calls": 3,
+              "grad_enabled": true,
+              "records": 40
+            }
+          ],
+          "custom_mlp_nodes_reported": [
+            6,
+            6,
+            6
+          ],
+          "mlp_custom_backward_calls_reported": 18,
+          "step_fields": [
+            "gradients_after_clip",
+            "gradients_before_clip",
+            "optimizer_state",
+            "parameters_after_update"
+          ],
+          "step_tensor_counts": [
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            },
+            {
+              "gradients_after_clip": 62,
+              "gradients_before_clip": 62,
+              "optimizer_state": 7,
+              "parameters_after_update": 62
+            }
+          ],
+          "checkpoint_check_reported": null
+        }
+      ]
+    }
+  },
+  "observer_caveat": "Observer implementation is not supplied. custom_mlp_nodes and mlp_custom_backward_calls are retained as reported fields, not independently verified counts of executed backward calls. Later connected_first_forward is null, not evidence of a later disconnection or later connectivity."
+}

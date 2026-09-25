@@ -1,0 +1,15 @@
+Error in cpuinfo: failed to parse processor information from /proc/cpuinfo
+/work/reference_test.py:50: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:822.)
+  max_abs=float((a.double()-b.double()).abs().max()) if a.numel() else 0.0))
+Traceback (most recent call last):
+  File "/work/reference_test.py", line 293, in <module>
+    data['arms'][arm] = run_arm(arm, family, dtype, caching, transposed, update, initial_state, inputs, upstreams)
+                        ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/reference_test.py", line 252, in run_arm
+    check(all('cache' not in k for k in model.state_dict()), 'no serialized caches')
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/reference_test.py", line 37, in check
+    raise AssertionError(message)
+AssertionError: no serialized caches
+
