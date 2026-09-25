@@ -1,6 +1,25 @@
 # Current state
 
-Last reconciled: 2026-09-25 13:55 UTC
+Last reconciled: 2026-09-25 14:08 UTC
+
+## Current handoff, 14:08 UTC
+
+The two shortened cache-discriminator packets have now passed independent
+prelaunch review (`b3ce7b93`) and received separate conditional one-use
+assignments (`f6a6fda1`). Their Operators may launch **only after** their
+same-host A0 control and fresh public-20M evaluation have finished and fresh
+source, evaluator, disk, idle, STOP, cache and step-log checks pass. The old
+full-length contrast assignments remain revoked. The 120-second tests use
+unchanged `train.py` bytes with only the CLI budget changed; they test Neuron
+startup and at least 20 rank-0 completed steps with all four workers exiting
+cleanly, not BPB. The rank-0-only step-log rule was corrected following an
+independent HOLD; no direct per-rank step logs are claimed.
+
+Trn22 A0 finished training at 14:03:23 UTC with 3,633 steps and a checkpoint;
+its separate public-20M eval is still running. Trn21 A0 continues to train
+with finite loss. Neither has a reviewed new BPB yet. S0 cannot be submitted
+on the strength of either short diagnostic: it still needs a separate full
+1,800-second, proven cold-cache S0 replay and cold fresh-process evaluation.
 
 ## Latest human override: short cache-discriminator smokes, 13:55 UTC
 
