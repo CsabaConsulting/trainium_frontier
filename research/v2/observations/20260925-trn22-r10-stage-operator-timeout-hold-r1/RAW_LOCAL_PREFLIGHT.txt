@@ -1,0 +1,19 @@
+Execution root HEAD: e827fd2abecf813474f2d6c95518b4ac331e04b4
+Execution root git status --porcelain=v1 --untracked-files=all: [empty]
+
+LOCAL_PREFLIGHT_PASS request d19086a3f0c8aff9835f14f641d528980b12b21f45310070f6613ae261a33958 review c9be026c2609fbbdcfdc85005630675959a2b6661befb91268dd4cf73d59d615 assignment ed07f024e45b5a606c4c8ed3f0ad6bc335a6bcaead548bf89c1e0cbcd2ec5bb4 marker_absent True prior_markers_absent True bundle_bytes 109800 remote_sha da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f
+
+Read-only pre-marker host-preflight attempt: exit code 1
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import importlib.util, pathlib, json; p=pathlib.Path("research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py"); s=importlib.util.spec_from_file_location("stage_operator",p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); m._local_stop_and_breakers(); m._ssh_identity(); _,remote=m._source_bytes(); value=m._ssh_phase("preflight",None,b"",remote); print(json.dumps(value,sort_keys=True,separators=(",",":")))
+                                                                                                                                                                                                                                                                                                                                                                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/Documents/ChatGPT/Trainium-trn22-r10-stage-r4-stop-recheck-r1/research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-hold/operator_once.py", line 232, in _ssh_phase
+    raise RuntimeError("absolute GNU timeout identity check failed")
+RuntimeError: absolute GNU timeout identity check failed
+
+/usr/bin/timeout: symbolic link, mode 777, root:root, 34 bytes
+resolved executable: /usr/lib/cargo/bin/coreutils/timeout
+/usr/bin/timeout --version: timeout (uutils coreutils) 0.8.0
+marker_absent True
+UTC: 2026-09-25T11:24:47Z
