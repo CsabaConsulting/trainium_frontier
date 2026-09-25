@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 03:21 UTC
+Last reconciled: 2026-09-25 03:30 UTC
 
 ## Current handoff: trn21 checkout assigned once; no training authorization
 
@@ -13,15 +13,21 @@ review receipt is owner-owned, mode `0644`. The Operator's
 reports exact e65/c5c source staged in the new checkout, three SSH phases
 with zero return codes and empty stderr, a distinct full read-only
 postflight, and intact protected assets. The fixed exclusive marker is now
-consumed. A different Verifier is reviewing the archived raw evidence;
-**the Operator report is not yet an accepted stage result**. CPU G2, native
-training, evaluation and adoption remain HOLD. No new BPB was measured.
+consumed. A different Verifier
+[accepted the archived result for checkout only](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-result/INDEPENDENT_CHECKOUT_RESULT_REVIEW.PASS.json).
+This clears source staging, **not** CPU G2, native training, evaluation or
+adoption. The [safety-hardened CPU G2 successor](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2-final-pending/GATE_CONTRACT.json)
+[passed independent static review](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2-final-pending/INDEPENDENT_STATIC_REVIEW.md)
+for its disabled form. A new exact CPU-only request, separate review, fresh
+host preflight and one-attempt assignment remain required. No new BPB was
+measured.
 
 The trn22 [r4 transfer-only draft](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.HOLD.json)
 received an [independent static HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_IMPLEMENTATION_REVIEW.md):
 SSH host identity was not explicitly pinned, local STOP was ignored, review
 approval was self-attested, and the root-device alias needs read-only
-reconciliation. A separate Implementer is repairing the disabled package.
+reconciliation. A separate Implementer repaired the disabled package; its
+independent re-review is pending.
 No trn22 transfer, checkout or training is authorized. Both scored A0
 controls remain pending; best confirmed public20M remains `0.9918353324`
 single / `0.9919537735` two-run mean.

@@ -2,7 +2,7 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
-At 03:21 UTC, trn21's
+At 03:30 UTC, trn21's
 [final exact checkout request](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.FINAL_PENDING_REVIEW.json)
 [passed independent offline review](authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json).
 The [Supervisor's one-attempt checkout-only assignment](authorizations/trn21-c5c-a0-stage-r2-checkout-request/SUPERVISOR_CHECKOUT_ONLY_ASSIGNMENT.json)
@@ -10,16 +10,20 @@ passed local binding audit. The Operator's
 [one-attempt terminal receipt](authorizations/trn21-c5c-a0-stage-r2-checkout-result/OPERATOR_CHECKOUT_ONLY_TERMINAL_RECEIPT.md)
 reports exact clean source staged, preflight/stage/postflight all returning
 zero, protected assets intact and the fixed marker consumed. A separate
-Verifier is auditing raw evidence before this can count as an accepted
-stage result. CPU G2, native training and evaluation remain HOLD; no scored
-control or new BPB exists.
+Verifier [accepted the archived result for checkout only](authorizations/trn21-c5c-a0-stage-r2-checkout-result/INDEPENDENT_CHECKOUT_RESULT_REVIEW.PASS.json).
+The [hardened CPU G2 successor](g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2-final-pending/GATE_CONTRACT.json)
+[passed independent static review](g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2-final-pending/INDEPENDENT_STATIC_REVIEW.md)
+for its disabled form. A new exact CPU-only request, review, preflight and
+assignment remain necessary. CPU G2, native training and evaluation remain
+HOLD; no scored control or new BPB exists.
 
 At 03:12 UTC, trn22's
 [transfer-only draft](authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.HOLD.json)
 received an [independent static HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_IMPLEMENTATION_REVIEW.md)
 for unpinned SSH host identity, ignored local STOP, self-attested review
-approval and an unproven root-device alias. Repair is in progress in a
-disabled package; no transfer or training is authorized.
+approval and an unproven root-device alias. An Implementer repaired the
+disabled package at `e07781f2`; independent re-review is pending. No
+transfer or training is authorized.
 
 At 02:57 UTC, trn21's
 [repaired disabled checkout draft](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
