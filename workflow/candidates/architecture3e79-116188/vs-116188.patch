@@ -1,0 +1,78 @@
+--- 116188/train.py
++++ architecture3e79-116188/train.py
+@@ -1 +1 @@
+-"""Trainium Frontier Phase 1 submission: dense GPT, 6 layers x 1024 wide, trained from scratch.
++"""Trainium Frontier Phase 1 submission: U-Net GPT, 8 layers x 1024 wide, trained from scratch.
+@@ -33 +33 @@
+-DEPTH = 6
++DEPTH = 8
+@@ -73,0 +74 @@
++ATTENTION_LAYERS = (0, 2, 4, 6, 7)
+@@ -759 +760 @@
+-        self.attn = CausalSelfAttention(config, layer_idx, coalesced=self.coalesced)
++        self.attn = CausalSelfAttention(config, layer_idx, coalesced=self.coalesced) if layer_idx in ATTENTION_LAYERS else None
+@@ -769 +770 @@
+-        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL)
++        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if self.attn is not None else None
+@@ -772,0 +774,2 @@
++        if self.attn is None:
++            return x + self.mlp(norm(x))
+@@ -784,0 +788,2 @@
++        if config.n_layer != 8:
++            raise ValueError('this submission requires exactly eight layers')
+@@ -789 +794,8 @@
+-        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if i % 2 == (config.n_layer - 1) % 2})
++        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if i % 2 == (config.n_layer - 1) % 2 and i in ATTENTION_LAYERS})
++        # Architecture inspiration: Ritwika Kancharla, Trainium of Thought (Sep 2026),
++        # https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html
++        # Exact scalar gates/pairs and attention indices are the L2 task's choices.
++        # Encoder i feeds input n-1-i; zero-initialized FP32 scalar gates.
++        self.unet_n_enc = config.n_layer // 2
++        self.unet_skip_gates = nn.ParameterList([nn.Parameter(torch.zeros(1, dtype=torch.float32))
++                                               for _ in range(self.unet_n_enc)])
+@@ -800 +812 @@
+-            if block.c_in is not None:
++            if block.attn is not None and block.c_in is not None:
+@@ -812 +824 @@
+-            else:
++            elif block.attn is not None:
+@@ -816,2 +828,3 @@
+-            b = ATTN_CPROJ_INIT_SCALE * s
+-            torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
++            if block.attn is not None:
++                b = ATTN_CPROJ_INIT_SCALE * s
++                torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
+@@ -823 +836 @@
+-            if block.attn.ve_gate is not None:
++            if block.attn is not None and block.attn.ve_gate is not None:
+@@ -826,0 +840,2 @@
++        for gate in self.unet_skip_gates:
++            torch.nn.init.zeros_(gate)
+@@ -848 +863 @@
+-        attn_flops = self.config.n_layer * 12 * h * d * t
++        attn_flops = sum((block.attn is not None for block in self.transformer.h)) * 12 * h * d * t
+@@ -860 +875,2 @@
+-            matrix_params.extend((p for name, p in block.attn.named_parameters() if name != 'head_gate_bias'))
++            if block.attn is not None:
++                matrix_params.extend((p for name, p in block.attn.named_parameters() if name != 'head_gate_bias'))
+@@ -863,0 +880 @@
++        scalar_params.extend(self.unet_skip_gates)
+@@ -898,0 +916 @@
++        unet_skips: list[torch.Tensor] = []
+@@ -900 +918,3 @@
+-            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
++            if i >= self.unet_n_enc:
++                x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()
++            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if block.attn is not None and str(i) in self.value_embeds else None
+@@ -901,0 +922,2 @@
++            if i < self.unet_n_enc:
++                unet_skips.append(x)
+@@ -1403,0 +1426,3 @@
++        if step == 0:
++            for m in cached_linears:
++                m.refresh_weight_cache(COMPUTE_DTYPE)
+@@ -1434,0 +1460 @@
++            recent_step_times.clear()
+@@ -1438 +1464 @@
+-        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:]) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
++        time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:], default=0.0) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
