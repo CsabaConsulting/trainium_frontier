@@ -2,6 +2,15 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:36 UTC, trn21's disabled stage-r2
+[checkout request](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
+received an [independent HOLD](authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_REQUEST_REVIEW.md):
+the same assignment could retry with a different journal path after an early
+failure, and a claimed review hash was not authenticated. Both were caught
+offline before host use. A repaired request, separate review and one-shot
+checkout-only assignment are required. trn22's exact-source capsule/plan is
+under static review, not transferred. Both scored controls remain HOLD.
+
 At 02:27 UTC, trn22's prior exact-env four-rank CPU G2 numeric PASS
 [carried forward by independent source-identity review](disk-monitor/r4-hold/G2_R3_TO_R4_SOURCE_IDENTITY_DISPOSITION.md)
 to the unchanged c5c training bytes and argv at frozen r4 source 446b6576.

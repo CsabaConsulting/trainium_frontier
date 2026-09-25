@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:27 UTC
+Last reconciled: 2026-09-25 02:36 UTC
+
+## Current handoff: trn21 checkout request independently HOLD; repair required
+
+The exact trn21 stage-r2 [checkout-request draft](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
+is disabled. Its [independent request review](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_REQUEST_REVIEW.md)
+found two checkout-ready blockers before host use: the same assignment can
+reach stage SSH twice with different journal paths after a pre-creation
+failure, and the wrapper accepts an unauthenticated review hash. The frozen
+draft and negative tests are archived as a HOLD, not launch authority.
+An Implementer is preparing a repaired request; it needs a new independent
+review and one-shot Supervisor assignment before any checkout. The earlier
+transfer-only PASS and read-only feasibility remain valid only for their
+limited scope. No trn21 checkout, CPU G2, native run or new BPB occurred.
+
+Separately, a trn22 r4 exact-source capsule and HOLD-only stage plan have
+been prepared in an isolated branch for independent static review. Nothing
+has been transferred to trn22; its native dispatch remains HOLD.
 
 ## Current handoff: trn22 CPU numeric G2 carries forward; host/native gates HOLD
 
