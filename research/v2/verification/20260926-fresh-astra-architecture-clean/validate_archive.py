@@ -57,10 +57,27 @@ def main():
     require(len(threads) == len(turns) == 1 and not any(r.get('type') == 'turn.failed' for r in events), 'one new completed turn')
     require(len([r for r in events if r.get('type') == 'turn.started']) == 1, 'one user turn')
     own_manifest = json.loads((HERE / 'session/reviewer-output/artifact_manifest.json').read_text())
+    output = HERE / 'session/reviewer-output'
+    for row in own_manifest['artifacts']:
+        path = output / row['path']
+        require(sha(path) == row['sha256'] and path.stat().st_size == row['bytes'], 'reviewer manifest mismatch: ' + row['path'])
+    decision = json.loads((output / 'decision.json').read_text())
+    results = json.loads((output / 'test_artifacts/results.json').read_text())
+    audit = json.loads((output / 'source_audit_results.json').read_text())
+    require(decision['decision'] == 'REFUSE' and decision['candidate_commit'] == inputs['candidate_commit'], 'literal frozen verdict')
+    require(len(results) == 596 and all(row['passed'] is True for row in results), 'own test records')
+    require(decision['independent_test']['attempt_count'] == 1 and decision['independent_test']['peak_tracked_live_tensor_bytes'] == 43590044, 'attempt/resource evidence')
+    routes = audit['eval_route_comparison']
+    require(len(routes) == 10 and all(row['arithmetic_batch_route_equal'] is False and row['cpu_outputs_equal'] is True and row['max_abs'] == row['max_rel'] == 0 for row in routes), 'structural difference versus numeric equality')
+    require(decision['blocking_findings'][0]['id'] == 'EVAL_BATCH_WRAPPER_OMITTED', 'precise finding')
+    require(all(decision[k] is False for k in ('native_executed', 'full_size_cpu_executed', 'launch_authorized', 'submission_authorized')), 'scope not widened')
     print(json.dumps({'archive_integrity': 'PASS', 'files': archive['count'], 'bytes': archive['total_bytes'],
                       'thread_id': threads[0], 'model_requested': launch['model_requested'],
                       'usage': turns[0].get('usage'), 'input_manifest_sha256': prepared['input_manifest_sha256'],
                       'reviewer_artifact_manifest_type': type(own_manifest).__name__,
+                      'reviewer_manifest_files': len(own_manifest['artifacts']),
+                      'actual_review_decision': decision['decision'], 'passing_test_records': len(results),
+                      'route_mismatches_with_zero_cpu_numeric_error': len(routes),
                       'model_correctness_is_not_decided_by_this_validator': True}, indent=2))
 
 if __name__ == '__main__':

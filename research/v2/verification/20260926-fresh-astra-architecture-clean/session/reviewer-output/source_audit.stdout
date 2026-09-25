@@ -1,0 +1,478 @@
+{
+  "ast_comparisons": [
+    {
+      "candidate": "_rope_norm_fwd",
+      "candidate_line": 170,
+      "reference": "_rope_norm_fwd",
+      "reference_line": 627,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_rope_norm_bwd",
+      "candidate_line": 217,
+      "reference": "_rope_norm_bwd",
+      "reference_line": 674,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_RopeNormNKI",
+      "candidate_line": 282,
+      "reference": "_RopeNormNKI",
+      "reference_line": 739,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_taps",
+      "candidate_line": 458,
+      "reference": "_conv2_taps",
+      "reference_line": 1258,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_fwd_tile",
+      "candidate_line": 466,
+      "reference": "_conv2_fwd_tile",
+      "reference_line": 1266,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_forward",
+      "candidate_line": 484,
+      "reference": "_conv2_forward",
+      "reference_line": 1284,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_dw_partial",
+      "candidate_line": 500,
+      "reference": "_conv2_dw_partial",
+      "reference_line": 1300,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_bwd_tile",
+      "candidate_line": 510,
+      "reference": "_conv2_bwd_tile",
+      "reference_line": 1310,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_conv2_backward",
+      "candidate_line": 539,
+      "reference": "_conv2_backward",
+      "reference_line": 1339,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_Conv2NKI",
+      "candidate_line": 565,
+      "reference": "_Conv2NKI",
+      "reference_line": 1365,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "reference_forward",
+      "candidate_line": 702,
+      "reference": "reference_forward",
+      "reference_line": 4437,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_muon_math",
+      "candidate_line": 950,
+      "reference": "_muon_math",
+      "reference_line": 2359,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_muon_lr_g",
+      "candidate_line": 983,
+      "reference": "_muon_lr_g",
+      "reference_line": 2432,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "MuonAdamW._device_scalar",
+      "candidate_line": 1000,
+      "reference": "MuonAdamW._device_scalar",
+      "reference_line": 2506,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "MuonAdamW._muon_compile_scalars",
+      "candidate_line": 1059,
+      "reference": "MuonAdamW._muon_compile_scalars",
+      "reference_line": 2643,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "OwnedOptimizer.state_dict",
+      "candidate_line": 1612,
+      "reference": "OwnedOptimizer.state_dict",
+      "reference_line": 4706,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "OwnedOptimizer.load_state_dict",
+      "candidate_line": 1617,
+      "reference": "OwnedOptimizer.load_state_dict",
+      "reference_line": 4711,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "selected_lanes",
+      "candidate_line": 1623,
+      "reference": "selected_lanes",
+      "reference_line": 4865,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_softcap_ce_fwd",
+      "candidate_line": 304,
+      "reference": "build_kernels.forward",
+      "reference_line": 4736,
+      "ast_equal_ignoring_docs_and_root_name": true
+    },
+    {
+      "candidate": "_softcap_ce_bwd",
+      "candidate_line": 372,
+      "reference": "build_kernels.backward",
+      "reference_line": 4804,
+      "ast_equal_ignoring_docs_and_root_name": true
+    }
+  ],
+  "receipt_checks": {
+    "candidate_source_hash_match": true,
+    "reference_source_hash_match": true,
+    "rank_count": [
+      4,
+      4
+    ],
+    "ranks": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "argv_width128": true,
+    "actual_micro_batch": [
+      1,
+      16
+    ],
+    "recorded_sequence_len": 1024,
+    "vocab_size": 8192,
+    "recorded_dtype": "bfloat16 (shim)",
+    "steps": 3,
+    "losses_identical_by_rank": true,
+    "plans_identical_by_rank": true,
+    "rank0_digest_dicts_identical": true,
+    "digest_count": 65,
+    "digest_hex_chars": 16,
+    "candidate_shims": [
+      "compute_dtype_for -> torch.bfloat16",
+      "module `time` -> deterministic fake clock (1 ms per call)",
+      "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+      "GPT.forward training micro-batch sliced to 1x16 tokens"
+    ],
+    "reference_shims": [
+      "compute_dtype_for -> torch.bfloat16",
+      "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+      "module `time` -> deterministic fake clock (1 ms per call)",
+      "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+      "GPT.forward training micro-batch sliced to 1x16 tokens"
+    ],
+    "prepare_stub_hash_match": true,
+    "prepare_stub_source_supplied": false,
+    "full_parameter_digest_bytes_supplied": false,
+    "recorded_cpu_parameter_count": 4523316,
+    "static_width128_vocab8192_parameter_count": 4523316
+  },
+  "full_static_plan_summary": {
+    "elements_by_owner": [
+      27262976,
+      28315914,
+      27269130,
+      30408704
+    ],
+    "estimated_ms_by_owner": [
+      11.902383616666665,
+      11.901154315065611,
+      11.905213318837584,
+      12.116303749999998
+    ],
+    "shard_elements": 30408704,
+    "total_padded_bytes": 486539264
+  },
+  "route_comparison": [
+    {
+      "dtype": "float32",
+      "tokens": 1,
+      "candidate_shapes": [
+        [
+          2,
+          1,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          1,
+          128
+        ],
+        [
+          1,
+          1,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "float32",
+      "tokens": 7,
+      "candidate_shapes": [
+        [
+          2,
+          7,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          7,
+          128
+        ],
+        [
+          1,
+          7,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "float32",
+      "tokens": 16,
+      "candidate_shapes": [
+        [
+          2,
+          16,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          16,
+          128
+        ],
+        [
+          1,
+          16,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "float32",
+      "tokens": 31,
+      "candidate_shapes": [
+        [
+          2,
+          31,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          31,
+          128
+        ],
+        [
+          1,
+          31,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "float32",
+      "tokens": 32,
+      "candidate_shapes": [
+        [
+          2,
+          32,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          32,
+          128
+        ],
+        [
+          1,
+          32,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "bfloat16",
+      "tokens": 1,
+      "candidate_shapes": [
+        [
+          2,
+          1,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          1,
+          128
+        ],
+        [
+          1,
+          1,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "bfloat16",
+      "tokens": 7,
+      "candidate_shapes": [
+        [
+          2,
+          7,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          7,
+          128
+        ],
+        [
+          1,
+          7,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "bfloat16",
+      "tokens": 16,
+      "candidate_shapes": [
+        [
+          2,
+          16,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          16,
+          128
+        ],
+        [
+          1,
+          16,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "bfloat16",
+      "tokens": 31,
+      "candidate_shapes": [
+        [
+          2,
+          31,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          31,
+          128
+        ],
+        [
+          1,
+          31,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    },
+    {
+      "dtype": "bfloat16",
+      "tokens": 32,
+      "candidate_shapes": [
+        [
+          2,
+          32,
+          128
+        ]
+      ],
+      "reference_shapes": [
+        [
+          1,
+          32,
+          128
+        ],
+        [
+          1,
+          32,
+          128
+        ]
+      ],
+      "arithmetic_batch_route_equal": false,
+      "cpu_outputs_equal": true,
+      "max_abs": 0.0,
+      "max_rel": 0.0
+    }
+  ]
+}

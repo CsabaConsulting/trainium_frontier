@@ -1,0 +1,92 @@
+{
+  "schema": "independent-packet-review-v1",
+  "decision": "REFUSE",
+  "scope": "Source and bounded reduced-CPU suitability for next qualification only",
+  "candidate_commit": "bd9e33eee671ee489a1201485faf748bf0a35dea",
+  "reference_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+  "source_sha256": {
+    "candidate": "3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f",
+    "scored_reference": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "vehicle": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d"
+  },
+  "native_executed": false,
+  "full_size_cpu_executed": false,
+  "launch_authorized": false,
+  "submission_authorized": false,
+  "candidate_quality": "unmeasured",
+  "packet_authentication": "PASS",
+  "full_parameter_count_static": 113256724,
+  "independent_test": {
+    "numerical_status": "PASS",
+    "attempt_count": 1,
+    "records": 596,
+    "exact_tolerance": {
+      "atol": 0,
+      "rtol": 0
+    },
+    "negative_controls_detected": [
+      "detached_bf16_weight_cache",
+      "fifo_instead_of_lifo_unet_pairing"
+    ],
+    "peak_tracked_live_tensor_bytes": 43590044,
+    "max_conservative_retained_plus_workspace_bytes": 52968792,
+    "limit_bytes": 67108864,
+    "source": "independent_test.py",
+    "raw_stdout": "test_attempt1.stdout",
+    "raw_stderr": "test_attempt1.stderr",
+    "results": "test_artifacts/results.json"
+  },
+  "blocking_findings": [
+    {
+      "id": "EVAL_BATCH_WRAPPER_OMITTED",
+      "candidate": "candidate.py:1290",
+      "reference": [
+        "scored_reference.py:3290",
+        "scored_reference.py:4908",
+        "scored_reference.py:4914"
+      ],
+      "requirement": "Preserve effective wrapper-installed trained checkpoint load_for_eval semantics.",
+      "finding": "Candidate loads GPT; reference loads _SubmissionEvalGPT, which executes each nonempty batch row separately with B=1.",
+      "cpu_witness": {
+        "candidate_block0_inputs": [
+          [
+            2,
+            32,
+            128
+          ]
+        ],
+        "reference_block0_inputs": [
+          [
+            1,
+            32,
+            128
+          ],
+          [
+            1,
+            32,
+            128
+          ]
+        ],
+        "route_equal": false,
+        "observed_cpu_logits_max_abs": 0.0,
+        "observed_cpu_logits_max_rel": 0.0
+      },
+      "native_numeric_difference_measured": false,
+      "required_resolution": "Preserve reference evaluation row-wrapper behavior and verify the effective checkpoint loader. No candidate change was made in this review."
+    }
+  ],
+  "later_gates_absent_but_not_refusal_reasons": [
+    "full113M CPU G2",
+    "native compilation/legalization/cold-startup",
+    "full-budget quality replay",
+    "final compliance review",
+    "human submission approval"
+  ],
+  "reference_score": {
+    "public20M_bpb": 0.9863403052402583,
+    "belongs_to": "research reference only",
+    "candidate_inherits_score": false
+  },
+  "report": "report.md",
+  "audit": "source_audit_results.json"
+}

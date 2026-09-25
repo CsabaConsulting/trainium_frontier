@@ -1,0 +1,36 @@
+{
+  "test_attempt_count": 1,
+  "threshold_changes": [],
+  "assumption_changes_after_execution": [],
+  "attempts": [
+    {
+      "source": "reconstruct.py",
+      "command": "/opt/cpu/bin/python /work/reconstruct.py > /work/reconstruct.stdout 2> /work/reconstruct.stderr",
+      "exit_code": 0,
+      "stdout": "reconstruct.stdout",
+      "stderr": "reconstruct.stderr"
+    },
+    {
+      "source": "independent_test.py",
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /opt/cpu/bin/python /work/independent_test.py > /work/test_attempt1.stdout 2> /work/test_attempt1.stderr",
+      "exit_code": 0,
+      "stdout": "test_attempt1.stdout",
+      "stderr": "test_attempt1.stderr",
+      "results": "test_artifacts/results.json",
+      "numerical_status": "PASS",
+      "records": 596,
+      "stderr_line_count": 571,
+      "notes": "Torch cpuinfo/NNPACK warnings preserved; no harness exception. Route traces are diagnostic records; source audit separately checks their equality."
+    },
+    {
+      "source": "source_audit.py",
+      "command": "/opt/cpu/bin/python /work/source_audit.py > /work/source_audit.stdout 2> /work/source_audit.stderr",
+      "exit_code": 0,
+      "stdout": "source_audit.stdout",
+      "stderr": "source_audit.stderr",
+      "results": "source_audit_results.json",
+      "source_suitability": "REFUSE",
+      "notes": "Script completed; ten actual eval route comparisons are unequal and recorded as the blocking finding."
+    }
+  ]
+}
