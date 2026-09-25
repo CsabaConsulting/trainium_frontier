@@ -1,0 +1,19 @@
+FRESH-PUBLIC20M_START_UTC=2026-09-25T18:26:01.953853+00:00
+[W925 18:26:03.052150364 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+{
+  "eval_over_timeout": false,
+  "eval_seconds": 669.8979084530147,
+  "eval_timeout": 1200,
+  "num_bytes": 83462186,
+  "num_tokens": 20971520,
+  "total_nats": 58854764.0,
+  "val_bpb": 1.017340669168314
+}
+FRESH-PUBLIC20M_END_UTC=2026-09-25T18:37:24.202259+00:00
