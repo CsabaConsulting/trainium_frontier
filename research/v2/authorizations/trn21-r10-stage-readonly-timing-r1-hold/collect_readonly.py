@@ -9,6 +9,7 @@ import base64
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -47,6 +48,10 @@ SCOPE = "TRN21_R10_STAGE_R3_READONLY_PREOPEN_TIMING_ONLY"
 TRIALS = 3
 MAX_REMOTE_STDOUT = 64 * 1024
 MAX_REMOTE_LINE = 8192
+PRE_FREE = 13_177_973_911
+MIN_INODES = 10_000
+MAX_AGE_SECONDS = 1.0
+MAX_REMOTE_SECONDS = 330.0
 SENSITIVE = re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:AKIA|ASIA)[A-Z0-9]{16}\b|"
                        rb"(?i:AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|OPENAI_API_KEY|PRIVATE_KEY|BEARER_TOKEN|trn2\.pem|\.env(?:\b|/))")
 
@@ -283,17 +288,69 @@ def _parse_jsonl(raw):
         records.append(value)
     if (len(records) < 3 or len(records) > TRIALS + 2 or
             records[0].get("kind") != "start" or
-            records[0].get("actual_open") is not False or
             records[-1].get("kind") != "end" or
             any(value.get("kind") != "trial" or value.get("index") != index
                 for index, value in enumerate(records[1:-1], 1)) or
-            records[-1].get("completed_trials") != len(records) - 2 or
-            records[-1].get("actual_open") is not False):
+            records[-1].get("completed_trials") != len(records) - 2):
         raise RuntimeError("timing record order or trial count malformed")
+    start, end = records[0], records[-1]
+    expected_identity = {
+        "hostname": "ip-172-31-34-85", "uid": 1000,
+        "source": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+        "target": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_r10",
+        "bundle": "/home/ubuntu/trainium-c5c-e65-to-r10-20260925.trn21-stage-r2.bundle",
+        "label": "fs-20260925-trn21-c5c-a0-r10-incremental-stage-r2",
+        "lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+        "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+        "target_commit": "22bfbab5a77d6feb670d2d737504f8b70b08ddc1",
+    }
+    if (set(start) != {"schema", "kind", "utc", "identity", "boot_id",
+                       "mount_namespace", "root_free_bytes", "root_free_inodes",
+                       "full_readonly_preflight_seconds", "max_trials", "actual_open"} or
+            start["identity"] != expected_identity or
+            type(start["boot_id"]) is not str or
+            re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                         start["boot_id"]) is None or
+            type(start["mount_namespace"]) is not str or
+            re.fullmatch(r"mnt:\[[0-9]+\]", start["mount_namespace"]) is None or
+            start["max_trials"] != TRIALS or type(start["max_trials"]) is not int or
+            start["actual_open"] is not False or
+            not _space_ok(start) or
+            not _finite_range(start["full_readonly_preflight_seconds"], MAX_REMOTE_SECONDS) or
+            not _utc_ok(start["utc"])):
+        raise RuntimeError("timing start/preflight identity or resources malformed")
+    if (set(end) != {"schema", "kind", "utc", "completed_trials", "max_trials",
+                     "status", "actual_open"} or
+            type(end["completed_trials"]) is not int or
+            type(end["max_trials"]) is not int or end["max_trials"] != TRIALS or
+            end["actual_open"] is not False or not _utc_ok(end["utc"])):
+        raise RuntimeError("timing terminal fields malformed")
     trials = records[1:-1]
-    terminal = records[-1].get("status")
-    if (any(item.get("status") not in ("WITHIN_WINDOW_NO_OPEN", "HOLD_NO_OPEN")
-            for item in trials) or
+    terminal = end["status"]
+    for trial in trials:
+        if (not _finite_range(trial.get("preopen_seconds"), MAX_REMOTE_SECONDS) or
+                not _utc_ok(trial.get("utc"))):
+            raise RuntimeError("timing trial elapsed/UTC malformed")
+        if trial.get("status") == "WITHIN_WINDOW_NO_OPEN":
+            if (set(trial) != {"schema", "kind", "index", "utc", "preopen_seconds",
+                              "status", "label_scan_duration_seconds",
+                              "activity_age_seconds", "label_age_seconds",
+                              "space_age_seconds", "root_free_bytes", "root_free_inodes"} or
+                    not _space_ok(trial) or
+                    any(not _finite_range(trial[name], MAX_AGE_SECONDS) for name in
+                        ("label_scan_duration_seconds", "activity_age_seconds",
+                         "label_age_seconds", "space_age_seconds"))):
+                raise RuntimeError("timing trial freshness or space malformed")
+        elif trial.get("status") == "HOLD_NO_OPEN":
+            if (set(trial) != {"schema", "kind", "index", "utc", "preopen_seconds",
+                              "status", "error_type", "error"} or
+                    type(trial["error_type"]) is not str or not trial["error_type"] or
+                    type(trial["error"]) is not str or not trial["error"] or
+                    len(trial["error"]) > 256):
+                raise RuntimeError("timing HOLD trial malformed")
+        else:
+            raise RuntimeError("timing trial status malformed")
+    if (
             (terminal == "READONLY_TIMING_COMPLETE_NO_OPEN" and
              (len(trials) != TRIALS or
               any(item["status"] != "WITHIN_WINDOW_NO_OPEN" for item in trials))) or
@@ -303,6 +360,32 @@ def _parse_jsonl(raw):
             terminal not in ("READONLY_TIMING_COMPLETE_NO_OPEN", "READONLY_TIMING_HOLD_NO_OPEN")):
         raise RuntimeError("timing trial/terminal status mismatch")
     return records
+
+
+def _finite_range(value, maximum):
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value) and 0 <= value <= maximum
+    except (OverflowError, ValueError, TypeError):
+        return False
+
+
+def _space_ok(value):
+    return (type(value.get("root_free_bytes")) is int and
+            type(value.get("root_free_inodes")) is int and
+            value["root_free_bytes"] >= PRE_FREE and
+            value["root_free_inodes"] >= MIN_INODES)
+
+
+def _utc_ok(value):
+    if type(value) is not str:
+        return False
+    try:
+        parsed = datetime.datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None and parsed.utcoffset() == datetime.timedelta(0)
 
 
 def _raw_summary(raw):
@@ -343,13 +426,15 @@ def capture():
         after = {"status": "HOLD", "error_type": type(error).__name__}
         controller_stable = False
     records, parse_error = None, None
-    if rc == 0 and not timed_out and not SENSITIVE.search(stdout):
+    if rc == 0 and not timed_out and not stderr and not SENSITIVE.search(stdout):
         try:
             records = _parse_jsonl(stdout)
         except (RuntimeError, ValueError, TypeError, KeyError) as error:
             parse_error = type(error).__name__ + ": " + str(error)[:200]
+    elif stderr:
+        parse_error = "nonempty_remote_stderr"
     status = ("READONLY_TIMING_OBSERVED_NOT_STAGE_AUTHORITY"
-              if controller_stable and rc == 0 and not timed_out and records and
+              if controller_stable and rc == 0 and not timed_out and not stderr and records and
               records[-1]["status"] == "READONLY_TIMING_COMPLETE_NO_OPEN" else "HOLD")
     record = {"schema": SCHEMA + "-operator-raw", "scope": SCOPE,
               "started_utc": started, "ended_utc": _utc(),

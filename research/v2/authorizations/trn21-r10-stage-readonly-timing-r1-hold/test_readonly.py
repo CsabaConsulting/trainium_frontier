@@ -4,9 +4,9 @@ from contextlib import contextmanager
 import importlib.util
 import json
 from pathlib import Path
-import subprocess
 import sys
 import tempfile
+import types
 import unittest
 from unittest import mock
 
@@ -23,6 +23,43 @@ def load(name, path):
 
 collector = load("trn21_r10_timing_collector_test", HERE / "collect_readonly.py")
 timing = load("trn21_r10_remote_timing_test", HERE / "remote_timing.py")
+
+
+def complete_records():
+    utc = "2026-09-25T10:00:00+00:00"
+    identity = {"hostname": timing.EXPECTED["HOST"], "uid": timing.EXPECTED["UID"],
+                "source": timing.EXPECTED["SOURCE"],
+                "target": timing.EXPECTED["TARGET"],
+                "bundle": timing.EXPECTED["BUNDLE"],
+                "label": timing.EXPECTED["LABEL"],
+                "lock": timing.EXPECTED["LOCK"],
+                "source_commit": timing.EXPECTED["BASE_COMMIT"],
+                "target_commit": timing.EXPECTED["TARGET_COMMIT"]}
+    start = {"schema": collector.SCHEMA, "kind": "start", "utc": utc,
+             "identity": identity,
+             "boot_id": "30f90d95-224c-48d9-bb11-8ec18dd7c4fe",
+             "mount_namespace": "mnt:[4026531840]",
+             "root_free_bytes": collector.PRE_FREE + 1000,
+             "root_free_inodes": collector.MIN_INODES + 1,
+             "full_readonly_preflight_seconds": 0.5,
+             "max_trials": collector.TRIALS, "actual_open": False}
+    trials = [{"schema": collector.SCHEMA, "kind": "trial", "index": index,
+               "utc": utc, "preopen_seconds": 0.6,
+               "status": "WITHIN_WINDOW_NO_OPEN",
+               "label_scan_duration_seconds": 0.4,
+               "activity_age_seconds": 0.2, "label_age_seconds": 0.3,
+               "space_age_seconds": 0.1,
+               "root_free_bytes": collector.PRE_FREE + 1000,
+               "root_free_inodes": collector.MIN_INODES + 1}
+              for index in range(1, collector.TRIALS + 1)]
+    end = {"schema": collector.SCHEMA, "kind": "end", "utc": utc,
+           "completed_trials": collector.TRIALS, "max_trials": collector.TRIALS,
+           "status": "READONLY_TIMING_COMPLETE_NO_OPEN", "actual_open": False}
+    return [start, *trials, end]
+
+
+def jsonl(records):
+    return b"\n".join(collector._canonical(item) for item in records) + b"\n"
 
 
 def fake_stage(final=None):
@@ -154,23 +191,75 @@ class ReadonlyTimingTests(unittest.TestCase):
                 process.assert_not_called()
 
     def test_jsonl_parser_rejects_nonconsecutive_or_open_claim(self):
-        start = {"schema": collector.SCHEMA, "kind": "start", "actual_open": False}
-        trial = {"schema": collector.SCHEMA, "kind": "trial", "index": 1,
-                 "status": "HOLD_NO_OPEN"}
-        end = {"schema": collector.SCHEMA, "kind": "end",
-               "completed_trials": 1, "actual_open": False,
-               "status": "READONLY_TIMING_HOLD_NO_OPEN"}
-        raw = b"\n".join(collector._canonical(item) for item in (start, trial, end)) + b"\n"
-        self.assertEqual(len(collector._parse_jsonl(raw)), 3)
-        trial["index"] = 2
-        bad = b"\n".join(collector._canonical(item) for item in (start, trial, end)) + b"\n"
+        records = complete_records()
+        self.assertEqual(len(collector._parse_jsonl(jsonl(records))), collector.TRIALS + 2)
+        records[1]["index"] = 2
         with self.assertRaises(RuntimeError):
-            collector._parse_jsonl(bad)
-        trial["index"] = 1
-        end["actual_open"] = True
-        bad = b"\n".join(collector._canonical(item) for item in (start, trial, end)) + b"\n"
+            collector._parse_jsonl(jsonl(records))
+        records[1]["index"] = 1
+        records[-1]["actual_open"] = True
         with self.assertRaises(RuntimeError):
-            collector._parse_jsonl(bad)
+            collector._parse_jsonl(jsonl(records))
+
+    def test_forged_ordered_jsonl_fails_numeric_identity_and_resource_gates(self):
+        for kind, field, value in (
+                ("trial", "activity_age_seconds", 9999.0),
+                ("trial", "label_age_seconds", float("nan")),
+                ("trial", "space_age_seconds", float("inf")),
+                ("trial", "label_scan_duration_seconds", 1.001),
+                ("trial", "preopen_seconds", -1),
+                ("trial", "root_free_bytes", 1),
+                ("start", "identity", None),
+                ("start", "boot_id", "not-a-boot-id"),
+                ("start", "root_free_inodes", 9999)):
+            with self.subTest(kind=kind, field=field):
+                records = complete_records()
+                records[1 if kind == "trial" else 0][field] = value
+                with self.assertRaises(RuntimeError):
+                    collector._parse_jsonl(jsonl(records))
+
+    def test_forged_jsonl_archives_hold_not_positive_timing(self):
+        forged = complete_records()
+        for trial in forged[1:-1]:
+            trial["activity_age_seconds"] = 9999.0
+            trial["label_age_seconds"] = 9999.0
+            trial["space_age_seconds"] = 9999.0
+        with tempfile.TemporaryDirectory(
+                    prefix="trn21-timing-forged-") as temp:
+            archived = self._capture_mocked(jsonl(forged), b"", Path(temp))
+            self.assertEqual(archived["status"], "HOLD")
+            self.assertIsNone(archived["parsed"])
+            self.assertIn("freshness", archived["parse_error"])
+
+    def test_nonempty_stderr_with_valid_jsonl_archives_hold(self):
+        with tempfile.TemporaryDirectory(prefix="trn21-timing-stderr-") as temp:
+            archived = self._capture_mocked(jsonl(complete_records()),
+                                            b"remote warning", Path(temp))
+            self.assertEqual(archived["status"], "HOLD")
+            self.assertIsNone(archived["parsed"])
+            self.assertEqual(archived["parse_error"], "nonempty_remote_stderr")
+
+    def test_valid_jsonl_with_empty_stderr_is_only_observation(self):
+        with tempfile.TemporaryDirectory(prefix="trn21-timing-valid-") as temp:
+            archived = self._capture_mocked(jsonl(complete_records()), b"", Path(temp))
+            self.assertEqual(archived["status"],
+                             "READONLY_TIMING_OBSERVED_NOT_STAGE_AUTHORITY")
+            self.assertEqual(len(archived["parsed"]), collector.TRIALS + 2)
+
+    def _capture_mocked(self, stdout, stderr, root):
+        response = types.SimpleNamespace(returncode=0, stdout=stdout, stderr=stderr)
+        with mock.patch.object(collector, "HERE", root), \
+             mock.patch.object(collector, "_pins", return_value={
+                 "stage": b"stage", "timing": b"timing", "hold": b"hold"}), \
+             mock.patch.object(collector, "_authority", return_value={}), \
+             mock.patch.object(collector, "_controller_gate",
+                               return_value={"active_state_sha256": "stable"}), \
+             mock.patch.object(collector, "_ssh_identity", return_value={}), \
+             mock.patch.object(collector, "_ssh_argv", return_value=["ssh", "dummy"]), \
+             mock.patch.object(collector.subprocess, "run", return_value=response) as process:
+            receipt = collector.capture()
+        process.assert_called_once()
+        return json.loads(receipt.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
