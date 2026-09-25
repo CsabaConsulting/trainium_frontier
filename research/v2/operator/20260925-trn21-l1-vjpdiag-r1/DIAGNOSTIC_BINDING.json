@@ -1,0 +1,62 @@
+{
+  "host": "trn21",
+  "prepare_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/prepare.py",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+  "minimum_free_disk_gib": 6.5,
+  "additional_artifact_headroom_gib": 4,
+  "schema": "trn21-l1-vjpdiagnostic-manual-binding-v1",
+  "status": "PREPARED_REVIEW_AND_OPERATOR_SLOT_PENDING",
+  "host_root": "/home/ubuntu/trainium_l1_fp8_vjpdiag_20260925_trn21_r1",
+  "source_path": "/home/ubuntu/trainium_l1_fp8_vjpdiag_20260925_trn21_r1/train.py",
+  "source_sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+  "source_commit": "50a901374ae6f76b35b8556d32fd72b1ece28fc6",
+  "packet_commit": "fe781c22",
+  "checker_sha256": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+  "phases": [
+    {
+      "label": "fs-20260925-l1-921271-vjpdiag-r1",
+      "kind": "native_correctness_diagnostic",
+      "command": [
+        "/home/ubuntu/workspace/native_venv/bin/torchrun",
+        "--standalone",
+        "--nproc_per_node=4",
+        "/home/ubuntu/trainium_l1_fp8_vjpdiag_20260925_trn21_r1/check_native.py",
+        "--train-py",
+        "/home/ubuntu/trainium_l1_fp8_vjpdiag_20260925_trn21_r1/train.py",
+        "--out-dir",
+        "/home/ubuntu/trainium_l1_fp8_vjpdiag_20260925_trn21_r1/receipts/diagnostic",
+        "--diagnose-first-case",
+        "--label",
+        "fs-20260925-l1-921271-vjpdiag-r1"
+      ],
+      "environment": {
+        "HOME": "/home/ubuntu",
+        "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+        "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+        "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+        "PYTHONUNBUFFERED": "1",
+        "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor",
+        "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug",
+        "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo",
+        "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff",
+        "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local",
+        "TRN_EXP_LABEL": "fs-20260925-l1-921271-vjpdiag-r1"
+      },
+      "wall_timeout_seconds": 300,
+      "requires_prior": "Independent fe781c22 diagnostic review, exact binding and current trn21 training AND fresh20M terminal/quiescent",
+      "native_authorized": false
+    }
+  ],
+  "diagnostic_only": true,
+  "component_pass_allowed": false,
+  "quality_or_timing_allowed": false,
+  "own_pause_owner": "trn22_queue_operator",
+  "hand_back": "After the one diagnostic exits and all workers/device holders are quiescent, retrieve all observations then restore existing serial fallback queue unless Supervisor replaces only its unstarted tail. No automatic retry or timed training."
+}
