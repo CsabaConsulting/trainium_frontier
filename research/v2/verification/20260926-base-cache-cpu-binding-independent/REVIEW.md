@@ -1,5 +1,44 @@
 # Existing base-cache CPU packet: independent mechanical review
 
+## Narrow repair re-review
+
+Repair `2cf504d9b763e98e7130447d52fc93799e26db50`: **PASS for the exact
+trn22 CPU-only mechanical binding**. No remaining blocking defect found in
+this bounded review. It is eligible for a separate scoped Supervisor/Operator
+CPU assignment; this receipt itself performs no staging or launch and does
+not authorize trn21 relocation, native/cold/full execution or adoption.
+
+The repair captures the parent PID immediately before the unchanged shared
+guard authenticates it, requires that same parent at `checks()` entry, and
+excludes only ownPID plus that exact authenticated PID. Another torchrun or
+host_driver is still refused; a changed parent is explicitly refused. Shared
+guard/dispatch, production sources, all four request bytes, commands,
+resource floors and CPU workload are unchanged. All four driver repairs
+have identical ASTs apart from their literal ROOT.
+
+Independent replay:74 checks pass normally and with `-O`, including the
+same original self/parent fixtures on all four repaired drivers, competing
+torchrun, unrelated driver, wrong excluded PID, changed actual parent and
+capture/authentication/check ordering. Original default invocation still
+reproduces all four failures against immutable5a3c5358 (54 checks); its raw
+receipt below is retained unchanged. Supplied static tests also pass, but
+were not substituted for independent checks. No tensor/host/native work ran.
+
+| Repaired binding | SHA-256 |
+|---|---|
+| CPU_PLAN.disabled.json | `b0c2a4abbce771a344e886d8a6da0723d42314997db245bdccb6dcd5b39202bc` |
+| SHA256SUMS | `00fe8964313a08558d30b039b55142d092e60613e7b49f5ed7891d922e4ab17c` |
+| reference driver | `45c41cb51b52fdcb5917b923e165019831c46a611c83af834564f329d553fffc` |
+| default driver | `2126c47932910afe9422f20d6a78105a06f02e3208e48cda32fba819f645f9d2` |
+| OFF driver | `0be8c1cc6164c71d260ffa6257dc8e1888de92f40b4e4f4c40de42cc1ff04dd9` |
+| ON driver | `c42212bae82271d14a59306671881e9a2f2b8940d71fdd705636654266f08529` |
+
+The full-parameter CPU numeric gate has not run. Its results, independent
+numeric acceptance and fresh isolated source review remain pending. All
+scope and descendant-lifetime limits documented below remain applicable.
+
+## Preserved original verdict
+
 Original packet `5a3c5358473e3463b19aadeafeac6212a1b24f96`: **HOLD**.
 CPU plan SHA256 `2b08cbea8ed011e1be418e0faf7bb62ac9e394f211105557dbd45d5d51731f09`.
 This is a CPU diagnostic binding review, not the separately required fresh

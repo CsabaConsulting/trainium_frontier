@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 REPO = Path('/home/poojith-devan/Desktop/Trainium-base-cache-cpu-packet-20260926')
 REF = sys.argv[1] if len(sys.argv) > 1 else '5a3c5358473e3463b19aadeafeac6212a1b24f96'
+REPAIRED = len(sys.argv) > 2 and sys.argv[2] == '--expect-repaired'
 BASE = 'research/v2/proposals/20260926-base-cache-exact-cpu/'
 def raw(path): return subprocess.check_output(['git', '-C', str(REPO), 'show', REF + ':' + BASE + path])
 def digest(data): return hashlib.sha256(data).hexdigest()
@@ -59,20 +60,39 @@ for index, probe in enumerate(plan['probes']):
     def path(value): return Proc() if value == '/proc' else Path(value)
     def require(value, message):
         if not value: raise RuntimeError(message)
-    context = {'Path': path, 'os': SimpleNamespace(getpid=lambda:100, getppid=lambda:99), 'require': require}
+    context = {'Path': path, 'os': SimpleNamespace(getpid=lambda:100, getppid=lambda:99), 'require': require, 'authenticated_outer_pid': 99}
     error = None
     try: exec(compile(scan, 'exact-legacy-process-scan', 'exec'), context)
     except RuntimeError as exc: error = str(exc)
     reproductions.append({'arm': name, 'driver_pid': 100, 'authenticated_outer_pid': 99, 'outer_argv': probe['expected_outer_command'], 'active': context['active'], 'error': error})
-    check(name + ' reproduced required-parent false busy', error == 'OTHER_WORKLOAD:[99]')
+    check(name + (' required parent now allowed' if REPAIRED else ' reproduced required-parent false busy'), error is None if REPAIRED else error == 'OTHER_WORKLOAD:[99]')
     entries.append(Entry(200, ['/venv/bin/torchrun', 'train.py']))
     try: exec(compile(scan, 'exact-legacy-process-scan', 'exec'), context)
     except RuntimeError: pass
-    check(name + ' real competitor remains detected', context['active'] == [99, 200])
+    check(name + ' real competitor remains detected', context['active'] == ([200] if REPAIRED else [99, 200]))
+    if REPAIRED:
+        original_request = subprocess.check_output(['git', '-C', str(REPO), 'show', '5a3c5358473e3463b19aadeafeac6212a1b24f96:' + BASE + probe['request_path']])
+        check(name + ' request byte-identical through repair', original_request == raw(probe['request_path']))
+        entries[2] = Entry(200, ['/usr/bin/python3', '/other/job/host_driver.py'])
+        try: exec(compile(scan, 'exact-legacy-process-scan', 'exec'), context)
+        except RuntimeError: pass
+        check(name + ' other driver is not whitelisted', context['active'] == [200])
+        context['authenticated_outer_pid'] = 98
+        try: exec(compile(scan, 'exact-legacy-process-scan', 'exec'), context)
+        except RuntimeError: pass
+        check(name + ' only exact authenticated parent excluded', context['active'] == [99, 200])
+        parent_context = dict(context, authenticated_outer_pid=99, os=SimpleNamespace(getpid=lambda:100, getppid=lambda:98))
+        parent_error = None
+        try: exec(compile(ast.Module(body=[function.body[0]], type_ignores=[]), 'exact-parent-identity-check', 'exec'), parent_context)
+        except RuntimeError as exc: parent_error = str(exc)
+        check(name + ' parent identity change refuses', parent_error == 'AUTHENTICATED_PARENT_CHANGED')
+        capture = next(n for n in ast.walk(tree) if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'authenticated_outer_pid' for t in n.targets))
+        checked = next(n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == 'checks')
+        check(name + ' captured parent authenticated before checks', ast.unparse(capture.value) == 'os.getppid()' and capture.lineno < guard.lineno < checked.lineno and [ast.unparse(a) for a in checked.args] == ['authenticated_outer_pid'])
     for node in tree.body:
         if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == 'ROOT': node.value = ast.Constant('ARM')
     normalized.append(ast.dump(tree))
 check('only ROOT differs in all drivers', len(set(normalized)) == 1)
 cold = json.loads(raw('COLD_PROPOSAL.disabled.json'))
 check('no automatic cold or full', cold['launch_authorized'] is False and cold['full_run_automatic'] is False and cold['num_steps'] == 5 and cold['ct_target_seconds'] == 600)
-print(json.dumps({'reviewed_commit': REF, 'verdict': 'HOLD_REQUIRED_OUTER_FLOCK_FALSE_BUSY', 'checks_passed': len(checks), 'checks': checks, 'reproductions': reproductions, 'source_and_tensor_execution': False, 'host_actions': False, 'plan_sha256': digest(raw('CPU_PLAN.disabled.json')), 'note': 'Checks PASS means reproducer and bindings behaved as asserted; packet itself remains HOLD.'}, indent=2))
+print(json.dumps({'reviewed_commit': REF, 'verdict': 'PASS_SCOPED_MECHANICAL_CPU_PACKET' if REPAIRED else 'HOLD_REQUIRED_OUTER_FLOCK_FALSE_BUSY', 'checks_passed': len(checks), 'checks': checks, 'reproductions': reproductions, 'source_and_tensor_execution': False, 'host_actions': False, 'plan_sha256': digest(raw('CPU_PLAN.disabled.json')), 'note': 'No CPU/native/source gate result is implied; original default invocation retains the failing5a3 fixture.'}, indent=2))
