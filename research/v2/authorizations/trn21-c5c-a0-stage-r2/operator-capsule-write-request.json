@@ -1,0 +1,357 @@
+{
+  "schema": "trn21-c5c-a0-stage-r2-operator-write-request-v1",
+  "created_utc": "2026-09-25T01:31:42.198Z",
+  "status": "ARCHIVED_BEFORE_EXECUTION_NOT_YET_RUN",
+  "controller_commit": "e53502a5b52e27f2ec15d4174ecd8876ab761f9c",
+  "assignment_path": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json",
+  "assignment_sha256": "0127358fed6e97787b8a7d60208ede3cadb0e870791baece2f12830300c09fd5",
+  "contract_sha256": "631f3e7c1a2c4ec962b58be3b3a5399d323bae22d41add1aaca7884cd4efe069",
+  "runbook_sha256": "5dcd7962a116a126cafdc8e5e0023c17e53c9a6d7d88035e22df9672f325191b",
+  "independent_review_sha256": "36a97e1e33f192ff34691230131bab3c895a1126d1be32d167f4ae96034324f8",
+  "prior_hold_sha256": "1710449665cf889349a2527cf793a1a247ab88ecc903a9c6aaf2cf7823f46135",
+  "prior_addendum_sha256": "60df65fd3080aa070f8ebf8a348baf5fa55dd8b6d3ad2a70b930cc4624e7eb11",
+  "source_safe_scan_evidence": "research/v2/authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md",
+  "artifact": "capsule",
+  "operation": "write",
+  "local_source": {
+    "source": "/dev/shm/trainium-c5c-e65-one-commit-20260925.tar.gz",
+    "target": "/home/ubuntu/trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz",
+    "bytes": 104005787,
+    "sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264",
+    "device": 29,
+    "inode": 41922,
+    "mode": "0o600"
+  },
+  "writer_sha256": "a87fb4efe9b3e7b4c0b4f60855edb1ebf98f8a02cd66224cd36fb90d7d5b20eb",
+  "builder_sha256": "cd60f0abd8897fa9091b107f065a4ec2e863b7f063ea7d7fb06e58829d18e336",
+  "ssh_argv": [
+    "ssh",
+    "-T",
+    "-i",
+    "/home/poojith-devan/Desktop/Trainium/trn2.pem",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "IdentitiesOnly=yes",
+    "-o",
+    "StrictHostKeyChecking=yes",
+    "-o",
+    "ConnectTimeout=20",
+    "ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com",
+    "exec python3 -c '\"\"\"Fixed trn21 ext4 source-stage writer/reader; HOLD until separate authority.\n\nThe Operator may pass these exact reviewed bytes to ``python3 -c`` in one SSH\nprocess per operation. No path, expected hash, or expected byte count comes\nfrom the remote command line. A failed write deliberately leaves its unique\npartial target in place for diagnosis; this module never removes a file.\n\"\"\"\n\nimport datetime\nimport hashlib\nimport json\nimport os\nimport socket\nimport stat\nimport sys\n\n\nSCHEMA = \"trn21-c5c-a0-stage-r2-transfer-v1\"\nHOST = \"ip-172-31-34-85\"\nUID = 1000\nROOT = \"/home/ubuntu\"\nROOT_FREE_FLOOR = 10737418240\nCHUNK = 4 * 1024 * 1024\nARTIFACTS = {\n    \"capsule\": {\n        \"name\": \"trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz\",\n        \"bytes\": 104005787,\n        \"sha256\": \"32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264\",\n    },\n    \"preflight\": {\n        \"name\": \"trainium-v2-g2-preflight-dryrun-20260925-trn21-stage-r2.py\",\n        \"bytes\": 23550,\n        \"sha256\": \"6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8\",\n    },\n    \"contained\": {\n        \"name\": \"trainium-v2-g2-contained-20260925-trn21-stage-r2.py\",\n        \"bytes\": 9185,\n        \"sha256\": \"0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d\",\n    },\n}\n\n\ndef _mount_for_home():\n    matches = []\n    with open(\"/proc/self/mountinfo\", encoding=\"utf-8\") as stream:\n        for line in stream:\n            before, separator, after = line.partition(\" - \")\n            if not separator:\n                raise RuntimeError(\"malformed mountinfo\")\n            left = before.split()\n            right = after.split()\n            if len(left) < 5 or len(right) < 2:\n                raise RuntimeError(\"malformed mountinfo fields\")\n            mount_point = left[4]\n            if mount_point == ROOT or ROOT.startswith(mount_point.rstrip(\"/\") + \"/\"):\n                matches.append((len(mount_point), {\n                    \"mount_id\": left[0],\n                    \"major_minor\": left[2],\n                    \"mount_point\": mount_point,\n                    \"filesystem\": right[0],\n                    \"source\": right[1],\n                }))\n    if not matches:\n        raise RuntimeError(\"no mountinfo entry covers stage root\")\n    mount = max(matches, key=lambda item: item[0])[1]\n    if mount[\"filesystem\"] != \"ext4\":\n        raise RuntimeError(\"stage root is not on persistent ext4\")\n    return mount\n\n\ndef _identity(parent_fd):\n    parent = os.fstat(parent_fd)\n    if not stat.S_ISDIR(parent.st_mode) or parent.st_uid != UID:\n        raise RuntimeError(\"unexpected stage parent owner/type\")\n    home_ancestor = os.lstat(\"/home\")\n    named_parent = os.lstat(ROOT)\n    if (not stat.S_ISDIR(home_ancestor.st_mode) or\n            not stat.S_ISDIR(named_parent.st_mode) or\n            (named_parent.st_dev, named_parent.st_ino) != (parent.st_dev, parent.st_ino) or\n            stat.S_IMODE(parent.st_mode) & 0o022):\n        raise RuntimeError(\"stage parent path, inode or permissions are unsafe\")\n    if socket.gethostname() != HOST or os.geteuid() != UID:\n        raise RuntimeError(\"wrong host or run UID\")\n    with open(\"/proc/sys/kernel/random/boot_id\", encoding=\"ascii\") as stream:\n        boot_id = stream.read().strip()\n    if not boot_id:\n        raise RuntimeError(\"missing boot ID\")\n    namespace = os.readlink(\"/proc/self/ns/mnt\")\n    mount = _mount_for_home()\n    filesystem = os.statvfs(ROOT)\n    free_bytes = filesystem.f_bavail * filesystem.f_frsize\n    if free_bytes < ROOT_FREE_FLOOR:\n        raise RuntimeError(\"stage root below immutable prewrite free-space floor\")\n    return {\n        \"hostname\": socket.gethostname(), \"uid\": os.geteuid(), \"gid\": os.getegid(),\n        \"boot_id\": boot_id, \"mount_namespace\": namespace, \"mount\": mount,\n        \"parent_device\": parent.st_dev, \"parent_inode\": parent.st_ino,\n        \"parent_uid\": parent.st_uid, \"parent_gid\": parent.st_gid,\n        \"parent_mode\": oct(stat.S_IMODE(parent.st_mode)), \"root_free_bytes\": free_bytes,\n    }\n\n\ndef _stable_identity(before, after):\n    for key in (\"hostname\", \"uid\", \"gid\", \"boot_id\", \"mount_namespace\",\n                \"mount\", \"parent_device\", \"parent_inode\", \"parent_uid\",\n                \"parent_gid\", \"parent_mode\"):\n        if before[key] != after[key]:\n            raise RuntimeError(\"stage host/mount identity changed within session: \" + key)\n\n\ndef _file_metadata(fd, parent_fd, name):\n    opened = os.fstat(fd)\n    linked = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)\n    if not stat.S_ISREG(opened.st_mode) or not stat.S_ISREG(linked.st_mode):\n        raise RuntimeError(\"stage target is not regular\")\n    if (opened.st_dev, opened.st_ino) != (linked.st_dev, linked.st_ino):\n        raise RuntimeError(\"stage target changed during verification\")\n    if opened.st_nlink != 1 or linked.st_nlink != 1:\n        raise RuntimeError(\"stage target hard-link count is not one\")\n    if opened.st_uid != UID or linked.st_uid != UID:\n        raise RuntimeError(\"stage target UID mismatch\")\n    if stat.S_IMODE(opened.st_mode) != 0o600 or stat.S_IMODE(linked.st_mode) != 0o600:\n        raise RuntimeError(\"stage target must be private mode 0600\")\n    return {\n        \"device\": opened.st_dev, \"inode\": opened.st_ino,\n        \"bytes\": opened.st_size, \"uid\": opened.st_uid, \"gid\": opened.st_gid,\n        \"mode\": oct(stat.S_IMODE(opened.st_mode)), \"nlink\": opened.st_nlink,\n    }\n\n\ndef _digest_fd(fd):\n    os.lseek(fd, 0, os.SEEK_SET)\n    digest = hashlib.sha256()\n    size = 0\n    while True:\n        chunk = os.read(fd, CHUNK)\n        if not chunk:\n            return size, digest.hexdigest()\n        size += len(chunk)\n        digest.update(chunk)\n\n\ndef _artifact(artifact):\n    if artifact not in ARTIFACTS:\n        raise ValueError(\"unknown fixed artifact\")\n    spec = ARTIFACTS[artifact]\n    if \"/\" in spec[\"name\"] or spec[\"name\"] in (\"\", \".\", \"..\"):\n        raise RuntimeError(\"non-basename stage target\")\n    return spec\n\n\ndef _open_parent():\n    return os.open(ROOT, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)\n\n\ndef _receipt(operation, artifact, spec, before, after, metadata, observed_sha256,\n             streamed_sha256=None):\n    _stable_identity(before, after)\n    if metadata[\"device\"] != after[\"parent_device\"]:\n        raise RuntimeError(\"stage target escaped the ext4 parent device\")\n    if metadata[\"bytes\"] != spec[\"bytes\"] or observed_sha256 != spec[\"sha256\"]:\n        raise RuntimeError(\"stage target byte count or SHA-256 mismatch\")\n    with open(\"/proc/self/stat\", encoding=\"ascii\") as stream:\n        process_stat = stream.read()\n    process_start_ticks = int(process_stat.rsplit(\")\", 1)[1].split()[19])\n    return {\n        \"schema\": SCHEMA, \"status\": \"HASH_VERIFIED_IN_THIS_SESSION_ONLY\",\n        \"operation\": operation, \"artifact\": artifact,\n        \"path\": ROOT + \"/\" + spec[\"name\"],\n        \"expected_bytes\": spec[\"bytes\"], \"expected_sha256\": spec[\"sha256\"],\n        \"streamed_sha256\": streamed_sha256, \"readback_sha256\": observed_sha256,\n        \"target_stat\": metadata, \"identity_before\": before, \"identity_after\": after,\n        \"process_id\": os.getpid(), \"process_start_ticks\": process_start_ticks,\n        \"utc\": datetime.datetime.now(datetime.timezone.utc).isoformat(),\n    }\n\n\ndef write_artifact(artifact, input_stream):\n    spec = _artifact(artifact)\n    parent_fd = _open_parent()\n    try:\n        before = _identity(parent_fd)\n        try:\n            os.stat(spec[\"name\"], dir_fd=parent_fd, follow_symlinks=False)\n        except FileNotFoundError:\n            pass\n        else:\n            raise FileExistsError(\"stage target already exists; no overwrite or retry\")\n        fd = os.open(spec[\"name\"], os.O_RDWR | os.O_CREAT | os.O_EXCL |\n                     os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=parent_fd)\n        try:\n            streamed = hashlib.sha256()\n            count = 0\n            while True:\n                chunk = input_stream.read(CHUNK)\n                if not chunk:\n                    break\n                count += len(chunk)\n                if count > spec[\"bytes\"]:\n                    raise RuntimeError(\"stream longer than fixed artifact; partial target retained\")\n                streamed.update(chunk)\n                view = memoryview(chunk)\n                while view:\n                    written = os.write(fd, view)\n                    if written <= 0:\n                        raise RuntimeError(\"zero-length stage write; partial target retained\")\n                    view = view[written:]\n            if count != spec[\"bytes\"] or streamed.hexdigest() != spec[\"sha256\"]:\n                raise RuntimeError(\"input bytes/hash mismatch; partial target retained\")\n            os.fchmod(fd, 0o600)\n            os.fsync(fd)\n            os.fsync(parent_fd)\n            metadata = _file_metadata(fd, parent_fd, spec[\"name\"])\n            read_bytes, read_sha256 = _digest_fd(fd)\n            if read_bytes != count:\n                raise RuntimeError(\"readback byte count mismatch; target retained\")\n            if _file_metadata(fd, parent_fd, spec[\"name\"]) != metadata:\n                raise RuntimeError(\"stage target changed after write readback; target retained\")\n            after = _identity(parent_fd)\n            return _receipt(\"write\", artifact, spec, before, after, metadata,\n                            read_sha256, streamed.hexdigest())\n        finally:\n            os.close(fd)\n    finally:\n        os.close(parent_fd)\n\n\ndef verify_artifact(artifact):\n    spec = _artifact(artifact)\n    parent_fd = _open_parent()\n    try:\n        before = _identity(parent_fd)\n        fd = os.open(spec[\"name\"], os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC,\n                     dir_fd=parent_fd)\n        try:\n            metadata = _file_metadata(fd, parent_fd, spec[\"name\"])\n            read_bytes, read_sha256 = _digest_fd(fd)\n            if read_bytes != metadata[\"bytes\"]:\n                raise RuntimeError(\"readback byte count mismatch\")\n            if _file_metadata(fd, parent_fd, spec[\"name\"]) != metadata:\n                raise RuntimeError(\"stage target changed during read-only verification\")\n            after = _identity(parent_fd)\n            return _receipt(\"verify\", artifact, spec, before, after, metadata,\n                            read_sha256)\n        finally:\n            os.close(fd)\n    finally:\n        os.close(parent_fd)\n\n\ndef main():\n    if len(sys.argv) != 3 or sys.argv[1] not in (\"write\", \"verify\"):\n        raise SystemExit(\"usage: python3 -c <reviewed-writer-source> write|verify capsule|preflight|contained\")\n    operation, artifact = sys.argv[1:]\n    result = write_artifact(artifact, sys.stdin.buffer) if operation == \"write\" else verify_artifact(artifact)\n    print(json.dumps(result, sort_keys=True, separators=(\",\", \":\")), flush=True)\n\n\nif __name__ == \"__main__\":\n    main()\n' write capsule"
+  ],
+  "ssh_argv_sha256": "03372b02babddb7f292f772de604f1600d85a1f18f7551b54649c30874b9bd8f",
+  "host_preflight": {
+    "ancestry": {
+      "/": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "gid": 0,
+        "inode": 2,
+        "mode": "0o755",
+        "nlink": 23,
+        "nonwritable_by_group_or_world": true,
+        "type": "directory",
+        "uid": 0
+      },
+      "/home": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "gid": 0,
+        "inode": 1684,
+        "mode": "0o755",
+        "nlink": 3,
+        "nonwritable_by_group_or_world": true,
+        "type": "directory",
+        "uid": 0
+      },
+      "/home/ubuntu": {
+        "bytes": 20480,
+        "device": 66305,
+        "exists": true,
+        "gid": 1000,
+        "inode": 295711,
+        "mode": "0o750",
+        "nlink": 165,
+        "nonwritable_by_group_or_world": true,
+        "type": "directory",
+        "uid": 1000
+      }
+    },
+    "boot_id": "1903f7f0-8e0d-4011-9566-346e4ba01a0f",
+    "cache_root": {
+      "bytes": 4096,
+      "device": 66305,
+      "exists": true,
+      "gid": 1000,
+      "inode": 2945950,
+      "mode": "0o775",
+      "nlink": 8,
+      "type": "directory",
+      "uid": 1000
+    },
+    "caches": {
+      "compiler": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945955,
+        "gid": 1000,
+        "inode": 2945955,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 2,
+        "type": "directory",
+        "uid": 1000
+      },
+      "debug": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945956,
+        "gid": 1000,
+        "inode": 2945956,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 3,
+        "type": "directory",
+        "uid": 1000
+      },
+      "hlo": {
+        "bytes": 20480,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945953,
+        "gid": 1000,
+        "inode": 2945953,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 155,
+        "type": "directory",
+        "uid": 1000
+      },
+      "inductor": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945954,
+        "gid": 1000,
+        "inode": 2945954,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 2,
+        "type": "directory",
+        "uid": 1000
+      },
+      "local": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945952,
+        "gid": 1000,
+        "inode": 2945952,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 3,
+        "type": "directory",
+        "uid": 1000
+      },
+      "neff": {
+        "bytes": 4096,
+        "device": 66305,
+        "exists": true,
+        "expected_inode": 2945951,
+        "gid": 1000,
+        "inode": 2945951,
+        "matches_expected": true,
+        "mode": "0o775",
+        "nlink": 100,
+        "type": "directory",
+        "uid": 1000
+      }
+    },
+    "checkpoints": [
+      {
+        "bytes": 469834849,
+        "device": 66305,
+        "exists": true,
+        "expected_bytes": 469834849,
+        "expected_inode": 2947631,
+        "expected_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+        "fuser": {
+          "pids": [],
+          "rc": 1,
+          "stderr_empty": true
+        },
+        "gid": 1000,
+        "inode": 2947631,
+        "matches_expected": true,
+        "mode": "0o664",
+        "nlink": 1,
+        "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/sandbox/out/final.pt",
+        "read_bytes": 469834849,
+        "sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+        "type": "regular",
+        "uid": 1000
+      },
+      {
+        "bytes": 469831009,
+        "device": 66305,
+        "exists": true,
+        "expected_bytes": 469831009,
+        "expected_inode": 2938565,
+        "expected_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+        "fuser": {
+          "pids": [],
+          "rc": 1,
+          "stderr_empty": true
+        },
+        "gid": 1000,
+        "inode": 2938565,
+        "matches_expected": true,
+        "mode": "0o664",
+        "nlink": 1,
+        "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+        "read_bytes": 469831009,
+        "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+        "type": "regular",
+        "uid": 1000
+      }
+    ],
+    "home": "/home/ubuntu",
+    "home_mount": {
+      "filesystem": "ext4",
+      "major_minor": "259:1",
+      "mount_id": "27",
+      "mount_point": "/",
+      "source": "/dev/root"
+    },
+    "host_lock": {
+      "bytes": 0,
+      "device": 66305,
+      "exists": true,
+      "gid": 1000,
+      "inode": 596823,
+      "mode": "0o664",
+      "nlink": 1,
+      "type": "regular",
+      "uid": 1000
+    },
+    "host_lock_fuser": {
+      "pids": [],
+      "rc": 1,
+      "stderr_empty": true
+    },
+    "hostname": "ip-172-31-34-85",
+    "mount_namespace": "mnt:[4026531832]",
+    "neuron0_fuser": {
+      "pids": [],
+      "rc": 1,
+      "stderr_empty": true
+    },
+    "neuron_ls": {
+      "json_valid": true,
+      "non_diagnostic_pids": [],
+      "rc": 0
+    },
+    "processes": {
+      "hits": [],
+      "unreadable_cmdline_count": 0
+    },
+    "root_free_bytes": 58676121600,
+    "root_mount": {
+      "filesystem": "ext4",
+      "major_minor": "259:1",
+      "mount_id": "27",
+      "mount_point": "/",
+      "source": "/dev/root"
+    },
+    "root_total_bytes": 258906374144,
+    "schema": "trn21-c5c-stage-r2-readonly-prewrite-v1",
+    "science_and_stage_labels": {
+      "fs-20260925-v2-c5c-a0-control-trn21-r1": {
+        "matches": [],
+        "rc": 0,
+        "stderr_empty": true
+      },
+      "fs-20260925-v2-c5c-a0-control-trn21-r1-source-stage-r2": {
+        "matches": [],
+        "rc": 0,
+        "stderr_empty": true
+      }
+    },
+    "stops": {
+      "/home/ubuntu/research/agentic/STOP": {
+        "exists": false
+      },
+      "/home/ubuntu/research/v2/STOP": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260918/research/agentic/STOP": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260918/research/v2/STOP": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/agentic/STOP": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/v2/STOP": {
+        "exists": false
+      }
+    },
+    "targets": {
+      "/home/ubuntu/trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium-v2-g2-20260925-trn21-r2": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium-v2-g2-contained-20260925-trn21-stage-r2.py": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium-v2-g2-preflight-dryrun-20260925-trn21-stage-r2.py": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260925-v2-c5c-a0-control-trn21-r1": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/run-logs/fs-20260925-v2-c5c-a0-control-trn21-r1.log": {
+        "exists": false
+      },
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/run-logs/fs-20260925-v2-c5c-a0-control-trn21-r1.steps.jsonl": {
+        "exists": false
+      }
+    },
+    "uid": 1000,
+    "utc": "2026-09-25T01:29:35.441035+00:00"
+  },
+  "host_preflight_checks": {
+    "transport": true,
+    "host": true,
+    "root": true,
+    "ancestry": true,
+    "paths": true,
+    "stops": true,
+    "labels": true,
+    "checkpoints": true,
+    "caches": true,
+    "idle": true
+  },
+  "local_breaker_and_stop_gate": {
+    "global_tripped": false,
+    "ledger_science_label_entries": 0,
+    "local_stop_agentic": false,
+    "local_stop_v2": false,
+    "state_sha256": "008565f5dd1f837ab8ca23e466099a95993a92a2d8e28e974f85b64eb8c0f7a6",
+    "trn21_tripped": false,
+    "written_utc": "2026-09-25T01:27:34Z"
+  },
+  "host_write_permitted_only_for_exact_target": "/home/ubuntu/trainium-c5c-e65-one-commit-20260925.trn21-stage-r2.tar.gz",
+  "no_checkout_extraction_g2_native_eval_or_aws_action": true
+}
