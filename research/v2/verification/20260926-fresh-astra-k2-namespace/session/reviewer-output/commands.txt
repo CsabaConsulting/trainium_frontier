@@ -1,0 +1,21 @@
+Initial read-only inspection (tool shell commands, in order):
+pwd && rg --files -g 'AGENTS.md' -g '*' /packet /work
+cat /packet/lane-spec.md
+cat /packet/kernel-full-context.diff
+cat /packet/INPUT_MANIFEST.json /packet/original-native/terminal.json /packet/original-native/receipts/rank0.json /packet/original-native/receipts/rank1.json /packet/original-native/receipts/rank2.json /packet/original-native/receipts/rank3.json
+python3 -I -S -c 'import datetime, os, sys; print(datetime.datetime.now(datetime.timezone.utc).isoformat()); print(sys.version); print("available_cpu_count", len(os.sched_getaffinity(0)))'
+
+Authored programs and report are written with apply_patch under /work only.
+The exact test command and its exit status are also recorded in run-command.txt.
+
+Executed test:
+bash /work/run_review.sh
+
+Read-only progress inspection:
+tail -n 12 /work/test.stdout.txt && cat /work/test.stderr.txt
+python3 -I -S -c 'import json; from pathlib import Path; p=Path("/work/results.json"); print(json.dumps({k:v for k,v in json.loads(p.read_text()).items() if k not in ("tests", "expected_errors")}, indent=2) if p.exists() else "test still running")'
+python3 -I -S -c 'import json; from pathlib import Path; r=json.loads(Path("/work/results.json").read_text()); print(json.dumps({"checks":len(r["tests"]), "passed":sum(x["pass"] for x in r["tests"]), "expected_errors":len(r["expected_errors"]), "expected_error_names":[x["name"] for x in r["expected_errors"]]},indent=2)); print(Path("/work/namespace-evidence.json").read_text()); print(Path("/work/run-command.txt").read_text())'
+cat /work/input-verification.json && wc -c /work/test.stderr.txt
+
+Finalize report decision and output hashes; independently read back every listed output:
+python3 -I -S /work/finalize.py

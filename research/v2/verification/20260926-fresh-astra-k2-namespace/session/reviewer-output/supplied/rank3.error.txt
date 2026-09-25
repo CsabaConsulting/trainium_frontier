@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py", line 133, in main
+    actual = kernel(device_upstream, *device_meta)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+    return torch_hop(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+    return _C._nki_dispatch_eager(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[256,128]:BFloat16:S(C)|[256,1]:Int:S(C)|[256,1]:Int:S(C)|[256,1]:Int:S(C)|[2,1]:Int:S(C): RuntimeError: error: failed to compile NKI kernel:
+Collected 1 different diagnostics:
+- [x1] error: failed to resolve name 'nl.bfloat16'
+
+
+At:
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py(133): main
+  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py(204): <module>
+  <frozen runpy>(88): _run_code
+  <frozen runpy>(98): _run_module_code
+  <frozen runpy>(286): run_path
+  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/rank_entry.py(45): main
+  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/rank_entry.py(59): <module>
+

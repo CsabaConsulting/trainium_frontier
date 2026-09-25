@@ -1,0 +1,487 @@
+ 16            RESUME                   0
+
+ 20            LOAD_FAST_BORROW         0 (gradient)
+               LOAD_ATTR                0 (shape)
+               LOAD_CONST              12 ((256, 128))
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE         3 (to L1)
+               NOT_TAKEN
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+
+ 21    L1:     LOAD_FAST_BORROW         1 (counts)
+               LOAD_ATTR                0 (shape)
+               LOAD_FAST_BORROW         2 (starts)
+               LOAD_ATTR                0 (shape)
+               SWAP                     2
+               COPY                     2
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_FALSE       27 (to L2)
+               NOT_TAKEN
+               LOAD_FAST_BORROW         3 (positions)
+               LOAD_ATTR                0 (shape)
+               SWAP                     2
+               COPY                     2
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_FALSE        9 (to L2)
+               NOT_TAKEN
+               LOAD_CONST              13 ((256, 1))
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE         6 (to L3)
+               NOT_TAKEN
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+       L2:     POP_TOP
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+
+ 22    L3:     LOAD_FAST_BORROW         4 (group_maximums)
+               LOAD_ATTR                0 (shape)
+               LOAD_CONST              14 ((2, 1))
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE         3 (to L4)
+               NOT_TAKEN
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+
+ 23    L4:     LOAD_FAST_BORROW         0 (gradient)
+               LOAD_ATTR                2 (dtype)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                6 (bfloat16)
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE        34 (to L5)
+               NOT_TAKEN
+               LOAD_FAST_BORROW         0 (gradient)
+               LOAD_ATTR                2 (dtype)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE         3 (to L5)
+               NOT_TAKEN
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+
+ 24    L5:     LOAD_FAST_BORROW         1 (counts)
+               LOAD_ATTR                2 (dtype)
+               LOAD_FAST_BORROW         2 (starts)
+               LOAD_ATTR                2 (dtype)
+               SWAP                     2
+               COPY                     2
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_FALSE       59 (to L6)
+               NOT_TAKEN
+               LOAD_FAST_BORROW         3 (positions)
+               LOAD_ATTR                2 (dtype)
+               SWAP                     2
+               COPY                     2
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_FALSE       41 (to L6)
+               NOT_TAKEN
+               LOAD_FAST_BORROW         4 (group_maximums)
+               LOAD_ATTR                2 (dtype)
+               SWAP                     2
+               COPY                     2
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_FALSE       23 (to L6)
+               NOT_TAKEN
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               COMPARE_OP              88 (bool(==))
+               POP_JUMP_IF_TRUE         6 (to L7)
+               NOT_TAKEN
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+       L6:     POP_TOP
+               LOAD_COMMON_CONSTANT     0 (AssertionError)
+               RAISE_VARARGS            1
+
+ 25    L7:     LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              12 ((256, 128))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               14 (shared_hbm)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST               5 (output)
+
+ 26            LOAD_GLOBAL             17 (range + NULL)
+               LOAD_SMALL_INT           2
+               CALL                     1
+               GET_ITER
+       L8:     EXTENDED_ARG             5
+               FOR_ITER              1320 (to L11)
+               STORE_FAST               6 (group)
+
+ 27            LOAD_FAST_BORROW         6 (group)
+               LOAD_SMALL_INT         128
+               BINARY_OP                5 (*)
+               STORE_FAST               7 (first)
+
+ 28            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              15 ((128, 1))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST               8 (remaining)
+
+ 29            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              15 ((128, 1))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST               9 (pointer)
+
+ 30            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 129 (remaining, counts)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 119 (first, first)
+               LOAD_SMALL_INT         128
+               BINARY_OP                0 (+)
+               BUILD_SLICE              2
+               LOAD_CONST               2 (slice(None, None, None))
+               BUILD_TUPLE              2
+               BINARY_OP               26 ([])
+               LOAD_CONST               3 (('dst', 'src'))
+               CALL_KW                  2
+               POP_TOP
+
+ 31            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 146 (pointer, starts)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 119 (first, first)
+               LOAD_SMALL_INT         128
+               BINARY_OP                0 (+)
+               BUILD_SLICE              2
+               LOAD_CONST               2 (slice(None, None, None))
+               BUILD_TUPLE              2
+               BINARY_OP               26 ([])
+               LOAD_CONST               3 (('dst', 'src'))
+               CALL_KW                  2
+               POP_TOP
+
+ 32            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              16 ((1, 1))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST              10 (maximum)
+
+ 33            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 164 (maximum, group_maximums)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 102 (group, group)
+               LOAD_SMALL_INT           1
+               BINARY_OP                0 (+)
+               BUILD_SLICE              2
+               LOAD_CONST               2 (slice(None, None, None))
+               BUILD_TUPLE              2
+               BINARY_OP               26 ([])
+               LOAD_CONST               3 (('dst', 'src'))
+               CALL_KW                  2
+               POP_TOP
+
+ 34            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               25 (register_alloc + NULL|self)
+               LOAD_SMALL_INT           0
+               CALL                     1
+               STORE_FAST              11 (limit)
+
+ 35            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               27 (register_load + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 186 (limit, maximum)
+               CALL                     2
+               POP_TOP
+
+ 36            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               29 (full + NULL|self)
+               LOAD_CONST              17 ((128, 128))
+               LOAD_CONST               4 (0.0)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  4
+               STORE_FAST              12 (accumulator)
+
+ 37            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               29 (full + NULL|self)
+               LOAD_CONST              15 ((128, 1))
+               LOAD_CONST               0 (256)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  4
+               STORE_FAST              13 (sentinel)
+
+ 38            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              15 ((128, 1))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST              14 (active)
+
+ 39            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               13 (ndarray + NULL|self)
+               LOAD_CONST              17 ((128, 128))
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  3
+               STORE_FAST              15 (updated)
+
+ 40            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               31 (dynamic_range + NULL|self)
+               LOAD_FAST_BORROW        11 (limit)
+               CALL                     1
+               GET_ITER
+       L9:     EXTENDED_ARG             2
+               FOR_ITER               716 (to L10)
+               STORE_FAST              16 (_)
+
+ 41            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               33 (tensor_scalar + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 232 (active, remaining)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               34 (greater)
+               LOAD_CONST               4 (0.0)
+
+ 42            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               36 (engine)
+               LOAD_ATTR               38 (vector)
+
+ 41            LOAD_CONST               5 (('dst', 'data', 'op0', 'operand0', 'engine'))
+               CALL_KW                  5
+               POP_TOP
+
+ 43            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               41 (where + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 233 (active, pointer)
+               LOAD_FAST_BORROW        13 (sentinel)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_CONST               6 (('dtype',))
+               CALL_KW                  4
+               STORE_FAST              17 (address)
+
+ 46            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               29 (full + NULL|self)
+               LOAD_CONST              15 ((128, 1))
+               LOAD_CONST               0 (256)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  4
+               STORE_FAST              18 (token)
+
+ 47            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW        18 (token)
+
+ 48            LOAD_FAST_BORROW         3 (positions)
+               LOAD_ATTR               43 (ap + NULL|self)
+               LOAD_SMALL_INT           1
+               LOAD_SMALL_INT         128
+               BUILD_LIST               2
+               LOAD_SMALL_INT           1
+               LOAD_SMALL_INT           1
+               BUILD_LIST               2
+               BUILD_LIST               2
+
+ 49            LOAD_FAST_BORROW        17 (address)
+               LOAD_SMALL_INT           0
+
+ 48            LOAD_CONST               7 (('pattern', 'vector_offset', 'indirect_dim'))
+               CALL_KW                  3
+
+ 50            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               44 (oob_mode)
+               LOAD_ATTR               46 (skip)
+               LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               48 (dge_mode)
+               LOAD_ATTR               50 (swdge)
+
+ 47            LOAD_CONST               8 (('dst', 'src', 'oob_mode', 'dge_mode'))
+               CALL_KW                  4
+               POP_TOP
+
+ 51            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               41 (where + NULL|self)
+               LOAD_FAST_BORROW        14 (active)
+               LOAD_FAST_BORROW        18 (token)
+               LOAD_FAST_BORROW        13 (sentinel)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               10 (int32)
+               LOAD_CONST               6 (('dtype',))
+               CALL_KW                  4
+               STORE_FAST              19 (token_address)
+
+ 52            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               29 (full + NULL|self)
+               LOAD_CONST              17 ((128, 128))
+               LOAD_CONST               4 (0.0)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               18 (sbuf)
+               LOAD_CONST               1 (('dtype', 'buffer'))
+               CALL_KW                  4
+               STORE_FAST              20 (value)
+
+ 53            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW        20 (value)
+
+ 54            LOAD_FAST_BORROW         0 (gradient)
+               LOAD_ATTR               43 (ap + NULL|self)
+               LOAD_SMALL_INT         128
+               LOAD_SMALL_INT         128
+               BUILD_LIST               2
+               LOAD_SMALL_INT           1
+               LOAD_SMALL_INT         128
+               BUILD_LIST               2
+               BUILD_LIST               2
+
+ 55            LOAD_FAST_BORROW        19 (token_address)
+               LOAD_SMALL_INT           0
+
+ 54            LOAD_CONST               7 (('pattern', 'vector_offset', 'indirect_dim'))
+               CALL_KW                  3
+
+ 56            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               44 (oob_mode)
+               LOAD_ATTR               46 (skip)
+               LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               48 (dge_mode)
+               LOAD_ATTR               50 (swdge)
+
+ 53            LOAD_CONST               8 (('dst', 'src', 'oob_mode', 'dge_mode'))
+               CALL_KW                  4
+               POP_TOP
+
+ 59            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               53 (tensor_tensor + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 252 (updated, accumulator)
+               LOAD_FAST_BORROW        20 (value)
+
+ 60            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               54 (add)
+               LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               36 (engine)
+               LOAD_ATTR               38 (vector)
+
+ 59            LOAD_CONST               9 (('dst', 'data1', 'data2', 'op', 'engine'))
+               CALL_KW                  5
+               POP_TOP
+
+ 61            LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               41 (where + NULL|self)
+               LOAD_FAST_BORROW        14 (active)
+               LOAD_ATTR               43 (ap + NULL|self)
+               LOAD_SMALL_INT           1
+               LOAD_SMALL_INT         128
+               BUILD_LIST               2
+               LOAD_SMALL_INT           0
+               LOAD_SMALL_INT         128
+               BUILD_LIST               2
+               BUILD_LIST               2
+               LOAD_CONST              10 (('pattern',))
+               CALL_KW                  1
+
+ 62            LOAD_FAST_BORROW_LOAD_FAST_BORROW 252 (updated, accumulator)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR                8 (float32)
+
+ 61            LOAD_CONST               6 (('dtype',))
+               CALL_KW                  4
+               STORE_FAST              21 (selected)
+
+ 63            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               57 (tensor_copy + NULL|self)
+               LOAD_FAST_BORROW        12 (accumulator)
+               LOAD_FAST_BORROW        21 (selected)
+               LOAD_CONST               3 (('dst', 'src'))
+               CALL_KW                  2
+               POP_TOP
+
+ 64            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               33 (tensor_scalar + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 153 (pointer, pointer)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               54 (add)
+               LOAD_CONST              11 (1.0)
+
+ 65            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               36 (engine)
+               LOAD_ATTR               38 (vector)
+
+ 64            LOAD_CONST               5 (('dst', 'data', 'op0', 'operand0', 'engine'))
+               CALL_KW                  5
+               POP_TOP
+
+ 66            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               33 (tensor_scalar + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 136 (remaining, remaining)
+               LOAD_GLOBAL              4 (nl)
+               LOAD_ATTR               54 (add)
+               LOAD_CONST              18 (-1.0)
+
+ 67            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               36 (engine)
+               LOAD_ATTR               38 (vector)
+
+ 66            LOAD_CONST               5 (('dst', 'data', 'op0', 'operand0', 'engine'))
+               CALL_KW                  5
+               POP_TOP
+               EXTENDED_ARG             2
+               JUMP_BACKWARD          719 (to L9)
+
+ 40   L10:     END_FOR
+               POP_ITER
+
+ 69            LOAD_GLOBAL             20 (nisa)
+               LOAD_ATTR               23 (dma_copy + NULL|self)
+               LOAD_FAST_BORROW_LOAD_FAST_BORROW 87 (output, first)
+               LOAD_FAST_BORROW         7 (first)
+               LOAD_SMALL_INT         128
+               BINARY_OP                0 (+)
+               BUILD_SLICE              2
+               LOAD_CONST               2 (slice(None, None, None))
+               BUILD_TUPLE              2
+               BINARY_OP               26 ([])
+               LOAD_FAST_BORROW        12 (accumulator)
+               LOAD_CONST               3 (('dst', 'src'))
+               CALL_KW                  2
+               POP_TOP
+               EXTENDED_ARG             5
+               JUMP_BACKWARD         1323 (to L8)
+
+ 26   L11:     END_FOR
+               POP_ITER
+
+ 70            LOAD_FAST_BORROW         5 (output)
+               RETURN_VALUE

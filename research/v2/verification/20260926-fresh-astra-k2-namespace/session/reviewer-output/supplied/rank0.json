@@ -1,0 +1,76 @@
+{
+  "scope": "TINY_CONSUMER_FALSIFIER_ONLY",
+  "label": "fs-20260926-k2-resident-consumer-reporting-trn22-r2",
+  "rank": 0,
+  "world_size": 4,
+  "shape": {
+    "V": 256,
+    "C": 128,
+    "T": 256
+  },
+  "seed": 42,
+  "source_adoption": false,
+  "launch_authorized": false,
+  "rejected_e4d93": "REFUSE_UNCHANGED",
+  "production_routing": "NOT_IMPLEMENTED",
+  "actual_model_autograd": "NOT_TESTED",
+  "whole_step_speedup": "UNMEASURED",
+  "accepted_speedup": false,
+  "metadata_origin": "synthetic CPU fixture, uploaded before calls",
+  "metadata_cost_in_timings": false,
+  "tolerance": {
+    "atol": 0,
+    "rtol": 0,
+    "criterion": "identical bytes"
+  },
+  "checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+  "kernel_sha256": "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
+  "reference_sha256": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+  "argv": [
+    "--enable-experimental",
+    "--label",
+    "fs-20260926-k2-resident-consumer-reporting-trn22-r2",
+    "--out-dir",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/receipts",
+    "--expected-kernel-sha256",
+    "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
+    "--expected-reference-sha256",
+    "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "--timing-repeats",
+    "3"
+  ],
+  "torch": "2.11.0+cpu",
+  "cases": [
+    {
+      "name": "cross_tile_large",
+      "dtype": "torch.bfloat16",
+      "checks": [
+        {
+          "name": "upstream_roundtrip",
+          "exact": true,
+          "actual_dtype": "torch.bfloat16",
+          "shape": [
+            256,
+            128
+          ],
+          "finite": true,
+          "nonzero": 384,
+          "actual_sha256": "9ffefcd57ce268127485f90333a492ea3fdd39876aa3888916c35b5b83481dd4",
+          "expected_sha256": "9ffefcd57ce268127485f90333a492ea3fdd39876aa3888916c35b5b83481dd4",
+          "max_abs": 0.0
+        }
+      ],
+      "status": "STARTED",
+      "metadata_group_bounds": [
+        253,
+        0
+      ]
+    }
+  ],
+  "timings": [],
+  "nki_version": "0.5.0+28631259367.ga768afa6",
+  "status": "REFUSE_OR_UNSUPPORTED",
+  "error": "Traceback (most recent call last):\n  File \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py\", line 133, in main\n    actual = kernel(device_upstream, *device_meta)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py\", line 239, in __call__\n    return torch_hop(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py\", line 515, in __call__\n    return _C._nki_dispatch_eager(\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py\", line 1263, in _fn\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\nRuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[256,128]:BFloat16:S(C)|[256,1]:Int:S(C)|[256,1]:Int:S(C)|[256,1]:Int:S(C)|[2,1]:Int:S(C): RuntimeError: error: failed to compile NKI kernel:\nCollected 1 different diagnostics:\n- [x1] error: failed to resolve name 'nl.bfloat16'\n\n\nAt:\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn\n  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__\n  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__\n  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py(133): main\n  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/check_native.py(204): <module>\n  <frozen runpy>(88): _run_code\n  <frozen runpy>(98): _run_module_code\n  <frozen runpy>(286): run_path\n  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/rank_entry.py(45): main\n  /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-reporting-trn22-r2-packet/rank_entry.py(59): <module>\n\n",
+  "diagnostic_elapsed_seconds": 19.931859041098505,
+  "elapsed_scope": "checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher"
+}
