@@ -1,6 +1,22 @@
 # Current state
 
-Last reconciled: 2026-09-25 00:05 UTC
+Last reconciled: 2026-09-25 00:24 UTC
+
+## Current handoff: trn21 source-stage feasibility independently reviewed
+
+The [trn21 c5c A0 read-only feasibility receipt](../v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json)
+at 00:12:54 UTC reports 58,676,293,632 B root free, intact protected
+checkpoints/caches, no matched job or Neuron/lock holder, and an unused A0
+label. Its limited scan found no exact e65 source commit in 144 inspected
+repositories under `/home/ubuntu`; this is not proof of host-wide absence.
+The [independent review](verification/20260925-trn21-c5c-a0-r1-readonly-feasibility-review.md)
+passed **only source-stage planning**. The separately prepared
+[exact-source/CPU-G2 package](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-r1/GATE_CONTRACT.json)
+is still HOLD pending independent package review and a separate Operator
+assignment. No source transfer, CPU G2, native A0, new score or launch
+authority follows. trn22 remains held for the reviewed fail-closed disk
+monitor/interlock. Best public20M remains 0.9918353324 single / 0.9919537735
+two-run mean.
 
 ## Current handoff: trn21 G1 independently PASS; both scored controls pending
 

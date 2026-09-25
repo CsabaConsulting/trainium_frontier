@@ -1,6 +1,18 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded; trn21 G1 calibration independently PASS; scored training on both hosts still HOLD; no new BPB result.**
+Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
+
+At 00:12:54 UTC, trn21's [read-only c5c A0 feasibility audit](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json)
+found 58,676,293,632 B root free, intact retained checkpoints and warm caches,
+no matching job/device/lock holder, and no collision for the proposed A0 label.
+The exact e65 source commit was not found in the 144 inspected host repositories;
+that search does not prove host-wide absence. An [independent review](../agentic/verification/20260925-trn21-c5c-a0-r1-readonly-feasibility-review.md)
+accepted the audit **for source-stage planning only**. A hash-bound
+[source-stage/CPU-G2 package](g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-r1/GATE_CONTRACT.json)
+is Implementer-prepared and awaiting its own independent review. No source
+transfer, G2, native training or evaluation was authorized by this audit or
+package. trn22 remains held for a reviewed continuous disk monitor and
+fail-closed liveness interlock.
 
 Latest: trn21's [guarded G1 r2 Operator evidence](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-receipt.json)
 passed [independent result review](../agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md):

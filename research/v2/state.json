@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T00:05:00Z",
+  "written_utc": "2026-09-25T00:24:51Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -156,17 +156,23 @@
   },
   "hosts": {
     "trn21": {
-      "status": "G1_PASS_A0_STAGE_G2_PENDING_NO_SCIENCE_SCORE",
+      "status": "G1_PASS_READONLY_A0_STAGE_FEASIBLE_PACKAGE_REVIEW_PENDING_NO_SCIENCE_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-25T00:03:00Z",
-      "free_bytes_read_only_df": 58675847168,
+      "last_observed_utc": "2026-09-25T00:12:54Z",
+      "free_bytes_read_only_df": 58676293632,
       "root_disk_bytes": 268435456000,
       "root_partition_bytes": 267360648704,
       "root_ext4_total_bytes": 258906374144,
       "free_gib": 54.65,
       "training_processes": 0,
       "neuron_device_holders": 0,
-      "host_lock_holders": 0
+      "host_lock_holders": 0,
+      "a0_readonly_feasibility_receipt": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json",
+      "a0_readonly_feasibility_receipt_sha256": "90b77b5f220da9e72dbe1932b27b87b953ba85865793ea9ebc3318997f330df1",
+      "a0_readonly_feasibility_independent_review": "research/agentic/verification/20260925-trn21-c5c-a0-r1-readonly-feasibility-review.md",
+      "a0_readonly_feasibility_independent_review_sha256": "ef1df8346555088b14fd575f85699b08aa9163efc68e10b582e41f2ee3099c40",
+      "a0_stage_g2_pending_package": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-r1/GATE_CONTRACT.json",
+      "a0_stage_g2_pending_package_sha256": "fa1379c0f040992cd3fa6195a46dacba8de2608857b5847ac2e946ad32fb1c87"
     },
     "trn22": {
       "status": "A0_R2_STATIC_AND_PRELAUNCH_PASS_CONTINUOUS_DISK_MONITOR_HOLD_NO_SCORE",
@@ -235,8 +241,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn21 G1 r2 old-checkpoint fresh public20M calibration independently PASS: exact 0.9918353324459732 at 1024/20,971,520 with clean postflight and preserved checkpoint; no new model result or A0 authority. trn22 c5c A0 r2 remains HOLD while the external continuous disk monitor and monitor-liveness mechanism receive independent review. Neither host has completed a new scored training run.",
-  "updated_utc": "2026-09-25T00:05:00Z",
+  "last_event": "trn21 c5c A0 read-only feasibility independently PASS for exact-source stage planning only; e65 source transfer/CPU G2 package is Implementer-prepared but awaits independent review and separate Operator assignment. trn22 c5c A0 remains HOLD for a reviewed continuous disk monitor and fail-closed liveness interlock. Neither host has completed a new scored control or BPB improvement.",
+  "updated_utc": "2026-09-25T00:24:51Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
