@@ -296,14 +296,19 @@ class IncrementalStageTests(unittest.TestCase):
         )
         self.assertEqual(hold["r10_source_pass_sha256"], operator.R10_SOURCE_PASS_SHA256)
         self.assertEqual(hold["bundle_sha256"], remote.BUNDLE_SHA256)
-        for name, field in (("remote_incremental.py", "remote_source_sha256"),
-                            ("operator_once.py", "operator_source_sha256")):
-            self.assertEqual(hold[field], hashlib.sha256((HERE / name).read_bytes()).hexdigest())
+        self.assertEqual(hold["remote_source_sha256"], hashlib.sha256(
+            (HERE / "remote_incremental.py").read_bytes()).hexdigest())
+        # The disabled r3 HOLD request is historical and retains its original
+        # operator pin; only the enabled request may bind the repaired source.
+        self.assertEqual(hold["operator_source_sha256"],
+                         "a5fc2ebac3520f425d5ab0bdfb7ae0091a2e5db59b152dd8cd39eb67cff5beda")
+        self.assertNotEqual(hold["operator_source_sha256"], hashlib.sha256(
+            (HERE / "operator_once.py").read_bytes()).hexdigest())
         enabled = operator.ENABLED_REQUEST
         self.assertTrue(enabled.is_file())
         self.assertEqual(
             hashlib.sha256(enabled.read_bytes()).hexdigest(),
-            "b33a72fc3b5588f537c23ff4bb565344a92eabef58a33970db2bf2160a60ee91",
+            "d19086a3f0c8aff9835f14f641d528980b12b21f45310070f6613ae261a33958",
         )
         enabled_request = json.loads(enabled.read_text())
         self.assertIs(enabled_request["dispatch_authorized"], True)

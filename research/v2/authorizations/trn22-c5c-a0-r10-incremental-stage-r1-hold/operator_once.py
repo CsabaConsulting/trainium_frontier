@@ -317,6 +317,7 @@ def stage_once(remote_call=_ssh_phase):
                remote_hash, operator_hash)
     _local_stop_and_breakers()
     _ssh_identity()
+    _local_stop_and_breakers()
     marker_fd = _marker(request_hash, review_hash, assignment_hash)
     preflight = write = readback = postflight = None
     failure = None

@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
+import types
 import unittest
 from unittest import mock
 
@@ -13,7 +15,7 @@ from unittest import mock
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 REQUEST = HERE / "REQUEST.ENABLED_PENDING_FINAL_REVIEW.json"
-EXPECTED_REQUEST_SHA256 = "b33a72fc3b5588f537c23ff4bb565344a92eabef58a33970db2bf2160a60ee91"
+EXPECTED_REQUEST_SHA256 = "d19086a3f0c8aff9835f14f641d528980b12b21f45310070f6613ae261a33958"
 
 spec = importlib.util.spec_from_file_location(
     "trn22_r10_stage_operator_under_test", HERE / "operator_once.py"
@@ -149,6 +151,70 @@ class EnabledPendingRequestTests(unittest.TestCase):
             ssh.assert_not_called()
             marker.assert_not_called()
             remote_call.assert_not_called()
+
+    def _check_late_desktop_change(self, kind):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-late-local-") as temp:
+            root = Path(temp)
+            desktop = root / "Desktop" / "Trainium"
+            documents = root / "Documents" / "ChatGPT" / "Trainium"
+            fake_here = root / "package" / "research" / "v2" / "authorizations" / "entry"
+            control = desktop / "research" / "v2"
+            control.mkdir(parents=True)
+            state = {
+                "breakers": {"global_correctness": {"tripped": False},
+                             "trn22": {"tripped": False}},
+                "launch_authorized": False,
+                "hosts": {"trn22": {"launch_allowed": False}},
+            }
+            state_file = control / "state.json"
+            state_file.write_text(json.dumps(state), encoding="utf-8")
+            marker_path = root / "one-attempt-marker"
+
+            def identity_then_change_desktop():
+                if kind == "STOP":
+                    (control / "STOP").write_text("synthetic late STOP\n", encoding="utf-8")
+                else:
+                    state["breakers"]["trn22"]["tripped"] = True
+                    state_file.write_text(json.dumps(state), encoding="utf-8")
+
+            remote_call = mock.Mock(side_effect=AssertionError("SSH attempted"))
+            # Exercise the seam under both normal and -O bytecode. The real -O
+            # entrypoint remains forbidden and is checked separately below.
+            synthetic_sys = types.SimpleNamespace(flags=types.SimpleNamespace(optimize=0))
+            with (
+                mock.patch.object(operator, "CONTROL_ROOT", desktop),
+                mock.patch.object(operator, "FORMER_CONTROL_ROOT", documents),
+                mock.patch.object(operator, "HERE", fake_here),
+                mock.patch.object(operator, "MARKER", marker_path),
+                mock.patch.object(operator, "PRIOR_MARKERS", ()),
+                mock.patch.object(operator, "sys", synthetic_sys),
+                mock.patch.dict(operator.os.environ, {}, clear=True),
+                mock.patch.object(operator, "_json", side_effect=[
+                    ({"dispatch_authorized": True}, "requesthash"),
+                    ({}, "reviewhash"), ({}, "assignmenthash")]),
+                mock.patch.object(operator, "_source_bytes", return_value=(b"bundle", b"remote")),
+                mock.patch.object(operator, "_authority"),
+                mock.patch.object(operator, "_ssh_identity",
+                                  side_effect=identity_then_change_desktop) as identity,
+                mock.patch.object(operator, "_local_stop_and_breakers",
+                                  wraps=operator._local_stop_and_breakers) as stop,
+                mock.patch.object(operator, "_marker", wraps=operator._marker) as marker,
+            ):
+                reason = ("local STOP present" if kind == "STOP" else
+                          "controller STOP/breaker/launch state")
+                with self.assertRaisesRegex(RuntimeError, reason):
+                    operator.stage_once(remote_call=remote_call)
+                self.assertEqual(stop.call_count, 2)
+                identity.assert_called_once_with()
+                marker.assert_not_called()
+                remote_call.assert_not_called()
+            self.assertFalse(marker_path.exists())
+
+    def test_late_desktop_stop_after_identity_refuses_before_marker(self):
+        self._check_late_desktop_change("STOP")
+
+    def test_late_desktop_breaker_after_identity_refuses_before_marker(self):
+        self._check_late_desktop_change("breaker")
 
     def test_direct_entrypoint_holds_in_normal_and_optimized_python(self):
         for flags in (["-B"], ["-O", "-B"]):
