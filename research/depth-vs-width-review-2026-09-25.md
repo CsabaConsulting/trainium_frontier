@@ -21,9 +21,9 @@ finish roughly 1,400 updates instead of 3,660.
 | 30 layers beat 12 at ~125M | MobileLLM: 8-task zero-shot accuracy, 0.25T tokens, params fixed | scorer is val BPB; ~0.5T tokens fewer; time fixed | does not transfer |
 | Depth lowers perplexity at fixed params | Petty et al.: yes, but saturates at ~12 layers for 134M and degrades past ~21 | our 6 → 8 layers at fixed width lost under wall clock | already tested, negative |
 | Deep-thin trains for the same cost | true on GPUs at equal FLOPs | Trn2 step is dispatch-bound: extra layer ≈ +1/6 step, width shrink recovers only 0.65× | premise fails |
-| Tied embeddings free up parameters | 32k–49k vocab, 20% of params | 8192 vocab, untied head is 8.4M of 117M | little to gain; not tested, low priority |
+| Tied embeddings free up parameters | 32k–49k vocab, 20% of params | 8192 vocab, untied head is 8.4M of 117M | little to gain; not tested, low priority (§4b) |
 | GQA 3:1 | KV-cache memory at inference | K/V projections ≈ 2–4% of step; 5-head GQA impossible, closed in T4.4 | closed |
-| Immediate block-wise layer sharing | +0.7–1.1 accuracy points for 2× compute per token | doubles step time | wrong trade for a time budget |
+| Immediate block-wise layer sharing | +0.7–1.1 accuracy points for 2× compute per token | doubles step time | wrong trade for a time budget (§4b) |
 
 ## 1. What the sources actually measured
 
@@ -126,6 +126,48 @@ and 94% of it is model microbatches.
 - **Cheap curiosity, low expected value:** tying `wte` and `lm_head` (8.4M parameters, one fewer
   AdamW group). MobileLLM lost 0.2 accuracy points from tying; the loss effect at our vocabulary
   is unknown and probably below noise. Not a priority.
+
+## 4b. Follow-up (2026-09-25): tied embeddings and block-wise layer sharing
+
+Asked separately after the review was shared. Neither helps, and for the same reason the
+deep-and-thin shape does not: MobileLLM optimises under a *parameter* cap, this competition
+caps *wall clock* on a dispatch-bound step. Parameters that live in matmuls cost time;
+parameters that live in lookup tables are nearly free. Both tricks move in the wrong direction.
+
+**Tied embeddings (share `wte` and `lm_head`).**
+
+- The "15–30% of the budget" premise assumes a 32k–50k vocabulary. Ours is 8192: `wte` and
+  `lm_head` are 8.4M parameters each, so tying saves 8.4M of 117.45M (≈7%).
+- Saving them buys no time. The head matmul and the input gather run identically whether the two
+  tensors share storage. The only saving is two AdamW moment buffers, which do not touch the step.
+- There is nowhere to reinvest. MobileLLM reinvests freed parameters into layers; every such
+  reinvestment measured here (7th/8th layer, width 1152) cost step time and lost under the budget
+  (§2).
+- Plain tying is known to break in this lineage: Karpathy's autoresearch log records it as
+  catastrophic (val 3.2 bpb) because `wte` trains at ≈75× the head's LR with a very different
+  init scale (0.8 vs 0.001). modded-nanogpt only makes it work by copying `lm_head.T` into `wte`
+  at init and untying at 2/3 of training; that is already plan item T3.9, low priority.
+- MobileLLM itself lost ≈0.2 accuracy points from tying and accepted it as a
+  memory trade. There is no loss gain to import.
+- The repo already exploits the real asymmetry in the opposite direction: 33.5M of the 117.45M
+  parameters sit in the embedding family (`wte`, `lm_head`, value-embedding tables on alternating
+  layers) because gathers are almost free on the step while matmul parameters are not.
+
+**Block-wise layer sharing (MobileLLM-LS: run each block twice with shared weights).**
+
+- Parameter count stays flat but compute doubles. The phone-side justification is that the
+  repeated block's weights are already in cache/SRAM. On Trn2 that argument is void: the step is
+  launch-bound at ≈8% MFU, not weight-bandwidth-bound.
+- A repeated pass costs the same step time as a fresh layer (≈+1/6 per pass at width 1024), and a
+  fresh layer has at least the capacity of a repeated one. The fresh 7th and 8th layers already
+  lost at both 900 s and 1800 s (§2), so a shared repeat cannot win.
+- The Parameter Golf frontier lists universal-transformer style weight sharing as negative
+  (`research/frontier-research-plan-2026-09-09.md` §11.3), consistent with our closed lines.
+
+**Verdict.** Layer sharing is closed by the existing depth measurements; no experiment. Tied
+embeddings stay a cheap curiosity with expected effect at or below the ≈0.001 bpb noise floor,
+worth trying only in the T3.9 form (tie with `lm_head.T` init, untie at 2/3) and only on a GPU
+proxy first, never on Trn2 time.
 
 ## 5. Sources
 
