@@ -1,0 +1,107 @@
+{
+  "schema": "independent-source-review-v1",
+  "recorded_utc": "2026-09-25T15:58:17Z",
+  "reviewer": "/root/recursive_schedule_readonly_verifier",
+  "independent_of_implementer": true,
+  "verdict": "PASS",
+  "passed": true,
+  "scope": "Independent source/diff review, existing tiny four-rank CPU numeric evidence, and three-step flag-OFF identity only. Not exact-size CPU G2, Neuron, full-run, submission or quality approval.",
+  "approved_gate_names": ["diff_review", "flag_off_identity"],
+  "source_path": "workflow/proposals/research-v2/train.py",
+  "source_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+  "baseline_path": "submissions/research_v2/train.py",
+  "baseline_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "implementation_commit": "e273b97c",
+  "handoff_docs_commit": "6a2ae2c1",
+  "reviewed_controller_commit": "70e53553d92dc04bcdf2a7747c6e4efe4833e209",
+  "profiles_path": "research/v2/lanes/recursive-schedule/PROFILES.json",
+  "profiles_sha256": "b5390c525e18ff60f8f7e02a817de90d377047f602ffd8f69ec520d9d0ea8baa",
+  "profiles_reviewed": ["dense", "a1", "a2"],
+  "source_findings": {
+    "blocking_defects": [],
+    "separate_muon_adam_warmdowns": "PASS: 0.95 / 0.65, floor 0.05, existing elapsed/budget convention; train.py:3248-3257 and 4010-4025.",
+    "momentum": "PASS: source-matching 300-step 0.85->0.95 warmup, then quadratic time-progress cooldown to 0.79; train.py:3331-3338.",
+    "normuon_beta2": "PASS: 0.95->0.97 during Muon warmdown; fifth existing device scalar reaches compiled optimizer; train.py:3384-3387, 2624/2640 and 2915-2916.",
+    "flat_table_lr": "PASS: no_lr_decay precedence is preserved; table LR, beta2 and weight decay are not changed by this flag; train.py:2196 and 4017-4025.",
+    "default_off": "PASS: old arithmetic branches retained; extra false checkpoint toggle is metadata, not serialized-file bit identity.",
+    "legality": "PASS for this diff: no data, evaluator, tokenizer, model-forward, trained weights, load hook or external-data change. No WD pulses or hidden embedding-LR change.",
+    "checkpoint": "PASS within tiny evidence: saved schedule toggle, strict model load and deterministic finite logits. No new optimizer state.",
+    "packaging": "Previously observed whitespace warnings in train.patch are fixed in e273b97c; git show --format= --check e273b97c passes. Candidate source bytes remain unchanged."
+  },
+  "flag_off_identity": {
+    "passed": true,
+    "receipt_path": "research/v2/lanes/recursive-schedule/flag_off_identity.json",
+    "receipt_sha256": "4f80b4e299754728a66a885678cc403467583ee40f7e5a1f383053d9947c3d96",
+    "source_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "steps": 3,
+    "ranks": 4,
+    "per_rank_losses_identical": true,
+    "rank0_parameter_digests_identical": true,
+    "parameter_digests_compared": 74,
+    "ownership_plans_identical": true,
+    "cross_rank_mismatches": [],
+    "independent_action": "Recomputed comparisons directly from tiny-g2-c5c.json and tiny-g2-off.json, not only the summary receipt. Only rank 0 stores final_digests; each rank separately reports no cross-rank mismatch."
+  },
+  "tiny_cpu_evidence": {
+    "passed": true,
+    "tool": "workflow/tools/preflight_dryrun.py",
+    "receipts": [
+      {"path": "research/v2/lanes/recursive-schedule/tiny-g2-c5c.json", "sha256": "8769ab0331547218f542902653a42c7b16d5b7d675e29947daa13d3a516fa2c7"},
+      {"path": "research/v2/lanes/recursive-schedule/tiny-g2-off.json", "sha256": "1e0a320c3a3b16775b19239ba4d8e06e48fa9ae03c9cb6e09dbf512eda5b78ea"},
+      {"path": "research/v2/lanes/recursive-schedule/tiny-g2-on.json", "sha256": "d2e9b714d2c692970c2b3996efb3835d8433c309c685336d08af576f260a0383"}
+    ],
+    "all_torchrun_exit_codes": 0,
+    "all_timed_out": false,
+    "steps_per_rank": 3,
+    "rank_ids": [0, 1, 2, 3],
+    "width": 128,
+    "layers": 6,
+    "table_multiplier": 1,
+    "table_dimension": 16,
+    "micro_batch": [1, 128],
+    "table_layers": [1, 5],
+    "torch": "2.6.0+cu124",
+    "device": "cpu",
+    "all_losses_finite": true,
+    "all_parameters_changed": 74,
+    "unchanged_tables": [],
+    "on_trace_checks_per_rank": 12,
+    "on_max_abs_err_over_lr": 0.025894049043433204,
+    "rmsprop_numeric_threshold": 0.03,
+    "checkpoint_deterministic_finite_logits": true,
+    "disclosed_shims": [
+      "Synthetic tokenizer/data; stub prepare; deterministic fake clock",
+      "CPU BF16; Neuron-only CE installation disabled; micro-batch slicing",
+      "Test-only PyArrow import shim rejects real Parquet access",
+      "Test-only synchronous Gloo AVG implemented as SUM/world_size identically for baseline and candidate"
+    ],
+    "limitations": [
+      "Not exact production model/table size or production Torch 2.11",
+      "No Neuron compile or per-step recompilation evidence",
+      "Three-step fake-time run does not reach late cooldown; formula/group-assignment boundaries are separately inspected in schedule_checks.json",
+      "No real-data BPB or new causality result claimed",
+      "Verifier inspected and numerically reconciled existing receipts; did not rerun training or contact hosts"
+    ]
+  },
+  "schedule_boundary_evidence": {
+    "path": "research/v2/lanes/recursive-schedule/schedule_checks.json",
+    "sha256": "abc42382f2ad2c93416ee34623c15144593db7a1642fb9a4bb4ac15ba301a850",
+    "scope": "Inspected test source and reported boundaries: OFF matches baseline; ON expected formulas; actual production group assignment with flat tables and batch scaling; dynamic beta2 selection."
+  },
+  "exact_size_cpu_g2": {
+    "passed": false,
+    "status": "PENDING",
+    "required": "Separate exact-source selected-profile production-argv CPU G2 receipt; this review must not be registered as cpu_g2 for a production job."
+  },
+  "nonblocking_notes": [
+    "Inherited sched_tricks print still describes MUON_BETA2=0.9 even when the new active schedule starts at 0.95; use recorded argv/toggles to interpret the run.",
+    "Research file retains existing submission adapters; this review does not approve that file for upload. Port confirmed gains into the proven submission vehicle separately."
+  ],
+  "minimum_next_steps": [
+    "Obtain the outstanding exact-size CPU G2 for the conditionally selected dense/A1/A2 profile, using exact final job argv and source bytes.",
+    "Bind this receipt for diff_review and flag_off_identity, plus the separate exact-argv CPU receipt, in the existing runner source registry.",
+    "Operator performs normal machine checks, then authorized full-budget research and fresh public-20M eval. No additional review-of-review or mandatory short native smoke is introduced."
+  ],
+  "host_contact": false,
+  "new_training_tests_run_by_reviewer": false
+}
