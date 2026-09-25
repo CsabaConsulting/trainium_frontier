@@ -1,0 +1,119 @@
+DIRECTIVE FROM POOJITH: FINAL PUSH TO #1. Read fully. This overrides every earlier mission,
+priority list and "parked" list. The legality rules and the Human-only list stay.
+
+=====================================================================
+1. THE TRUTH, NO SUGARCOATING
+=====================================================================
+- Our official best: 0.9901 (sub-452d2ae4, file 116188).
+- Leaderboard: #1 Them Bones 0.9464. Top-10 line: 0.9824.
+- We are 0.044 from first and 0.008 from the top 10. We are currently NOT in the top 10.
+- Deadline: Oct 1, 12:29 IST. Research freeze: Sep 29, 18:00 IST. That is ~4 days.
+- In the last 30 hours we completed exactly 2 useful runs (two base controls).
+- The cause was our process, not the hardware: staging-tool debugging, reviews of reviews,
+  one-use approvals for read-only diagnostics, a launcher with a syntax error, and a missing
+  directory. That is unacceptable in the final week.
+- One-factor tuning of small knobs cannot close 0.044. Only big levers can:
+  throughput (FP8 plus kernels), hashed tables, the #3 team's architecture, and the schedule
+  package, stacked.
+- Honest odds: top 10 is realistic; first place is a long shot. We act as if first place is
+  possible, because the same plan also maximizes top 10.
+
+=====================================================================
+2. HOW WE WORK FROM NOW ON
+=====================================================================
+A. Hosts are the only scarce resource. Target >= 90% busy per host, >= 20 full runs per host
+   per day. Report busy % every 6 hours. If a host is idle more than 15 minutes, that is an
+   incident: tell me the cause in one line.
+B. Review where it prevents real damage, nowhere else:
+   - Needs review BEFORE a host run: new code patches (diff review + CPU G2 PASS +
+     flag-off bit-identity).
+   - Needs review BEFORE upload: every submission candidate (Claude audits it).
+   - NO pre-launch review: flag-only arms of an already-verified file, controls, replicates,
+     smokes, read-only diagnostics. Check their receipts afterwards.
+   - No "one-use approval" ceremonies for anything in this list.
+C. Launch path: use whatever launches reliably. If a tool fails twice, use the plain manual
+   path (copy, sha256, nohup torchrun) and fix the tool in parallel. Report every failure with
+   its real error text.
+D. Decisions: decide.py thresholds stay. Additions:
+   - a single-run delta <= -0.005 is adopted provisionally and built on immediately; the
+     replicate runs in parallel;
+   - research-base adoptions are pre-approved (no waiting for me);
+   - submissions still need me.
+E. Queue depth: >= 6 ready jobs per host at all times, especially before midnight.
+F. Warm compile cache for all research runs. Cold cache only for final submission candidates.
+
+=====================================================================
+3. HOST PLAN (starting now)
+=====================================================================
+- trn22: finish the running cold smoke, then A2 (tables on layers 1,-1).
+- trn21: skip the S0 smoke if not started, then A1 (tables on the last layer).
+- Then: cross-host replicates of any table arm with delta <= -0.0006.
+- Then the Moonshot stacks as their patches arrive: S-A (tables + schedule),
+  S-B (FP8 + 8x1024 U-Net partial attention), S-C (all).
+- Fill gaps with the flag bank on the newest base, never with idle time.
+- Tables decision tree, pre-committed:
+  - delta <= -0.005: adopt; B2 sparse updates; tables on all VE layers; retune LR.
+  - -0.005 < delta < -0.001: epoch-2 table freeze and Recursive's table form next.
+  - delta >= -0.001: tables are deprioritized; all weight goes to throughput and architecture.
+
+=====================================================================
+4. PARALLEL BUILDERS (new): set this up tonight
+=====================================================================
+We need more code throughput than our own lanes provide. Set up external coding agents:
+- Tool: Claude Code with the Bedrock backend (CLAUDE_CODE_USE_BEDROCK=1, us-west-2, the same
+  model route we already use), one session per lane, each in its own clone and branch.
+- Where: a CPU machine (a workstation or a small EC2 CPU instance) with torch installed so
+  preflight_dryrun.py runs. NEVER on trn21/trn22. Never give these sessions host access or
+  keys. Credentials go in env vars only, never in prompts or commits.
+- Budget: AWS Budgets alert at $150/day for these lanes (separate from the controller's own
+  cap). I authorize spend up to that. Anything above needs me.
+- Lanes (each delivers: a patch behind a default-OFF flag, CPU G2 PASS with the flag on,
+  flag-off bit-identity over 3 steps, a README with expected effect and risks):
+  L1 FP8 projections: row-scaled e4m3 forward for MLP and attention projections, bf16
+     backward, plus a whole-step Trn2 microbenchmark script. Pass: >= 3% faster whole step.
+  L2 #3 team's architecture: 8x1024, zero-init U-Net skips, attention in a subset of layers
+     (per ritwikareddykancharla.github.io/projects/trainium-of-thought.html).
+  L3 Recursive schedule package: Muon warmdown 0.95, Adam warmdown 0.65, momentum decay to
+     ~0.79, NorMuon beta2 ramp. Attribution comment (Apache-2.0).
+  L4 B2 sparse table updates: static padded all_gather, index_add_, fp32 accumulation, lazy
+     RMSProp; exactness vs dense on CPU.
+  L5 Web scout (use a web-enabled AI, not Bedrock): public details on the top 10 teams'
+     recipes, plus organizer rule clarifications (what QUEUED means, the quota, the startup
+     cap). Public sources only.
+  L6 Offline analyst: step-time breakdown, epoch-boundary loss behaviour, re-read of
+     confounded results.
+- Deadline for L1-L4 patches: Sep 26 12:00 IST. Our Verifier gates them. The external agents
+  never launch anything.
+- Paste-ready lane prompts are in parallel_ai_lanes.md (I will add it to the repo).
+
+=====================================================================
+5. SUBMISSION PLAN
+=====================================================================
+- Vehicle: 116188 plus the exact launch command of sub-452d2ae4 (proven through review and a
+  cold compile on the official runner). Port gains as small constant edits or flag additions
+  to that pair.
+- Submit every confirmed best that is >= 0.003 better, after one cold replay and a Claude
+  audit. The quota is 15/week; don't hoard.
+- The earlier QUEUED uploads: do not resubmit duplicates.
+- Final package frozen Sep 29 18:00 IST; final upload by Sep 30 12:00 IST.
+
+=====================================================================
+6. ACCOUNTABILITY: report to me in this format, every 6 hours and at each result
+=====================================================================
+- runs completed since the last report, per host; busy % per host
+- best public-20M, and its delta vs base
+- adopted changes
+- patches received / verified / running
+- blockers, each with the real error text and what you did about it
+- the next 6 jobs per host
+If a milestone is missed, say so plainly and state the pivot.
+
+Milestones (public-20M; official ~= public - 0.002):
+- <= 0.985 by Sep 26 23:00 (top-10 range)
+- <= 0.975 by Sep 27 23:00
+- <= 0.960 by Sep 28 18:00
+- <= 0.948 at the freeze (first-place range)
+
+Acknowledge in 3 lines: (1) what launches next on each host and when, (2) who is setting up
+the Bedrock lanes and by what time, (3) the first thing you are cutting from the process to
+stop the idle time.
