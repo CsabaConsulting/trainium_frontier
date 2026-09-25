@@ -1,6 +1,50 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:20 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:33 UTC (26 September IST)
+
+## Current: submission HOLD, unchanged-checkpoint diagnostic in preparation
+
+Clean source3f5035 has an explicit fresh-review REFUSE, archived527db181.
+Supervisor read the full report/spec and authenticated all89 files/71 reviewer
+artifacts normally and under-O. Finding EVAL_BATCH_WRAPPER_OMITTED: research
+evaluates B>1 row-by-row, while the inherited116188 ordinary GPT evaluates the
+batch jointly. All596 independent CPU numerical/diagnostic records pass, but
+ten hook-routing comparisons differ. This is NOT a measured numeric failure
+and NOT a source PASS. No full CPU/training/cold/upload authority follows.
+
+Separate independent analysisb27239d4/e6484d84 defines a bounded behavioural
+falsifier against the retained real trained3e79 checkpoint: unchanged loaders,
+syntheticT1024/B1-B2, strict same-backend bitwise batch/reference/state parity,
+and separately labelled synthetic causality matching prepare's1e-2 arithmetic.
+CPU600s first, then only separately reviewed/assigned native4-rank900s. No
+training, data/scorer change, eval adapter or weakened threshold. This plan
+does not reverse the original structural REFUSE. Implementer is preparing
+the disabled packet; existing fullCPU/cold packets remain HOLD. Human Claude
+audit and submission remain required. No download has been replaced.
+
+trn21 pure3e79 cross-host confirmation actually launched21:24:00.612118UTC;
+all four exact workers and original lifetime lock are observed, archivef06c9a90.
+Old schedule, seed42, same-host c5c comparator, no Recursive. At21:29:59 it was
+still compiling with changing compiler descendants, no error or first step.
+Preserve it and its attached fresh20M eval.
+
+trn22 bcbd cold-five finished with actual493.337790s startup, below600target
+and prior855.071994s. Five steps/exit0, charged3.463801s, no BPB or robust
+throughput claim. Rawcdf521fa; Supervisor independently authenticated42checks
+normal/-O in a87125a4 and recorded the diagnostic in the ledger. Host free
+since21:24:30UTC, waiting for the reviewed checkpoint-only diagnostic. The
+15-minute idle threshold is21:39:30UTC; do not call pending packets ready.
+
+Seed43 completed0.9922035160 versus same-host seed42 control0.9899528601
+(+0.0022506559). Supervisor's65checks normal/-O authenticate3646steps and
+1790.265859s charge; ledger/audit in a87125a4. This is a variance diagnostic,
+not a new technique or a reason to choose a favourable submission seed.
+The best architecture checkpoint was independently rehashed on its host after
+eval at21:30:41UTC (e665435f), unchanged068749c2…/453048594bytes.
+
+These facts supersede the earlier RUNNING source-review, pending CT-result and
+seed-evaluation snapshots below. Best authenticated public BPB remains0.986340;
+the clean candidate still has no measured score and is not upload-ready.
 
 ## Current operational update: clean candidate frozen; confirmation released
 
