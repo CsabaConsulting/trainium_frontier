@@ -1,0 +1,84 @@
+TRAIN_START_UTC=2026-09-25T14:30:30.996565+00:00
+[W925 14:30:32.280521731 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0925 14:30:32.841000 2897491 torch/distributed/run.py:851] 
+W0925 14:30:32.841000 2897491 torch/distributed/run.py:851] *****************************************
+W0925 14:30:32.841000 2897491 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0925 14:30:32.841000 2897491 torch/distributed/run.py:851] *****************************************
+[W925 14:30:34.380530487 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 14:30:34.382229909 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 14:30:34.382716610 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 14:30:34.383124938 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=1000000 steps max_seconds=120 official_budget=1800s
+gradient_clip=1 (after the cross-rank average)
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 8,
+  "n_embd": 1024,
+  "mlp_ratio": 4
+}
+num_params=117,453,580 flops_per_token=7.298872e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=131,072 grad_accum_steps=1 pack_factor=32
+muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]
+step 00000 | loss 9.0112 | lrm 1.000 | dt 307.64s | tok/s 426 | remaining_steps 999999 | remaining_time 0s | epoch 1
+step 00001 | loss 8.7822 | lrm 0.050 | dt 231.31s | tok/s 567 | remaining_steps 999998 | remaining_time 0s | epoch 1
+step 00002 | loss 8.6919 | lrm 0.050 | dt 0.49s | tok/s 268,591 | remaining_steps 999997 | remaining_time 0s | epoch 1
+step 00003 | loss 8.6435 | lrm 0.050 | dt 0.49s | tok/s 270,044 | remaining_steps 999996 | remaining_time 0s | epoch 1
+step 00004 | loss 8.5971 | lrm 0.050 | dt 0.49s | tok/s 268,968 | remaining_steps 999995 | remaining_time 120s | epoch 1
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+---
+checkpoint_path:    out/final.pt
+training_seconds:  0.0
+budget_seconds:    1800
+target_steps:      1000000
+max_train_seconds: 120
+startup_allowance_est: 562.8
+charged_seconds_est:   0.4
+over_budget:       False
+total_seconds:     541.0
+compiled:          True
+num_steps:         5
+total_tokens_M:    0.7
+world_size:        4
+lnc:               2
+seq_len:           1024
+num_params_M:      117.5
+TRAIN_END_UTC=2026-09-25T14:40:00.945386+00:00
