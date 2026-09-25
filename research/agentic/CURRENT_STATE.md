@@ -1,6 +1,44 @@
 # Current state
 
-Last reconciled: 2026-09-25 15:12 UTC
+Last reconciled: 2026-09-25 15:24 UTC
+
+## Full table runs active; overnight and builder status, 15:24 UTC
+
+A1/trn21 launched **15:11:55 UTC (20:41:55 IST)**, and A2/trn22 launched
+**15:12:50 UTC (20:42:50 IST)**. Live SSH at 15:19:28 UTC independently
+confirmed both detached drivers and all four workers per host still alive in
+startup. Their drivers hold the common device lock through training and a
+fresh-process public-20M/context-1024 evaluation; a laptop disconnection does
+not interrupt the active run. Launch receipts are in
+`research/v2/observations/20260925-trn21-a1-full-manual-r1/` and
+`research/v2/operator/20260925-trn22-a2-full-r1/`. Both exact table CPU G2
+results now have independent numeric PASS. No table BPB is available yet.
+
+The two accepted c5c A0 controls are now in the append-only v2 ledger, with
+scoped clean-science provenance and explicit unknown fields; see
+`research/v2/analysis/20260925-c5c-a0-controls-ledger.md`. Unchanged `decide.py`
+accepts each same-host control. It does not yet have a candidate to score.
+
+Twelve completed scalar-flag proposals (six per host) and two conditional
+cross-host table replicates are integrated into `research/v2/queue.json`.
+The six-per-host count means **ready pending host preflight**, not already
+staged or running. Priority replicates, due controls and verified stacks
+preempt this fallback bank. The small host-resident queue runner is under
+independent review and is not installed yet. It will preserve consumed labels,
+run train/eval serially, and allow pausing between jobs to update the pending
+tail after a new base is adopted. No second active launcher exists.
+
+External Bedrock L1 and L2 sessions started at **20:47:52 IST**, but both
+terminated with the provider's `[frontier_llm]` policy error. Neither returned
+a patch. Authentication and isolated CPU tools were verified; this is not an
+auth/network failure and no disguised retry was made. Exact session/request
+IDs, prompt hashes, reported lane cost **$0.9996625**, conservative reservations
+and the missing AWS Budgets signing access are in
+`research/v2/bedrock/20260925-l1-l2-recovery.md`. Local caps were applied, but
+the requested AWS Budgets alert is **not configured**. Existing authorized
+local code work continues. The old S-A package was metadata only and lacks
+newest L3's separate optimizer schedules; its HOLD is being addressed by a
+distinct Implementer rather than counting it as runnable.
 
 ## Laptop restart recovery and Final Push directive, 15:12 UTC
 
