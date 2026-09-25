@@ -154,6 +154,8 @@ def main() -> None:
     spec.loader.exec_module(module)
     before = module.local_state()
     assert not before["local_stops_present"]
+    assert before["breaker_tripped"]["global_correctness"] is False, "GLOBAL_BREAKER"
+    assert before["breaker_tripped"]["trn21"] is False, "TRN21_BREAKER"
     argv, _, _, transport_sha = module.load_transport("trn21")
     argv[-1] = "exec /usr/bin/python3 -I -B -"
     cfg = {"mode": mode, "dest": assignment["run_root"], "step_log": assignment["step_log_path"], "a0": "/home/ubuntu/trainium_a0_warm_20260925_trn21_manual_r1", "prepare": assignment["trusted_prepare_host_path"], "caches": assignment["warm_cache_paths"], "label": LABEL, "train_sha": TRAIN_SHA, "prep_sha": PREP_SHA}
