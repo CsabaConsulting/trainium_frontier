@@ -1,0 +1,409 @@
+SOURCE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/cache/PersistentCacheBackend.cpp 0133ec01b69ccb07798bf6bdbb5a34250c74ea6c41d6f5fe91063e07dd0fcb12
+1:#include "PersistentCacheBackend.h"
+2:
+3:#include <unistd.h>
+4:
+5:#include <cerrno>
+6:#include <cstdlib>
+7:#include <cstring>
+8:#include <fstream>
+9:
+10:#include "torch_neuronx/csrc/core/NeuronLogging.h"
+11:#include "torch_neuronx/csrc/core/cache/CacheUtils.h"
+12:
+13:namespace at::neuron {
+14:
+15:namespace {
+16:
+17:// Check if environment variable is set to "1".
+18:bool IsEnvEnabled(const char* value) { return value && std::string(value) == "1"; }
+19:
+20:// Gets the cache directory from environment variable.
+21:// Uses TORCH_NEURONX_NEFF_CACHE_DIR or defaults to /tmp/neff_cache
+22:std::filesystem::path GetCacheDirFromEnv() {
+23:  const char* neuron_cache_dir = std::getenv("TORCH_NEURONX_NEFF_CACHE_DIR");
+24:  if (neuron_cache_dir && neuron_cache_dir[0] != '\0') {
+25:    return std::filesystem::path(neuron_cache_dir);
+26:  }
+27:  return std::filesystem::path("/tmp/neff_cache");
+28:}
+29:
+30:}  // namespace
+31:
+32:PersistentCacheBackend::PersistentCacheBackend(const std::string& extension)
+33:    : cache_dir_(GetCacheDirFromEnv()), extension_(extension) {
+34:  // Create cache directory if it doesn't exist
+35:  std::error_code ec;
+36:  std::filesystem::create_directories(cache_dir_, ec);
+37:  if (ec) {
+38:    throw std::runtime_error("Failed to create persistent cache directory: " + cache_dir_.string() +
+39:                             " (" + ec.message() + ")");
+40:  }
+41:}
+42:
+43:PersistentCacheBackend::PersistentCacheBackend(const std::filesystem::path& cache_dir,
+44:                                               const std::string& extension)
+45:    : cache_dir_(cache_dir), extension_(extension) {
+46:  // Create cache directory if it doesn't exist
+47:  std::error_code ec;
+48:  std::filesystem::create_directories(cache_dir_, ec);
+49:  if (ec) {
+50:    throw std::runtime_error("Failed to create persistent cache directory: " + cache_dir_.string() +
+51:                             " (" + ec.message() + ")");
+52:  }
+53:}
+54:
+55:bool PersistentCacheBackend::IsCachingDisabled() {
+56:  // Check Neuron neff cache disable
+57:  const char* neuron_disable = std::getenv("TORCH_NEURONX_NEFF_DISABLE_CACHE");
+58:  return IsEnvEnabled(neuron_disable);
+59:}
+60:
+61:std::filesystem::path PersistentCacheBackend::GetShardedPath(const std::string& key) const {
+62:  // 2-level directory sharding for scalability
+63:  // key "abcd1234..." -> cache_dir/ab/cd/abcd1234....neff
+64:  return cache_dir_ / key.substr(0, 2) / key.substr(2, 2) / (key + extension_);
+65:}
+66:
+67:bool PersistentCacheBackend::Exists(const std::string& key) const {
+68:  std::filesystem::path path = GetShardedPath(key);
+69:  std::error_code ec;
+70:  bool exists = std::filesystem::exists(path, ec);
+71:  if (ec) {
+72:    TORCH_NEURONX_DEBUG("Cache existence check failed", "key=", key, "path=", path.string(),
+73:                        "error=", ec.message());
+74:    return false;
+75:  }
+76:  return exists;
+77:}
+78:
+79:std::optional<std::vector<uint8_t>> PersistentCacheBackend::Get(const std::string& key) const {
+80:  std::filesystem::path path = GetShardedPath(key);
+81:
+82:  // Open file
+83:  std::ifstream file(path, std::ios::binary | std::ios::ate);
+84:  if (!file) {
+85:    TORCH_NEURONX_DEBUG("Cache miss", "key=", key, "path=", path.string());
+86:    return std::nullopt;
+87:  }
+88:
+89:  // Get file size
+90:  std::streamsize size = file.tellg();
+91:  if (size <= 0) {
+92:    TORCH_NEURONX_DEBUG("Cache file empty or error", "key=", key, "size=", size);
+93:    return std::nullopt;
+94:  }
+95:  file.seekg(0, std::ios::beg);
+96:
+97:  // Read data
+98:  std::vector<uint8_t> data(static_cast<size_t>(size));
+99:  if (!file.read(reinterpret_cast<char*>(data.data()), size)) {
+100:    TORCH_NEURONX_WARN("Failed to read cache file", "key=", key, "path=", path.string());
+101:    return std::nullopt;
+102:  }
+103:
+104:  TORCH_NEURONX_DEBUG("Cache hit", "key=", key, "size=", data.size());
+105:  return data;
+106:}
+107:
+108:void PersistentCacheBackend::AtomicWrite(const std::filesystem::path& path,
+109:                                         const std::vector<uint8_t>& data) {
+110:  // Create parent directories
+111:  std::error_code ec;
+112:  std::filesystem::create_directories(path.parent_path(), ec);
+113:  if (ec) {
+114:    throw std::runtime_error("Failed to create directory: " + path.parent_path().string() + " (" +
+115:                             ec.message() + ")");
+116:  }
+117:
+118:  // Create temporary file atomically using mkstemp (POSIX)
+119:  // mkstemp creates a unique file and returns an open fd - race-condition free
+120:  std::string temp_template = (path.parent_path() / ".tmp.XXXXXX").string();
+121:  std::vector<char> temp_path_buf(temp_template.begin(), temp_template.end());
+122:  temp_path_buf.push_back('\0');
+123:
+124:  int fd = mkstemp(temp_path_buf.data());
+125:  if (fd == -1) {
+126:    throw std::runtime_error("Failed to create temporary file: " + std::string(strerror(errno)));
+127:  }
+128:
+129:  std::filesystem::path temp_path(temp_path_buf.data());
+130:
+131:  // Write data directly using POSIX write
+132:  const uint8_t* write_ptr = data.data();
+133:  size_t remaining = data.size();
+134:  while (remaining > 0) {
+135:    ssize_t written = write(fd, write_ptr, remaining);
+136:    if (written == -1) {
+137:      int err = errno;
+138:      close(fd);
+139:      std::filesystem::remove(temp_path, ec);
+140:      throw std::runtime_error("Failed to write to temporary file: " + std::string(strerror(err)));
+141:    }
+142:    write_ptr += written;
+143:    remaining -= static_cast<size_t>(written);
+144:  }
+145:
+146:  if (close(fd) == -1) {
+147:    int err = errno;
+148:    std::filesystem::remove(temp_path, ec);
+149:    throw std::runtime_error("Failed to close temporary file: " + std::string(strerror(err)));
+150:  }
+151:
+152:  // Atomic rename
+153:  std::filesystem::rename(temp_path, path, ec);
+154:  if (ec) {
+155:    // Clean up temp file on rename failure
+156:    std::filesystem::remove(temp_path);
+157:    throw std::runtime_error("Failed to rename temporary file: " + temp_path.string() + " -> " +
+158:                             path.string() + " (" + ec.message() + ")");
+159:  }
+160:}
+SOURCE /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/compilation/CompilationCache.cpp af2ec3edbc8bdb45667f14228bac373b4973938d800c6c22e1e6a063ffb30ed8
+1:#include "CompilationCache.h"
+2:
+3:#include <unistd.h>
+4:
+5:#include <algorithm>
+6:#include <chrono>
+7:#include <cstdlib>
+8:#include <optional>
+9:
+10:#include "torch_neuronx/csrc/core/NeuronDevice.h"
+11:#include "torch_neuronx/csrc/core/NeuronLogging.h"
+12:#include "torch_neuronx/csrc/core/cache/CompilationCacheKey.h"
+13:#include "torch_neuronx/csrc/core/compilation/CompilerDebugUtils.h"
+14:#include "torch_neuronx/csrc/core/compilation/LocalCompilationBackend.h"
+15:#include "torch_neuronx/csrc/core/compilation/NeuronCompiler.h"
+16:#include "torch_neuronx/csrc/core/compilation/service/ServiceCompilationBackend.h"
+17:#include "torch_neuronx/csrc/core/metrics/NeuronMetrics.h"
+18:#include "torch_neuronx/csrc/core/utils/NeuronExceptions.h"
+19:#include "torch_neuronx/csrc/core/utils/PlatformUtils.h"
+20:
+21:namespace at::neuron {
+22:
+23:CompilationCache::CompilationCache() {
+24:  // Configure maximum cache size from environment variable.
+25:  const char* max_size_env = std::getenv("NEURON_COMPILATION_CACHE_MAX_SIZE_MB");
+26:  if (max_size_env != nullptr) {
+27:    try {
+28:      size_t max_size_mb = std::stoul(max_size_env);
+29:      max_cache_size_bytes_ = max_size_mb * 1024 * 1024;
+30:    } catch (const std::exception& e) {
+31:      throw std::runtime_error("Invalid NEURON_COMPILATION_CACHE_MAX_SIZE_MB value: " +
+32:                               std::string(max_size_env) + " (" + e.what() + ")");
+33:    }
+34:  }
+35:
+36:  // Configure maximum number of cache entries from environment variable.
+37:  const char* max_entries_env = std::getenv("NEURON_COMPILATION_CACHE_MAX_ENTRIES");
+38:  if (max_entries_env != nullptr) {
+39:    try {
+40:      size_t max_entries = std::stoul(max_entries_env);
+41:      max_cache_entries_ = max_entries;
+42:    } catch (const std::exception& e) {
+43:      TORCH_NEURONX_ERROR("Invalid NEURON_COMPILATION_CACHE_MAX_ENTRIES value",
+44:                          "value=", max_entries_env, "error=", e.what());
+45:      throw std::runtime_error("Invalid NEURON_COMPILATION_CACHE_MAX_ENTRIES value: " +
+46:                               std::string(max_entries_env) + " (" + e.what() + ")");
+47:    }
+48:  }
+49:
+50:  // Initialize local cache directory for lock files.
+51:  const char* neuron_local_cache_dir = std::getenv("TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR");
+52:  if (neuron_local_cache_dir != nullptr && neuron_local_cache_dir[0] != '\0') {
+53:    local_cache_dir_ = std::filesystem::path(neuron_local_cache_dir);
+54:    std::error_code ec;
+55:    std::filesystem::create_directories(local_cache_dir_, ec);
+56:    if (ec) {
+57:      throw std::runtime_error("Invalid TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR value: path=" +
+58:                               std::string(neuron_local_cache_dir) + ", error=" + ec.message());
+59:    }
+60:  } else {
+61:    local_cache_dir_ = std::filesystem::path("/tmp/local_cache");
+62:    std::error_code ec;
+63:    std::filesystem::create_directories(local_cache_dir_, ec);
+64:    if (ec) {
+65:      throw std::runtime_error("Failed to create local cache directory: path=" +
+66:                               local_cache_dir_.string() + ", error=" + ec.message());
+67:    }
+68:  }
+69:
+70:  // Initialize persistent cache backend if not disabled.
+71:  if (!PersistentCacheBackend::IsCachingDisabled()) {
+72:    try {
+73:      persistent_cache_ = std::make_unique<PersistentCacheBackend>();
+74:    } catch (const std::exception& e) {
+75:      TORCH_NEURONX_WARN(
+76:          "Failed to initialize persistent cache backend, continuing without "
+77:          "persistent caching",
+78:          "error=", e.what());
+79:      persistent_cache_ = nullptr;
+80:    }
+81:  }
+82:
+83:  // Initialize compilation backend.
+84:  // NEURON_COMPILE_SERVICE=0 disables the service (uses local compilation).
+85:  // Default: service enabled.
+86:  const char* service_env = std::getenv("NEURON_COMPILE_SERVICE");
+87:  bool service_enabled = !(service_env && std::string(service_env) == "0");
+88:
+89:  if (service_enabled) {
+90:    std::string socket_name = "neuron_compile_service_" + std::to_string(getuid());
+91:    // When distributed is initialized, all ranks share MASTER_PORT so they
+92:    // connect to the same compilation service socket.
+93:    // When not distributed, use PID to give each process its own socket
+94:    // (uid is in the base name to separate users).
+95:    if (c10_neuron::is_distributed_initialized()) {
+96:      const char* master_port = std::getenv("MASTER_PORT");
+97:      if (master_port && master_port[0] != '\0') {
+98:        socket_name += "_";
+99:        socket_name += master_port;
+100:      } else {
+101:        socket_name += "_" + std::to_string(getpid());
+102:      }
+103:    } else {
+104:      socket_name += "_" + std::to_string(getpid());
+105:    }
+106:    std::string socket_path = "/tmp/" + socket_name + ".sock";
+107:    try {
+108:      backend_ = std::make_unique<ServiceCompilationBackend>(socket_path);
+109:    } catch (const std::exception& e) {
+110:      TORCH_NEURONX_WARN("Failed to connect to compilation service:", e.what(),
+111:                         "— falling back to local backend");
+112:      backend_ = std::make_unique<LocalCompilationBackend>();
+113:    }
+114:  } else {
+115:    backend_ = std::make_unique<LocalCompilationBackend>();
+116:  }
+117:  TORCH_NEURONX_DEBUG("CompilationCache backend:", backend_->GetName());
+118:
+119:  // Thread pool for parallel compilation via GetOrCompileNeffAsync.
+120:  compilation_pool_ = std::make_unique<CompilationThreadPool>();
+121:}
+122:
+123:std::vector<CompilationCache::CacheEntryInfo> CompilationCache::GetCacheEntries() const {
+124:  std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+125:
+126:  std::vector<CacheEntryInfo> entries;
+127:  entries.reserve(cache_.size());
+128:
+129:  for (const auto& [key, entry] : cache_) {
+130:    if (entry) {
+131:      CacheEntryInfo info;
+132:      info.cache_key = key;
+133:      info.neff_size_bytes = entry->neff_bytes.size();
+134:      info.created_time = entry->created_time;
+135:      info.last_used_time = entry->last_used_time;
+136:      info.access_count = entry->access_count.load();
+137:      info.compilation_time = entry->compilation_time;
+138:
+139:      entries.push_back(info);
+140:    }
+141:  }
+142:
+143:  return entries;
+144:}
+145:
+146:void CompilationCache::ClearInMemoryCache() {
+147:  std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+148:
+149:  // Cancel any pending compilations by setting exceptions.
+150:  for (auto& [key, pending] : pending_compilations_) {
+151:    try {
+152:      pending.promise->set_exception(std::make_exception_ptr(
+153:          std::runtime_error("Cache cleared while compilation was pending")));
+154:    } catch (...) {
+155:      // Ignore exceptions if promise is already fulfilled.
+156:    }
+157:  }
+158:
+159:  cache_.clear();
+160:  pending_compilations_.clear();
+161:
+162:  // Reset in-memory cache metrics
+163:  auto* arena = metrics::NeuronMetricsArena::Get();
+164:  if (auto* counter = arena->GetCounter("CompilationCache.InMemoryHits")) counter->Clear();
+165:  if (auto* counter = arena->GetCounter("CompilationCache.InMemoryMisses")) counter->Clear();
+166:  if (auto* counter = arena->GetCounter("CompilationCache.Evictions")) counter->Clear();
+167:  if (auto* metric = arena->GetMetric("CompilationCache.MemoryUsage")) metric->Clear();
+168:}
+169:
+170:void CompilationCache::ClearPersistentCache() {
+171:  if (persistent_cache_) {
+172:    persistent_cache_->Clear();
+173:    // Clear persistent cache metrics
+174:    auto* arena = metrics::NeuronMetricsArena::Get();
+175:    if (auto* counter = arena->GetCounter("CompilationCache.PersistentHits")) counter->Clear();
+176:    if (auto* counter = arena->GetCounter("CompilationCache.PersistentMisses")) counter->Clear();
+177:  }
+178:}
+179:
+180:void CompilationCache::Clear() {
+181:  ClearInMemoryCache();
+182:  ClearPersistentCache();
+183:
+184:  // Clear total compilations and compilation time metrics
+185:  auto* arena = metrics::NeuronMetricsArena::Get();
+186:  if (auto* counter = arena->GetCounter("CompilationCache.TotalCompilations")) counter->Clear();
+187:  if (auto* metric = arena->GetMetric("CompilationCache.CompilationTime")) metric->Clear();
+188:}
+189:
+190:bool CompilationCache::CheckInMemoryCacheAndPending(
+191:    const CompilationCacheKey& key, const CompilableKernelExecution& kernel_execution) {
+192:  const std::string& cache_key = key.GetKey();
+193:  // Check for completed NEFF in in-memory cache.
+194:  auto cache_it = cache_.find(cache_key);
+195:  if (cache_it != cache_.end()) {
+196:    auto cached_entry = cache_it->second;
+197:    TORCH_CHECK(cached_entry != nullptr, "Cache entry can not be null");
+198:
+199:    // Fast-fail if this entry records a previous compilation failure.
+200:    if (cached_entry->IsFailed()) {
+201:      ThrowCompilationError(key, cached_entry->GetFailureMessage());
+202:    }
+203:
+204:    // Record in-memory cache hit and increment access statistics.
+205:    TORCH_NEURONX_COUNTER("CompilationCache.InMemoryHits", 1);
+206:    cached_entry->UpdateAccess();
+207:
+208:    // Create managed pointer and set on kernel execution.
+209:    auto neff_ptr = CreateNeffBytesPtr(cached_entry->neff_bytes, cache_key);
+210:    kernel_execution.SetCachedNeff(std::move(neff_ptr));
+211:    TORCH_NEURONX_DEBUG("In-memory cache hit: ", key.ToString());
+212:    return true;
+213:  }
+214:
+215:  // No completed NEFF found - check if compilation is already pending.
+216:  auto pending_it = pending_compilations_.find(cache_key);
+217:  if (pending_it != pending_compilations_.end()) {
+218:    // Another thread is compiling, count as in-memory hit since we'll get the result.
+219:    TORCH_NEURONX_COUNTER("CompilationCache.InMemoryHits", 1);
+220:    return true;
+221:  }
+222:
+223:  return false;
+224:}
+225:
+226:bool CompilationCache::CheckCacheAndCoordinateWork(
+227:    const CompilationCacheKey& key, const CompilableKernelExecution& kernel_execution,
+228:    uint32_t stream_id) {
+229:  const std::string& cache_key = key.GetKey();
+230:  // First check in-memory cache and pending compilations with lock held.
+231:  {
+232:    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+233:    if (CheckInMemoryCacheAndPending(key, kernel_execution)) {
+234:      return true;
+235:    }
+236:    // Record in-memory cache miss.
+237:    TORCH_NEURONX_COUNTER("CompilationCache.InMemoryMisses", 1);
+238:    TORCH_NEURONX_DEBUG("In memory cache miss:", key.ToString());
+239:
+240:    // No persistent cache — register pending now while lock is held.
+WORKER 2930018 {"NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16", "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler", "NEURON_LOGICAL_NC_CONFIG": "2", "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor", "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug", "TORCH_NEURONX_HLO_CACHE": "1", "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo", "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local"}
+WORKER 2930019 {"NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16", "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler", "NEURON_LOGICAL_NC_CONFIG": "2", "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor", "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug", "TORCH_NEURONX_HLO_CACHE": "1", "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo", "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local"}
+WORKER 2930020 {"NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16", "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler", "NEURON_LOGICAL_NC_CONFIG": "2", "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor", "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug", "TORCH_NEURONX_HLO_CACHE": "1", "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo", "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local"}
+WORKER 2930021 {"NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16", "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler", "NEURON_LOGICAL_NC_CONFIG": "2", "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor", "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug", "TORCH_NEURONX_HLO_CACHE": "1", "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo", "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff", "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local"}
+UTC 2026-09-25T16:33:00.718967+00:00
+
+rc 0
