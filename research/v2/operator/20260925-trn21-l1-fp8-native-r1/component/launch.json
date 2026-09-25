@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/usr/bin/timeout",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "2700s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_l1_fp8_native_20260925_trn21_r1/check_native.py",
+    "--train-py",
+    "/home/ubuntu/trainium_l1_fp8_native_20260925_trn21_r1/train.py",
+    "--out-dir",
+    "/home/ubuntu/trainium_l1_fp8_native_20260925_trn21_r1/receipts/native-component"
+  ],
+  "cpu_review_sha256": "bcbcf5acd975f9a7a02adff6a8d6eda307430ccc7d7f914cb45e763fbd6f3f16",
+  "environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+    "PYTHONUNBUFFERED": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local",
+    "TRN_EXP_LABEL": "fs-20260925-l1-921271-component-trn21-r1"
+  },
+  "label": "fs-20260925-l1-921271-component-trn21-r1",
+  "monotonic": 897669.193501696,
+  "utc": "2026-09-25T17:28:02.733666+00:00"
+}
