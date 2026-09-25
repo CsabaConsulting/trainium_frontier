@@ -2,6 +2,18 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Newest human priorities: 26 September, next twelve hours
+
+Read `workflow/NEXT_12_HOURS_2026-09-26.md` first. Architecture's final20M
+result drives the next branch; investigate its double compilation. FP8 gets
+bounded DIAGNOSTIC_ONLY whole-step timing before gradient repair, with the
+known zero-gradient component failure retained. Batch must show >=5% tokens/s
+gain in its prospective100-step screen. No more old6x1024 LR points. Preserve
+the already-running6ef7 control. Schedule alone is not a new submission.
+These instructions override conflicting older priority/gate-order sections
+below, not legality, correctness or confirmed-adoption rules. First place is
+the target; latest user screenshot is #15 at0.9901 versus #1 at0.9464.
+
 ## Newest selection amendment: fixed budget for every arm
 
 Read `workflow/FIXED_BUDGET_SELECTION_2026-09-25.md`. Poojith removed the

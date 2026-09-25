@@ -1,5 +1,12 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**LATEST HUMAN PRIORITIES (26 September):** Read
+`NEXT_12_HOURS_2026-09-26.md` first. Architecture result and compilation lead;
+FP8 timing precedes repair but remains diagnostic while gradients are broken.
+Batch screening requires >=5% tokens/s gain; no more old6x LR points or
+standalone schedule upload. This overrides conflicting older priority and
+gate-order prose below; legality and confirmed-result rules remain.
+
 **NEWEST SELECTION AMENDMENT:** `FIXED_BUDGET_SELECTION_2026-09-25.md`
 overrides ALL older step-window gates and table-only exemptions. Every arm is
 judged on final public20M/context1024 at the official1,800-second budget.
