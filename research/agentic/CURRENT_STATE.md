@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:48 UTC
+Last reconciled: 2026-09-25 02:57 UTC
+
+## Current handoff: trn21 repaired checkout draft PASS offline; enabled request HOLD
+
+The trn21 stage-r2 [repaired checkout draft](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
+[passed independent offline review](../v2/verification/20260925-trn21-stage-r2-checkout-repair-static-review.md)
+for its disabled form: a fixed exclusive/fsynced attempt marker blocks
+same-assignment replay, and the wrapper verifies the actual future review
+receipt before host contact. This does **not** authorize checkout; a final
+enabled exact request, separate independent final review, fresh full host
+preflight and new one-shot Supervisor assignment are still required. That
+enabled package is being prepared. No host checkout occurred.
+
+The trn21 [stage-r2 CPU G2 draft](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2/GATE_CONTRACT.json)
+also [passed static planning review](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2/INDEPENDENT_STATIC_REVIEW.md)
+only. Its builder does not yet enforce three final safety pins (one attempt
+per label, CPU tool mode, and preflight inode); the final runnable request
+must fix them after a verified checkout. No CPU G2, native run or BPB result.
 
 ## Current handoff: trn22 read-only feasibility planning PASS; transfer HOLD
 

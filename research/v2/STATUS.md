@@ -2,6 +2,15 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:57 UTC, trn21's
+[repaired disabled checkout draft](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.json)
+[passed independent offline review](verification/20260925-trn21-stage-r2-checkout-repair-static-review.md).
+The enabled exact request, its separate review, fresh preflight and one-use
+assignment remain HOLD. The [r2 CPU G2 draft](g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2/GATE_CONTRACT.json)
+also [passed planning-only review](g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2/INDEPENDENT_STATIC_REVIEW.md),
+with three safety pins to harden before host use. Neither PASS is a scored
+run or new BPB.
+
 At 02:48 UTC, trn22's
 [read-only source-stage feasibility](authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_READONLY_FEASIBILITY_20260925T024228Z.md)
 [passed independent planning review](authorizations/trn22-c5c-a0-r4-source-feasibility/INDEPENDENT_PLANNING_VERIFIER_RECEIPT.md).
