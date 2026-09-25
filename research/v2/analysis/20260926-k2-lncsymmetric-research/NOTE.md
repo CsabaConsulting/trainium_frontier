@@ -21,6 +21,13 @@ The same control-flow constraint appears in the [2.32 NKI release notes](https:/
 The 2.32 LNC-guide URL could not be retrieved. Installed framework/JIT behavior
 must be checked against these versioned claims before a new native proposal.
 
+Follow-up: authenticated r3 rank0 receipt reports installed
+`nki=0.5.0+28631259367.ga768afa6` and `torch=2.11.0+cpu` (native extension).
+The same release-notes page explicitly says the matching SPMD launch-grid
+requirement still applies in NKI0.5.0; its removal is a future deprecation,
+not an already-shipped behavior change. This narrows the version mismatch
+and strengthens the design question, but still does not prove compiler cause.
+
 Inference, not diagnosis: a one-program custom kernel inside LNC2 may leave
 one core without the other's dynamic-loop blocks. The raw failure alone does
 not distinguish that from another compiler defect. Do not change global LNC,
