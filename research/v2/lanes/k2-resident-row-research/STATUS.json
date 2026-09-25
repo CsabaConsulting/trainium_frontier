@@ -1,0 +1,94 @@
+{
+  "schema": "k2-resident-row-research-v1",
+  "recorded_utc": "2026-09-25 20:32:21 UTC",
+  "role": "Researcher",
+  "decision": "CONDITIONAL_COMPONENT_FEASIBILITY_PROPOSAL_ONLY",
+  "reason": "Resident row state removes repeated accumulator HBM transfers; device routing, exact native arithmetic, stragglers and compile cost are unproved.",
+  "undo": "Decline proposal; no production or remote state changed.",
+  "source_adoption": false,
+  "candidate_implementation": false,
+  "launch_authorized": false,
+  "host_actions": false,
+  "training_data_used": false,
+  "torch_imported": false,
+  "rejected_e4d93_status": "REFUSE_UNCHANGED",
+  "native_legality": "UNKNOWN",
+  "native_exactness": "UNKNOWN",
+  "whole_step_speedup": "UNMEASURED",
+  "cold_compile_seconds": null,
+  "future_performance_gate": "Existing >=5% whole-step comparator unchanged; all routing charged.",
+  "probe": {
+    "source_sha256": "14880320419452654ed3267b23da4b141413c39ac21d14c1f0591335e31bad4e",
+    "scope": "tiny stdlib scalar mathematics, not actual Torch/NKI/source gate",
+    "runs": [
+      {
+        "command": "env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /usr/bin/python3 -B research/v2/lanes/k2-resident-row-research/routing_recurrence_probe.py",
+        "exit_code": 0,
+        "peak_tracemalloc_bytes": 1170418,
+        "cases": 10
+      },
+      {
+        "command": "env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /usr/bin/python3 -O -B research/v2/lanes/k2-resident-row-research/routing_recurrence_probe.py",
+        "exit_code": 0,
+        "peak_tracemalloc_bytes": 1150522,
+        "cases": 10
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "kind": "base",
+      "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+      "path": "workflow/proposals/research-v2/train.py",
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+    },
+    {
+      "kind": "rejected_candidate",
+      "commit": "25b731f7638672aa8d03a7cd15b6a02b8f5776ea",
+      "path": "workflow/proposals/research-v2/train.py",
+      "sha256": "e4d93babb4cec8ce53ee1ef9f9d4cc4238c40b93dff0245b66fbcf6bae158b03"
+    },
+    {
+      "kind": "old_cpu_sort_scan",
+      "commit": "052c83966456e37335dfe42d14fa016e4290944f",
+      "path": "research/scratch/embedding_segmented_nki.py",
+      "sha256": "a31d1b891d86f31754e8c1e0bdfb94ee6dbaaae5a770364a20a61e1685dc7aee"
+    },
+    {
+      "kind": "old_shared_metadata",
+      "commit": "052c83966456e37335dfe42d14fa016e4290944f",
+      "path": "research/scratch/embedding_segmented_dma_autograd.py",
+      "sha256": "3308ef4a6c8782423dfdefb5ec0877b7e94e85eabb46a03817beec07ef365549"
+    },
+    {
+      "kind": "old_results",
+      "commit": "052c83966456e37335dfe42d14fa016e4290944f",
+      "path": "research/fresh-start-results-2026-09-18.md",
+      "sha256": "8b8b7899645c28b2aad1807b87dcc25cca1f4841547e1261eace94278eb50476"
+    },
+    {
+      "kind": "ordered_wave_proposal",
+      "commit": "8260806c9aa4ce40552d772524ddca75a9d0b6ae",
+      "path": "research/v2/lanes/k2-ordered-research/PROPOSAL.md",
+      "sha256": "3750520ce358bfa1f6f35a9705d5d868e0bfb9f71763618dbd26bd6154e2a5e3"
+    },
+    {
+      "kind": "independent_refusal",
+      "commit": "20c6aa687c9aa595ec6f39c9ded25a949729991a",
+      "path": "research/v2/verification/20260926-fresh-astra-k2a/session/reviewer-output/REVIEW.md",
+      "sha256": "1cc7d41568e1bef6a047de1c4e3f062e9b8439fc3dc1ab29ead62901100c72c8"
+    },
+    {
+      "kind": "independent_reproducer",
+      "commit": "20c6aa687c9aa595ec6f39c9ded25a949729991a",
+      "path": "research/v2/verification/20260926-fresh-astra-k2a/session/reviewer-output/reference_exactness_test.py",
+      "sha256": "24422d083a090a3d92759bbda935a24a13dc73b909f003d91350f4ac4f9d6d84"
+    },
+    {
+      "kind": "immutable_prepare",
+      "commit": "20c6aa687c9aa595ec6f39c9ded25a949729991a",
+      "path": "prepare.py",
+      "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+    }
+  ]
+}

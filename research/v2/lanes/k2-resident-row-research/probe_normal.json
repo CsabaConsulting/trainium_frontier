@@ -1,0 +1,130 @@
+{
+  "candidate_implementation": false,
+  "cases": [
+    {
+      "T": 256,
+      "byte_exact_recurrence": true,
+      "cancellation_values": {
+        "dense_recurrence": 0.0,
+        "old_grouped": 1.0,
+        "resident": 0.0
+      },
+      "case": "review_large",
+      "old_grouped_mismatch": true,
+      "output_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "row_group8_rounds": 253
+    },
+    {
+      "T": 256,
+      "byte_exact_recurrence": true,
+      "cancellation_values": {
+        "dense_recurrence": 0.0,
+        "old_grouped": 5.960464477539063e-08,
+        "resident": 0.0
+      },
+      "case": "review_unit",
+      "old_grouped_mismatch": true,
+      "output_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "row_group8_rounds": 253
+    },
+    {
+      "T": 256,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "unique",
+      "old_grouped_mismatch": null,
+      "output_sha256": "29c4f196369d7466cde3845badaa160915b7fe2cba934c8b118b05020085b133",
+      "row_group8_rounds": 32
+    },
+    {
+      "T": 384,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "all_same",
+      "old_grouped_mismatch": null,
+      "output_sha256": "9f6354141d678c50e1b6ba0cd467e9d141b5d719824bb4aa0285708c22773709",
+      "row_group8_rounds": 384
+    },
+    {
+      "T": 384,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "interleaved",
+      "old_grouped_mismatch": null,
+      "output_sha256": "d81099f866a6036c65f197c8fa01713574b5d1cfdef023e2e00e42c90c2fca26",
+      "row_group8_rounds": 70
+    },
+    {
+      "T": 384,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "random",
+      "old_grouped_mismatch": null,
+      "output_sha256": "3eb2197204f37b95500ff2e785f979c77a8ecce0b2a76ffe25562b217322e8b4",
+      "row_group8_rounds": 121
+    },
+    {
+      "T": 257,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "partial_tile",
+      "old_grouped_mismatch": null,
+      "output_sha256": "18257040fb5cd0bd25ac8a6b49e5ea3e0e39cd08698cbc67c5a4d41ee77a9b4f",
+      "row_group8_rounds": 40
+    },
+    {
+      "T": 17,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "signed_zero",
+      "old_grouped_mismatch": null,
+      "output_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "row_group8_rounds": 6
+    },
+    {
+      "T": 17,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "bf16_subnormal",
+      "old_grouped_mismatch": null,
+      "output_sha256": "39ac398fff6bb56d4a7506357e3775da8e4efac666d182bbcc1445a628861810",
+      "row_group8_rounds": 17
+    },
+    {
+      "T": 0,
+      "byte_exact_recurrence": true,
+      "cancellation_values": null,
+      "case": "empty",
+      "old_grouped_mismatch": null,
+      "output_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "row_group8_rounds": 0
+    }
+  ],
+  "dense_output_bytes_per_table": 33554432,
+  "fp32_composite_key_collision": [
+    268402688,
+    268402689
+  ],
+  "metadata_prefix_bytes": 8388608,
+  "native_acceptance": false,
+  "peak_tracemalloc_bytes": 1170418,
+  "persistent_metadata_bytes": 196612,
+  "production_analytic_bounds": {
+    "balanced_four_per_row": {
+      "Q": 256,
+      "active_fraction": 1.0,
+      "padded_additions": 33554432,
+      "padded_bf16_gradient_bytes_without_skip": 67108864
+    },
+    "one_hot_row": {
+      "Q": 32768,
+      "active_fraction": 0.0078125,
+      "padded_additions": 4294967296,
+      "padded_bf16_gradient_bytes_without_skip": 8589934592
+    }
+  },
+  "python": "3.14.4",
+  "scope": "stdlib scalar mathematics only; not Torch/NKI/source/native verification",
+  "seed": 42,
+  "useful_bf16_gradient_bytes_per_table": 67108864
+}
