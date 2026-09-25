@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:46 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:56 UTC (26 September IST)
 
 ## Current: both hosts active; submission qualification separate
 
@@ -13,10 +13,26 @@ checkpoint diagnostic. All59 packet checks passed normal/-O; model bytes are
 unchanged3e79. Compare to same-host architecture0.986340, not old c5c.
 The20m42s idle incident was reported and is closed by that actual launch.
 
-Checkpoint-only diagnostic135b19e8 is frozen and under independent review;
-it has NOT run or reversed clean-source REFUSE. Both full research jobs remain
-intact. Recursive-on-architecture implementation proceeds independently.
+Checkpoint-only diagnostic135b19e8 passed independent CPU mechanics/tiny tests
+ab0289b2 (151 checks normal/-O, Supervisor replayed). Assignment30d27e8c permits
+one CPU600+15s diagnostic AFTER trn22's current train+eval and quiescence; it has
+NOT run or reversed clean-source REFUSE. Native mechanics96ebbc99 passed42
+additional checks normal/-O, also replayed, but real CPU acceptance and a new
+native release remain required. Both full research jobs remain intact.
+
+Recursive-on-architecture source75b944f7 is isolated atfe0969fd on published
+branch codex/20260926-architecture-recursive-stack; canonical research6ef7 and
+clean3f5035 were not changed. Raw reduced G2 receipts40e8b573 show default/OFF
+identity and finite intentionally different ON updates; not full-size evidence.
+Fresh input-only independent review actually started21:55:27.178088UTC,
+manifest75a0dbd970b2397c8ad7e75ad564cf1deb28f1a1eed5e4a51e0a288d952895dd.
+Its verdict is pending. FullCPUcff1dafe was bound totrn22; Implementer is making
+a distinct disabled trn21 rebind for that host's next free slot. Never dispatch
+the original to the wrong host. No source/native/adoption gate is waived.
 Pending packets are not six ready queued jobs and must not be presented as such.
+Genuine architecture kind=control fallback packets are being prepared, because
+the original winner is an architecture_arm on c5c in the immutable ledger.
+Do not duplicate/relabel it or invent selector eligibility for later LR arms.
 
 A separate REVIEW-ONLY copy now exists in
 `/home/poojith-devan/Downloads/Trainium-architecture-REVIEW-ONLY-3f5035/`.
