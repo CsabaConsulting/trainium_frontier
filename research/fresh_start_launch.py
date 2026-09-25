@@ -55,6 +55,7 @@ assert not log.exists(), 'driver label already exists'
 from fresh_start_monitor_interlock import (require_live_pair, write_interlock_pass,
                                            write_no_spawn)
 spawned = False
+spawn_call_started = False
 stage = 'before_preflight'
 try:
     # Preflight can take time; check before and immediately after it. A dying
@@ -92,6 +93,10 @@ try:
     # guard/process receipt and TERM-signals only the authenticated guard pidfd.
     stage = 'before_guard_spawn'
     require_live_pair(m)
+    # A signal can arrive after Popen has spawned the guard but before Python
+    # assigns its return value. Never claim NO_GUARD_SPAWNED once this call
+    # begins; ambiguity is a manual HOLD and the surviving monitor stays up.
+    spawn_call_started = True
     with log.open('x') as f:
         p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),
                               str(job), '--lock-fd', str(host_lock.fileno())],
@@ -102,11 +107,13 @@ try:
                          hostname=m['hostname'], log=str(log), started_at=m['started_at'],
                          protocol_version=2, preflight_passed=pre['passed'])))
 except BaseException as error:
-    if not spawned:
+    if not spawned and not spawn_call_started:
         try:
             write_no_spawn(m, stage, error)
         except BaseException as receipt_error:
             print('NO_SPAWN_RECEIPT_FAILURE ' + repr(receipt_error), file=sys.stderr)
+    elif not spawned:
+        print('GUARD_SPAWN_STATUS_UNKNOWN_HOLD ' + repr(error), file=sys.stderr)
     raise
 '''
 

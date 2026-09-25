@@ -226,6 +226,9 @@ class PairedLaunchInterlockTest(unittest.TestCase):
         self.assertLess(source.index("require_live_pair(m)"),
                         source.index("subprocess.Popen([sys.executable"))
         self.assertIn("write_no_spawn(m, stage, error)", source)
+        self.assertLess(source.index("spawn_call_started = True"),
+                        source.index("subprocess.Popen([sys.executable"))
+        self.assertIn("if not spawned and not spawn_call_started:", source)
         tree = ast.parse(source)
         remote = next(ast.literal_eval(node.value) for node in tree.body
                       if isinstance(node, ast.Assign)
