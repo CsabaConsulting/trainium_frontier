@@ -1,10 +1,11 @@
 """Local synthetic tests only: never connect to trn22 or open the SSH key."""
 
-import copy
 import datetime
 import json
+import os
 from pathlib import Path
 import shlex
+import stat
 import sys
 import tempfile
 import unittest
@@ -35,6 +36,14 @@ def identity(free=30_000_000_000):
             "boot_id": "synthetic-boot", "mount_namespace": "mnt:[synthetic]",
             "mount": {"filesystem": "ext4", "source": "/dev/root",
                       "mount_id": "27", "major_minor": "259:1", "point": "/"},
+            "block_aliases": {
+                "mount_major_minor": "259:1",
+                "historical_names": {
+                    "/dev/root": {"exists": False, "mount_source_string_only": True},
+                    "/dev/nvme0n1p1": {"exists": True,
+                                        "resolved_rdev_major_minor": "259:1"}},
+                "sysfs_link": "../../devices/pci/nvme0n1p1",
+                "sysfs_realpath": "/sys/devices/pci/nvme0n1p1"},
             "ancestry": {
                 "root": {"type": "directory", "device": 66305, "inode": 2,
                          "uid": 0, "gid": 0, "mode": "0o755"},
@@ -119,8 +128,11 @@ class TransferOnlyTests(unittest.TestCase):
                          transport.sha256(transport.REMOTE.read_bytes()))
         for operation in ("probe", "write", "verify"):
             argv = transport.build_ssh_argv(operation)
-            self.assertEqual(argv[0:2], ["ssh", "-T"])
+            self.assertEqual(argv[0:4], ["ssh", "-F", "/dev/null", "-T"])
             self.assertEqual(argv[-2], transport.ENDPOINT)
+            self.assertIn("UserKnownHostsFile=" + str(transport.KNOWN_HOSTS), argv)
+            self.assertIn("GlobalKnownHostsFile=/dev/null", argv)
+            self.assertIn("HostKeyAlgorithms=ssh-ed25519", argv)
             self.assertEqual(shlex.split(argv[-1]),
                              ["exec", "python3", "-c", transport.reviewed_remote_source(),
                               operation])
@@ -131,6 +143,121 @@ class TransferOnlyTests(unittest.TestCase):
         source = transport.checked_local_source()
         self.assertEqual(source["bytes"], remote.BYTES)
         self.assertEqual(source["sha256"], remote.SHA256)
+
+    def test_pinned_local_host_identity_and_hash_drift_hold(self):
+        host = transport.checked_ssh_identity()
+        self.assertEqual(host["host_fingerprint"], transport.HOST_FINGERPRINT)
+        self.assertEqual(host["known_hosts_sha256"], transport.KNOWN_HOSTS_SHA256)
+        with mock.patch.object(transport, "KNOWN_HOSTS_SHA256", "0" * 64):
+            with self.assertRaisesRegex(RuntimeError, "known-hosts bytes changed"):
+                transport.build_ssh_argv("probe")
+
+    def test_local_stop_blocks_clear_breakers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state.json"
+            state.write_text(json.dumps({"breakers": {
+                "global_correctness": {"tripped": False},
+                "trn22": {"tripped": False}}}), encoding="utf-8")
+            (root / "STOP").write_text("local stop", encoding="utf-8")
+            with mock.patch.object(operator, "CONTROL_STATE", state):
+                with self.assertRaisesRegex(RuntimeError, "local STOP"):
+                    operator._check_controller_breakers()
+
+    def test_disabled_request_cannot_be_flag_flipped(self):
+        old = json.loads(operator.REQUEST.read_text(encoding="utf-8"))
+        old["dispatch_authorized"] = True
+        with tempfile.TemporaryDirectory() as directory:
+            forged = Path(directory) / "forged.json"
+            forged.write_text(json.dumps(old), encoding="utf-8")
+            with mock.patch.object(operator, "REQUEST", forged):
+                with self.assertRaisesRegex(RuntimeError, "evidence drift"):
+                    operator.authorize()
+
+    def test_fake_review_and_unbound_assignment_hold(self):
+        request = json.loads(operator.REQUEST.read_text(encoding="utf-8"))
+        request["dispatch_authorized"] = True
+        request_bytes = json.dumps(request).encode("utf-8")
+        fake_review = json.dumps({"verdict": "PASS", "reviewer_role": "independent_verifier"}).encode("utf-8")
+        assignment = json.dumps({"dispatch_authorized": True, "one_attempt": True}).encode("utf-8")
+        with self.assertRaisesRegex(RuntimeError, "structured PASS"):
+            operator._validate_authority_bundle(request_bytes, fake_review, assignment)
+        operator_sha = operator._sha(Path(operator.__file__).read_bytes())
+        transport_sha = operator._sha(transport.REMOTE.parent.joinpath(
+            "stage_r4_transport.py").read_bytes())
+        bound_review = {"schema": "trn22-r4-independent-transfer-enable-review-v1",
+                        "verdict": "PASS", "reviewer_role": "independent_verifier",
+                        "request_sha256": operator._sha(request_bytes),
+                        "operator_sha256": operator_sha,
+                        "transport_sha256": transport_sha,
+                        "remote_sha256": transport.REMOTE_SHA256,
+                        "capsule_sha256": transport.SOURCE_SHA256,
+                        "source_commit": request["source_commit"],
+                        "host": "trn22", "scope": request["assignment_scope"],
+                        "no_host_action_by_reviewer": True}
+        with self.assertRaisesRegex(RuntimeError, "assignment mismatch"):
+            operator._validate_authority_bundle(request_bytes,
+                                                json.dumps(bound_review).encode("utf-8"),
+                                                assignment)
+        review_bytes = json.dumps(bound_review).encode("utf-8")
+        bound_assignment = {
+            "schema": "trn22-r4-supervisor-transfer-only-one-attempt-v1",
+            "issuer_role": "supervisor", "dispatch_authorized": True,
+            "scope": request["assignment_scope"], "host": "trn22",
+            "request_sha256": operator._sha(request_bytes),
+            "independent_review_sha256": operator._sha(review_bytes),
+            "operator_sha256": operator_sha,
+            "transport_sha256": transport_sha,
+            "remote_sha256": transport.REMOTE_SHA256,
+            "source_commit": request["source_commit"],
+            "capsule_sha256": transport.SOURCE_SHA256,
+            "target": transport.TARGET, "journal": str(operator.JOURNAL),
+            "one_attempt": True,
+        }
+        self.assertEqual(operator._validate_authority_bundle(
+            request_bytes, review_bytes, json.dumps(bound_assignment).encode("utf-8"))[1],
+            bound_assignment)
+        bound_assignment["independent_review_sha256"] = "0" * 64
+        with self.assertRaisesRegex(RuntimeError, "assignment mismatch"):
+            operator._validate_authority_bundle(
+                request_bytes, review_bytes, json.dumps(bound_assignment).encode("utf-8"))
+        bound_review["request_sha256"] = "0" * 64
+        with self.assertRaisesRegex(RuntimeError, "structured PASS"):
+            operator._validate_authority_bundle(
+                request_bytes, json.dumps(bound_review).encode("utf-8"), assignment)
+
+    def test_block_alias_mismatch_holds_preflight(self):
+        bad = probe()
+        bad["identity_before"]["block_aliases"]["historical_names"][
+            "/dev/nvme0n1p1"]["resolved_rdev_major_minor"] = "259:2"
+        bad["identity_after"] = bad["identity_before"]
+        with self.assertRaisesRegex(RuntimeError, "aliases have not been reconciled"):
+            transport.validate_probe(bad, before_write=True)
+
+    def test_remote_alias_proof_uses_kernel_rdev_not_path_spelling(self):
+        class Block:
+            st_mode = stat.S_IFBLK | 0o600
+            st_rdev = os.makedev(259, 1)
+            st_dev = 5
+            st_ino = 99
+        def named(path):
+            if path == "/dev/root":
+                raise FileNotFoundError(path)
+            return Block()
+        with (mock.patch.object(remote.os, "lstat", side_effect=named),
+              mock.patch.object(remote.os, "stat", return_value=Block()),
+              mock.patch.object(remote.os, "readlink", return_value="../../devices/nvme0n1p1"),
+              mock.patch.object(remote.os.path, "realpath",
+                                return_value="/sys/devices/pci/nvme0n1p1")):
+            reconciled = remote._block_aliases({"major_minor": "259:1"})
+            self.assertEqual(reconciled["historical_names"]["/dev/nvme0n1p1"]
+                             ["resolved_rdev_major_minor"], "259:1")
+        class WrongBlock(Block):
+            st_rdev = os.makedev(259, 2)
+        with (mock.patch.object(remote.os, "lstat", side_effect=named),
+              mock.patch.object(remote.os, "stat", return_value=WrongBlock())):
+            with self.assertRaisesRegex(RuntimeError, "different block device"):
+                remote._block_aliases({"major_minor": "259:1"})
 
     def test_synthetic_full_gate_and_cross_session(self):
         before = probe()
@@ -198,10 +325,11 @@ class TransferOnlyTests(unittest.TestCase):
                 raise RuntimeError("synthetic partial write")
             return post
         with (mock.patch.object(operator, "authorize", return_value=(
-                    {"assignment_sha256": "a" * 64}, {})),
+                    {}, {"request_sha256": "b" * 64})),
               mock.patch.object(operator.transport, "checked_local_source",
                                 return_value={"sha256": remote.SHA256}),
               mock.patch.object(operator, "_check_controller_breakers", return_value={}),
+              mock.patch.object(operator, "_read_evidence", return_value=b"fixture-assignment"),
               mock.patch.object(operator, "Journal", FakeJournal),
               mock.patch.object(operator, "_run_ssh", side_effect=fake_ssh)):
             with self.assertRaisesRegex(RuntimeError, "transfer HOLD"):
@@ -209,6 +337,35 @@ class TransferOnlyTests(unittest.TestCase):
         self.assertEqual(seen, ["probe", "write", "probe"])
         self.assertIn("FINAL_READ_ONLY_POSTFLIGHT", events)
         self.assertIn("TRANSFER_HOLD", events)
+
+    def test_stop_appearing_after_preflight_prevents_write_and_postflights(self):
+        calls = []
+        checks = 0
+        class FakeJournal:
+            def emit(self, event, **details):
+                pass
+            def close(self):
+                pass
+        def breaker_check():
+            nonlocal checks
+            checks += 1
+            if checks == 2:
+                raise RuntimeError("local STOP appeared")
+            return {}
+        def ssh(operation, journal):
+            calls.append(operation)
+            return probe()
+        with (mock.patch.object(operator, "authorize", return_value=(
+                    {}, {"request_sha256": "b" * 64})),
+              mock.patch.object(operator.transport, "checked_local_source",
+                                return_value={"sha256": remote.SHA256}),
+              mock.patch.object(operator, "_check_controller_breakers", side_effect=breaker_check),
+              mock.patch.object(operator, "_read_evidence", return_value=b"fixture-assignment"),
+              mock.patch.object(operator, "Journal", FakeJournal),
+              mock.patch.object(operator, "_run_ssh", side_effect=ssh)):
+            with self.assertRaisesRegex(RuntimeError, "transfer HOLD"):
+                operator.run_once()
+        self.assertEqual(calls, ["probe", "probe"])
 
 
 if __name__ == "__main__":
