@@ -25,7 +25,9 @@ FINAL_REVIEW = HERE / "INDEPENDENT_FINAL_SOURCE_STAGE_REVIEW.PASS.json"
 ASSIGNMENT = HERE / "SUPERVISOR_ONE_ATTEMPT_SOURCE_STAGE_ASSIGNMENT.json"
 MARKER = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/"
               "trn21-c5c-a0-r10-incremental-stage-r2.one-attempt.jsonl")
-CONTROL_ROOT = Path("/home/poojith-devan/Documents/ChatGPT/Trainium")
+CONTROL_ROOT = Path("/home/poojith-devan/Desktop/Trainium")
+LEGACY_CONTROL_ROOT = Path("/home/poojith-devan/Documents/ChatGPT/Trainium")
+PACKAGE_ROOT = HERE.parents[3]
 KNOWN_HOSTS = Path("/home/poojith-devan/.ssh/known_hosts")
 IDENTITY_FILE = Path("/home/poojith-devan/Desktop/Trainium/trn2.pem")
 ENDPOINT = "ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com"
@@ -100,7 +102,9 @@ def _source_bytes():
 
 
 def _local_stop_and_breakers():
-    for root in (CONTROL_ROOT, HERE.parents[3]):
+    # Only the active Desktop controller decides breaker/launch state. The
+    # historical Documents checkout can still STOP the attempt, never enable it.
+    for root in (CONTROL_ROOT, LEGACY_CONTROL_ROOT, PACKAGE_ROOT):
         for suffix in ("research/agentic/STOP", "research/v2/STOP"):
             if os.path.lexists(root / suffix):
                 raise RuntimeError("local STOP present")

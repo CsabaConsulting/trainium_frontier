@@ -396,6 +396,34 @@ class IncrementalStageTests(unittest.TestCase):
             self.assertEqual(run.call_args.args[0][0], "/usr/bin/timeout")
         fake.assert_not_called()
 
+    def test_stale_documents_state_cannot_override_tripped_desktop_before_ssh(self):
+        self.assertEqual(operator.CONTROL_ROOT,
+                         Path("/home/poojith-devan/Desktop/Trainium"))
+        with tempfile.TemporaryDirectory(prefix="trn21-r10-active-controller-") as temp:
+            root = Path(temp)
+            desktop = root / "Desktop/Trainium"
+            documents = root / "Documents/ChatGPT/Trainium"
+            package = root / "stage-package"
+            for checkout in (desktop, documents, package):
+                (checkout / "research/v2").mkdir(parents=True)
+            clear = {"launch_authorized": False,
+                     "breakers": {"global_correctness": {"tripped": False},
+                                  "trn21": {"tripped": False}},
+                     "hosts": {"trn21": {"launch_allowed": False}}}
+            tripped = json.loads(json.dumps(clear))
+            tripped["breakers"]["trn21"]["tripped"] = True
+            (documents / "research/v2/state.json").write_text(json.dumps(clear))
+            (desktop / "research/v2/state.json").write_text(json.dumps(tripped))
+            with mock.patch.object(operator, "CONTROL_ROOT", desktop), \
+                 mock.patch.object(operator, "LEGACY_CONTROL_ROOT", documents), \
+                 mock.patch.object(operator, "PACKAGE_ROOT", package), \
+                 mock.patch.object(operator, "_ssh_identity") as identity, \
+                 mock.patch.object(operator.subprocess, "run") as process:
+                with self.assertRaisesRegex(RuntimeError, "controller STOP/breaker"):
+                    operator._ssh_phase("preflight", None, b"", b"remote source")
+            identity.assert_not_called()
+            process.assert_not_called()
+
     def test_remote_absolute_timeout_rejects_fake_version(self):
         with mock.patch.object(remote.subprocess, "run", return_value=types.SimpleNamespace(
                 returncode=0, stderr=b"", stdout=b"fake timeout\n")) as run:
