@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-## Current — 26 September 02:40 IST
+## Current — 26 September 02:50 IST
 
 The installation/staging snapshots below are historical, not current gates.
 Use `research/agentic/CURRENT_STATE.md`, `research/v2/state.json` and the latest
@@ -14,9 +14,12 @@ cross-host confirmation and clean submission preparation continue. The upload
 file is NOT ready: the exact-score clean116188 port still needs independent
 review, full-size identity, cold replay and human-mediated Claude audit.
 
-trn21 is evaluating seed43 before the next reviewed architecture repeat.
-trn22 completed four full-parameter CPU probes; retrieved evidence review is
-pending. No new default launcher or automatic bypass is authorized here.
+trn21 is evaluating seed43; exact architecture repeat is conditionally released
+by `91ee27d7` after completion and fresh checks. trn22 started the reviewed
+bcbd cold-five diagnostic at 02:46:10 IST after its full CPU evidence passed.
+The clean upload candidate is frozen at `7aba6738`, source `3f5035da…`, with
+fresh independent review running; full-size/native cold gates remain. No new
+default launcher or automatic bypass is authorized here.
 
 At 09:56 UTC, the disabled direct trn22 e65→r10 stage `3d26e963`
 received [independent HOLD](verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)

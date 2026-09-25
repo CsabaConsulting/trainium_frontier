@@ -1,6 +1,37 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:10 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:20 UTC (26 September IST)
+
+## Current operational update: clean candidate frozen; confirmation released
+
+The exact-score clean candidate is frozen at `7aba6738`, source SHA
+`3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f`,
+`workflow/candidates/architecture3e79-116188/train.py`. It retains the proven
+116188 long launch command byte-for-byte and the measured old schedule.
+Implementer reduced tensor checks pass; Supervisor replayed 17 source tests
+normally and under -O. Fresh input-only Astra review actually started at
+21:16:49.652326 UTC, session `01a0da6d-9512-7d90-9fc8-7088070ac3c2`.
+Full 113,256,724-parameter CPU and native cold bindings are in preparation.
+The clean source has NO measured BPB yet and is NOT upload-ready. Downloads
+remain unchanged; final Claude-via-human compliance audit remains required.
+
+trn22's reviewed bcbd base-cache cold-five diagnostic actually started at
+21:16:10.429842 UTC under the original lifetime lock, four ranks observed.
+All six private caches were absent then empty; effective worker environments
+match and compiler URL=DIR. Launch archive `3b390352`, assignment `7c1423e7`.
+The preceding full-parameter CPU gate passed 290 independent checks normally
+and under -O (`ff349a09`), replayed by Supervisor. This diagnostic has no
+automatic full run or evaluation. Its startup result remains pending.
+
+trn21's seed43 fresh20M evaluation remains active. Conditional one-shot
+assignment `91ee27d7` has been sent to the sole Operator: after natural eval
+completion, receipt retrieval and fresh quiescence checks, run exact3e79
+cross-host confirmation, old schedule, against the same-host c5c control.
+Its binding passed 81 independent checks normally and under -O (`0f5ad0bc`),
+replayed by Supervisor. Preserve active jobs; no dual launcher or new upload.
+
+The scientific result and older snapshots below remain historical evidence;
+this section supersedes their pending-retrieval and unbuilt-port status.
 
 ## Current: authenticated architecture gain; clean upload port in preparation
 
