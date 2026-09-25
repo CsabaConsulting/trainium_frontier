@@ -7,6 +7,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import shlex
 import subprocess
@@ -28,6 +29,7 @@ def load(name, filename):
 
 remote = load("trn22_r10_remote_timing_test", "remote_timing_readonly.py")
 operator = load("trn22_r10_operator_timing_test", "operator_timing_readonly.py")
+invoker = load("trn22_r10_invocation_gate_test", "invoke_timing_readonly.py")
 
 
 def line(value):
@@ -484,6 +486,141 @@ class PinnedAuthorityTests(unittest.TestCase):
         for operation in ("write", "verify", "stage", "cleanup"):
             with self.assertRaisesRegex(RuntimeError, "wrong read-only operation shape"):
                 operator._ssh_argv(operation)
+
+
+class EnabledRequestStillHeldTests(unittest.TestCase):
+    def test_enabled_request_is_exact_and_review_assignment_are_absent(self):
+        self.assertEqual(operator.CONTROL_ROOT,
+                         Path("/home/poojith-devan/Desktop/Trainium"))
+        self.assertEqual(operator.STAGE_R10_COMMIT, invoker.STAGE_HEAD)
+        self.assertEqual(invoker.STAGE_ROOT,
+                         Path("/home/poojith-devan/Desktop/Trainium-trn22-r10-stage-r3-active-root"))
+        for relative, digest in invoker.STAGE_FILES.items():
+            self.assertEqual(hashlib.sha256((operator.REPO / relative).read_bytes()).hexdigest(),
+                             digest, relative)
+        self.assertEqual(operator.ENABLED.name, "TIMING_REQUEST.ENABLED.json")
+        self.assertEqual(hashlib.sha256(operator.ENABLED.read_bytes()).hexdigest(),
+                         "385d0ec50f81eb66ab66eca2c1af1c725793d7abc7640e72fcbe96a4c47cc9eb")
+        self.assertFalse(operator.REVIEW.exists())
+        self.assertFalse(operator.ASSIGNMENT.exists())
+        self.assertFalse(operator.OUTPUT.exists())
+        request = json.loads(operator.ENABLED.read_bytes())
+        self.assertTrue(request["dispatch_authorized"])
+        for name in ("remote_writes_authorized", "host_process_signals_authorized",
+                     "archive_target_open_authorized", "training_eval_aws_authorized"):
+            self.assertFalse(request[name])
+
+    def test_absent_or_mismatched_final_review_holds_before_any_contact(self):
+        request_sha = operator._sha(operator.ENABLED.read_bytes())
+        review = {
+            "schema": operator.SCHEMA + "-review",
+            "verdict": "PASS_READ_ONLY_TIMING_ONLY", "role": "independent_verifier",
+            "host": "trn22", "scope": operator.SCOPE,
+            "request_sha256": request_sha,
+            "stage_r10_commit": operator.STAGE_R10_COMMIT,
+            "stage_r10_remote_sha256": operator.STAGE_R10_REMOTE_SHA256,
+            "stage_r10_operator_sha256": operator.STAGE_R10_OPERATOR_SHA256,
+            "stage_r10_hold_sha256": operator.STAGE_R10_HOLD_SHA256,
+            "diagnostic_sha256": operator.REMOTE_SHA256,
+            "collector_sha256": operator._sha(Path(operator.__file__).read_bytes()),
+        }
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-timing-authority-") as tmp, \
+             mock.patch.object(operator, "REVIEW", Path(tmp) / "review.json"), \
+             mock.patch.object(operator, "ASSIGNMENT", Path(tmp) / "assignment.json"), \
+             mock.patch.object(operator, "_local_gates") as gates, \
+             mock.patch.object(operator, "_ssh_identity") as identity, \
+             mock.patch.object(operator, "_run_ssh") as ssh:
+            with self.assertRaises(FileNotFoundError):
+                operator._authorize()
+            review["request_sha256"] = "0" * 64
+            operator.REVIEW.write_bytes(line(review))
+            with self.assertRaisesRegex(RuntimeError, "review missing or mismatched"):
+                operator._authorize()
+            gates.assert_not_called()
+            identity.assert_not_called()
+            ssh.assert_not_called()
+
+    def test_absent_or_mismatched_assignment_holds_before_any_contact(self):
+        request_sha = operator._sha(operator.ENABLED.read_bytes())
+        review = {
+            "schema": operator.SCHEMA + "-review",
+            "verdict": "PASS_READ_ONLY_TIMING_ONLY", "role": "independent_verifier",
+            "host": "trn22", "scope": operator.SCOPE,
+            "request_sha256": request_sha,
+            "stage_r10_commit": operator.STAGE_R10_COMMIT,
+            "stage_r10_remote_sha256": operator.STAGE_R10_REMOTE_SHA256,
+            "stage_r10_operator_sha256": operator.STAGE_R10_OPERATOR_SHA256,
+            "stage_r10_hold_sha256": operator.STAGE_R10_HOLD_SHA256,
+            "diagnostic_sha256": operator.REMOTE_SHA256,
+            "collector_sha256": operator._sha(Path(operator.__file__).read_bytes()),
+        }
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-timing-authority-") as tmp, \
+             mock.patch.object(operator, "REVIEW", Path(tmp) / "review.json"), \
+             mock.patch.object(operator, "ASSIGNMENT", Path(tmp) / "assignment.json"), \
+             mock.patch.object(operator, "_local_gates") as gates, \
+             mock.patch.object(operator, "_ssh_identity") as identity, \
+             mock.patch.object(operator, "_run_ssh") as ssh:
+            operator.REVIEW.write_bytes(line(review))
+            with self.assertRaises(FileNotFoundError):
+                operator._authorize()
+            assignment = {
+                "schema": operator.SCHEMA + "-assignment",
+                "status": "ASSIGNED_ONE_ATTEMPT_READ_ONLY_TIMING",
+                "role": "supervisor", "host": "trn22", "scope": operator.SCOPE,
+                "request_sha256": request_sha,
+                "review_sha256": "0" * 64,
+                "output_basename": operator.OUTPUT.name, "one_attempt": True,
+            }
+            operator.ASSIGNMENT.write_bytes(line(assignment))
+            with self.assertRaisesRegex(RuntimeError, "assignment missing or mismatched"):
+                operator._authorize()
+            gates.assert_not_called()
+            identity.assert_not_called()
+            ssh.assert_not_called()
+
+
+class LocalExecutionRootTests(unittest.TestCase):
+    def test_exact_clean_stage_head_bytes_and_stop_gate(self):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-stage-root-") as tmp:
+            root = Path(tmp)
+            fixture = root / "fixture.txt"
+            fixture.write_text("synthetic source\n", encoding="ascii")
+            env = {**invoker.GIT_ENV, "GIT_AUTHOR_NAME": "Synthetic",
+                   "GIT_AUTHOR_EMAIL": "synthetic@example.invalid",
+                   "GIT_COMMITTER_NAME": "Synthetic",
+                   "GIT_COMMITTER_EMAIL": "synthetic@example.invalid"}
+            subprocess.run(["/usr/bin/git", "init", "-q", str(root)],
+                           env=env, capture_output=True, check=True)
+            subprocess.run(["/usr/bin/git", "-C", str(root), "add", "fixture.txt"],
+                           env=env, capture_output=True, check=True)
+            subprocess.run(["/usr/bin/git", "-C", str(root), "commit", "-qm", "fixture"],
+                           env=env, capture_output=True, check=True)
+            head = invoker._git(root, "rev-parse", "HEAD").decode("ascii")
+            source = {"fixture.txt": hashlib.sha256(fixture.read_bytes()).hexdigest()}
+            former = Path.cwd()
+            try:
+                os.chdir(root)
+                invoker.check_execution_root(root, head, source)
+                with self.assertRaisesRegex(RuntimeError, "HEAD changed"):
+                    invoker.check_execution_root(root, "0" * 40, source)
+                with self.assertRaisesRegex(RuntimeError, "source bytes changed"):
+                    invoker.check_execution_root(root, head,
+                                                 {"fixture.txt": "0" * 64})
+                (root / "untracked.txt").write_text("dirty\n", encoding="ascii")
+                with self.assertRaisesRegex(RuntimeError, "dirty"):
+                    invoker.check_execution_root(root, head, source)
+                (root / "untracked.txt").unlink()
+                (root / "research/v2").mkdir(parents=True)
+                (root / "research/v2/STOP").write_text("STOP\n", encoding="ascii")
+                with self.assertRaisesRegex(RuntimeError, "STOP present"):
+                    invoker.check_execution_root(root, head, source)
+            finally:
+                os.chdir(former)
+
+    def test_wrong_execution_cwd_holds_before_collector_import(self):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-wrong-cwd-") as tmp:
+            with self.assertRaisesRegex(RuntimeError, "exact execution root"):
+                invoker.check_execution_root(Path(tmp), "0" * 40, {})
 
 
 if __name__ == "__main__":

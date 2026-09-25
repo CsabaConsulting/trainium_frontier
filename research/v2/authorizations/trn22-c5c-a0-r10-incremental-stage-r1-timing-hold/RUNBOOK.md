@@ -1,4 +1,4 @@
-# trn22 r10 direct-stage timing feasibility — DISABLED / READ-ONLY HOLD
+# trn22 r10 direct-stage timing feasibility — exact READ-ONLY request / HOLD
 
 This r4 disabled correction closes the independently observed postflight
 local-gate bypass in r3: **every** SSH phase, including the best-effort
@@ -11,7 +11,7 @@ contact was made to implement or test this correction.
 
 This Implementer-only diagnostic is bound to the corrected disabled [trn22 e65→r10 direct source-stage package](../trn22-c5c-a0-r10-incremental-stage-r1-hold/RUNBOOK.md) at commit `b3ec7406f0e7a3df6848698876e2106305dd283f`. Its target training-source HEAD is `22bfbab5a77d6feb670d2d737504f8b70b08ddc1`. The predecessor stage package `3d26e963` had a mistyped inherited-review hash; its r2 successor `020bfa7e` read a potentially stale Documents controller state. Both remain historical HOLD. This branch includes a byte-identical cherry-pick of the separately pushed r3 correction so its pins resolve locally. The timing-specific change carries the r3 Desktop state pin and additionally checks the former Documents STOP paths. It changes neither the remote timing sequence nor the source stage's one-shot label, target, bundle or marker.
 
-No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, native training, evaluation, AWS action or submission occurred. `GATE_CONTRACT.HOLD.json` has `dispatch_authorized=false` and all remote-write/training permissions false. The absent distinct enabled timing request, independent final timing review and Supervisor one-attempt assignment are required before the collector can contact a host. Running `operator_timing_readonly.py` from these checked-in bytes refuses locally before SSH or a result file. Source-stage dispatch is a separate authority and remains HOLD.
+No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, native training, evaluation, AWS action or submission occurred. `GATE_CONTRACT.HOLD.json` has `dispatch_authorized=false` and all remote-write/training permissions false. The distinct, exact `TIMING_REQUEST.ENABLED.json` now requests only the bounded read-only observation; it is **not launch authority by itself**. The independent final timing review and Supervisor one-attempt assignment remain absent, so the collector refuses locally before SSH or a result file. Source-stage dispatch is a separate authority and remains HOLD.
 
 ## Exact source pins
 
@@ -20,7 +20,9 @@ No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, n
 | `remote_timing_readonly.py` | `c43fbe1224de291c31a797079ed9708db4ca7fa0d7fe785b3ff67274c835f3ca` |
 | `operator_timing_readonly.py` | `90660ab0892ecb091f9dc852cea46f4d59f76a3365c46451381d9c78d6ba4ef8` |
 | `GATE_CONTRACT.HOLD.json` | `09086904ae8ab1cba54e4c1fb35476a90c5654d7a8692a61eb167cd8bddd6bfc` |
-| `test_timing_readonly.py` | `59b27538b48e009acfeccd21f9858ec137191af2f6150281440f33372e17f6ce` |
+| `TIMING_REQUEST.ENABLED.json` | `385d0ec50f81eb66ab66eca2c1af1c725793d7abc7640e72fcbe96a4c47cc9eb` |
+| `invoke_timing_readonly.py` | `753c61db6a8e416b18bad88f68db3aa19acb350f3e1aed760802459c46600de5` |
+| `test_timing_readonly.py` | `d2f2edc28e8ee18568217886bf05e2d245bb01b9eb04ab2e9cb382e3fcbd5ab6` |
 | exact corrected-stage remote source | `da647804d439e738484532a06b3d7dcf122b3fce808d6dce342a3d25eaaab49f` |
 | exact corrected-stage operator source | `a5fc2ebac3520f425d5ab0bdfb7ae0091a2e5db59b152dd8cd39eb67cff5beda` |
 | exact corrected-stage disabled request | `48e3ad5d0bb1d077dbf8304e3ddfe7e3263892e522dc277f32812eea5c8e111a` |
@@ -28,6 +30,21 @@ No SSH/host contact, local timing result, marker, transfer, checkout, cleanup, n
 The host/source pin is trn22 `ip-172-31-32-253`, UID/GID 1000, ext4 device 66305, accepted linked e65 checkout `/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2` at `e65a3097a5b00f6178188a935bb2acb9a5042c6c`, and the exact source `train.py`/`prepare.py` hashes. The timed label is `fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1`; its target and bundle paths match the corrected-stage code. The existing private-cache lock is opened read-only and acquired nonblocking. This diagnostic checks source identity and activity but is intentionally narrower than the stage's full ACL/NSS/mount/protected-artifact preflight. Earlier host snapshots are not fresh stage preflights.
 
 The older r9-r4 timing source `6876f084` supplied the bounded collector pattern; no r9 timing result or static review grants r10 authority. Every r10 pin, label, target, schema and output name has a distinct binding here.
+
+## Final review and invocation boundary — still HOLD
+
+This request is for one **trn22** read-only timing observation of the stage-r3 `b3ec7406f0e7a3df6848698876e2106305dd283f` e65→r10 path, label `fs-20260925-trn22-c5c-a0-r10-incremental-stage-r1`. The fixed local result, if a separately assigned Operator later executes the reviewed request, is `research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold/OPERATOR_RAW_R10_TIMING_RESULT.json` within this package's worktree. A preexisting result, including a partial failure receipt, consumes the one attempt. There is no remote write or training/eval permission.
+
+The independent Verifier must review the **final committed package** and create `INDEPENDENT_TIMING_REVIEW.PASS.json` with the exact collector-expected source/request hashes. Only then may the Supervisor create the separate `SUPERVISOR_TIMING_ASSIGNMENT.json` for this one attempt. Neither file exists in this request. No Implementer may self-issue either authority, and no timing or stage invocation is approved until a separate final request/assignment check. Before assignment, the Verifier/Operator must record the exact clean local timing-package worktree HEAD; it cannot be self-pinned inside a request that changes its own commit. They must also confirm the active controller state is `/home/poojith-devan/Desktop/Trainium/research/v2/state.json`, not a potentially stale Documents snapshot.
+
+The **only proposed invocation entrypoint**, after those distinct gates and fresh preflight, is `invoke_timing_readonly.py` from the separate clean stage execution worktree `/home/poojith-devan/Desktop/Trainium-trn22-r10-stage-r3-active-root` at exact HEAD `b3ec7406f0e7a3df6848698876e2106305dd283f`. Its local preflight checks the unaliased root, current directory, HEAD, clean status, STOP absence and pinned science/stage bytes before importing the collector. Direct collector invocation is not the proposed Operator command. This is a description for final review, **not an instruction to run it now**:
+
+```text
+cd /home/poojith-devan/Desktop/Trainium-trn22-r10-stage-r3-active-root
+/usr/bin/python3 -B /home/poojith-devan/Documents/ChatGPT/Trainium-trn22-r10-timing-enabled-r4-r1/research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold/invoke_timing_readonly.py
+```
+
+The checked-in enabled request alone fails at the absent independent review, before the collector's active-controller/SSH gates. Synthetic tests also prove that absent or mismatched review/assignment and a wrong/dirty execution root fail before host contact. The timing collector checks the active Desktop and former Documents STOP/breakers again before **each** SSH phase; a late STOP prevents the postflight connection too. A timing result still does not authorize source staging or native training.
 
 ## Exact clock-only model of the r10 final boundary
 
@@ -51,4 +68,4 @@ python3 -B research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timi
 python3 -O -B research/v2/authorizations/trn22-c5c-a0-r10-incremental-stage-r1-timing-hold/operator_timing_readonly.py
 ```
 
-The Implementer tests are local synthetic checks only. Both entrypoints must refuse before SSH or an output receipt; a distinct independent Verifier must review the final package before any later enabled timing request.
+The Implementer tests are local synthetic checks only. Both collector invocations above must refuse before SSH or an output receipt because final review and assignment are absent. The `-O` invocation is also not an approved Operator shape. An independent Verifier must review this final package before any later one-attempt assignment.
