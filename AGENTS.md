@@ -85,6 +85,25 @@ No cleanup, protected-artifact deletion, AWS/volume action, or breaker reset may
 from older standing authorization; the newest brief reserves these decisions to the human.
 See `research/v2/CONTROLLER_BRIEF_2026-09-25.md` for priorities and deadlines.
 
+## Latest direct human override: Moonshot break-glass (2026-09-25 IST)
+
+Poojith's later direct instructions supersede older migration gates only where
+explicit: the immediate S0 cold replay and research-v2 base control may launch
+by the plain manual path without independent **pre-launch** review. A distinct
+Operator must copy the exact `train.py`, verify its host SHA-256 and matching
+CPU G2 receipt where available, check disk >=6.5 GiB and no other Neuron job,
+then launch one unique full-chip job. A separate reviewer examines receipts
+**after launch and before results are used**. Fresh-process public-20M/context-
+1024 evaluation and durable success/failure records remain mandatory. The
+cross-process mount-identity comparison in the new staging tool is not a gate
+for this manual path. Both hosts must be training by 20:00 IST; a missed
+deadline requires the exact failed command and error to be reported.
+
+This exception does not waive proposal, source identity, one-job-per-host,
+role separation from the Implementer, data/evaluator protections, or the
+human-only submission rule. It does not itself authorize later A1/A2 or stack
+runs without their applicable checks. Details: `research/v2/BREAK_GLASS_2026-09-25.md`.
+
 ## Definition of done for one experiment
 
 The proposal, commit, exact launch command, environment, box, log, parsed metrics, checkpoint
