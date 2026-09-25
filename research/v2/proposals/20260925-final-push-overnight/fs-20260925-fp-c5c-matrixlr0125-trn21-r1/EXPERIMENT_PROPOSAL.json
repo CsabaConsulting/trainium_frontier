@@ -1,0 +1,233 @@
+{
+  "proposal_id": "20260925-fp-c5c-matrixlr0125-trn21-r1",
+  "queue_binding": {"host":"trn21","label":"fs-20260925-fp-c5c-matrixlr0125-trn21-r1","source_sha256":"c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586","argv":["--n-embd","1024","--no-ngram-ve","--no-qk-shift","--compile-sdpa-direct","--nki-local-conv","--bf16-norm-output","--pack-factor","32","--clip-after-reduce","--seq-len","1024","--no-eval-public","--matrix-lr","0.0125","--seed","42","--max-train-seconds","1800","--num-steps","1000000","--out-dir","out"],"kind":"flag_arm","arm_id":"FP-c5c-F2","base_sha256":"c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"},
+  "status": "READY_PENDING_HOST_PREFLIGHT",
+  "owner_role": "researcher",
+  "hypothesis": "Reducing matrix LR from 0.015 to 0.0125 reduces late-run update noise on the width1024 dense base.",
+  "single_causal_change": "--matrix-lr 0.015 -> 0.0125; all other science flags and exact train.py bytes unchanged.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": -0.0003,
+  "predicted_bpb_interval": [
+    -0.002,
+    0.002
+  ],
+  "prediction_basis": "Research prior only, not a measured result on this source/host.",
+  "candidate_shortlist": [
+    {
+      "idea": "F2 matrixlr0125",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": -0.0003,
+      "why_ranked": "Ready verified-file fallback; consumes a slot only when table replicate/new-base control/verified moonshot stack is unavailable."
+    },
+    {
+      "idea": "Conditional cross-host table replicate",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.005,
+      "why_ranked": "Higher priority once first-host valid delta <= -0.0006; do not count it in ready depth before condition."
+    },
+    {
+      "idea": "S-A/S-B/S-C verified stack",
+      "mechanism_class": "stack",
+      "predicted_bpb_delta": -0.01,
+      "why_ranked": "Higher expected upside; requires arriving patch and independent new-code gates."
+    },
+    {
+      "idea": "Fresh same-host current-base control",
+      "mechanism_class": "control",
+      "predicted_bpb_delta": 0,
+      "why_ranked": "Prioritize when8 runs/12h elapsed, drifted, or base changed."
+    }
+  ],
+  "selection_rationale": "FINAL PUSH calls for six ready fallback jobs per host while tables and external code lanes proceed. These scalar arms are execution fillers, not the main path to a0.044 improvement. Paired host jobs are deliberately unconditional but can be superseded by a better ready job.",
+  "p_improve": 0.3,
+  "estimated_host_hours": 1,
+  "ev_bpb_per_host_hour": 0.00008999999999999999,
+  "trainium_feasibility": "No model/graph shape, ownership, optimizer-kind, batch, data or evaluation change. Dense6x1024, LNC2x4, pack32, seq1024, total batch131072, accumulation1. Only an existing scalar CLI value changes. Per-run warm-cache/native success still needs observation.",
+  "cheapest_falsifier": "Operator rejects source/argv mismatch, stale control, occupied/STOP/breaker/disk gate. Run the requested full1800s arm; short quality smokes are not used for schedule decisions.",
+  "prior_result_refs": [
+    "research/v2/verification/20260925-trn21-c5c-a0-r1-result-independent-PASS.md",
+    "research/agentic/DECISION_LOG.md",
+    "research/trn2-experiment-results.md",
+    "research/experiment-log.jsonl"
+  ],
+  "evidence": [
+    "workflow/codex_directive_final_push.txt",
+    "research/v2/queue.json",
+    "submissions/research_v2/train.py",
+    "research/v2/g1.json",
+    "research/v2/verification/20260925-trn21-c5c-a0-r1-result-independent-PASS.md"
+  ],
+  "duplicate_search_terms": [
+    "--matrix-lr",
+    "matrixlr0125",
+    "F2",
+    "c5c410af"
+  ],
+  "duplicate_search_files": [
+    "research/v2/ledger.jsonl",
+    "research/experiment-log.jsonl",
+    "research/agentic/DECISION_LOG.md",
+    "research/trn2-experiment-results.md"
+  ],
+  "duplicate_finding": "Sep24 dense1024 LR0.015 was a measured improvement; extending its lower side is unmeasured on exact c5c. Labels are new in the proposal snapshot; Operator must check host/repository labels again immediately before dispatch.",
+  "control": {
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "public_val_bpb": 0.9914739939934344,
+    "steps": 3675,
+    "review": "research/v2/verification/20260925-trn21-c5c-a0-r1-result-independent-PASS.md",
+    "evaluated_utc": "2026-09-25T14:26:47Z",
+    "git_commit": null,
+    "git_commit_note": "The control used an exact-file manual stage; source identity is pinned by SHA256. Do not invent a host Git HEAD from a later evidence commit.",
+    "source_definition_commit": "8b9fc841ed817eac263c7087c3bce7c9f008bda1",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "box_constraint": "Same host trn21, exact c5c bytes, same data, effective compiler settings, seed42, full chip and fresh public20M/context1024; refresh control after8 runs or12h or a base change."
+  },
+  "candidate": {
+    "branch": "codex/final-push-overnight-proposals-20260925",
+    "files_allowed": [
+      "No source edits; exact existing train.py only"
+    ],
+    "expected_diff": "Zero train.py diff; CLI profile only.",
+    "source_path": "submissions/research_v2/train.py",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "source_definition_commit": "8b9fc841ed817eac263c7087c3bce7c9f008bda1",
+    "run_label": "fs-20260925-fp-c5c-matrixlr0125-trn21-r1",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.0125",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.0125 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out",
+    "working_directory_contract": "New exclusive run_root/label, containing hash-verified c5c train.py and unchanged prepare.py; output out/final.pt.",
+    "environment": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "cache_policy": "Reuse the host's existing persistent warm research caches. The Operator records actual cache paths/effective flags and confirms no cold-cache substitution; never cleans caches.",
+    "operational_flags_note": "Explicit --seed42 --max-train-seconds1800 --num-steps1000000 --out-dir out restate A0 effective defaults and output isolation; only the declared science value differs."
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "gate_semantics": {
+    "rules_review": "Researcher checked legal scalar/profile-only proposal; not an independent code review.",
+    "diff_review": "Not required before launch for verified-file flag-only arm by newest explicit directive; no code diff.",
+    "cpu_or_static_checks": "Exact argv AST/argparse check is supplied in COMMAND_CHECKS.json; no new CPU/G2 claim.",
+    "numerical_equivalence": "No equivalence claim for changed hyperparameter; exact source hash required.",
+    "causality": "Known file preserves causal forward; actual checkpoint causality/eval receipt required before result use.",
+    "smoke_run": "Not required for this verified-file flag-only full arm by FINAL PUSH.",
+    "human_run_approval": "Standing FINAL PUSH authority for research runs; Supervisor integrates queue and Operator performs machine checks. No per-run human ceremony."
+  },
+  "success_criteria": {
+    "quality": "Unchanged workflow/tools/decide.py: valid same-host delta <= -0.0006 nominates; two-host both negative, mean <= -0.0010, disagreement <=0.0015 adopts. Human preapproved research adoptions. Single valid delta <= -0.005 may be provisional with replicate in parallel, while big-win hold/audit at <=-0.010 or public<0.975 still applies.",
+    "throughput": "Record steps/tok/s/charged time/startup. Flag-arm step ratio outside[0.90,1.10] is CONFOUNDED; do not silently reclassify as throughput_arm.",
+    "correctness": "Finite training, no crash/NaN, charged<=1800s, all four ranks clean, clean source identity, exact public20M/context1024 fresh-process evaluation, loadable checkpoint, retrieved log and independent result review."
+  },
+  "abort_conditions": [
+    "Source or prepare SHA mismatch; scientific argv differs from proposal.",
+    "STOP, unresolved correctness/disk breaker, other host train/eval job or Neuron holder, reused label/output, or free disk below6.5GiB plus forecast footprint.",
+    "Current base changed: these c5c/A0-bound jobs become stale and must be explicitly rebased and assigned new same-host controls.",
+    "Missing/invalid control; refresh after8 runs or12h or drift before comparing.",
+    "Crash, NaN, missing checkpoint, overbudget or failed eval: archive actual error; no silent retry/relabel.",
+    "Freeze Sep29 18:00IST reached. No cleanup, AWS action or human submission is authorized by this proposal."
+  ],
+  "human_approved_by": "Poojith FINAL PUSH directive Sep25; verified-file flag-only experiments and research-base adoption standing authorization.",
+  "verdict": null,
+  "execution": {
+    "host": "trn21",
+    "kind": "flag_arm",
+    "arm_id": "FP-c5c-F2",
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "base_science_argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "full_chip": true,
+    "lnc": 2,
+    "ranks": 4,
+    "seed": 42,
+    "budget_seconds": 1800,
+    "eval": {
+      "fresh_process": true,
+      "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "command_argv": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "prepare.py",
+        "eval-public",
+        "--train-py",
+        "train.py",
+        "--checkpoint",
+        "out/final.pt",
+        "--device",
+        "neuron",
+        "--batch-size",
+        "1",
+        "--seq-len",
+        "1024",
+        "--eval-tokens",
+        "20971520",
+        "--timeout-seconds",
+        "1200"
+      ]
+    },
+    "preserve_checkpoint": true,
+    "no_checkpoint_deletion_authorization": true,
+    "postlaunch_independent_review_before_result_use": true
+  }
+}
