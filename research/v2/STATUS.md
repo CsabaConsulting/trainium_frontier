@@ -2,6 +2,12 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:11 UTC, the frozen trn21 checkout implementation
+[passed independent local review](authorizations/trn21-c5c-a0-stage-r2-extraction/INDEPENDENT_IMPLEMENTATION_REVIEW.md).
+The Verifier requires a separately reviewed exact request and failure-path
+read-only full postflight before a checkout-only assignment. No host checkout,
+CPU G2 or native run has occurred; no BPB changed.
+
 At 02:06 UTC, trn22 r4 frozen source 446b6576
 [passed independent local safety review](disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md).
 This is not host or dispatch clearance: the old r3 request/bindings do not

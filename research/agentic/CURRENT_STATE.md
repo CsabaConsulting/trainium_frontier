@@ -1,6 +1,19 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:06 UTC
+Last reconciled: 2026-09-25 02:11 UTC
+
+## Current handoff: trn21 checkout implementation PASS; exact request still HOLD
+
+The frozen trn21 r2 checkout package
+[passed independent local implementation review](../v2/authorizations/trn21-c5c-a0-stage-r2-extraction/INDEPENDENT_IMPLEMENTATION_REVIEW.md).
+The earlier three-file transfer already passed its separate result review.
+Neither PASS is host checkout authority. An Implementer is building a
+non-dispatchable exact one-attempt request that must include a fresh complete
+preflight and **read-only full postflight even on extraction failure**. That
+request needs separate review and Supervisor checkout-only assignment before
+any Operator action. A failed attempt must leave any partial checkout intact
+without cleanup/retry. CPU G2, native training and eval remain HOLD; no BPB
+changed.
 
 ## Current handoff: trn22 r4 source safety PASS; exact launch bindings still HOLD
 
