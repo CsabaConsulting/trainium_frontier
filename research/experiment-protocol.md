@@ -4,14 +4,32 @@ Formal routine for every training run. Written 2026-09-17 after the
 speed-collapse incident showed an undocumented environment variable
 (`NEURON_CC_FLAGS`) could silently halve throughput with zero log trace.
 
+## Mandatory launch interlock — 26 September human amendment
+
+`workflow/SINGLE_LAUNCHER_2026-09-26.md` controls every launch, including
+manual fallbacks and diagnostics. Acquire the same exclusive nonblocking
+remote-host flock at `/home/ubuntu/.cache/trainium_freshstart/device0.lock`;
+while holding it, require fresh successful `ps` AND `neuron-ls` idle checks.
+Retain the lock through the entire run and attached evaluation. Lock
+contention, another job, device holders or failed/ambiguous checks mean
+**do not launch; log and move on**. Do not kill another job to obtain access.
+Never unlink/replace the lock inode. A separately launched eval repeats these
+checks; attached eval retains the lock and follows confirmed child exit.
+
+The older checklist below remains supplemental where consistent with the
+latest exact proposal. `/proc` or `fuser` alone does not replace the two
+required checks. Historical runners without this interlock must remain parked.
+
 ## 1. Pre-run (both boxes, every time)
 
-1. **Idle check.** `ps aux | grep -E "train.py|phase_timer|reconcile"` must be
-   empty. At most 1 run per box, always.
+1. **Idle check under the common lock.** Inspect `ps` for other torchrun,
+   training, evaluation, Neuron compiler and diagnostic jobs, plus `neuron-ls`
+   for device holders. Both must pass, at most 1 run per box, always.
 2. **Disk.** `df -h /` — abort the launch under ~5G free. Compiling under
    ENOSPC poisons the build (incident 2026-09-17: first dynamic smoke).
-3. **Device holders.** `fuser /dev/neuron0` must be silent. Orphans from
-   traumatic kills hold cores/memory — kill strays first.
+3. **Additional device-holder check.** `fuser /dev/neuron0` must be silent.
+   Orphans can hold cores/memory. Log and diagnose; do not launch or kill
+   another job merely to pass preflight.
 4. **Code sync.** Same `git rev-parse HEAD` on both boxes AND local, and
    `git status --porcelain` clean. A scored run with `git_dirty=True` is
    void on arrival. (trn22 once sat a dozen commits behind with no remote —

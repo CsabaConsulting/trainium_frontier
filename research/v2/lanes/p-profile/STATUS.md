@@ -1,5 +1,16 @@
 # P status — 2026-09-26 IST
 
+Latest handoff, 19:27 UTC: fresh independent session
+`01a0da02-1e9c-7771-8c4e-22560f61836f` completed source/CPU-only PASS for
+exact6ef7 and this wrapper, including its own 22-step FP32/BF16 reference.
+Supervisor acceptance is in
+`research/v2/verification/20260926-fresh-review-supervisor-acceptance.md`.
+Native launch remains pending the reviewed lifetime-lock/in-lock-idle guard
+and a scoped Operator assignment. No native profile or performance result.
+
+Implementation snapshot below is historical; its pending source-review line
+is superseded by the receipt above, not by a claimed native pass.
+
 Implemented, pending independent review and Operator binding. No host access or
 native capture by Implementer. Wrapper SHA:
 `eaad6aff2e18a825eb8ddca91aed5efa72c91a385eb02cbdaee36b01c2644f7d`.
