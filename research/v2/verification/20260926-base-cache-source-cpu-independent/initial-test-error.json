@@ -1,0 +1,10 @@
+{
+  "status": "VERIFIER_FIXTURE_SCOPE_ERROR",
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /usr/bin/time -f 'elapsed=%e peak_rss_KiB=%M' /home/poojith-devan/venv/bin/python research/v2/verification/20260926-base-cache-source-cpu-independent/check.py --repo /home/poojith-devan/Desktop/Trainium --tensor",
+  "exit_code": 1,
+  "elapsed_s": 1.64,
+  "peak_rss_KiB": 241544,
+  "error": "RuntimeError: cache not persistent state",
+  "cause": "The initial verifier fixture also tested FP32 compute, incorrectly assuming weight.to(dtype) always returns a Tensor rather than the same Parameter. The unchanged baseline Linear.refresh_weight_cache also registers _cached_weight as a Parameter for an FP32 identity cast. This does not establish a new candidate bug.",
+  "correction": "Restrict the reference to the assigned BF16-compute/FP32-master lane. No candidate/source or acceptance threshold was edited."
+}

@@ -1,0 +1,77 @@
+{
+  "checks": 784,
+  "fresh_independent_session": "NOT_RUN",
+  "full117M_G2": "PENDING",
+  "native": "NOT_RUN",
+  "raw_audit": {
+    "checkpoint_sha256": "1bc4752a2f82da10dd944c1a58bcdc2859ccb4bedea59222d3e77bb41efe098c",
+    "micro_batch": [
+      2,
+      128
+    ],
+    "parameter_records": 62,
+    "plan_sha256": "806be765aee5bf7597ada264f58f60162a46dc5b9b7d098dc13a9e40c2bbfa57",
+    "ranks": 4,
+    "scope": "historical intrusive tiny observer, synthetic data and fake clock; no native execution",
+    "sha256": {
+      "base": "842a2e36d7662e0e6a843a737fec1eb8d31d1d26ca9d95966e350db189dbe69b",
+      "default": "13e5801681aea8588f38ddcd9866454f6895ddcaaf6b8ffdc1c4de47cb31cf58",
+      "off": "08fbb5de1d51fabd44137c66a961f9c638bfba47506baee57c765759c7c6ac86",
+      "on": "08b08c5ab2c79bafb5b197c6fa4375eee4ac59d4c3a5697cef29ff8b3653ed06"
+    },
+    "steps": 3
+  },
+  "source_sha256": {
+    "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "b635c8b0cf2a10e1bcdd983e86192672ed6ad56f": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522"
+  },
+  "status": "PASS",
+  "tiny_reference": {
+    "cases": [
+      {
+        "all_outputs_gradients_updates_state_exact": true,
+        "dtype": "torch.bfloat16",
+        "micro_backwards": 1,
+        "steps": 3,
+        "transposed": false
+      },
+      {
+        "all_outputs_gradients_updates_state_exact": true,
+        "dtype": "torch.bfloat16",
+        "micro_backwards": 2,
+        "steps": 3,
+        "transposed": false
+      },
+      {
+        "all_outputs_gradients_updates_state_exact": true,
+        "dtype": "torch.bfloat16",
+        "micro_backwards": 1,
+        "steps": 3,
+        "transposed": true
+      },
+      {
+        "all_outputs_gradients_updates_state_exact": true,
+        "dtype": "torch.bfloat16",
+        "micro_backwards": 2,
+        "steps": 3,
+        "transposed": true
+      }
+    ],
+    "full_model_imported": false,
+    "max_weight_elements": 35,
+    "scope": "extracted Linear and exact new block vs independent functional reference; simple momentum, not production optimizer",
+    "threads": 1,
+    "torch": "2.13.0+cpu"
+  },
+  "executions": {
+    "normal": {
+      "exit_code": 0,
+      "elapsed_s": 1.44,
+      "peak_rss_KiB": 240508
+    },
+    "optimized": {
+      "exit_code": 0,
+      "resource_line": "elapsed=2.36 peak_rss_KiB=242672"
+    }
+  }
+}
