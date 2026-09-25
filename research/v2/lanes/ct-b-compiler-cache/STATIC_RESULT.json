@@ -1,0 +1,400 @@
+{
+  "checks": [
+    "exact original architecture source",
+    "shape-only reconstruction has all 65 actual parameters",
+    "shape-only exact source ownership matches raw G2 summary",
+    "rank0 model graphs have no in-graph collectives",
+    "rank1 model graphs have no in-graph collectives",
+    "rank2 model graphs have no in-graph collectives",
+    "rank3 model graphs have no in-graph collectives",
+    "model graph all ranks 596f579c",
+    "one nonzero reported compiler timer 596f579c",
+    "model graph all ranks 927f008f",
+    "one nonzero reported compiler timer 927f008f",
+    "model graph all ranks bdb48db5",
+    "one nonzero reported compiler timer bdb48db5",
+    "model graph all ranks d038873c",
+    "one nonzero reported compiler timer d038873c",
+    "four distinct model graph IDs",
+    "eight small inference graph IDs / thirteen occurrences",
+    "archived input bytes match live capture",
+    "captured compiler input identifies first model forward",
+    "model-type transformer is already requested",
+    "optlevel1 and preceding O2 both recorded"
+  ],
+  "inputs_sha256": {
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/candidate-on/results/rank0.json": "a4f56b5fe083990c22fecbfd8abae9a8da8e9199001ce9d535cac95ad3f73b67",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/completed-training/metrics-training/metric_table_graph_stats_rank0.csv": "71631195a9cf648e91dafe73bc25d1149024d4bb14042d378ca57dfdeb2ffea9",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/completed-training/metrics-training/metric_table_graph_stats_rank1.csv": "b97eaaafacb662c22a7f15b9efaed22ca774a67925ac98a836e7b606462a6a0a",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/completed-training/metrics-training/metric_table_graph_stats_rank2.csv": "18883de159d39101d419e3e111baa480a5486923917147d0e096a0af130ac7a4",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/completed-training/metrics-training/metric_table_graph_stats_rank3.csv": "bf6e7c7ebcec15abd544a5d07a01acb46a55e3d1664b8e3980f8ee967d76b66d",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/live-compiler-input/capture.json": "740fe1f32e605e210207898c65d660a37b263aed8b8d913fc3e963da4742c2b3",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/live-compiler-input/compiler-log-prefix.txt": "175cfc22d63b8531c902fd0ee72ddc74537830c52873a76bf855d3d43f539787",
+    "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/live-compiler-input/module.mlir": "927f008f870ad145057d17cdb33f66dfeee965cd8392db47cf7063ff4b7d838d"
+  },
+  "limits": [
+    "not actual cold startup",
+    "zero metric alone is not persistent cache proof",
+    "small graph key to exact Muon stack mapping not present in raw IR",
+    "no torch import or tensor allocation",
+    "no compiler execution or host calls"
+  ],
+  "model_graphs": [
+    {
+      "graph_id": "596f579cb964497e7d8886c086cb0aa0cc756acc08d499b6e38d3f4b1c80def0:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_0_backward_3",
+        "model_default_0_backward_3",
+        "model_default_0_backward_3",
+        "model_default_0_backward_3"
+      ],
+      "node_count": 1217,
+      "ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 521.889,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    {
+      "graph_id": "927f008f870ad145057d17cdb33f66dfeee965cd8392db47cf7063ff4b7d838d:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_0_forward_1",
+        "model_default_0_forward_1",
+        "model_default_0_forward_1",
+        "model_default_0_forward_1"
+      ],
+      "node_count": 704,
+      "ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 205.38,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    {
+      "graph_id": "bdb48db56643dc6607d43085f8c219b30e3222d1d1eda7806160190464ad5dd4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_4_forward_8",
+        "model_default_5_forward_9",
+        "model_default_4_forward_8",
+        "model_default_4_forward_8"
+      ],
+      "node_count": 666,
+      "ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 0.0,
+        "1": 202.538,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    {
+      "graph_id": "d038873c60d724b807f27c269e89da41609b9cea2391c1161884be9671e0afc9:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_4_backward_10",
+        "model_default_5_backward_11",
+        "model_default_4_backward_10",
+        "model_default_4_backward_10"
+      ],
+      "node_count": 1169,
+      "ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 465.466
+      }
+    }
+  ],
+  "ownership_summary": {
+    "elements_by_owner": [
+      27262976,
+      28315914,
+      27269130,
+      30408704
+    ],
+    "estimated_ms_by_owner": [
+      11.902383616666665,
+      11.901154315065611,
+      11.905213318837584,
+      12.116303749999998
+    ],
+    "shard_elements": 30408704,
+    "total_padded_bytes": 486539264
+  },
+  "reported_unique_model_compile_seconds": 1395.2730000000001,
+  "reported_unique_small_compile_seconds": 44.471000000000004,
+  "shape_only_ownership": [
+    {
+      "muon_stacks": [
+        {
+          "compiled_stack_count": 6,
+          "matrix_shape": [
+            1024,
+            1024
+          ],
+          "owned_count": 6
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            1024,
+            4096
+          ],
+          "owned_count": 2
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            4096,
+            1024
+          ],
+          "owned_count": 1
+        }
+      ],
+      "rank": 0
+    },
+    {
+      "muon_stacks": [
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            8,
+            32
+          ],
+          "owned_count": 1
+        },
+        {
+          "compiled_stack_count": 3,
+          "matrix_shape": [
+            1024,
+            1024
+          ],
+          "owned_count": 3
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            1024,
+            4096
+          ],
+          "owned_count": 1
+        },
+        {
+          "compiled_stack_count": 3,
+          "matrix_shape": [
+            4096,
+            1024
+          ],
+          "owned_count": 3
+        }
+      ],
+      "rank": 1
+    },
+    {
+      "muon_stacks": [
+        {
+          "compiled_stack_count": 6,
+          "matrix_shape": [
+            1024,
+            1024
+          ],
+          "owned_count": 6
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            1024,
+            4096
+          ],
+          "owned_count": 1
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            4096,
+            1024
+          ],
+          "owned_count": 2
+        }
+      ],
+      "rank": 2
+    },
+    {
+      "muon_stacks": [
+        {
+          "compiled_stack_count": 5,
+          "matrix_shape": [
+            1024,
+            1024
+          ],
+          "owned_count": 5
+        },
+        {
+          "compiled_stack_count": 4,
+          "matrix_shape": [
+            1024,
+            4096
+          ],
+          "owned_count": 4
+        },
+        {
+          "compiled_stack_count": 2,
+          "matrix_shape": [
+            4096,
+            1024
+          ],
+          "owned_count": 2
+        }
+      ],
+      "rank": 3
+    }
+  ],
+  "small_graphs": [
+    {
+      "graph_id": "00a70cb9209fbf5eca7457b26a3a5f58e7cd5047bffba0bc0f2552a7156b293b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_3_inference_6",
+        "model_default_3_inference_6",
+        "model_default_3_inference_6"
+      ],
+      "node_count": 194,
+      "ranks": [
+        0,
+        2,
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 5.746,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    {
+      "graph_id": "257f34bdc9a4051500e12b96ff48050aee3129bf751b5f47da779d91ae07255d:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_1_inference_4"
+      ],
+      "node_count": 194,
+      "ranks": [
+        1
+      ],
+      "reported_compile_s_by_rank": {
+        "1": 3.128
+      }
+    },
+    {
+      "graph_id": "36a88bdf90818ebb09ca69e1732039c69517c7ad7a78209fbd465bacb8692409:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_2_inference_5"
+      ],
+      "node_count": 194,
+      "ranks": [
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "3": 8.182
+      }
+    },
+    {
+      "graph_id": "43b296f874af6cebb564166a87b66a3d987c737287033ff9f298d30bb1c92314:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_1_inference_4",
+        "model_default_1_inference_4"
+      ],
+      "node_count": 194,
+      "ranks": [
+        0,
+        2
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 5.404,
+        "2": 0.0
+      }
+    },
+    {
+      "graph_id": "5158a6cb7a7ac75fa33b861a4c10e4d48adb2de2fc74f8088b4b9a836ce6059b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_1_inference_4"
+      ],
+      "node_count": 194,
+      "ranks": [
+        3
+      ],
+      "reported_compile_s_by_rank": {
+        "3": 5.577
+      }
+    },
+    {
+      "graph_id": "5faed19ff5aac4883559c93af24a87779e20d3a1d3ac92b676ef5c84ecc9e490:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_4_inference_7"
+      ],
+      "node_count": 194,
+      "ranks": [
+        1
+      ],
+      "reported_compile_s_by_rank": {
+        "1": 6.052
+      }
+    },
+    {
+      "graph_id": "733e63f16660899fb69c751eca06473b027c7129e8af162adb995f93d7f2ebfc:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_2_inference_5"
+      ],
+      "node_count": 194,
+      "ranks": [
+        1
+      ],
+      "reported_compile_s_by_rank": {
+        "1": 5.283
+      }
+    },
+    {
+      "graph_id": "b3d9befd1899d29dd15e6a61c6707ba6dbda1982db66afb5f509ba0f52f1059b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "names": [
+        "model_default_2_inference_5",
+        "model_default_3_inference_6",
+        "model_default_2_inference_5"
+      ],
+      "node_count": 194,
+      "ranks": [
+        0,
+        1,
+        2
+      ],
+      "reported_compile_s_by_rank": {
+        "0": 5.099,
+        "1": 0.0,
+        "2": 0.0
+      }
+    }
+  ],
+  "source_commit": "1e21c3d797eed764f108c41546b270065ad5650c",
+  "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+  "status": "STATIC_EVIDENCE_ONLY_NO_NATIVE_GAIN"
+}
