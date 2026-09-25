@@ -1,4 +1,4 @@
-# trn21 e65 → r10 small-bundle source stage r3 local-gate repair — DISABLED / HOLD
+# trn21 e65 → r10 small-bundle source stage r4 timing repair — DISABLED / HOLD
 
 This is an Implementer-only, stage-only candidate. No enabled request,
 independent final **stage** PASS, one-attempt Supervisor assignment, host
@@ -11,16 +11,24 @@ enabled request is absent. This package is a distinct successor to the held
 accepted e65 checkout remain untouched. Do not substitute held full-capsule
 writers or treat the r10 source PASS as native authority.
 
-This r3 source repair descends from the independently static-PASSed r2
-`3e846589` package, but that PASS does **not** cover the changed local
-operator bytes. The previous operator read breaker state from the stale
-Documents checkout. This version reads breaker/launch state only from the
-active `/home/poojith-devan/Desktop/Trainium/research/v2/state.json`, while
-STOP files in active Desktop, Documents, and this package worktree all hold
-before SSH. A regression exercises stale Documents-clear versus active
-Desktop-tripped and asserts no SSH identity check or subprocess is reached.
-The remote source, bundle, stage label, target, and one-attempt marker are
-unchanged. Independent review of this exact r3 source is still required.
+This r4 candidate descends from r3 `7205abf5`, whose active Desktop
+controller-root correction received independent **static-only** PASS. The
+one-shot read-only trn21 timing result `c238fe24` and independent raw review
+`228abbb5` are HOLD: the first trial spent `1.1614667139947414` seconds
+in the pre-open helper and rejected two sequential whole-home label scans
+before any actual `O_EXCL`. Its fixed result and timing attempt are consumed;
+neither is a source-stage attempt, and neither may be rerun.
+
+This r4 changes the remote pre-open scan sequence, the local final receipt
+validator, and the local timeout identity gate. One whole-home label scan
+remains immediately before `O_EXCL`, after the full write-phase `_probe`
+scan, and the existing whole-home post-open scan remains mandatory **before
+payload**. All full activity/Neuron,
+STOP, root byte/inode, source/Git, checkpoint/cache, protected-stage-file,
+mount/lock/ACL/group, distinct-session, one-shot and local active Desktop
+controller checks remain. The stage label, target, bundle, science bytes and
+one-attempt marker are unchanged. Independent review of these exact r4 bytes
+is required before even drafting an enabled stage request.
 
 ## Frozen local subject
 
@@ -32,10 +40,10 @@ unchanged. Independent review of this exact r3 source is still required.
 | Remote bundle path | `/home/ubuntu/trainium-c5c-e65-to-r10-20260925.trn21-stage-r2.bundle` (new, exclusive) |
 | Local one-shot marker | `/home/poojith-devan/Desktop/Trainium-source-artifacts/trn21-c5c-a0-r10-incremental-stage-r2.one-attempt.jsonl` (absent in this package) |
 | Git bundle | `e65-to-r10.bundle`, 109,800 B, SHA-256 `b191ba0b5272d062c61ed9e35cfbb7efcb67e1df49cbe3959be28c906073d20e` |
-| Remote source | `remote_incremental.py`, SHA-256 `47e2c28bd6fd735904398a48d6c91ef95b93454cef9558b121c26b0ee5b66a0b` |
-| Local entry | `operator_once.py`, SHA-256 `6ecad35400199b7c1cba41c78d5d4f14363d37180c40e8aab5e9b485846db74f` |
-| Disabled request | `REQUEST.HOLD.json`, SHA-256 `4c48243b7a5bee3f5aa6333e8ec5e81e5d7d434d926cbce18af907bc5ddfdd7c` |
-| Offline tests | `test_incremental_stage.py`, SHA-256 `4d23b06b984d1226d4fd33ee08dc47dafde3f0e3d7e458bfa0a18129f84bc304`; `test_final_boundary_r2.py`, SHA-256 `e3ff8f1057dfd83ea88533a86662c5240025059deec12d20bbf6281a85876c91` |
+| Remote source | `remote_incremental.py`, SHA-256 `6f0da61a76595a6fea18662d07d7311c504ab3a4b641ac972c440438bda08bf6` |
+| Local entry | `operator_once.py`, SHA-256 `b397a79246f2c854faf6f5a9bdbaa27f85f7fe3fd234958a01e8783c635996be` |
+| Disabled request | `REQUEST.HOLD.json`, SHA-256 `910bea1646e8f3e0715b8f9bf5c8d84385d12778f12223d5afbb9c5134801d56` |
+| Offline tests | `test_incremental_stage.py`, SHA-256 `df5dd0a82771dc74affcf4d47171453abdd2a10851a53bf89c67c40215590de5`; `test_final_boundary_r2.py`, SHA-256 `a3df70766254e7deb73ff9712763ce2f7ac8e75b1920cca735408a824ddf3204` |
 
 The bundle verifies with e65 as its only prerequisite and r10 as its only
 HEAD. The `e65..r10` inventory is 141 Git objects: 15 commits, 61 trees,
@@ -105,7 +113,17 @@ alternates, and strict full Git fsck.
    assignment can pass `stage_once`. The three fixed future files are absent
    here. The checked-in HOLD JSON cannot be edited into authority.
 2. After local STOP/breaker and pinned trn21 SSH identity checks, the future
-   Operator exclusively creates a one-attempt marker. Distinct SSH processes
+   Operator uses bounded, read-only pinned SSH to check **remote**
+   `/usr/bin/timeout --version` for GNU coreutils, then rechecks local STOP
+   and active Desktop breakers before exclusively creating a one-attempt
+   marker. This SSH probe is reached only after the exact enabled request,
+   independent final stage PASS and Supervisor assignment; none exists here.
+   Each subsequent phase repeats the same remote timeout probe and local
+   STOP/breaker recheck before its pinned SSH command. Local
+   `/usr/bin/timeout` is uutils on this controller and is not the binary
+   wrapping the remote phase; the r3 local-GNU check would have falsely
+   blocked the marker. A remote non-GNU version, failed pinned transport,
+   stderr or oversized probe response remains HOLD. Distinct SSH processes
    perform full fresh preflight, exclusive bundle/new-checkout creation,
    cross-session Git/hash readback, and an **unconditional attempt** at full
    read-only postflight. A local/remote STOP or transport failure can prevent
@@ -122,29 +140,37 @@ alternates, and strict full Git fsck.
    stage-label absence. Both before and after space snapshots must meet
    13,177,973,911 B for preflight/write or 10,737,418,240 B for
    readback/postflight, and **always** the 6.5-GiB and 10,000-inode floors.
-   The remote and local commands use absolute GNU timeout and refuse
+   The remote phase uses absolute GNU timeout and both entrypoints refuse
    optimized Python before any host write.
 4. Immediately before the first bundle `O_EXCL`, under that lock, the writer
-   runs full activity, **two** broad label scans, full post-label activity,
-   the root byte/inode floor, then direct STOP and target-absence checks.
-   The full scan duration and activity/label/space ages must each be at most
-   one second at the last no-write sample. At the **return** of the actual
-   exclusive open it revalidates those ages and the open-call duration. After
-   open but before payload it performs another broad label scan, full
-   process/Neuron/STOP check and byte/inode observation, plus bounded ages
-   and same-empty-inode checks. A persistent STOP/label/activity/disk change
-   arising after the first checks therefore cannot yield a successful local
-   synthetic write receipt. A change first seen after open leaves an **empty
-   provisional bundle**, not a clean absence; the target is not created.
-   No provisional bundle is unlinked. The one-shot marker and partial remain
-   for inspection, with HOLD and no automatic retry or cleanup.
-5. This is bounded evidence, not an atomic filesystem/process snapshot.
-   Actual trn21 timing of the extra checks is **unmeasured**; the strict
-   one-second gate may refuse live. The recorded ages describe checks at
-   open return and before starting payload; they do **not** prove freshness
-   at payload completion or defeat a noncooperating same-UID/privileged actor
-   after the last observation. Neither source review nor these offline tests
-   authorize a host attempt.
+   runs full activity, **one** broad `/home/ubuntu` label scan, full
+   post-label activity, the root byte/inode floor, then direct STOP and
+   target-absence checks. Its scan duration and all activity/label/space ages
+   must be finite and at most one second at the last no-write sample **and at
+   the return of the actual exclusive open**; the open-call duration itself
+   must also be at most one second. This does not relax the original limit.
+   After open but before payload, another whole-home label scan, full
+   process/Neuron/STOP check, root byte/inode sample, finite ≤1-second ages,
+   and same-empty-inode check remain mandatory. A persistent label injected
+   during the final pre-open scan after its cursor passed is caught by that
+   post-open scan: at most an **empty provisional bundle** exists; no payload
+   or checkout is created. The bundle is retained, and the one-shot marker
+   remains consumed. There is no unlink, cleanup or automatic retry.
+5. **Risk/semantic limit:** r4 is **not equivalent** to r3's two pre-open
+   scans for the first `O_EXCL`. The late-label case above may create an
+   empty provisional inode where r3's second pre-open scan might have
+   refused before creation. The guaranteed property in the tested bounded
+   cooperative-flock/ordinary-DAC model is no *successful* stage or payload
+   when a persistent duplicate or STOP arrives during the final scan or at
+   open and remains through the post-open check. A noncooperating same-UID or
+   privileged actor can still create a label **after the last post-open
+   scan**, between userspace checks and payload; r3 already had this
+   documented residual, which an adversarial test reproduces here. No finite
+   `find` sequence makes global uniqueness atomic. The independent final
+   reviewer must explicitly decide whether the changed empty-provisional
+   exposure is acceptable; this disabled source makes no such authority
+   decision. The r4 full activity and single-scan live duration is
+   unmeasured, so the unchanged ≤1-second actual-open gate may still refuse.
 6. Only a new `0700` detached r10 checkout and `0600` bundle may result.
    Failure preserves the consumed marker and any partial target/bundle for
    inspection: no retry, overwrite, cleanup or native run. Even a successful
@@ -168,7 +194,7 @@ Implementer-local checks:
 
 `TMPDIR=/dev/shm python3 -O -B -m unittest discover -s research/v2/authorizations/trn21-c5c-a0-r10-incremental-stage-r2-hold -p 'test_*.py' -q`
 
-Both returned 27/27 PASS offline; `git bundle verify` passed again and the
+Both returned 37/37 PASS offline; `git bundle verify` passed again and the
 bundle bytes are unchanged. These are
 Implementer regression checks, not independent verification. No host was
 contacted.

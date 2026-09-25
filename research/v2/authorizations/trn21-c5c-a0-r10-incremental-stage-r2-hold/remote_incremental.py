@@ -445,20 +445,22 @@ def _label_scan():
 
 
 def _final_no_write_continuity():
-    """Sample the final checks under flock for revalidation at actual O_EXCL.
+    """Sample one final broad scan under flock for actual-O_EXCL revalidation.
 
-    This bounds the evidence age; it cannot make process/directory scanning
-    atomic against a noncooperating same-UID or privileged actor.
+    A label arriving behind this scan's cursor can still reach an empty
+    provisional O_EXCL. The full post-open scan catches a persistent duplicate
+    before payload or checkout creation. It is not equivalent to two
+    pre-open scans and cannot make userspace checks atomic against a
+    noncooperating same-UID/root actor.
     """
     _activity()
     scan_started = time.monotonic()
     _label_scan()
-    _label_scan()
     label_end = time.monotonic()
     scan_duration = label_end - scan_started
-    if not 0 <= scan_duration <= MAX_FINAL_CHECK_AGE_SECONDS:
-        _fail("final label scans too old for first O_EXCL")
-    # Process or Neuron activity may begin during either broad scan.
+    if not math.isfinite(scan_duration) or not 0 <= scan_duration <= MAX_FINAL_CHECK_AGE_SECONDS:
+        _fail("final label scan too old for first O_EXCL")
+    # Process or Neuron activity may begin during the broad scan.
     _activity()
     activity_end = time.monotonic()
     root_space = _space(PRE_FREE)
@@ -478,10 +480,13 @@ def _freshness_evidence(samples, now):
     ages = {"activity_age_seconds": now - samples["activity_at"],
             "label_age_seconds": now - samples["label_at"],
             "space_age_seconds": now - samples["space_at"]}
-    if any(not math.isfinite(age) or not 0 <= age <= MAX_FINAL_CHECK_AGE_SECONDS
-           for age in ages.values()):
+    duration = samples["label_scan_duration_seconds"]
+    if (type(duration) not in (int, float) or not math.isfinite(duration) or
+            not 0 <= duration <= MAX_FINAL_CHECK_AGE_SECONDS or
+            any(not math.isfinite(age) or not 0 <= age <= MAX_FINAL_CHECK_AGE_SECONDS
+                for age in ages.values())):
         _fail("final activity/label/space proof too old for first O_EXCL")
-    return {**ages, "double_label_scan": True,
+    return {**ages, "pre_open_broad_label_scan": True,
             "post_label_activity_check": True,
             "label_scan_duration_seconds": samples["label_scan_duration_seconds"],
             "root_space_before_open": samples["root_space_before_open"]}
@@ -622,6 +627,7 @@ def _write_bundle(data):
             _empty_opened_bundle(fd, parent)
             final_gate.update(post_open_ages)
             final_gate["open_call_elapsed_seconds"] = open_elapsed
+            final_gate["post_open_broad_label_scan"] = True
             final_gate["post_open_label_and_activity_check"] = True
             final_gate["root_space_after_open"] = root_space_after_open
             offset = 0

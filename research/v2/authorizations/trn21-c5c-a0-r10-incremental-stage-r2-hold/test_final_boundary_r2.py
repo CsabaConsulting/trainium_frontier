@@ -36,6 +36,9 @@ class FinalBoundaryTests(unittest.TestCase):
             root = Path(dirname)
             bundle, target = root / "exact.bundle", root / "new-checkout"
             stop, label = root / "STOP", root / ("late-" + remote.LABEL)
+            protected = root / "protected-checkpoint.pt"
+            protected.write_bytes(b"untouched protected bytes")
+            protected_inode = protected.stat().st_ino
             payload = b"synthetic exact incremental bundle"
             state = {"scan_count": 0, "activity_count": 0,
                      "busy": None, "disk_low": False, "open_elapsed": 0.0}
@@ -120,29 +123,58 @@ class FinalBoundaryTests(unittest.TestCase):
             return {"bundle_exists": bundle.exists(),
                     "bundle_bytes": bundle.read_bytes() if bundle.exists() else None,
                     "target_exists": target.exists(), "proof": proof,
-                    "error": error, **state}
+                    "error": error, "protected_bytes": protected.read_bytes(),
+                    "protected_inode": protected.stat().st_ino,
+                    "protected_inode_before": protected_inode, **state}
 
     def test_clean_fixture_has_real_open_and_post_open_proof(self):
         result = self.exercise()
         self.assertIsNone(result["error"])
-        self.assertEqual(result["scan_count"], 3)
+        self.assertEqual(result["scan_count"], 2)
         self.assertEqual(result["activity_count"], 3)
         self.assertTrue(result["bundle_exists"])
         self.assertTrue(result["target_exists"])
         proof = result["proof"]
-        self.assertIs(proof["double_label_scan"], True)
+        self.assertIs(proof["pre_open_broad_label_scan"], True)
         self.assertIs(proof["post_label_activity_check"], True)
+        self.assertIs(proof["post_open_broad_label_scan"], True)
         self.assertIs(proof["post_open_label_and_activity_check"], True)
         operator._checked_final_gate(proof)
 
-    def test_changes_during_final_scans_refuse_before_exclusive_creation(self):
-        for event in ("stop_after_first_scan", "label_after_first_scan",
-                      "process_after_second_scan", "neuron_after_second_scan",
+    def test_stop_during_final_scan_refuses_before_exclusive_creation(self):
+        result = self.exercise("stop_after_first_scan")
+        self.assertIsNotNone(result["error"])
+        self.assertFalse(result["bundle_exists"])
+        self.assertFalse(result["target_exists"])
+
+    def test_label_during_final_scan_retains_only_empty_provisional(self):
+        result = self.exercise("label_after_first_scan")
+        self.assertIn("stage label already appears", result["error"])
+        self.assertEqual(result["scan_count"], 2)
+        self.assertTrue(result["bundle_exists"])
+        self.assertEqual(result["bundle_bytes"], b"")
+        self.assertFalse(result["target_exists"])
+        self.assertEqual(result["protected_bytes"], b"untouched protected bytes")
+        self.assertEqual(result["protected_inode"], result["protected_inode_before"])
+
+    def test_noncooperating_label_after_last_scan_is_explicit_residual(self):
+        # This is an adversarial limitation witness, not a safety PASS. The
+        # same race exists after r3's last post-open scan. A final reviewer
+        # must accept the bounded cooperative-flock model before enablement.
+        result = self.exercise("label_after_second_scan")
+        self.assertIsNone(result["error"])
+        self.assertTrue(result["bundle_exists"])
+        self.assertTrue(result["target_exists"])
+        self.assertEqual(result["bundle_bytes"], b"synthetic exact incremental bundle")
+
+    def test_changes_after_post_open_scan_leave_empty_provisional(self):
+        for event in ("process_after_second_scan", "neuron_after_second_scan",
                       "disk_after_second_scan"):
             with self.subTest(event=event):
                 result = self.exercise(event)
                 self.assertIsNotNone(result["error"])
-                self.assertFalse(result["bundle_exists"])
+                self.assertTrue(result["bundle_exists"])
+                self.assertEqual(result["bundle_bytes"], b"")
                 self.assertFalse(result["target_exists"])
 
     def test_helper_to_open_changes_leave_empty_partial_and_hold(self):
@@ -185,6 +217,9 @@ class FinalBoundaryTests(unittest.TestCase):
         proof = self.exercise()["proof"]
         for name, value in (("open_call_elapsed_seconds", float("nan")),
                             ("post_open_space_age_seconds", float("inf")),
+                            ("label_scan_duration_seconds", float("nan")),
+                            ("pre_open_broad_label_scan", False),
+                            ("post_open_broad_label_scan", False),
                             ("post_label_activity_check", False),
                             ("root_space_after_open", {"root_free_bytes": 1,
                                                        "root_free_inodes": 0})):
@@ -192,6 +227,20 @@ class FinalBoundaryTests(unittest.TestCase):
                 altered = dict(proof)
                 altered[name] = value
                 with self.assertRaises(RuntimeError):
+                    operator._checked_final_gate(altered)
+
+    def test_contradictory_final_chronology_is_refused(self):
+        proof = self.exercise()["proof"]
+        for older, newer in (("label_age_seconds", "activity_age_seconds"),
+                             ("activity_age_seconds", "space_age_seconds"),
+                             ("space_age_seconds", "open_call_elapsed_seconds"),
+                             ("post_open_label_age_seconds", "post_open_activity_age_seconds"),
+                             ("post_open_activity_age_seconds", "post_open_space_age_seconds")):
+            with self.subTest(older=older, newer=newer):
+                altered = dict(proof)
+                altered[older] = 0.0
+                altered[newer] = 0.5
+                with self.assertRaisesRegex(RuntimeError, "contradictory"):
                     operator._checked_final_gate(altered)
 
     def test_local_stop_can_block_full_readonly_postflight_before_ssh(self):
@@ -234,7 +283,8 @@ class FinalBoundaryTests(unittest.TestCase):
                  mock.patch.object(operator, "_regular", return_value=b"operator"), \
                  mock.patch.object(operator, "_authority"), \
                  mock.patch.object(operator, "_local_stop_and_breakers"), \
-                 mock.patch.object(operator, "_ssh_identity"):
+                 mock.patch.object(operator, "_ssh_identity"), \
+                 mock.patch.object(operator, "_remote_timeout_identity"):
                 with self.assertRaisesRegex(RuntimeError, "marker and all partials retained"):
                     operator.stage_once(remote_call=remote_call)
             events = [json.loads(line)["event"] for line in marker.read_text().splitlines()]

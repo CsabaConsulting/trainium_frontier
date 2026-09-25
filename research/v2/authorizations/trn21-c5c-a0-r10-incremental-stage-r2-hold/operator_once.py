@@ -46,6 +46,7 @@ LABEL = "fs-20260925-trn21-c5c-a0-r10-incremental-stage-r2"
 SCOPE = "TRN21_R10_INCREMENTAL_SOURCE_STAGE_ONLY_ONE_ATTEMPT"
 PRE_FREE = 13_177_973_911
 MIN_INODES = 10_000
+CHRONOLOGY_TOLERANCE_SECONDS = 1e-6
 
 
 def _canonical(value):
@@ -206,15 +207,30 @@ def _ssh_identity():
         raise RuntimeError("known-hosts changed during identity check")
 
 
+def _ssh_argv(remote_command):
+    """Use the same pinned transport for the read-only probe and each phase."""
+    return ["/usr/bin/ssh", "-T", "-F", "/dev/null", "-o", "BatchMode=yes",
+            "-o", "StrictHostKeyChecking=yes", "-o",
+            "UserKnownHostsFile=" + str(KNOWN_HOSTS), "-o",
+            "GlobalKnownHostsFile=/dev/null", "-o", "HostKeyAlgorithms=ssh-ed25519",
+            "-o", "UpdateHostKeys=no", "-o", "IdentitiesOnly=yes", "-o",
+            "ConnectTimeout=10", "-i", str(IDENTITY_FILE), ENDPOINT,
+            remote_command]
+
+
+def _remote_timeout_identity():
+    """Check the remote absolute timeout that actually wraps the phase."""
+    version = subprocess.run(_ssh_argv("/usr/bin/timeout --version"),
+                             input=b"", capture_output=True, timeout=20,
+                             check=False)
+    if (version.returncode != 0 or version.stderr or len(version.stdout) > 1024 or
+            not version.stdout.startswith(b"timeout (GNU coreutils) ")):
+        raise RuntimeError("remote absolute GNU timeout identity check failed")
+
+
 def _ssh_phase(phase, prior, data, remote_source):
     _local_stop_and_breakers()
     _ssh_identity()
-    version = subprocess.run(["/usr/bin/timeout", "--version"],
-                             env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
-                             capture_output=True, timeout=5, check=False)
-    if (version.returncode != 0 or version.stderr or
-            not version.stdout.startswith(b"timeout (GNU coreutils) ")):
-        raise RuntimeError("absolute GNU timeout identity check failed")
     # A fresh isolated Python process executes exact, hash-checked source.
     program = ("import json,sys\n"
                "if sys.flags.optimize: raise SystemExit('optimized Python HOLD')\n"
@@ -229,12 +245,11 @@ def _ssh_phase(phase, prior, data, remote_source):
                "/usr/bin/python3", "-I", "-B", "-c", program, phase,
                json.dumps(prior, sort_keys=True, separators=(",", ":"))]
     remote_command = " ".join(shlex.quote(item) for item in command)
-    argv = ["/usr/bin/ssh", "-T", "-F", "/dev/null", "-o", "BatchMode=yes",
-            "-o", "StrictHostKeyChecking=yes", "-o",
-            "UserKnownHostsFile=" + str(KNOWN_HOSTS), "-o", "IdentitiesOnly=yes",
-            "-o", "ConnectTimeout=10", "-i", str(IDENTITY_FILE), ENDPOINT,
-            remote_command]
-    result = subprocess.run(argv, input=data, capture_output=True,
+    _remote_timeout_identity()
+    # STOP may have appeared during the SSH probe; it cannot be overridden by
+    # the earlier clean controller snapshot, and must block this phase.
+    _local_stop_and_breakers()
+    result = subprocess.run(_ssh_argv(remote_command), input=data, capture_output=True,
                             timeout=350, check=False)
     if result.returncode != 0 or result.stderr or len(result.stdout) > 2 * 1024 * 1024:
         raise RuntimeError("SSH phase failed or emitted stderr: " + phase)
@@ -269,8 +284,10 @@ def _marker(request_hash, review_hash, assignment_hash):
 
 def _checked_final_gate(final):
     """Reject a write receipt that omits an actual-open or post-open gate."""
-    if (not isinstance(final, dict) or final.get("double_label_scan") is not True or
+    if (not isinstance(final, dict) or
+            final.get("pre_open_broad_label_scan") is not True or
             final.get("post_label_activity_check") is not True or
+            final.get("post_open_broad_label_scan") is not True or
             final.get("post_open_label_and_activity_check") is not True):
         raise RuntimeError("missing pre/post-open continuity proof")
     for name in ("activity_age_seconds", "label_age_seconds", "space_age_seconds",
@@ -281,6 +298,13 @@ def _checked_final_gate(final):
         if (type(value) not in (int, float) or not math.isfinite(value) or
                 not 0 <= value <= 1.0):
             raise RuntimeError("invalid final continuity age: " + name)
+    for older, newer in (("label_age_seconds", "activity_age_seconds"),
+                         ("activity_age_seconds", "space_age_seconds"),
+                         ("space_age_seconds", "open_call_elapsed_seconds"),
+                         ("post_open_label_age_seconds", "post_open_activity_age_seconds"),
+                         ("post_open_activity_age_seconds", "post_open_space_age_seconds")):
+        if final[older] + CHRONOLOGY_TOLERANCE_SECONDS < final[newer]:
+            raise RuntimeError("contradictory final monotonic chronology")
     for name in ("root_space_before_open", "root_space_after_open"):
         space = final.get(name)
         if (not isinstance(space, dict) or
@@ -314,6 +338,10 @@ def stage_once(remote_call=_ssh_phase):
                remote_hash, operator_hash)
     _local_stop_and_breakers()
     _ssh_identity()
+    _remote_timeout_identity()
+    # A STOP arriving during the remote identity probe must not consume the
+    # one-attempt marker or enter any staging phase.
+    _local_stop_and_breakers()
     marker_fd = _marker(request_hash, review_hash, assignment_hash)
     preflight = write = readback = postflight = None
     failure = None

@@ -200,6 +200,45 @@ class IncrementalStageTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     remote._acl_absent(path, directory=False)
 
+    def test_protected_checkpoint_stage_file_and_cache_identity_drift_hold(self):
+        with tempfile.TemporaryDirectory(prefix="trn21-r10-protected-") as temp:
+            root = Path(temp)
+            checkpoint = root / "retained/final.pt"
+            checkpoint.parent.mkdir()
+            checkpoint.write_bytes(b"retained checkpoint")
+            preserved = root / "e65-stage.tar.gz"
+            preserved.write_bytes(b"preserved stage file")
+            cache = root / "caches/train"
+            (cache / "compiler").mkdir(parents=True)
+            pinned_checkpoint = (checkpoint.stat().st_ino, checkpoint.stat().st_size,
+                                 hashlib.sha256(checkpoint.read_bytes()).hexdigest())
+            pinned_preserved = (preserved.stat().st_ino, preserved.stat().st_size,
+                                hashlib.sha256(preserved.read_bytes()).hexdigest())
+            with mock.patch.object(remote, "DEV", root.stat().st_dev), \
+                 mock.patch.object(remote, "UID", os.getuid()), \
+                 mock.patch.object(remote, "GID", os.getgid()), \
+                 mock.patch.object(remote, "CHECKPOINTS", {checkpoint: pinned_checkpoint}), \
+                 mock.patch.object(remote, "PRESERVED_STAGE_FILES", {preserved: pinned_preserved}), \
+                 mock.patch.object(remote, "CACHE_ROOT", cache), \
+                 mock.patch.object(remote, "CACHE_ROOT_INO", cache.stat().st_ino), \
+                 mock.patch.object(remote, "CACHE_INODES", {
+                     "compiler": (cache / "compiler").stat().st_ino}), \
+                 mock.patch.object(remote, "_safe_chain", return_value={"safe": True}), \
+                 mock.patch.object(remote, "_acl_absent"):
+                self.assertEqual(remote._protected()["checkpoints"][str(checkpoint)]["sha256"],
+                                 pinned_checkpoint[2])
+                checkpoint.write_bytes(b"changed checkpoint")
+                with self.assertRaisesRegex(RuntimeError, "checkpoint length changed"):
+                    remote._protected()
+                checkpoint.write_bytes(b"retained checkpoint")
+                preserved.write_bytes(b"tampered stage file!")
+                with self.assertRaisesRegex(RuntimeError, "file bytes/hash changed"):
+                    remote._protected()
+                preserved.write_bytes(b"preserved stage file")
+                with mock.patch.object(remote, "CACHE_INODES", {"compiler": 0}):
+                    with self.assertRaisesRegex(RuntimeError, "drift"):
+                        remote._protected()
+
     def test_fifo_lock_refuses_without_blocking(self):
         with tempfile.TemporaryDirectory(prefix="trn21-r10-fifo-") as temp:
             cache = Path(temp) / ".cache"
@@ -271,12 +310,54 @@ class IncrementalStageTests(unittest.TestCase):
             self.assertFalse(bundle.exists())
             self.assertFalse(target.exists())
 
-    def test_label_inserted_after_first_final_scan_prevents_first_write(self):
+    def test_label_arriving_during_preflight_scan_hits_final_scan_before_open(self):
+        data = (HERE / "e65-to-r10.bundle").read_bytes()
+        with tempfile.TemporaryDirectory(prefix="trn21-r10-preflight-label-") as temp:
+            root = Path(temp)
+            bundle, target = root / "bundle", root / "target"
+            label = "synthetic-trn21-preflight-late"
+            nested = root / "other/deep"
+            nested.mkdir(parents=True)
+            duplicate = nested / ("late-" + label)
+            calls = []
+
+            def scan_with_late_duplicate():
+                calls.append(1)
+                if len(calls) == 1:
+                    duplicate.write_bytes(b"persistent duplicate")
+                    return {"label": label, "matches": []}
+                if duplicate.exists():
+                    raise RuntimeError("synthetic stage label already appears")
+                return {"label": label, "matches": []}
+
+            with mock.patch.object(remote, "ROOT", root), \
+                 mock.patch.object(remote, "BUNDLE", bundle), \
+                 mock.patch.object(remote, "TARGET", target), \
+                 mock.patch.object(remote, "LABEL", label), \
+                 mock.patch.object(remote, "STOP_PATHS", []), \
+                 mock.patch.object(remote.socket, "gethostname", return_value=remote.HOST), \
+                 mock.patch.object(remote.os, "geteuid", return_value=remote.UID), \
+                 mock.patch.object(remote, "_source", return_value={}), \
+                 mock.patch.object(remote, "_mount_identity", return_value={}), \
+                 mock.patch.object(remote, "_protected", return_value={}), \
+                 mock.patch.object(remote, "_activity", return_value={}), \
+                 mock.patch.object(remote, "_label_scan", side_effect=scan_with_late_duplicate), \
+                 mock.patch.object(remote, "_space", return_value={
+                     "root_free_bytes": remote.PRE_FREE + 1024,
+                     "root_free_inodes": remote.MIN_INODES + 1}):
+                remote._probe({})
+                with self.assertRaisesRegex(RuntimeError, "label already appears"):
+                    remote._write_bundle(data)
+            self.assertEqual(len(calls), 2)
+            self.assertFalse(bundle.exists())
+            self.assertFalse(target.exists())
+
+    def test_label_inserted_behind_final_scan_cursor_holds_before_payload(self):
         data = (HERE / "e65-to-r10.bundle").read_bytes()
         with tempfile.TemporaryDirectory(prefix="trn21-r10-double-scan-") as temp:
             root = Path(temp)
             bundle, target = root / "bundle", root / "target"
-            label = "synthetic-trn21-double-scan"
+            label = "synthetic-trn21-final-scan"
             original_scan = remote._label_scan
             calls = []
             def scan_then_insert():
@@ -291,11 +372,19 @@ class IncrementalStageTests(unittest.TestCase):
                  mock.patch.object(remote, "TARGET", target), \
                  mock.patch.object(remote, "LABEL", label), \
                  mock.patch.object(remote, "_activity", return_value={}), \
+                 mock.patch.object(remote, "_space", return_value={
+                     "root_free_bytes": remote.PRE_FREE + 1024,
+                     "root_free_inodes": remote.MIN_INODES + 1}), \
                  mock.patch.object(remote, "_label_scan", side_effect=scan_then_insert):
                 with self.assertRaisesRegex(RuntimeError, "label already appears"):
                     remote._write_bundle(data)
             self.assertEqual(len(calls), 2)
-            self.assertFalse(bundle.exists())
+            # One final pre-open scan is not equivalent to the old double
+            # scan: a late duplicate may create an empty provisional inode.
+            # The post-open full scan must block payload and checkout, and
+            # the provisional inode is retained without cleanup/retry.
+            self.assertTrue(bundle.exists())
+            self.assertEqual(bundle.read_bytes(), b"")
             self.assertFalse(target.exists())
 
     def test_stale_final_proof_prevents_first_write(self):
@@ -368,33 +457,122 @@ class IncrementalStageTests(unittest.TestCase):
         for name, field in (("remote_incremental.py", "remote_source_sha256"),
                             ("operator_once.py", "operator_source_sha256")):
             self.assertEqual(hold[field], hashlib.sha256((HERE / name).read_bytes()).hexdigest())
-        for path in (operator.ENABLED_REQUEST, operator.FINAL_REVIEW, operator.ASSIGNMENT):
-            self.assertFalse(path.exists())
         with tempfile.TemporaryDirectory(prefix="trn21-r10-authority-") as temp:
             absent = Path(temp) / "enabled.json"
             marker = Path(temp) / "marker"
             fake = mock.Mock(side_effect=AssertionError("contacted"))
             with mock.patch.object(operator, "ENABLED_REQUEST", absent), \
-                 mock.patch.object(operator, "MARKER", marker):
+                 mock.patch.object(operator, "MARKER", marker), \
+                 mock.patch.object(operator, "_ssh_identity") as identity, \
+                 mock.patch.object(operator, "_remote_timeout_identity") as probe:
                 with self.assertRaises((FileNotFoundError, RuntimeError)):
                     operator.stage_once(remote_call=fake)
             self.assertFalse(marker.exists())
             fake.assert_not_called()
-        result = subprocess.run(["/usr/bin/python3", "-B", str(HERE / "operator_once.py")],
-                                capture_output=True, text=True, timeout=10, check=False)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("HOLD", result.stderr)
+            identity.assert_not_called()
+            probe.assert_not_called()
 
-    def test_absolute_timeout_gate_blocks_fake_contact(self):
-        fake = mock.Mock()
+    def test_missing_final_review_or_assignment_holds_before_probe(self):
+        if sys_flags_optimize():
+            with self.assertRaisesRegex(RuntimeError, "optimized Python"):
+                operator.stage_once(remote_call=mock.Mock())
+            return
+        for missing in ("review", "assignment"):
+            with self.subTest(missing=missing):
+                available = [({"dispatch_authorized": True}, "request-hash")]
+                if missing == "assignment":
+                    available.append(({}, "review-hash"))
+                available.append(FileNotFoundError("synthetic missing " + missing))
+                contact = mock.Mock(side_effect=AssertionError("remote phase contacted"))
+                with mock.patch.object(operator, "_json", side_effect=available), \
+                     mock.patch.object(operator, "_source_bytes",
+                                       return_value=(b"bundle", b"remote")), \
+                     mock.patch.object(operator, "_regular", return_value=b"operator"), \
+                     mock.patch.object(operator, "_ssh_identity") as identity, \
+                     mock.patch.object(operator, "_remote_timeout_identity") as probe, \
+                     mock.patch.object(operator, "_marker") as marker:
+                    with self.assertRaisesRegex(FileNotFoundError, "synthetic missing"):
+                        operator.stage_once(remote_call=contact)
+                identity.assert_not_called()
+                probe.assert_not_called()
+                marker.assert_not_called()
+                contact.assert_not_called()
+
+    def test_pinned_remote_timeout_probe_ignores_local_uutils(self):
+        calls = []
+
+        def fake_run(argv, **kwargs):
+            calls.append((argv, kwargs))
+            # The local timeout is uutils; invoking it would fail this test.
+            self.assertEqual(argv[0], "/usr/bin/ssh")
+            self.assertEqual(argv[-2], operator.ENDPOINT)
+            self.assertIn("HostKeyAlgorithms=ssh-ed25519", argv)
+            if len(calls) == 1:
+                self.assertEqual(argv[-1], "/usr/bin/timeout --version")
+                self.assertEqual(kwargs["timeout"], 20)
+                return types.SimpleNamespace(returncode=0, stderr=b"",
+                                             stdout=b"timeout (GNU coreutils) 9.1\n")
+            self.assertTrue(argv[-1].startswith("/usr/bin/timeout --foreground "))
+            return types.SimpleNamespace(returncode=0, stderr=b"",
+                                         stdout=b'{"phase":"preflight"}')
+
+        with mock.patch.object(operator, "_local_stop_and_breakers") as stop, \
+             mock.patch.object(operator, "_ssh_identity"), \
+             mock.patch.object(operator.subprocess, "run", side_effect=fake_run):
+            self.assertEqual(operator._ssh_phase("preflight", None, b"", b"# empty\n"),
+                             {"phase": "preflight"})
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(stop.call_count, 2)
+
+    def test_remote_timeout_mismatch_blocks_phase_before_contact(self):
         with mock.patch.object(operator, "_local_stop_and_breakers"), \
              mock.patch.object(operator, "_ssh_identity"), \
              mock.patch.object(operator.subprocess, "run", return_value=types.SimpleNamespace(
-                 returncode=0, stderr=b"", stdout=b"fake timeout\n")) as run:
-            with self.assertRaises(RuntimeError):
+                 returncode=0, stderr=b"", stdout=b"timeout (uutils coreutils) 0.8.0\n")) as run:
+            with self.assertRaisesRegex(RuntimeError, "remote absolute GNU timeout"):
                 operator._ssh_phase("preflight", None, b"", b"# empty\n")
-            self.assertEqual(run.call_args.args[0][0], "/usr/bin/timeout")
-        fake.assert_not_called()
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(run.call_args.args[0][-1], "/usr/bin/timeout --version")
+
+    def test_stop_during_remote_timeout_probe_blocks_phase(self):
+        with mock.patch.object(operator, "_local_stop_and_breakers", side_effect=[
+                None, RuntimeError("late local STOP")]) as stop, \
+             mock.patch.object(operator, "_ssh_identity"), \
+             mock.patch.object(operator.subprocess, "run", return_value=types.SimpleNamespace(
+                 returncode=0, stderr=b"", stdout=b"timeout (GNU coreutils) 9.1\n")) as run:
+            with self.assertRaisesRegex(RuntimeError, "late local STOP"):
+                operator._ssh_phase("preflight", None, b"", b"# empty\n")
+        self.assertEqual(stop.call_count, 2)
+        self.assertEqual(run.call_count, 1)
+
+    def test_stop_during_pre_marker_probe_preserves_unconsumed_marker(self):
+        if sys_flags_optimize():
+            with mock.patch.object(operator, "_remote_timeout_identity") as probe:
+                with self.assertRaisesRegex(RuntimeError, "optimized Python"):
+                    operator.stage_once(remote_call=mock.Mock())
+            probe.assert_not_called()
+            return
+        with tempfile.TemporaryDirectory(prefix="trn21-r10-probe-stop-") as temp:
+            marker = Path(temp) / "marker"
+            contact = mock.Mock(side_effect=AssertionError("staging phase contacted"))
+            with mock.patch.object(operator, "ENABLED_REQUEST", Path(temp) / "enabled"), \
+                 mock.patch.object(operator, "MARKER", marker), \
+                 mock.patch.object(operator, "_json", side_effect=[
+                     ({"dispatch_authorized": True}, "request"), ({}, "review"),
+                     ({}, "assignment")]), \
+                 mock.patch.object(operator, "_source_bytes", return_value=(b"bundle", b"remote")), \
+                 mock.patch.object(operator, "_regular", return_value=b"operator"), \
+                 mock.patch.object(operator, "_authority"), \
+                 mock.patch.object(operator, "_local_stop_and_breakers", side_effect=[
+                     None, RuntimeError("late local STOP")]) as stop, \
+                 mock.patch.object(operator, "_ssh_identity"), \
+                 mock.patch.object(operator, "_remote_timeout_identity") as probe:
+                with self.assertRaisesRegex(RuntimeError, "late local STOP"):
+                    operator.stage_once(remote_call=contact)
+            self.assertEqual(stop.call_count, 2)
+            probe.assert_called_once_with()
+            contact.assert_not_called()
+            self.assertFalse(marker.exists())
 
     def test_stale_documents_state_cannot_override_tripped_desktop_before_ssh(self):
         self.assertEqual(operator.CONTROL_ROOT,
@@ -474,6 +652,7 @@ class IncrementalStageTests(unittest.TestCase):
                 stack.enter_context(mock.patch.object(operator, "_authority"))
                 stack.enter_context(mock.patch.object(operator, "_local_stop_and_breakers"))
                 stack.enter_context(mock.patch.object(operator, "_ssh_identity"))
+                stack.enter_context(mock.patch.object(operator, "_remote_timeout_identity"))
                 with self.assertRaises(RuntimeError):
                     operator.stage_once(remote_call=fake_remote)
             self.assertEqual(calls, ["preflight", "write", "postflight"])
