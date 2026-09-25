@@ -1,6 +1,16 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:24 UTC
+Last reconciled: 2026-09-25 08:33 UTC
+
+The disabled trn21 e65→r10 small-bundle stage `c03e3ac3` received
+[independent HOLD](../v2/verification/20260925-trn21-r10-incremental-stage-independent-HOLD.md)
+at `31e022d5`: six offline boundary witnesses reproduce STOP, label,
+activity, disk, or freshness expiry between the last helper and first
+exclusive write, plus a postflight claim that local STOP can preempt.
+No trn21 stage or training occurred. The trn22 r3 disabled repair and A2
+CPU-only enabled request remain in progress; the separate trn22 read-only
+timing diagnostic is under independent static review. Both native launch
+flags remain false and there is no new scored BPB result.
 
 The disabled A2 CPU-only G2 r3 repair `2ed23a16` received
 [independent STATIC PASS only](../v2/verification/20260925-a2-c5c-m64d128-trn22-r3-disabled-g2-independent-static-PASS.md)

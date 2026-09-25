@@ -1,5 +1,12 @@
 # Workflow installation and incremental launch status
 
+At 08:33 UTC, disabled trn21 e65→r10 small-bundle stage `c03e3ac3`
+received [independent HOLD](verification/20260925-trn21-r10-incremental-stage-independent-HOLD.md)
+at `31e022d5`. Offline witnesses reproduce pre-write STOP, label,
+activity, disk and stale-age defects, plus a postflight limitation.
+No trn21 host stage, native run or new BPB followed. A distinct trn21
+successor is needed after the trn22 r3 repair; both scored launches HOLD.
+
 At 08:24 UTC, disabled A2 CPU-only G2 r3 `2ed23a16` received
 [independent offline STATIC PASS only](verification/20260925-a2-c5c-m64d128-trn22-r3-disabled-g2-independent-static-PASS.md)
 at `4f1eb2e1`: no host CPU or native run occurred, and a distinct enabled
