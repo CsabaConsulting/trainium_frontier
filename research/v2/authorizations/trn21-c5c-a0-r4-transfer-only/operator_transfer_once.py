@@ -1,0 +1,494 @@
+"""Disabled one-attempt trn21 r4 transfer wrapper with raw SSH evidence.
+
+This implementation is deliberately non-dispatchable in the hash-pinned HOLD
+request. No CLI executes run_once. A later *new* reviewed enablement package,
+structured independent PASS and exact Supervisor assignment are required.
+The fixed marker and journal are both exclusive and fsynced before any SSH.
+No checkout or training exists.
+"""
+
+import base64
+import datetime
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import subprocess
+
+import stage_r4_transport as transport
+
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[3]
+REQUEST = HERE / "TRANSFER_REQUEST.HOLD.json"
+INDEPENDENT_REVIEW = HERE / "INDEPENDENT_ENABLEMENT_REVIEW.json"
+ASSIGNMENT = HERE / "SUPERVISOR_TRANSFER_ASSIGNMENT.json"
+TRN21_HOLD_PLAN = REPO / "research/v2/authorizations/trn21-c5c-a0-r4-source-stage-hold/GATE_CONTRACT.json"
+CAPSULE_REVIEW = REPO / "research/v2/authorizations/trn22-c5c-a0-r4-source-stage/INDEPENDENT_STATIC_VERIFIER_RECEIPT.md"
+CONTROL_STATE = Path("/home/poojith-devan/Desktop/Trainium/research/v2/state.json")
+MARKER = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trn21-c5c-a0-r4-transfer-one-attempt.marker")
+JOURNAL = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trn21-c5c-a0-r4-transfer-only-one-attempt.jsonl")
+TRN21_HOLD_PLAN_SHA256 = "2f7dca0e1e07543e8b2ad7ea2c20241d6841b8ea3524e01c1c3f3028730b0219"
+CAPSULE_REVIEW_SHA256 = "d49e8c03567210283074c44a2f2937594ada39f43e399f97d176c373c1a32c1e"
+FROZEN_HOLD_REQUEST_SHA256 = "5af3241bf07ee3275685f1f8881be1a297e36e4542c695149269f2cdc2c1079b"
+ASSIGNMENT_SCOPE = "TRN21_R4_CAPSULE_TRANSFER_ONLY_ONE_ATTEMPT"
+
+
+def _sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _json_bytes(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _utc():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _read_evidence(path):
+    named = path.lstat()
+    if (not stat.S_ISREG(named.st_mode) or named.st_uid != os.getuid() or
+            named.st_nlink != 1 or stat.S_IMODE(named.st_mode) & 0o002 or
+            named.st_size > 1024 * 1024):
+        raise RuntimeError("unsafe fixed-path review or assignment evidence")
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        opened = os.fstat(fd)
+        if (opened.st_dev, opened.st_ino, opened.st_size) != (
+                named.st_dev, named.st_ino, named.st_size):
+            raise RuntimeError("fixed-path evidence changed on open")
+        chunks = []
+        count = 0
+        while True:
+            part = os.read(fd, 65536)
+            if not part:
+                break
+            count += len(part)
+            if count > 1024 * 1024:
+                raise RuntimeError("oversized fixed-path evidence")
+            chunks.append(part)
+        linked = path.lstat()
+        opened_after = os.fstat(fd)
+        if ((opened_after.st_dev, opened_after.st_ino, opened_after.st_size) != (
+                named.st_dev, named.st_ino, named.st_size) or
+                (linked.st_dev, linked.st_ino, linked.st_size) != (
+                named.st_dev, named.st_ino, named.st_size)):
+            raise RuntimeError("fixed-path evidence changed during read")
+        return b"".join(chunks)
+    finally:
+        os.close(fd)
+
+
+def _pinned(path, digest):
+    if not isinstance(digest, str) or len(digest) != 64:
+        raise RuntimeError("missing exact review or assignment SHA-256")
+    data = _read_evidence(path)  # Actual fixed-path content, not a string claim.
+    if _sha(data) != digest:
+        raise RuntimeError("reviewed fixed-path evidence drift: " + str(path))
+    return data
+
+
+def _validate_authority_bundle(request_bytes, review_bytes, assignment_bytes):
+    """One-way hash chain: request <- independent PASS <- Supervisor assignment.
+
+    The request never supplies its own PASS or assignment hash. Both later
+    files are separately issued, read from fixed paths, and bind actual bytes.
+    """
+    request = json.loads(request_bytes)
+    review = json.loads(review_bytes)
+    assignment = json.loads(assignment_bytes)
+    request_sha = _sha(request_bytes)
+    operator_sha = _sha(Path(__file__).read_bytes())
+    transport_sha = _sha((HERE / "stage_r4_transport.py").read_bytes())
+    if any(key in request for key in ("independent_review_status",
+                                      "independent_review_sha256", "assignment_sha256")):
+        raise RuntimeError("request attempted to self-attest review or assignment")
+    if (request.get("source_commit") != "446b657695f086f9b484fa601c9a3b61c2495912" or
+            request.get("schema") != "trn21-c5c-a0-r4-transfer-only-request-v1" or
+            request.get("dispatch_authorized") is not True or
+            request.get("host") != "trn21" or
+            request.get("hostname") != "ip-172-31-34-85" or
+            request.get("uid") != 1000 or
+            request.get("endpoint") != transport.ENDPOINT or
+            request.get("capsule_source_outside_git") != str(transport.SOURCE) or
+            request.get("capsule_sha256") != transport.SOURCE_SHA256 or
+            request.get("capsule_bytes") != transport.SOURCE_BYTES or
+            request.get("target") != transport.TARGET or
+            request.get("one_shot_marker") != str(MARKER) or
+            request.get("journal") != str(JOURNAL) or
+            request.get("existing_e65_checkout_preserved") !=
+            transport.remote_constants().E65_CHECKOUT or
+            request.get("future_clean_checkout_remains_absent") !=
+            transport.remote_constants().CHECKOUT or
+            request.get("pretransfer_free_floor_bytes") != transport.PRE_FREE or
+            request.get("posttransfer_free_floor_bytes") != transport.POST_FREE or
+            request.get("minimum_free_inodes") != transport.MIN_INODES or
+            request.get("live_path_absences_verified") is not False or
+            request.get("trn21_hold_plan_sha256") != TRN21_HOLD_PLAN_SHA256 or
+            request.get("local_capsule_review_sha256") != CAPSULE_REVIEW_SHA256 or
+            request.get("remote_sha256") != transport.REMOTE_SHA256 or
+            request.get("transport_sha256") != transport_sha or
+            request.get("assignment_scope") != ASSIGNMENT_SCOPE or
+            request.get("ssh_identity") != {
+                "known_hosts_sha256": transport.KNOWN_HOSTS_SHA256,
+                "host_fingerprint": transport.HOST_FINGERPRINT,
+                "host_key_algorithm": "ssh-ed25519",
+                "config_file": "/dev/null",
+            } or
+            request.get("one_attempt") is not True or
+            request.get("fresh_probe_per_attempt_required") is not True or
+            request.get("writer_preflight_identity_bridge_required") is not True or
+            request.get("writer_live_full_prewrite_safety_gate_required") is not True or
+            request.get("writer_immediate_activity_gate_required") is not True or
+            request.get("raw_ssh_argv_exit_stdout_stderr_journal_required") is not True or
+            request.get("distinct_ssh_readback_required") is not True or
+            request.get("final_read_only_postflight_even_on_failure_required") is not True or
+            any(request.get(key) is not False for key in (
+                "same_path_overwrite_delete_rename_or_retry_authorized",
+                "source_checkout_authorized", "cpu_g2_authorized",
+                "native_run_authorized", "eval_authorized",
+                "monitor_operation_authorized", "cleanup_authorized",
+                "submission_authorized"))):
+        raise RuntimeError("transfer request/code/binding drift")
+    if (review.get("schema") != "trn21-r4-independent-transfer-enable-review-v1" or
+            review.get("verdict") != "PASS" or
+            review.get("reviewer_role") != "independent_verifier" or
+            review.get("request_sha256") != request_sha or
+            review.get("operator_sha256") != operator_sha or
+            review.get("transport_sha256") != transport_sha or
+            review.get("remote_sha256") != transport.REMOTE_SHA256 or
+            review.get("capsule_sha256") != transport.SOURCE_SHA256 or
+            review.get("source_commit") != request["source_commit"] or
+            review.get("host") != "trn21" or
+            review.get("endpoint") != transport.ENDPOINT or
+            review.get("target") != transport.TARGET or
+            review.get("one_shot_marker") != str(MARKER) or
+            review.get("journal") != str(JOURNAL) or
+            review.get("trn21_hold_plan_sha256") != TRN21_HOLD_PLAN_SHA256 or
+            review.get("local_capsule_review_sha256") != CAPSULE_REVIEW_SHA256 or
+            review.get("scope") != request["assignment_scope"] or
+            review.get("no_host_action_by_reviewer") is not True):
+        raise RuntimeError("actual independent review is not an exact structured PASS")
+    if (assignment.get("schema") != "trn21-r4-supervisor-transfer-only-one-attempt-v1" or
+            assignment.get("issuer_role") != "supervisor" or
+            assignment.get("dispatch_authorized") is not True or
+            assignment.get("scope") != request["assignment_scope"] or
+            assignment.get("host") != "trn21" or
+            assignment.get("endpoint") != transport.ENDPOINT or
+            assignment.get("request_sha256") != request_sha or
+            assignment.get("independent_review_sha256") != _sha(review_bytes) or
+            assignment.get("operator_sha256") != operator_sha or
+            assignment.get("transport_sha256") != transport_sha or
+            assignment.get("remote_sha256") != transport.REMOTE_SHA256 or
+            assignment.get("source_commit") != request["source_commit"] or
+            assignment.get("capsule_sha256") != transport.SOURCE_SHA256 or
+            assignment.get("target") != transport.TARGET or
+            assignment.get("one_shot_marker") != str(MARKER) or
+            assignment.get("journal") != str(JOURNAL) or
+            assignment.get("trn21_hold_plan_sha256") != TRN21_HOLD_PLAN_SHA256 or
+            assignment.get("local_capsule_review_sha256") != CAPSULE_REVIEW_SHA256 or
+            assignment.get("one_attempt") is not True):
+        raise RuntimeError("Supervisor one-attempt assignment mismatch")
+    return request, assignment
+
+
+def authorize():
+    # This frozen disabled request cannot be enabled by changing a JSON flag.
+    request_bytes = _pinned(REQUEST, FROZEN_HOLD_REQUEST_SHA256)
+    request = json.loads(request_bytes)
+    if request.get("dispatch_authorized") is not True:
+        raise RuntimeError("DISPATCH HOLD: frozen transfer request is disabled")
+    _pinned(TRN21_HOLD_PLAN, TRN21_HOLD_PLAN_SHA256)
+    _pinned(CAPSULE_REVIEW, CAPSULE_REVIEW_SHA256)
+    review_bytes = _read_evidence(INDEPENDENT_REVIEW)
+    assignment_bytes = _read_evidence(ASSIGNMENT)
+    return _validate_authority_bundle(request_bytes, review_bytes, assignment_bytes)
+
+
+def _check_controller_breakers():
+    stop_paths = {CONTROL_STATE.parent / "STOP",
+                  CONTROL_STATE.parent.parent / "agentic/STOP",
+                  REPO / "research/agentic/STOP",
+                  REPO / "research/v2/STOP"}
+    for path in sorted(stop_paths):
+        try:
+            path.lstat()
+        except FileNotFoundError:
+            continue
+        raise RuntimeError("local STOP is present: " + str(path))
+    first = _read_evidence(CONTROL_STATE)
+    state = json.loads(first)
+    breakers = state["breakers"]
+    if any(breakers[key].get("tripped") is not False
+           for key in ("global_correctness", "trn21")):
+        raise RuntimeError("local controller global or trn21 breaker is tripped/unknown")
+    if _read_evidence(CONTROL_STATE) != first:
+        raise RuntimeError("local controller state raced during breaker read")
+    for path in sorted(stop_paths):
+        try:
+            path.lstat()
+        except FileNotFoundError:
+            continue
+        raise RuntimeError("local STOP appeared during breaker check: " + str(path))
+    return {"path": str(CONTROL_STATE), "sha256": _sha(first),
+            "global_tripped": False, "trn21_tripped": False,
+            "local_stops_clear": True}
+
+
+def _open_fixed_parent(path):
+    """Resolve every marker/journal ancestor without following symlinks."""
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    fd = os.open("/", flags)
+    try:
+        for name in path.parent.parts[1:]:
+            child = os.open(name, flags, dir_fd=fd)
+            info = os.fstat(child)
+            if (not stat.S_ISDIR(info.st_mode) or
+                    info.st_uid not in (0, os.getuid()) or
+                    stat.S_IMODE(info.st_mode) & 0o022):
+                os.close(child)
+                raise RuntimeError("unsafe fixed evidence ancestor")
+            os.close(fd)
+            fd = child
+        named = path.parent.lstat()
+        info = os.fstat(fd)
+        if ((named.st_dev, named.st_ino) != (info.st_dev, info.st_ino) or
+                info.st_uid != os.getuid() or
+                stat.S_IMODE(info.st_mode) & 0o077):
+            raise RuntimeError("fixed marker/journal parent is not private")
+        return fd
+    except BaseException:
+        os.close(fd)
+        raise
+
+
+def _consume_fixed_marker(assignment):
+    """The fixed O_EXCL file consumes this assignment even on later failure."""
+    parent_fd = _open_fixed_parent(MARKER)
+    fd = None
+    try:
+        fd = os.open(MARKER.name, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                     os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=parent_fd)
+        payload = _json_bytes({"schema": "trn21-r4-transfer-one-shot-marker-v1",
+                               "utc": _utc(), "host": "trn21",
+                               "scope": ASSIGNMENT_SCOPE,
+                               "target": transport.TARGET,
+                               "request_sha256": _sha(_read_evidence(REQUEST)),
+                               "review_sha256": _sha(_read_evidence(INDEPENDENT_REVIEW)),
+                               "assignment_sha256": _sha(_read_evidence(ASSIGNMENT)),
+                               "assignment": assignment}) + b"\n"
+        remaining = payload
+        while remaining:
+            count = os.write(fd, remaining)
+            if count <= 0:
+                raise RuntimeError("one-shot marker write failed")
+            remaining = remaining[count:]
+        os.fsync(fd)
+        os.fsync(parent_fd)
+        return _sha(payload)
+    finally:
+        if fd is not None:
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        try:
+            os.fsync(parent_fd)
+        finally:
+            os.close(parent_fd)
+
+
+def _pinned_marker(digest):
+    named = MARKER.lstat()
+    if (not stat.S_ISREG(named.st_mode) or named.st_uid != os.getuid() or
+            named.st_nlink != 1 or stat.S_IMODE(named.st_mode) != 0o600):
+        raise RuntimeError("one-shot marker metadata changed")
+    _pinned(MARKER, digest)
+
+
+class Journal:
+    """Fixed-path exclusive private append-only evidence, consumed before SSH."""
+
+    def __init__(self):
+        self.parent_fd = _open_fixed_parent(JOURNAL)
+        try:
+            self.fd = os.open(JOURNAL.name, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                              os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=self.parent_fd)
+            os.fsync(self.parent_fd)
+        except BaseException:
+            os.close(self.parent_fd)
+            raise
+
+    def emit(self, event, **details):
+        payload = _json_bytes({"utc": _utc(), "event": event, **details}) + b"\n"
+        while payload:
+            written = os.write(self.fd, payload)
+            if written <= 0:
+                raise RuntimeError("journal append failed")
+            payload = payload[written:]
+        os.fsync(self.fd)
+
+    def close(self):
+        os.fsync(self.fd)
+        os.close(self.fd)
+        os.fsync(self.parent_fd)
+        os.close(self.parent_fd)
+
+
+def _local_ssh_birth_ticks(pid):
+    """Capture the local SSH PID's Linux birth marker while it is our child."""
+    with open("/proc/%d/stat" % pid, encoding="ascii") as stream:
+        return int(stream.read().rsplit(")", 1)[1].split()[19])
+
+
+def _open_checked_source_fd():
+    """Keep the rehashed source descriptor for this one SSH stdin stream."""
+    source_fd = os.open(transport.SOURCE, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        info = os.fstat(source_fd)
+        if (info.st_size != transport.SOURCE_BYTES or info.st_nlink != 1 or
+                not stat.S_ISREG(info.st_mode) or
+                info.st_uid != os.getuid() or
+                stat.S_IMODE(info.st_mode) != 0o600):
+            raise RuntimeError("source drift before SSH write")
+        digest, count = hashlib.sha256(), 0
+        while True:
+            block = os.read(source_fd, 4 * 1024 * 1024)
+            if not block:
+                break
+            count += len(block)
+            digest.update(block)
+        linked = transport.SOURCE.lstat()
+        if (count != transport.SOURCE_BYTES or
+                digest.hexdigest() != transport.SOURCE_SHA256 or
+                (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns) !=
+                (linked.st_dev, linked.st_ino, linked.st_size, linked.st_mtime_ns, linked.st_ctime_ns) or
+                os.fstat(source_fd).st_mtime_ns != info.st_mtime_ns):
+            raise RuntimeError("same-FD source hash or inode drift before SSH write")
+        os.lseek(source_fd, 0, os.SEEK_SET)
+        return source_fd
+    except BaseException:
+        os.close(source_fd)
+        raise
+
+
+def _run_ssh(operation, journal, *, preflight=None):
+    argv = transport.build_ssh_argv(operation, preflight=preflight)
+    started = _utc()
+    source_fd = _open_checked_source_fd() if operation == "write" else None
+    proc = None
+    timeout = False
+    try:
+        if operation == "write":
+            _check_controller_breakers()  # After hashing, just before SSH can create the target.
+        try:
+            proc = subprocess.Popen(argv, stdin=source_fd if source_fd is not None else subprocess.DEVNULL,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    shell=False, close_fds=True)
+        except BaseException as error:
+            journal.emit("RAW_SSH_TRANSPORT", operation=operation, argv=argv,
+                         argv_sha256=transport.argv_sha256(argv),
+                         local_ssh_pid=None, local_ssh_start_ticks=None,
+                         local_ssh_birth_error=None,
+                         started_utc=started,
+                         finished_utc=_utc(), exit_code=None, timed_out=False,
+                         stdout_bytes=0, stdout_sha256=_sha(b""), stdout_b64="",
+                         stderr_bytes=0, stderr_sha256=_sha(b""), stderr_b64="",
+                         spawn_error=repr(error))
+            raise
+        birth_error = None
+        try:
+            local_start_ticks = _local_ssh_birth_ticks(proc.pid)
+        except (OSError, ValueError, IndexError) as error:
+            local_start_ticks = None
+            birth_error = repr(error)
+        try:
+            stdout, stderr = proc.communicate(timeout=600 if operation == "write" else 300)
+        except subprocess.TimeoutExpired:
+            timeout = True
+            proc.kill()  # Local SSH only; an incomplete remote target is never cleaned up.
+            stdout, stderr = proc.communicate()
+        event = {"operation": operation, "argv": argv,
+                 "argv_sha256": transport.argv_sha256(argv),
+                 "local_ssh_pid": proc.pid,
+                 "local_ssh_start_ticks": local_start_ticks,
+                 "local_ssh_birth_error": birth_error,
+                 "started_utc": started,
+                 "finished_utc": _utc(), "exit_code": proc.returncode,
+                 "timed_out": timeout,
+                 "stdout_bytes": len(stdout), "stdout_sha256": _sha(stdout),
+                 "stdout_b64": base64.b64encode(stdout).decode("ascii"),
+                 "stderr_bytes": len(stderr), "stderr_sha256": _sha(stderr),
+                 "stderr_b64": base64.b64encode(stderr).decode("ascii")}
+        journal.emit("RAW_SSH_TRANSPORT", **event)
+        if local_start_ticks is None:
+            raise RuntimeError("SSH process birth identity unavailable; raw transport archived")
+        if timeout or proc.returncode != 0:
+            raise RuntimeError("SSH " + operation + " returned nonzero/timeout; raw transport archived")
+        parsed = json.loads(stdout)
+        if not isinstance(parsed, dict):
+            raise RuntimeError("remote receipt is not a JSON object")
+        journal.emit("REMOTE_RECEIPT", operation=operation, receipt=parsed)
+        return parsed
+    finally:
+        if source_fd is not None:
+            os.close(source_fd)
+
+
+def run_once():
+    """Not callable under this frozen HOLD request; future review must enable."""
+    request, assignment = authorize()  # Current HOLD stops here before all SSH.
+    source = transport.checked_local_source()
+    ssh_identity = transport.checked_ssh_identity()
+    initial_breakers = _check_controller_breakers()
+    marker_sha = _consume_fixed_marker(assignment)
+    journal = Journal()  # A second fixed O_EXCL and fsync gate before first SSH.
+    pre = None
+    persistence = None
+    failure = None
+    post_failure = None
+    try:
+        try:
+            journal.emit("ONE_ATTEMPT_CONSUMED", request_sha256=assignment["request_sha256"],
+                         assignment_sha256=_sha(_read_evidence(ASSIGNMENT)),
+                         marker_sha256=marker_sha, source=source,
+                         ssh_identity=ssh_identity, controller=initial_breakers)
+            pre = _run_ssh("probe", journal)
+            transport.validate_probe(pre, before_write=True)
+            journal.emit("FRESH_PREFLIGHT_PASS", old_inventory=pre["old_inventory"])
+            if authorize() != (request, assignment):
+                raise RuntimeError("review or assignment changed after preflight")
+            _pinned_marker(marker_sha)
+            _check_controller_breakers()
+            written = _run_ssh("write", journal, preflight=pre)
+            verified = _run_ssh("verify", journal)  # A distinct SSH process.
+            persistence = transport.compare_sessions(pre, written, verified)
+            journal.emit("CROSS_SESSION_PERSISTENCE_PASS", result=persistence)
+        except BaseException as error:
+            failure = repr(error)
+            journal.emit("TRANSFER_HOLD", error=failure)
+        finally:
+            # Mandatory even after a failed preflight or a partial remote write.
+            try:
+                post = _run_ssh("probe", journal)
+                transport.validate_probe(post, before_write=False)
+                if pre is not None:
+                    transport.compare_postflight(pre, post, persistence=persistence)
+                journal.emit("FINAL_READ_ONLY_POSTFLIGHT", snapshot=post,
+                             compared_with_preflight=pre is not None)
+            except BaseException as error:
+                post_failure = repr(error)
+                journal.emit("POSTFLIGHT_HOLD", error=post_failure)
+        if failure or post_failure or persistence is None:
+            raise RuntimeError("transfer HOLD; fixed marker and raw journal retained")
+        journal.emit("TRANSFER_ONLY_DONE_PENDING_INDEPENDENT_RESULT_REVIEW",
+                     persistence=persistence)
+        return persistence
+    finally:
+        journal.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit("DISPATCH HOLD: source transfer is disabled pending independent review and a new one-shot assignment")
