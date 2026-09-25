@@ -1,0 +1,254 @@
+{
+  "proposal_id": "20260925-l2-unet8x1024-93ae-trn22-full-r1",
+  "status": "PENDING_EXACT_FULL_SIZE_G2_AND_OPERATOR_SLOT",
+  "owner_role": "Supervisor-selected explicit human L2 lane; packet prepared by Implementer",
+  "human_selected_direction": "Newest post-table priority: architecture and FP8 after Recursive; no table/FP8/schedule combination in this arm.",
+  "hypothesis": "Eight 1024-wide layers with five attention blocks and zero-init scalar U-Net skips improve final public-20M BPB within the unchanged 1800 s budget against the same-host dense c5c control.",
+  "single_causal_change": "Human-prescribed architecture package: depth 8, width 1024, attention 0,2,4,6,7, MLP-only 1,3,5,zero-init scalar skips 0->7, 1->6, 2->5, 3->4. This explicitly declared stack changes these architectural features together; it is not isolated skip attribution. Separately reviewed timer reset preserves official charging.",
+  "mechanism_class": "architecture_stack_confirmation",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "prediction_note": "No calibrated forecast or full-shape/native duration/memory measurement exists; do not invent an expected gain or host-hour estimate.",
+  "candidate_shortlist": [
+    {
+      "idea": "Explicitly selected L2 standalone no-table architecture",
+      "mechanism_class": "architecture",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Newest human priority; independent source review passed, exact-size CPU/native gates remain."
+    },
+    {
+      "idea": "FP8 plus architecture S-B",
+      "mechanism_class": "stack_confirmation",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Separate later package after FP8 native correctness and at least 3% whole-step gain; not included."
+    }
+  ],
+  "selection_rationale": "Prepare this exact standalone arm now so a Supervisor can replace only an unstarted fallback after gates. Do not interrupt active Recursive work or infer a table-quality verdict.",
+  "trainium_feasibility": "Existing 1024-wide MLP/kernel dimensions are retained; eight MLPs/five attention blocks change graph and ownership grouping. Default VE only layer 7, no n-gram tables. Scalar skip activations may extend lifetimes. No native compile,full-step rate,HBM peak or startup estimate is claimed.",
+  "cheapest_falsifier": "Exact source/full 8x1024 CPU G2, four Gloo ranks / 3 steps with synthetic 2x256 forward; full 6x1024default-OFF lockstep vs exactc5c and6ef7 OFF; independent numeric review. A failed check prevents native use.",
+  "prior_result_refs": [
+    "research/agentic/DECISION_LOG.md:20260923-unet-skip-zero-init-r2",
+    "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md"
+  ],
+  "evidence": [
+    "workflow/codex_directive_final_push.txt",
+    "workflow/parallel_ai_lanes.md:Lane2",
+    "research/v2/verification/20260925-l2-unet8x1024-independent-review.md",
+    "research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+    "https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html"
+  ],
+  "duplicate_search_terms": [
+    "unet",
+    "U-Net",
+    "partial attention",
+    "8x1024",
+    "93ae"
+  ],
+  "control": {
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+    "public_val_bpb": 0.991513958330512,
+    "steps": 3633,
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "git_commit": null,
+    "source_definition_commit": "8b9fc841ed817eac263c7087c3bce7c9f008bda1",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "box_constraint": "Same trn22, seed 42, full chip/LNC2x4, same provided data/compiler policy, final fresh public-20M/context1024. Refresh under current control-age/drift policy; no cross-host pooling.",
+    "review": "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md"
+  },
+  "control_comparability": "Existing c5c A0 is the science base as for6ef7 schedule trials; declare the separately reviewed timer source difference. New full-sizeOFF proof must establish unchanged dense arithmetic vs both c5c and6ef7 OFF. Recursive6ef7 ON results are NOT controls for this architecture-only arm. Refresh a dense control if current mechanical policy requires it.",
+  "candidate": {
+    "branch": "codex/l2-93ae-g2-launch-packet-20260925",
+    "source_commit": "1e21c3d797eed764f108c41546b270065ad5650c",
+    "repository_candidate_path": "workflow/proposals/research-v2/train.py",
+    "train_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Previouslyreviewed frozenL2 plus reviewed narrow timer port; no new source edits in this packet.",
+    "run_label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out",
+      "--unet-8x1024",
+      "--attention-layers",
+      "0,2,4,6,7"
+    ],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": true,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "scope": "Source/reduced checks reviewed; exact full-size G2 / OFF identity and native causality/results PENDING."
+  },
+  "gate_requirements": {
+    "diff_review": {
+      "status": "PASS_SOURCE_ONLY",
+      "references": [
+        {
+          "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+          "path": "research/v2/verification/20260925-l2-unet8x1024-independent-review.md",
+          "scope": "independent original52e2 source/reduced numeric PASS only"
+        },
+        {
+          "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+          "path": "research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+          "scope": "independent93ae narrowtimer port PASS only"
+        }
+      ]
+    },
+    "exact_cpu_g2": {
+      "status": "PENDING",
+      "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+      "argv": [
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--num-steps",
+        "1000000",
+        "--out-dir",
+        "out",
+        "--unet-8x1024",
+        "--attention-layers",
+        "0,2,4,6,7"
+      ],
+      "nproc": 4,
+      "steps": 3,
+      "micro_rows": 2,
+      "micro_tokens": 256
+    },
+    "flag_off_identity": {
+      "status": "PENDING",
+      "candidate_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+      "reference_sha256": [
+        "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+        "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+      ],
+      "steps": 3,
+      "required": "Same environment, full 6x1024 parameters, all 12 rank-step losses +62 parameter digests +ownership plan equal."
+    },
+    "native_compile": {
+      "status": "UNMEASURED"
+    },
+    "host_preflight": {
+      "status": "PENDING"
+    }
+  },
+  "success_criteria": {
+    "quality": "Fresh-process public-20M (20971520 tokens) / context 1024 with unchanged workflow/tools/decide.py thresholds and same-hostc5ccontrol. Normal architecture stepwindow applies; no new throughput exemption or threshold change.",
+    "throughput": "Report charged time,steps and whole-step rate alongside BPB. No >=3%FP8criterion is imposed on this non-FP8architecture arm.",
+    "correctness": "Finite full-chip training, clean exact source, model checkpoint strict load and causal / batch-independent eval, budget respected, artifacts retrieved and independently reviewed."
+  },
+  "abort_conditions": [
+    "Exact source or proposed argv changed",
+    "Exactfull-sizeG2 or default-OFFidentity fails or lacks independent numeric acceptance",
+    "STOP,breaker,low disk/RAM, another workload/device holder, or busy lock",
+    "Source currently unsupported by selected launcher",
+    "Invalid checkpoint, NaN, causality, budget, or artifact retrieval failure",
+    "Consumed label/partial attempt; diagnose and issue a new label, never rerun"
+  ],
+  "human_approved_by": "Poojith standing development scope and explicit L2 priority; Supervisor must select a free host slot after gates. Submission remains human-only.",
+  "verdict": null,
+  "queue_binding": {
+    "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out",
+      "--unet-8x1024",
+      "--attention-layers",
+      "0,2,4,6,7"
+    ],
+    "kind": "architecture_arm",
+    "arm_id": "L2-unet8x1024-93ae",
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "host": "trn22",
+    "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5"
+  },
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "armed": false,
+  "readiness": "NOT_READY_EXACT_G2_PENDING",
+  "research_only": true,
+  "submission_eligible": false
+}
