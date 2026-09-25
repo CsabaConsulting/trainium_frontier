@@ -1,0 +1,36 @@
+{
+  "A1": {
+    "rules": "v2-2026-09-25-table-budget-exemption",
+    "arm_id": "A1",
+    "invalid_runs": {},
+    "per_host": [
+      {
+        "host": "trn21",
+        "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+        "public_20m": 0.9986312057378084,
+        "controls": [
+          "fs-20260925-v2-c5c-a0-control-trn21-r1"
+        ],
+        "control_mean": 0.991474,
+        "delta": 0.0071572,
+        "step_ratio": 0.8302,
+        "pooled_controls": 1
+      }
+    ],
+    "replicates": 1,
+    "step_window_exempt_hosts": [
+      "trn21"
+    ],
+    "verdict": "DISCARD",
+    "why": "single-host delta >= +0.0005"
+  },
+  "A2": {
+    "rules": "v2-2026-09-25-table-budget-exemption",
+    "arm_id": "A2",
+    "invalid_runs": {
+      "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full": "status=startup_truncated"
+    },
+    "verdict": "INSUFFICIENT",
+    "why": "no valid evaluated runs for this arm"
+  }
+}

@@ -35,7 +35,9 @@ history never clears already charged compilation time.
 - A1/trn21: training_seconds1784.9; charged_seconds_est1785.5;3051steps.
   First five logged durations total991.79s:541.61+448.56+0.54+0.54+0.54.
   Import/model/loader startup is additional and not separately logged by its
-  manual driver. Startup allowance was capped at900. Fresh eval is pending.
+  manual driver. Startup allowance was capped at900. Fresh public20M BPB is
+  0.9986312057378084, delta+0.007157211744374 versus same-host control: DISCARD
+  for quality, with the table step-window exemption applied.
 - A2-r1/trn22:5steps, process wall1997.294311970938, harness allowance900,
   charged-through-exit1097.294311970938, exit0. Invalid quality test.
 - A2-r2 is an exactc5c warm research-only rerun through the installed serial
