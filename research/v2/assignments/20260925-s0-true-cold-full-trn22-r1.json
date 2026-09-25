@@ -1,0 +1,39 @@
+{
+  "schema": "trainium-one-use-supervisor-assignment-v1",
+  "scope": "TRN22_S0_FIRST_FULL_TRUE_COLD_SUBMISSION_SAFETY_REPLAY_ONLY",
+  "label": "fs-20260925-s0-true-cold-full-trn22-r1",
+  "host": "trn22",
+  "proposal": "research/v2/proposals/20260925-s0-true-cold-full-trn22-r1.json",
+  "proposal_sha256": "2c68fd2b508fcb84ebb3dd4275a65a20907b832761aa1949203a704ea036d2ab",
+  "source_path": "workflow/candidates/S0/train.py",
+  "train_sha256": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
+  "cpu_g2_base_pass": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-s0-bare-trn22-r1.json",
+  "trusted_prepare_host_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+  "trusted_prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "run_root": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1",
+  "step_log_path": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/receipts/step-boundaries-rank0.log",
+  "fresh_cache_paths": {
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/persistent",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/compiler",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/neff_local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/hlo",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/debug",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/cache/inductor"
+  },
+  "training_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+  "environment_policy": "Exact unmodified S0 bytes, bare command, baked 1800-second budget, seed 42, four ranks/LNC2, clean env with no inherited NEURON_CC_FLAGS/cache override. Only the private rank-0 step-log path may be supplied as a NEURON_COMPETITION_R1_* variable. Import the unchanged trusted prepare.py by PYTHONPATH and verify its resolved path and SHA in a fresh process.",
+  "evaluation_command": "/home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py eval-public --train-py /home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/train.py --checkpoint /home/ubuntu/trainium_s0_true_cold_full_20260925_trn22_r1/out/final.pt --device neuron --batch-size 1 --seq-len 1024 --eval-tokens 20971520 --timeout-seconds 1200",
+  "hard_dependencies": [
+    "The trn21 exact-S0 warm 120-second compile smoke has a terminal independently reviewed startup PASS: four-rank clean compilation, at least 20 distinct completed rank-0 step boundaries, finite checkpoint and all-worker exit zero. A missing measurable warm-cache hit limits cache-causality inference but does not block this full replay.",
+    "The trn22 exact-116188 true-cold 120-second compile smoke has a terminal independently reviewed startup PASS with at least 20 distinct completed rank-0 boundaries, all-worker exit zero, and effective empty-cache routing proof.",
+    "Both smoke roots/labels are consumed once; neither smoke's BPB is measured or used. If either fails or is inconclusive, this full S0 replay remains HOLD pending a new reviewed diagnosis.",
+    "An independent review of this exact full-replay proposal and final one-use assignment, followed by fresh trn22 Operator preflight, is required before any host stage or launch."
+  ],
+  "required_prelaunch": "The prior trn22 smoke must be fully terminal and postflight quiescent. Prove this unique run root and all seven cache paths absent, then create them private and empty. Verify >=6.5 GiB disk plus conservative projected headroom, no STOP/breaker, no train/eval/Neuron/lock holder, five authorized train shards/tokenizer, pinned S0/prepare/G2 identities and no second launcher. Preserve compiler logs and post-compile cache occupancy. No cleanup or AWS action is authorized.",
+  "success_criteria": "Complete a 1800-second full-chip S0 run with four-rank exit zero, finite loss, archived completed step boundaries, within-budget checkpoint and strict model-only load; then fresh-process unchanged-prepare public20M/context1024 eval with a finite BPB, exact checkpoint/source hashes and clean postflight. Compare only as a submission-safety replay against historical 116188 mean using S0 EVIDENCE.md tolerance; no improvement or upload claim from one replay. A second separate cold replay and independent native/eval-path audit remain required for submission readiness.",
+  "assignment_status": "PREPARED_HOLD_SMOKE_RECEIPTS_AND_INDEPENDENT_REVIEW_PENDING",
+  "launch_authorized": false,
+  "submission_authorized": false,
+  "authority": "Poojith directed a full true-cold S0 replay only after the two short compile/startup discriminators pass; this draft is not launch authority."
+}
