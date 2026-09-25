@@ -1,0 +1,120 @@
+{
+  "proposal_id": "20260925-l3-recursive-dense",
+  "status": "implemented_waiting_selected_profile_exact_size_g2",
+  "owner_role": "implementer",
+  "human_selected_direction": "Poojith FINAL PUSH L3 and S-A; task assigned by Supervisor",
+  "hypothesis": "The Recursive schedule package improves public-20M BPB on the dense base under the unchanged 1800-second budget.",
+  "single_causal_change": "Only --recursive-schedule changes versus the same-profile c5c control. Profile selection follows the current conditional rule; no table winner is assumed.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "User-selected L3 exact Recursive schedule package",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Explicit current user priority; limited train.py-only change while A1/A2 run."
+    }
+  ],
+  "selection_rationale": "No A1/A2 table arm qualifying at delta <= -0.003",
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "trainium_feasibility": "No model or activation-shape changes. Existing compiled Muon fifth tensor scalar now selected for L3 beta2. Tiny CPU G2 passes; exact-size CPU and Neuron compilation remain unproven.",
+  "cheapest_falsifier": "Independent diff review, exact-size CPU G2 and already completed boundary/flag-OFF checks; abort on any finite/state/load failure.",
+  "prior_result_refs": [
+    "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md",
+    "research/v2/verification/20260925-trn22-a2-exact-cpu-g2-r2-independent-NUMERIC-PASS.md",
+    "3f6fcf8864a683871706ba6022bb2eb057b72e97:research/v2/verification/20260925-s-a-a2-l4-new-directive-independent-HOLD.md"
+  ],
+  "evidence": [
+    "workflow/parallel_ai_lanes.md",
+    "workflow/codex_directive_final_push.txt",
+    "research/v2/lanes/recursive-schedule/README.md",
+    "https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/a962ec43e2e3d7c018e59a2ece623fe6e232fdfb/nanochat_autoresearch/solutions/optimized_from_karpathy.py"
+  ],
+  "duplicate_search_terms": [
+    "recursive-schedule",
+    "S-A",
+    "decoupled warmdown",
+    "NorMuon beta2"
+  ],
+  "control": {
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "required": "Same host and identical table/dense profile with --recursive-schedule absent",
+    "available_a0_controls": {
+      "trn21": {
+        "run_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+        "public_val_bpb": 0.9914739939934344,
+        "steps": 3675
+      },
+      "trn22": {
+        "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+        "public_val_bpb": 0.991513958330512,
+        "steps": 3633
+      }
+    },
+    "table_control_status": "not applicable",
+    "steps": null,
+    "public_val_bpb": null,
+    "box_constraint": "The assigned host determines its matched control."
+  },
+  "candidate": {
+    "branch": "codex/20260925-recursive-schedule",
+    "files_allowed": [
+      "train.py"
+    ],
+    "repository_candidate_path": "workflow/proposals/research-v2/train.py",
+    "train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "expected_diff": "Default-OFF L3 schedule, saved toggle, tensor beta2 dispatch and optimizer-kind LR assignment only.",
+    "run_label": null,
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule",
+    "per_host_run_labels": {
+      "trn21": "fs-20260925-l3-recursive-dense-trn21-r1-full",
+      "trn22": "fs-20260925-l3-recursive-dense-trn22-r1-full"
+    },
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--recursive-schedule"
+    ]
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "cpu_scope": "Tiny A2 synthetic four-rank checks are archived; exact-size G2 for this selected argv remains pending.",
+    "numerical_equivalence": true,
+    "numerical_equivalence_scope": "flag OFF vs exact c5c, three tiny CPU steps, identical losses and 74 parameter digests",
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "independent_review_status": "Parent reports source/tiny evidence pass; separate Verifier receipt still to be archived."
+  },
+  "success_criteria": {
+    "quality": "Use unchanged decide.py thresholds on fresh public-20M/context-1024; delta <= -0.005 allows provisional research adoption under current directive, pending replicate.",
+    "throughput": "Record steps/tok-s and budget; no speed claim before hardware.",
+    "correctness": "Finite training, loadable checkpoint, true causality gate, within budget, exact-source preflight and archived eval."
+  },
+  "abort_conditions": [
+    "Independent verifier rejects code or identity",
+    "Exact-size CPU G2 fails",
+    "Any correctness/budget/source-identity check fails",
+    "Machine is not clean and idle"
+  ],
+  "human_approved_by": "Poojith current standing development directive, subject to gates; no submission authorization",
+  "verdict": null,
+  "native_profile_selection": "If A1 or A2 public-20M delta <= -0.003 against valid same-host control, schedule ON that winning table profile after cross-host replicate and A3. Otherwise schedule ON dense control before architecture and flag bank. No table winner is assumed."
+}

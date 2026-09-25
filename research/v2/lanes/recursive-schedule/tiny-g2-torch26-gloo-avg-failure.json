@@ -1,0 +1,261 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "3",
+    "--out-dir",
+    "/tmp/g2-_1mgky16/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "128",
+    "--depth",
+    "6",
+    "--ngram-ve",
+    "--ngram-ve-layers=1,-1",
+    "--ngram-ve-table-mult",
+    "1",
+    "--ngram-ve-dim",
+    "16",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--recursive-schedule"
+  ],
+  "elapsed_s": 5.0,
+  "host": "poojith",
+  "micro_batch": [
+    1,
+    128
+  ],
+  "nproc": 4,
+  "plan_sha256": null,
+  "prepare": {
+    "dir": "/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.12.14",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-_1mgky16/out"
+      ],
+      "classification": "RuntimeError in sync_gradients:3047",
+      "error": "RuntimeError: Cannot use ReduceOp.AVG with Gloo",
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "FAIL",
+      "torch": "2.6.0+cu124",
+      "traceback_tail": [
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4888, in <module>\n    main()\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4008, in main\n    clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3090, in clip_and_sync_gradients\n    sync_gradients(model)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3047, in sync_gradients\n    dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2811, in all_reduce\n    work.wait()\n",
+        "RuntimeError: Cannot use ReduceOp.AVG with Gloo\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)",
+        "function": "sync_gradients",
+        "line": 3047
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-_1mgky16/out"
+      ],
+      "classification": "RuntimeError in sync_gradients:3047",
+      "error": "RuntimeError: Cannot use ReduceOp.AVG with Gloo",
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "FAIL",
+      "torch": "2.6.0+cu124",
+      "traceback_tail": [
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4888, in <module>\n    main()\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4008, in main\n    clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3090, in clip_and_sync_gradients\n    sync_gradients(model)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3047, in sync_gradients\n    dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2811, in all_reduce\n    work.wait()\n",
+        "RuntimeError: Cannot use ReduceOp.AVG with Gloo\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)",
+        "function": "sync_gradients",
+        "line": 3047
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-_1mgky16/out"
+      ],
+      "classification": "RuntimeError in sync_gradients:3047",
+      "error": "RuntimeError: Cannot use ReduceOp.AVG with Gloo",
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "FAIL",
+      "torch": "2.6.0+cu124",
+      "traceback_tail": [
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4888, in <module>\n    main()\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4008, in main\n    clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3090, in clip_and_sync_gradients\n    sync_gradients(model)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3047, in sync_gradients\n    dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2811, in all_reduce\n    work.wait()\n",
+        "RuntimeError: Cannot use ReduceOp.AVG with Gloo\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)",
+        "function": "sync_gradients",
+        "line": 3047
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "3",
+        "--out-dir",
+        "/tmp/g2-_1mgky16/out"
+      ],
+      "classification": "RuntimeError in sync_gradients:3047",
+      "error": "RuntimeError: Cannot use ReduceOp.AVG with Gloo",
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 1x128 tokens",
+        "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+      ],
+      "status": "FAIL",
+      "torch": "2.6.0+cu124",
+      "traceback_tail": [
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/tools/preflight_dryrun.py\", line 394, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4888, in <module>\n    main()\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 4008, in main\n    clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3090, in clip_and_sync_gradients\n    sync_gradients(model)\n",
+        "  File \"/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py\", line 3047, in sync_gradients\n    dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/c10d_logger.py\", line 81, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/poojith-devan/trtllm-vs-vllm-benchmark/.venv-vllm/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2811, in all_reduce\n    work.wait()\n",
+        "RuntimeError: Cannot use ReduceOp.AVG with Gloo\n"
+      ],
+      "train_py_frame": {
+        "code": "dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)",
+        "function": "sync_gradients",
+        "line": 3047
+      }
+    }
+  ],
+  "reason": "RuntimeError in sync_gradients:3047",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 1x128 tokens",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "steps": 3,
+  "timed_out": false,
+  "torch": "2.6.0+cu124",
+  "torchrun_log_tail": [
+    "muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=3 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 3 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 1,",
+    "  \"n_embd\": 128,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=6,956,780 flops_per_token=4.174061e+07",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [2097152, 1446436, 1444452, 1444452], \"estimated_ms_by_owner\": [1.0212198625, 0.720856279368329, 0.730856279368329, 0.730856279368329], \"shard_elements\": 2097152, \"total_padded_bytes\": 33554432}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/poojith-devan/Desktop/Trainium-recursive-schedule-20260925/workflow/proposals/research-v2/train.py",
+  "train_py_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+  "verdict": "FAIL"
+}
