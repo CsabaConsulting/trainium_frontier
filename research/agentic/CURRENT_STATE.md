@@ -1,5 +1,22 @@
 # Current state
 
+## 22:58 UTC: full quality run actually launched; research continues
+
+trn21 exact75b944+Recursive full1800 actually launched22:56:53.920340UTC
+(04:26:53IST), fourworkers3076020–23, original exclusive lock and freshguards.
+Raw182ce655 imported. Attachedfresh20M follows under the same lifetime lock;
+no startup-clock flag or automaticnextjob. Previous CPU→full idle4m43s.
+trn22S1 stable-sourcecache diagnostic remains active; S2 conditional. Current
+statehosts/queuelive fields reflect these jobs, not the completed LR/CPU runs.
+
+K2 scope-only repaird0f0d7fb is separately published: oneglobalnl,nisa declaration,
+kernelbody/checker/math/thresholds unchanged. Its32scope/20scalar own checks are
+not native evidence. Freshindependent input-only review is being prepared;
+no retry authorized. New boundK2retry and clock36a862cold-five packets are being
+prepared DISABLED as next qualifying work, not counted as six readyfulljobs.
+Confirmed6ef7mean.9901674436550496 unchanged; original.986340 unconfirmed,
+architecturepairDISCARD, no upload-ready file. Goal remains active.
+
 ## 22:56 UTC: full schedule-stack experiment released ontrn21
 
 New assignment20260926-architecture-recursive-full-trn21-assignment.md permits
