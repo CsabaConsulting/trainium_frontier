@@ -1,0 +1,51 @@
+{
+  "verdict": "PASS",
+  "scope": "implementer CPU self-check only",
+  "seed": 42,
+  "torch": "2.13.0+cpu",
+  "train_sha256": "dfef42b275f9fd53ff365e088ddbd9b5e7ce72eab7fe877646770e3ab230cf7b",
+  "checks": {
+    "projection_forward_vjp_zero_tiny_outlier_batch_independence": true,
+    "token_scale_inside_weight_gradient_reduction": true,
+    "six_projections_per_block_only_fp32_masters": [
+      "transformer.h.0.attn.c_q",
+      "transformer.h.0.attn.c_k",
+      "transformer.h.0.attn.c_v",
+      "transformer.h.0.attn.c_proj",
+      "transformer.h.0.mlp.c_fc",
+      "transformer.h.0.mlp.c_proj",
+      "transformer.h.1.attn.c_q",
+      "transformer.h.1.attn.c_k",
+      "transformer.h.1.attn.c_v",
+      "transformer.h.1.attn.c_proj",
+      "transformer.h.1.mlp.c_fc",
+      "transformer.h.1.mlp.c_proj"
+    ],
+    "tiny_three_step_finite_and_causal": [
+      5.549562454223633,
+      5.4432830810546875,
+      5.337296009063721
+    ],
+    "checkpoint_restore_and_legacy_default": true
+  },
+  "forward_error_examples": [
+    {
+      "case": "ordinary",
+      "max_bf16_forward_difference": 0.5009765625
+    },
+    {
+      "case": "tiny",
+      "max_bf16_forward_difference": 9.778887033462524e-09
+    },
+    {
+      "case": "outlier",
+      "max_bf16_forward_difference": 40.25
+    },
+    {
+      "case": "zero",
+      "max_bf16_forward_difference": 0.0
+    }
+  ],
+  "native_kernel_executed": false,
+  "performance_claim": false
+}
