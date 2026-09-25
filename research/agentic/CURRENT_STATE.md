@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:39 UTC
+Last reconciled: 2026-09-25 05:41 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -46,6 +46,9 @@ GID-1000 account; alternate privileged paths remain unproved.
 trn22's separate [read-only ACL observation](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_GROUP_ACL_READONLY_20260925T053454Z.md)
 found no POSIX ACL grant on its private `.cache` ancestry and no other local
 GID-1000 account; that is bounded evidence for a new repair, not authority.
+Its [new disabled private-cache repair](../v2/authorizations/trn22-c5c-a0-r4-transfer-lock-private-cache-hold/GATE_CONTRACT.HOLD.json)
+is under independent static review; the earlier trn22 static HOLD still
+controls until that review and a separate enabled request pass.
 Neither review authorizes an enabled request, host transfer, or native launch.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at

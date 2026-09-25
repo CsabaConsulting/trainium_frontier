@@ -1,6 +1,11 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 lock repair static HOLD on host mode/hash; trn21 disabled lock repair independent static PASS only; read-only lock/ACL observations archived; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 new disabled private-cache repair under independent review while earlier static HOLD controls; trn21 disabled lock repair independent static PASS only; read-only lock/ACL observations archived; scored training on both hosts HOLD; no new BPB result.**
+
+At 05:41 UTC, a [distinct disabled trn22 private-cache lock repair](authorizations/trn22-c5c-a0-r4-transfer-lock-private-cache-hold/GATE_CONTRACT.HOLD.json)
+was committed for independent static review. Its entry points still HOLD;
+the previous static HOLD, missing enabled request and missing one-shot
+assignment prohibit host transfer or training.
 
 At 05:39 UTC, trn21's [read-only lock/group observation](authorizations/trn21-c5c-a0-r4-source-feasibility/OPERATOR_LOCK_READONLY_FEASIBILITY_20260925T053029Z.md)
 found `.cache` `0700`, lock parent `0775`, lock file `0664`; the r3 probe
