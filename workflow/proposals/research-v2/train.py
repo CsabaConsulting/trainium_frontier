@@ -3430,6 +3430,7 @@ def muon_depth_mults(depths: list[int | None], n_layer: int) -> tuple[list[float
     return (lr_mult, mom_mult)
 
 def main() -> None:
+    global TOTAL_BATCH_SIZE
     global RECURSIVE_SCHEDULE
     global NGRAM_VE_FREEZE_EPOCH, FRESH_TAIL_FRAC, REQUEUE_IDENTITY
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
@@ -3612,7 +3613,11 @@ def main() -> None:
     _hp('--pack-factor', PACK_FACTOR, int, 'T1.5: dataloader packing-bin multiplier. The loader fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed). Only ever set by editing this constant before; a flag so the T1.5 re-test is reproducible from the launch command alone.')
     _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
     parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
+    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE, help='Global tokens per optimizer step; positive and divisible by per-microbatch world tokens. Changes gradient accumulation only; no automatic LR scaling. Default 131072.')
     args = parser.parse_args()
+    if args.total_batch_size <= 0:
+        parser.error('--total-batch-size must be positive')
+    TOTAL_BATCH_SIZE = args.total_batch_size
     if args.ngram_rms_fp32 and args.ngram_ve_opt != 'rmsprop':
         parser.error('--ngram-rms-fp32 requires --ngram-ve-opt rmsprop')
     if args.nki_ngram_rms and (not args.ngram_rms_fp32):

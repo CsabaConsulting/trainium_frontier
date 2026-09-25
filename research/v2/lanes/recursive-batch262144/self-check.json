@@ -1,0 +1,18 @@
+{
+  "status": "IMPLEMENTER_SELF_CHECK_PASS_NOT_INDEPENDENT_APPROVAL",
+  "source_sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+  "base_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "runtime": "/home/poojith-devan/venv/bin/python",
+  "torch": "2.13.0+cpu",
+  "thread_limits": {"OMP_NUM_THREADS": 1, "MKL_NUM_THREADS": 1, "OPENBLAS_NUM_THREADS": 1},
+  "unit_tests": {"count": 6, "normal": "PASS", "optimized": "PASS", "normal_seconds": 2.775, "optimized_seconds": 4.206, "tensor_checks_enabled": true, "gradient_fixture": "tiny float64 linear squared-error,4 simulated ranks,accumulation1/2,loss-scale1/128,global-mean oracle rtol=atol1e-12", "initial_fixture_failures": "First normal/-O attempts omitted imported TRAIN_TIME_BUDGET_SECONDS/MAX_TRAIN_SECONDS from parser AST namespace. Corrected test fixture extracts official constant AST; production candidate unchanged."},
+  "g2": {"base": "PASS", "default": "PASS", "batch262144": "PASS", "base_seconds": 4.9, "default_seconds": 5.9, "batch262144_seconds": 5.7, "steps": 3, "ranks": 4, "depth": 6, "width": 128, "micro_rows": 1, "micro_tokens": 16, "synthetic_prepare": true, "real_data_read": false, "initial_g2_failures": []},
+  "default_lockstep": {"identical": true, "parameter_state_digests": 62, "losses_identical": true, "ownership_plan_equal": true},
+  "production_arithmetic_separate_from_g2_micro_override": {"device_batch": 1, "pack_factor": 32, "seq_len": 1024, "world_size": 4, "world_tokens_per_micro": 131072, "control_grad_accum": 1, "arm_grad_accum": 2, "control_total_batch": 131072, "arm_total_batch": 262144, "batch_ramp": false, "batch_lr_scale": 1.0},
+  "g2_actual_physical_input_tokens_per_optimizer_step": {"control": 64, "arm": 128, "note": "4 ranks x1 row x16 tokens x accumulation. G2 logged production token counts are not real token execution evidence."},
+  "pending": ["Independent source/proposal review", "Exact-size CPU G2 and default identity", "Native accumulated-gradient/model/checkpoint/budget correctness", "Genuine fresh6ef7 same-host control binding", "Full1800 fresh20M quality result", "Any future cold submission audit"],
+  "host_access": false,
+  "queue_mutated": false,
+  "ledger_mutated": false,
+  "submission_files_changed": false
+}

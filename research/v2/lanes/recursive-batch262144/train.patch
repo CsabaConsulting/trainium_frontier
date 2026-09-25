@@ -1,0 +1,12 @@
+diff --git a/workflow/proposals/research-v2/train.py b/workflow/proposals/research-v2/train.py
+index 46ffaa08..82b59c4f 100644
+--- a/workflow/proposals/research-v2/train.py
++++ b/workflow/proposals/research-v2/train.py
+@@ -3432,0 +3433 @@ def main() -> None:
++    global TOTAL_BATCH_SIZE
+@@ -3614,0 +3616 @@ def main() -> None:
++    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE, help='Global tokens per optimizer step; positive and divisible by per-microbatch world tokens. Changes gradient accumulation only; no automatic LR scaling. Default 131072.')
+@@ -3615,0 +3618,3 @@ def main() -> None:
++    if args.total_batch_size <= 0:
++        parser.error('--total-batch-size must be positive')
++    TOTAL_BATCH_SIZE = args.total_batch_size
