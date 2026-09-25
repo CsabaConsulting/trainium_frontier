@@ -1,6 +1,42 @@
 # Current state
 
-Last reconciled: 2026-09-25 20:42 UTC (26 September IST)
+Last reconciled: 2026-09-25 20:50 UTC (26 September IST)
+
+## Current: architecture training complete, fresh eval running; CPU follow-up assigned
+
+Architecture3e79/trn22 completed3629steps with exit0. Actual torchrun wall
+2603.889482s, uncapped fifth observation814.680998s, charged through process
+exit1789.208484s<=1800. Source separately reports1784.7training seconds and
+over_budgetFalse. Checkpoint453048594bytes, SHA
+068749c2559f7c68f6acc76d558caff9d3806d85273fa8562483d87bbad50d25.
+Raw training/observer/guarded eval handoff is archived55da2532. Independent
+final-result authentication is underway; no score yet. Its fresh public20M
+evaluation started20:46:04UTC under the same lifetime lock. Do not interrupt.
+This full run was primed-cache research, not a full cold submission replay.
+
+Seed43/trn21 remains healthy; last Operator observation20:46UTC reached1080
+steps at267168tokens/s. Preserve its training and attached fresh20M.
+
+Fresh isolated basebcbd review is complete, canonical25317b2a: restricted
+BF16/FP32-master CPU-qualification suitability PASS,8own fixtures/3183bitwise
+comparisons/96actual custom backwards. Supervisor read report/provenance and
+authenticated50archive files plus every exact comparison. Full117M NOT_RUN;
+native/adoption REFUSE remains. Separate cold-five mechanical binding passes
+83checks normal/-O (79402cfd), but is still disabled.
+
+Exact CPU-only assignment is canonicalc43a10d3 at
+`research/v2/verification/20260926-base-cache-cpu-assignment.md`. Operator has
+read it and the full pinned plan. After architecture eval terminal/retrieval/
+quiescence, stage the unchanged2cf504d9 packet ontrn22 and run reference,
+default, OFF, ON serially with original flock plus fresh ps/neuron-ls and
+RAM/disk/STOP checks each time. Stop first failure; no native follow-up yet.
+Independent numeric review follows retrieval. An actually ready architecture
+decision-tree job can preempt before first launch; none is released now.
+
+K2 Implementer is building only the tiny resident-row consumer falsifier in
+an isolated branch; no production source/native run. P device decode remains
+unstarted. No new confirmed BPB improvement. Safeguard timebox is satisfied;
+old queue processes are stopped, not merely starved. Keep current6ef7 base.
 
 ## Current: both training; batch authenticated; next compile gate in preparation
 
