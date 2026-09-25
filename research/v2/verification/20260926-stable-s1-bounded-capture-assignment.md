@@ -1,6 +1,6 @@
 # One read-only S1 compiler-file observation — Operator assignment
 
-Supervisor selection, 2026-09-25 23:20 UTC / 04:50 IST. This is a bounded
+Supervisor selection, 2026-09-25 23:17 UTC / 04:47 IST. This is a bounded
 existing-file observation, not a training launch, failed-pair retry or S2 release.
 Preserve current trn22 cold36a862 and trn21 full75b9 plus its attached evaluation.
 
@@ -43,3 +43,7 @@ cannot prove absence at the earlier capture. Do not reverse the original
 
 Reason: diagnose the missing compiler evidence without another blind cold run.
 Undo: revoke or skip the unstarted observation; no source/runtime changes to undo.
+
+Chronology correction: the initial prose used 23:20 UTC/04:50 IST, a future
+rounded label. The selection was already committed before the 23:17:45 UTC
+clock observation. This correction changes no authority or observation.
