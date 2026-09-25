@@ -1,0 +1,277 @@
+{
+  "schema": "l2-native-manual-job-plan-v1",
+  "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out",
+    "--unet-8x1024",
+    "--attention-layers",
+    "0,2,4,6,7"
+  ],
+  "kind": "architecture_arm",
+  "arm_id": "L2-unet8x1024-93ae",
+  "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "host": "trn22",
+  "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+  "armed": true,
+  "launch_authorized": true,
+  "readiness": "READY_EXACT_G2_AND_IDENTITY_INDEPENDENT_PASS",
+  "source": {
+    "path": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/train.py",
+    "sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5"
+  },
+  "working_directory": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+  "environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_OUT_DIR": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/out",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/metrics-training",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
+    "TRN_EXP_LABEL": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1"
+  },
+  "command": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out",
+    "--unet-8x1024",
+    "--attention-layers",
+    "0,2,4,6,7"
+  ],
+  "gate_requirements": {
+    "diff_review": {
+      "status": "PASS_SOURCE_ONLY",
+      "references": [
+        {
+          "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+          "path": "research/v2/verification/20260925-l2-unet8x1024-independent-review.md",
+          "scope": "independent original52e2 source/reduced numeric PASS only"
+        },
+        {
+          "git_commit": "e9109dec72e41f0d481bd55df49aaedf7655bb6a",
+          "path": "research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+          "scope": "independent93ae narrowtimer port PASS only"
+        }
+      ]
+    },
+    "exact_cpu_g2": {
+      "status": "PASS_INDEPENDENTLY_ACCEPTED",
+      "source_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+      "argv": [
+        "--n-embd",
+        "1024",
+        "--no-ngram-ve",
+        "--no-qk-shift",
+        "--compile-sdpa-direct",
+        "--nki-local-conv",
+        "--bf16-norm-output",
+        "--pack-factor",
+        "32",
+        "--clip-after-reduce",
+        "--seq-len",
+        "1024",
+        "--no-eval-public",
+        "--matrix-lr",
+        "0.015",
+        "--seed",
+        "42",
+        "--max-train-seconds",
+        "1800",
+        "--num-steps",
+        "1000000",
+        "--out-dir",
+        "out",
+        "--unet-8x1024",
+        "--attention-layers",
+        "0,2,4,6,7"
+      ],
+      "nproc": 4,
+      "steps": 3,
+      "micro_rows": 2,
+      "micro_tokens": 256
+    },
+    "flag_off_identity": {
+      "status": "PASS_IDENTICAL_BOTH_REFERENCES",
+      "candidate_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+      "reference_sha256": [
+        "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+        "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+      ],
+      "steps": 3,
+      "required": "Same environment, full 6x1024 parameters, all 12 rank-step losses +62 parameter digests +ownership plan equal."
+    },
+    "native_compile": {
+      "status": "UNMEASURED"
+    },
+    "host_preflight": {
+      "status": "REQUIRED_FRESH_AT_LAUNCH",
+      "receipt": "operator-launch.json"
+    }
+  },
+  "same_host_control": {
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+    "public_val_bpb": 0.991513958330512,
+    "steps": 3633,
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "git_commit": null,
+    "source_definition_commit": "8b9fc841ed817eac263c7087c3bce7c9f008bda1",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "box_constraint": "Same trn22, seed 42, full chip/LNC2x4, same provided data/compiler policy, final fresh public-20M/context1024. Refresh under current control-age/drift policy; no cross-host pooling.",
+    "review": "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md"
+  },
+  "base_science_argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015"
+  ],
+  "training_budget_seconds": 1800,
+  "checkpoint": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/out/final.pt",
+  "fresh_evaluation": {
+    "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1-eval",
+    "command": [
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+      "eval-public",
+      "--train-py",
+      "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/out/final.pt",
+      "--device",
+      "neuron",
+      "--batch-size",
+      "1",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ],
+    "fresh_process": true,
+    "requires_training_terminal_and_quiescence": true
+  },
+  "launch_policy": "Use the existing independently checked manualtrain-to-fresh-eval machinery or a separately reviewed host_queue 93ae allowlist update. Current queue rejects 93ae. Pause existing queue between jobs before manual route; never two active launchers. No new launcher is implemented here.",
+  "artifact_policy": "Preserve launch/environment,logs,rank/process/step-boundary receipts,checkpoint URI/hash, fresh20M metrics, clean quiescence/postflight and comparison/verdict. No deletion authorized.",
+  "status": "READY_SCOPED_NATIVE_RESEARCH",
+  "stage_authorized": true,
+  "research_only": true,
+  "submission_eligible": false,
+  "independent_acceptance": {
+    "commit": "02ed18964128050192036ad1ceaa000918c01ffc",
+    "path": "research/v2/verification/20260925-trn22-architecture-fullsize-cpu-PASS.md",
+    "sha256": "100ea9b490d40a274fa8046070ced7b3433cae93d2d55827c68ff27f49c92be2",
+    "scope": "Independent exact full-size four G2 reports and dual-reference OFF identity; explicit Supervisor native GO after fresh Operator preflight."
+  },
+  "cpu_receipts": {
+    "candidate-on": {
+      "path": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/candidate-on/results/g2.json",
+      "sha256": "c2fee697d02322198d61951363861fb31201bd7b68d4b91f159dbd44001392b0"
+    },
+    "candidate-off": {
+      "path": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/candidate-off/results/g2.json",
+      "sha256": "1d102c7d5fd7b09c871b5e022abf2a7f623bbb20e5fcb16206f23849b1a26cf6"
+    },
+    "c5c-off": {
+      "path": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/c5c-off/results/g2.json",
+      "sha256": "988d3a1eb639efdf1cd9670d3e31c07176453618ed108b47b0bfe9d35e7f19b2"
+    },
+    "6ef7-off": {
+      "path": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/6ef7-off/results/g2.json",
+      "sha256": "7ccf42ecc822be74fabbae69ce03341be3f6498804d2437562130f53b981f725"
+    }
+  },
+  "cold_start": {
+    "status": "UNPROVEN_WARM_RESEARCH_CACHE",
+    "startup_estimate": "Record source-native startup allowance estimate separately from process wall time.",
+    "fifth_step_boundary": "Exact timestamp not supplied by proven driver; do not invent it. Later genuine cold validation required before submission."
+  },
+  "fixed_budget_selection": "Final fresh-process public20M/context1024 BPB at unchanged official1800-second budget against declared same-host c5c A0. Fixed-budget amendment overrides older step-window gates; steps/spikes/stalls are diagnostic only. Budget/correctness/replication/BPB thresholds remain unchanged."
+}
