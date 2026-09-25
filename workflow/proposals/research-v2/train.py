@@ -281,6 +281,17 @@ USE_PARALLEL_BLOCK = False
 PARALLEL_BLOCK_COALESCE = 'none'
 USE_QKV_NORM_CSE = False
 USE_X0_GATE = False
+USE_UNET_SKIP = False
+USE_PARTIAL_ATTN_8 = False
+PARTIAL_ATTN_8_PATTERN = 'AAMAMAMA'  # Keep all depth-8 value-embedding/table sites (1, 3, 5, 7).
+
+def has_attention(layer_idx: int, n_layer: int) -> bool:
+    """S-B's fixed eight-block pattern; default-off retains every attention block."""
+    if not USE_PARTIAL_ATTN_8:
+        return True
+    if n_layer != len(PARTIAL_ATTN_8_PATTERN):
+        raise ValueError('--partial-attn-8 requires --depth 8')
+    return PARTIAL_ATTN_8_PATTERN[layer_idx] == 'A'
 
 def head_gate_slice(n_embd: int, n_layer: int) -> tuple[int, int]:
     """(start, stop) residual channels the T3.6 head gate reads.
@@ -1776,7 +1787,9 @@ class Block(nn.Module):
     def __init__(self, config: GPTConfig, layer_idx: int=0):
         super().__init__()
         self.coalesced = PARALLEL_BLOCK_COALESCE if USE_PARALLEL_BLOCK else 'none'
-        self.attn = CausalSelfAttention(config, layer_idx, coalesced=self.coalesced)
+        self.attn = CausalSelfAttention(config, layer_idx, coalesced=self.coalesced) if has_attention(layer_idx, config.n_layer) else None
+        if self.attn is None and USE_PARALLEL_BLOCK:
+            raise ValueError('--partial-attn-8 is incompatible with --parallel-block')
         self.mlp = MLP(config, coalesced=self.coalesced)
         if self.coalesced == 'all':
             self.c_in = Linear(config.n_embd, 3 * config.n_embd + config.mlp_ratio * config.n_embd, bias=False)
@@ -1793,9 +1806,9 @@ class Block(nn.Module):
             self.par_lambda_m = nn.Parameter(torch.ones(1))
         else:
             self.par_lambda_a = self.par_lambda_m = None
-        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
+        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV and self.attn is not None else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
-        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA)), requires_grad=not QK_SHIFT_FREEZE) if USE_QK_SHIFT else None
+        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA)), requires_grad=not QK_SHIFT_FREEZE) if USE_QK_SHIFT and self.attn is not None else None
 
     def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, ve_bi: torch.Tensor | None=None, ve_tri: torch.Tensor | None=None) -> torch.Tensor:
         if self.scalar_gate is not None:
@@ -1810,6 +1823,11 @@ class Block(nn.Module):
             x = self.resid_lambda * x + self.x0_lambda * x0
         if self.block_nudge is not None and BLOCK_NUDGE_SITE == 'resid':
             x = x + self.block_nudge * x
+        if self.attn is None:
+            # MLP-only blocks omit Q/K/V, SDPA, value embeddings and causal convolution.
+            if USE_MLP_SANDWICH_NORM:
+                return x + norm(self.mlp(norm(x)))
+            return x + self.mlp(norm(x))
         q_in = k_in = v_in = x
         if self.block_nudge is not None and BLOCK_NUDGE_SITE == 'qk':
             q_in = k_in = x + self.block_nudge * x
@@ -1948,6 +1966,12 @@ class GPT(nn.Module):
             self.out_bigram_gate = None
             self.out_bigram_gate_bias = None
         self.out_pool_lambdas = nn.Parameter(torch.zeros(min(OUT_POOL_LAYERS, config.n_layer))) if USE_OUT_POOL else None
+        # Encoder outputs 0..3 feed decoder inputs 7..4, respectively. Zero-init
+        # per-channel gates preserve the pre-skip forward at the first training step.
+        self.unet_n_enc = config.n_layer // 2 if USE_UNET_SKIP else 0
+        self.unet_skip_gates = (nn.ParameterList([nn.Parameter(torch.zeros(config.n_embd, dtype=torch.float32))
+                                                  for _ in range(self.unet_n_enc)])
+                                if self.unet_n_enc else None)
         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
         self.register_buffer('cos', cos, persistent=False)
         self.register_buffer('sin', sin, persistent=False)
@@ -1963,7 +1987,7 @@ class GPT(nn.Module):
         torch.nn.init.normal_(self.lm_head.weight, mean=0.0, std=0.001)
         s = INIT_SCALE * math.sqrt(3.0) * self.config.n_embd ** (-0.5)
         for block in self.transformer.h:
-            if block.c_in is not None:
+            if block.attn is not None and block.c_in is not None:
                 n = self.config.n_embd
                 if block.coalesced == 'all':
                     torch.nn.init.uniform_(block.c_in.weight[:n], -s, s)
@@ -1975,20 +1999,21 @@ class GPT(nn.Module):
                     torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
                     torch.nn.init.uniform_(block.c_in.weight[:n], -s, s)
                     fc_rows = block.c_in.weight[n:]
-            elif USE_FUSED_QKV:
+            elif block.attn is not None and USE_FUSED_QKV:
                 n = self.config.n_embd
                 torch.nn.init.uniform_(block.attn.c_qkv.weight[:n], -s, s)
                 torch.nn.init.uniform_(block.attn.c_qkv.weight[n:2 * n], -s, s)
                 torch.nn.init.uniform_(block.attn.c_qkv.weight[2 * n:], -s, s)
-            else:
+            elif block.attn is not None:
                 torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
                 torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
                 torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
-            if ATTN_CPROJ_INIT_SCALE > 0.0:
-                b = ATTN_CPROJ_INIT_SCALE * s
-                torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
-            else:
-                torch.nn.init.zeros_(block.attn.c_proj.weight)
+            if block.attn is not None:
+                if ATTN_CPROJ_INIT_SCALE > 0.0:
+                    b = ATTN_CPROJ_INIT_SCALE * s
+                    torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
+                else:
+                    torch.nn.init.zeros_(block.attn.c_proj.weight)
             torch.nn.init.uniform_(block.mlp.c_fc.weight if block.c_in is None else fc_rows, -0.4 * s, 0.4 * s)
             if block.mlp.c_gate is not None:
                 torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
@@ -1999,11 +2024,12 @@ class GPT(nn.Module):
             if block.par_lambda_a is not None:
                 block.par_lambda_a.fill_(1.0)
                 block.par_lambda_m.fill_(1.0)
-            if block.attn.ve_gate is not None:
+            if block.attn is not None and block.attn.ve_gate is not None:
                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
-            for g in (block.attn.ve_gate_bi, block.attn.ve_gate_tri):
-                if g is not None:
-                    torch.nn.init.zeros_(g.weight)
+            if block.attn is not None:
+                for g in (block.attn.ve_gate_bi, block.attn.ve_gate_tri):
+                    if g is not None:
+                        torch.nn.init.zeros_(g.weight)
             if block.scalar_gate is not None:
                 torch.nn.init.zeros_(block.scalar_gate.weight)
         for ve in self.value_embeds.values():
@@ -2025,6 +2051,9 @@ class GPT(nn.Module):
             torch.nn.init.zeros_(self.out_bigram_gate.weight)
         if self.out_pool_lambdas is not None:
             torch.nn.init.zeros_(self.out_pool_lambdas)
+        if self.unet_skip_gates is not None:
+            for gate in self.unet_skip_gates:
+                torch.nn.init.zeros_(gate)
         for block in self.transformer.h:
             if block.attn is not None and block.attn.head_gate is not None:
                 torch.nn.init.zeros_(block.attn.head_gate.weight)
@@ -2139,7 +2168,7 @@ class GPT(nn.Module):
         h = self.config.n_head
         d = self.config.n_embd // self.config.n_head
         t = self.config.sequence_len
-        attn_flops = self.config.n_layer * 12 * h * d * t
+        attn_flops = sum((block.attn is not None for block in self.transformer.h)) * 12 * h * d * t
         return 6 * (nparams - non_matmul) + attn_flops
 
     def setup_optimizer(self):
@@ -2158,12 +2187,15 @@ class GPT(nn.Module):
                 scalar_params.extend([block.par_lambda_a, block.par_lambda_m])
             if block.qk_shift_beta is not None and block.qk_shift_beta.requires_grad:
                 gate_params.append(block.qk_shift_beta)
-            if block.attn.head_gate is not None:
-                gate_params.append(block.attn.head_gate_bias)
-            matrix_params.extend((p for name, p in block.attn.named_parameters() if name != 'head_gate_bias'))
+            if block.attn is not None:
+                if block.attn.head_gate is not None:
+                    gate_params.append(block.attn.head_gate_bias)
+                matrix_params.extend((p for name, p in block.attn.named_parameters() if name != 'head_gate_bias'))
             matrix_params.extend(block.mlp.parameters())
             if block.c_in is not None:
                 matrix_params.append(block.c_in.weight)
+        if self.unet_skip_gates is not None:
+            gate_params.extend(self.unet_skip_gates)
         matrix_params.extend((p.weight for p in self.ngram_proj.values()))
         engram_conv_params = []
         if self.engram is not None:
@@ -2234,20 +2266,25 @@ class GPT(nn.Module):
         engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None
         pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
         pool_buf: list[torch.Tensor] = []
+        unet_skips: list[torch.Tensor] = []
         for i, block in enumerate(self.transformer.h):
-            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+            if self.unet_n_enc and i >= self.unet_n_enc:
+                x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()
+            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if block.attn is not None and str(i) in self.value_embeds else None
             ve_bi = ve_tri = None
-            if ngram_idx is not None:
+            if block.attn is not None and ngram_idx is not None:
                 if f'b{i}' in self.ngram_embeds:
                     ve_bi = self._ngram_lookup(f'b{i}', ngram_idx[f'b{i}'], engram_raw)
                 if f't{i}' in self.ngram_embeds:
                     ve_tri = self._ngram_lookup(f't{i}', ngram_idx[f't{i}'], engram_raw)
-            if USE_CAUSAL_FASTPATH and doc_mask is None and (not self.layer_is_short[i]):
+            if block.attn is None or (USE_CAUSAL_FASTPATH and doc_mask is None and (not self.layer_is_short[i])):
                 attn_mask = None
             else:
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
             x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+            if self.unet_n_enc and i < self.unet_n_enc:
+                unet_skips.append(x)
             if self.engram is not None and i == self.engram_site:
                 if engram_raw is not None:
                     parts = [engram_raw[k] for k in self.engram_share_keys]
@@ -3155,7 +3192,9 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
     flat_grad_buffer.mul_(clip_coef_clamped)
     return total_norm
 ARCH_TOGGLE_NAMES = ['PACK_FACTOR', 'INIT_SCALE', 'USE_VE', 'WINDOW_PATTERN', 'SHORT_WINDOW_FRAC', 'ROPE_BASE', 'USE_LOCAL_CONV', 'LOCAL_CONV_KERNEL', 'TRAIN_LOCAL_CONV', 'USE_GATED_MLP', 'USE_WEIGHT_CACHE', 'USE_TRANSPOSED_LINEAR', 'WARMDOWN_RATIO', 'FINAL_LR_FRAC', 'WARMUP_STEPS', 'WD_DECAY_TO_ZERO', 'MUON_MOMENTUM_WARMUP_STEPS', 'USE_DOC_MASK', 'VE_WD', 'USE_SELECTIVE_GATE', 'SELECTIVE_GATE_CHANNELS', 'USE_FUSED_QKV', 'USE_CAUSAL_FASTPATH', 'USE_TRN2_COMPILER_FLAGS', 'COMPILE_SDPA_DIRECT', 'USE_NKI_ATTN', 'USE_NKI_LOCAL_CONV', 'USE_BF16_NORM_OUTPUT', 'USE_BF16_SDPA_INPUT', 'MATRIX_LR', 'EMBEDDING_LR', 'UNEMBEDDING_LR', 'SCALAR_LR', 'WEIGHT_DECAY', 'GRAD_CLIP', 'CLIP_AFTER_REDUCE', 'LOGIT_SOFTCAP', 'LOSS_BYTE_WEIGHT', 'LOSS_SCALE', 'LOSS_SCALE_DYNAMIC', 'ATTN_CPROJ_INIT_SCALE', 'MUON_NS_STEPS', 'MUON_MOMENTUM_COOLDOWN_FRAC', 'MUON_MOMENTUM_FINAL', 'ADAM_EVERY_N', 'ADAM_EVERY_N_LR_COMP', 'DEMON_BETA1', 'DEMON_BETA1_FINAL', 'DEMON_BETA1_REF', 'DEMON_BETA1_START_FRAC', 'MUON_BETA2', 'MUON_BETA2_FINAL', 'MUON_DEPTH_LR_BOTTOM', 'MUON_DEPTH_LR_TOP', 'MUON_DEPTH_MOM_BOTTOM', 'MUON_DEPTH_MOM_TOP', 'MUON_DEPTH_MOM_REF', 'DEPTH', 'N_EMBD', 'HEAD_DIM', 'MLP_RATIO', 'ATTN_SCALE', 'N_KV_HEADS', 'USE_NGRAM_VE', 'NGRAM_VE_LAYERS', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_DIM', 'NGRAM_VE_BF16', 'NGRAM_RMS_FP32', 'USE_NKI_NGRAM_RMS', 'NGRAM_VE_LR', 'NGRAM_VE_BETA2', 'NGRAM_VE_FLAT_LR', 'NGRAM_VE_OPT', 'NGRAM_VE_CLIP_EXCLUDE', 'USE_OUT_BIGRAM', 'OUT_BIGRAM_BF16', 'OUT_BIGRAM_GATE_BIAS', 'OUT_BIGRAM_LR', 'RELU2_TAU', 'USE_MLP_SANDWICH_NORM', 'USE_HEAD_GATE', 'HEAD_GATE_NORM', 'HEAD_GATE_CHANNELS', 'HEAD_GATE_MUL', 'HEAD_GATE_BIAS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'QK_SHIFT_BETA', 'QK_SHIFT_FREEZE', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'BLOCK_NUDGE_SITE', 'USE_QKV_NORM_CSE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_SITE', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'ENGRAM_BF16', 'USE_EPOCH_SHUFFLE', 'EPOCH_SHUFFLE_SEED', 'BATCH_RAMP', 'BATCH_RAMP_GRAD_ACCUM', 'BATCH_RAMP_BOUNDS', 'BATCH_RAMP_LR_EXP', 'USE_WEIGHT_EMA', 'WEIGHT_EMA_DECAYS', 'WEIGHT_EMA_START_FRAC', 'USE_BYTE_WTE_INIT', 'BYTE_WTE_INIT_MIX', 'BYTE_WTE_INIT_NGRAM', 'BYTE_WTE_INIT_STD', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN', 'USE_CAUTIOUS_WD', 'SCALAR_BETA1', 'SCALAR_BETA2']
+ARCH_TOGGLE_NAMES.extend(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8'))
 SHAPE_CRITICAL_TOGGLES = {'USE_VE', 'USE_LOCAL_CONV', 'USE_GATED_MLP', 'USE_SELECTIVE_GATE', 'USE_FUSED_QKV', 'USE_TRANSPOSED_LINEAR', 'USE_NGRAM_VE', 'NGRAM_VE_TRIGRAM', 'NGRAM_VE_TABLE_MULT', 'NGRAM_VE_DIM', 'USE_OUT_BIGRAM', 'USE_HEAD_GATE', 'HEAD_GATE_CHANNELS', 'USE_OUT_POOL', 'OUT_POOL_LAYERS', 'USE_QK_SHIFT', 'USE_X0_GATE', 'USE_BLOCK_NUDGE', 'USE_PARALLEL_BLOCK', 'PARALLEL_BLOCK_COALESCE', 'USE_ENGRAM', 'ENGRAM_ORDERS', 'ENGRAM_HEADS', 'ENGRAM_TABLE_MULT', 'ENGRAM_MEM_DIM', 'ENGRAM_KEY_DIM', 'ENGRAM_CONV_KERNEL', 'ENGRAM_SHARE_NGRAM_TABLES', 'N_KV_HEADS', 'USE_COALESCED_SWIGLU', 'COALESCED_SWIGLU_HIDDEN'}
+SHAPE_CRITICAL_TOGGLES.update(('USE_UNET_SKIP', 'USE_PARTIAL_ATTN_8'))
 
 def current_toggles() -> dict:
     g = globals()
@@ -3424,6 +3463,7 @@ def main() -> None:
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
+    global USE_UNET_SKIP, USE_PARTIAL_ATTN_8
     global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
     global USE_ENGRAM, ENGRAM_SITE, ENGRAM_ORDERS, ENGRAM_HEADS, ENGRAM_TABLE_MULT
     global ENGRAM_MEM_DIM, ENGRAM_KEY_DIM, ENGRAM_CONV_KERNEL, ENGRAM_SHARE_NGRAM_TABLES
@@ -3540,6 +3580,8 @@ def main() -> None:
     parser.add_argument('--requeue-identity', action=argparse.BooleanOptionalAction, default=REQUEUE_IDENTITY, help='IMPL-3 control: the same in-file requeue loader as --fresh-tail-frac, natural row-group order. Default off.')
     parser.add_argument('--epoch-shuffle-seed', type=int, default=EPOCH_SHUFFLE_SEED, help='seed base for --epoch-shuffle; epoch e is shuffled with seed+e.')
     parser.add_argument('--x0-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_X0_GATE', '1' if USE_X0_GATE else '0') != '0', help="Recursive's input-dependent x0 gate: scale each block's x0 skip by 2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, which owns the same line of Block.forward.")
+    parser.add_argument('--unet-skip', action=argparse.BooleanOptionalAction, default=USE_UNET_SKIP, help='S-B: zero-initialized, trained per-channel encoder-to-decoder skips. For depth 8 the pairs are 0->7, 1->6, 2->5, 3->4. Default OFF; shape-critical.')
+    parser.add_argument('--partial-attn-8', action=argparse.BooleanOptionalAction, default=USE_PARTIAL_ATTN_8, help='S-B: depth-8 pattern AAMAMAMA (attention at layers 0,1,3,5,7; MLP-only 2,4,6), retaining every value-embedding/table site. Default OFF; shape-critical.')
     parser.add_argument('--batch-ramp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP', '1' if BATCH_RAMP else '0') != '0', help='T2.1: ramp the effective batch size across the run by varying grad_accum_steps on wall-clock-fraction boundaries, holding the micro shape (and therefore every compiled graph) fixed. Off by default.')
     parser.add_argument('--batch-ramp-grad-accum', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_GRAD_ACCUM', ','.join((str(g) for g in BATCH_RAMP_GRAD_ACCUM))), help="T2.1: comma-separated micro-batch counts for stages A,B,C. Stage B should normally be TOTAL_BATCH_SIZE's own grad_accum (4 at the locked shape) so the ramp is symmetric around today's batch size.")
     parser.add_argument('--batch-ramp-bounds', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_BOUNDS', ','.join((str(b) for b in BATCH_RAMP_BOUNDS))), help='T2.1: comma-separated elapsed/max_train_seconds boundaries A->B,B->C. The second should normally equal WARMDOWN_RATIO so the largest batch covers exactly the lr cooldown.')
@@ -3584,6 +3626,10 @@ def main() -> None:
     _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
     parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    if args.partial_attn_8 and args.depth != 8:
+        parser.error('--partial-attn-8 requires --depth 8')
+    if args.partial_attn_8 and args.parallel_block:
+        parser.error('--partial-attn-8 cannot combine with --parallel-block')
     if args.ngram_rms_fp32 and args.ngram_ve_opt != 'rmsprop':
         parser.error('--ngram-rms-fp32 requires --ngram-ve-opt rmsprop')
     if args.nki_ngram_rms and (not args.ngram_rms_fp32):
@@ -3703,6 +3749,8 @@ def main() -> None:
     QK_SHIFT_BETA = args.qk_shift_beta
     QK_SHIFT_FREEZE = args.qk_shift_freeze
     USE_X0_GATE = args.x0_gate
+    USE_UNET_SKIP = args.unet_skip
+    USE_PARTIAL_ATTN_8 = args.partial_attn_8
     USE_BLOCK_NUDGE = args.block_nudge
     BLOCK_NUDGE_SITE = args.block_nudge_site
     USE_QKV_NORM_CSE = args.qkv_norm_cse
@@ -3811,6 +3859,7 @@ def main() -> None:
     config = build_config()
     print0(f'model_config={json.dumps(asdict(config), indent=2)}')
     model = GPT(config)
+    print0(f'architecture: unet_skip_pairs={model.unet_n_enc} attention_layers={tuple(i for i, block in enumerate(model.transformer.h) if block.attn is not None)} partial_attn_8={USE_PARTIAL_ATTN_8}')
     model.init_weights()
     if USE_BYTE_WTE_INIT:
         n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer, config.vocab_size)
