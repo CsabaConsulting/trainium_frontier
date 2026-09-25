@@ -1,8 +1,19 @@
 {
   "schema": "trn-frontier-queue-v2",
-  "written_utc": "2026-09-25T15:23:00Z",
+  "written_utc": "2026-09-25T15:55:00Z",
   "source_report": "reports/2026-09-24-frontier-research-program.md",
-  "status": "FINAL_PUSH_ACTIVE_TABLE_RUNS; TWELVE_COMPLETE_FLAG_ONLY_FALLBACKS_READY_PENDING_HOST_PREFLIGHT; HOST_SERIAL_RUNNER_UNDER_REVIEW",
+  "status": "TABLE_RESULT_CONDITIONAL; A1_TRAINING_A2_STARTUP_TRUNCATED_EVAL; OLD_FLAG_BANK_LAST_OR_CANCELLED; CONDITIONAL_RUNNER_NOT_YET_INSTALLED",
+  "latest_conditional_policy": {
+    "authority": "workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md",
+    "valid_table_delta_at_most": -0.003,
+    "winner_order": ["winning table cross-host replicate", "A3 tables on all VE layers", "Recursive schedule ON winning table base", "matrix LR0.0125 and0.0175 ON table base"],
+    "winner_cancels": "All unstarted old-dense-base flag-bank jobs",
+    "otherwise_order": ["Recursive schedule", "8x1024 architecture", "old-base flag bank"],
+    "incomplete_policy": "A five-step startup-truncated/failed/unscored attempt does not select the otherwise branch; obtain valid table evidence or report the execution blocker.",
+    "source_gate_policy": "New code requires independent diff PASS, three-step flag-OFF identity and exact-size CPU G2 for exact argv. Pending jobs are not reported ready.",
+    "comparison_identity": "Scientific base binds source and baseline argv. Table-base deltas use same-host table controls, never silently pooled dense controls.",
+    "cold_table_submission_gate": "Measure exact file cold startup; prepare.py allowance cap900s, excess charged; no warm substitute."
+  },
   "base_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
   "base_files": {
     "35c9": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
@@ -18,7 +29,8 @@
     "note": "always 20M for scored runs; 2M only for the one-off calibration job"
   },
   "decision_rules": {
-    "version": "v2-2026-09-24",
+    "version": "v2-2026-09-25-table-budget-exemption",
+    "table_step_exemption": {"kind": "table_arm", "throughput_exempt": true, "training_budget_seconds": 1800, "other_gates_unchanged": true},
     "nominate": {
       "single_host_delta_max": -0.0006,
       "step_ratio_window": [
@@ -124,6 +136,8 @@
     {
       "pri": 2,
       "id": "A2",
+      "throughput_exempt": true,
+      "training_budget_seconds": 1800,
       "label_template": "20260924-A2-ngram-l1m1-m64d128-{host}-r{n}",
       "kind": "table_arm",
       "base": "35c9_plus_IMPL1",
@@ -163,6 +177,8 @@
     {
       "pri": 3,
       "id": "A1",
+      "throughput_exempt": true,
+      "training_budget_seconds": 1800,
       "label_template": "20260924-A1-ngram-lm1-m64d128-{host}-r{n}",
       "kind": "table_arm",
       "base": "35c9_plus_IMPL1",

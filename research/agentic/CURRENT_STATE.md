@@ -1,6 +1,43 @@
 # Current state
 
-Last reconciled: 2026-09-25 15:24 UTC
+Last reconciled: 2026-09-25 15:55 UTC
+
+## Latest correction and A2 startup truncation, 15:55 UTC
+
+`workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md` is controlling over older
+queue/model instructions. A1/A2 remain table arms, explicitly step-window exempt
+at requested 1800 seconds; correctness, final fresh public-20M/context-1024 and
+budget gates remain. The change and six tests are committed at `b286bda2`, with
+independent PASS at `b94fdd1b`. A step-count exemption is not permission to treat
+a five-step startup-only attempt as a completed quality experiment.
+
+At 15:51:20 UTC A1/trn21 was training at step 2500, 239,536 tokens/s, with 313
+seconds remaining. A2/trn22 training exited zero at 15:46:11 UTC but completed
+only FIVE steps: first-step compile 1056.75 s, second-step compile 903.47 s.
+Its official-style harness recorded wall 1997.2943 s, capped startup 900 s,
+charged-through-exit 1097.2943 s. Its fresh public-20M eval started automatically
+at 15:46:11 and was live at 15:51:19. This is startup-truncated evidence, not a
+scientific rejection of A2 and not a table winner. Keep its checkpoint/logs.
+
+The installed compiler uses the persistent TORCH_NEURONX NEFF/local/HLO caches;
+the current table jobs reuse the previous dense run's roots. New table forward
+and optimizer graphs still need compilation. The table training timer retains
+compile-heavy steps in its next-step reserve, which explains A2 stopping after
+the minimum five boundaries. Cache reuse is being diagnosed; no cache cleanup,
+timing relaxation, prepare.py edit or claim of a proven cache fix has occurred.
+Exact cold startup remains required before any table submission.
+
+L1 FP8 and L2 architecture are now local GPT-6 Astra implementer tasks. Fable
+sessions are terminal and must not be retried/reworded. L2 commit `99261e75`
+has bounded ON/OFF, identity, causal and load checks; independent review and
+exact-size G2 are separate. Recursive schedule source `f9b6a9cb` is integrated
+at `e273b97c`; exact-size selected-profile G2 remains pending. Conditional host
+runner `7bead4c9` has 12 passing tests and independent review in progress.
+It is not yet installed. Old dense flag-bank jobs are now conditional last
+resort, not twelve immediately dispatchable jobs: a valid table delta <=-0.003
+selects replicate -> A3 -> schedule ON table base -> table-base LR brackets.
+Otherwise schedule and architecture precede the bank. Unfinished/invalid table
+attempts cannot be silently used as the 'no win' branch.
 
 ## Full table runs active; overnight and builder status, 15:24 UTC
 
