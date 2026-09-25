@@ -1,5 +1,10 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+04:42IST update: exact36a862 cold-five launched23:09:57UTC ontrn22, fourworkers
+and same original lifetimeflock. Bindingf35ac494 acceptedf1645917,112mechanical
+checks replayed; assignment912b99f3. Sixfreshcaches/MAX1800/num5/noRecursive.
+Nativecoldresult pending; full+fresh20M packet preparation only. No qualitygain.
+
 04:28IST update: fullCPU36a862 completed22:52:10UTC; raw1d83f3d0 accepted249own
 checks normal/-O, all91files/16rankreceipts. Default/OFF checkpoint/logit identity
 and ONfiniteupdates pass, only3syntheticsteps. Separate cold-five packet is now

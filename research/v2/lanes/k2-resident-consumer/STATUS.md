@@ -1,5 +1,13 @@
 # K2 supplied-metadata consumer — 26 September 02:40 IST
 
+04:42IST update: one diagnosed namespace retryd0f0 actuallyran23:06:48UTC
+and failed23:07:14 with compiler INTERNAL_ERROR NCC_IXGM002 (sg0000 expected9
+basicblocks,core1has1). Raw7c40e4f5, exact22file authentication; only upstream
+roundtrip, no nativeconsumer or timing. All9 observed identities/descendants
+gone and deviceidle before separately assignedclocklaunch. This tiny route
+is PARKED under the one-retry rule; no further implementation/retry selected.
+Independent terminal audit pending. SourcefreshPASS does not erase this failure.
+
 04:32IST update: namespace-only repaird0f0d7fb/SHA4939265b is published isolated.
 Fresh input-only independent Astra actuallystarted22:58:58UTC; seven small
 inputs, manifest0126e05a, no inherited notes/branch/history. Verdict pending.

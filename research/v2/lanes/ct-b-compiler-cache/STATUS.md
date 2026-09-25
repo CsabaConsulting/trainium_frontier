@@ -1,5 +1,11 @@
 # CT-B: compiler/cache coordination, bounded research
 
+04:42IST update: S1 cold845.593623s supported by independent38071847/root157
+checks. PairREFUSED at MATCHED_PRINCIPAL_COMPILER_BYTES_MISSING, noS2/cachehit.
+Bounded postexit capture cannot distinguish missingfiles from hash/layoutmiss;
+diagnosis60fe0827 recommends read-only exact3dir capture, not anothercoldrun.
+Currenttrn22 is distinct36a862 clockcold, not cachepairretry. No cachefixclaimed.
+
 04:22IST update: stable-source S1 actually began22:47:39.841696UTC ontrn22;
 fourworkers, original lifetimeflock and freshps/neuron-ls archived7b16ffbd.
 S2 notyetlaunched: complete S1gate/receipts/quiescence required first.

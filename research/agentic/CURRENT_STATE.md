@@ -1,5 +1,38 @@
 # Current state
 
+## 23:12 UTC: both hosts active; kernel route parked, no new confirmed BPB
+
+trn21 full75b944+Recursive reached step30 at23:10:27UTC, about267,218tok/s,
+fourworkers live and compiler finished. Attachedfresh20M is pending. Printed
+firststep771s is NOT the uncapped harness fifth, which awaits terminalreceipt.
+Its startup-contaminated earlyLR remains visible; no clock fix silently stacked.
+Free23.10GiB is below NIGHT25decimalGB but above run gate; no deletion assigned.
+
+trn22 exact36a862 startup-clock cold-five ACTUALLY launched23:09:57.310615UTC
+(04:39:57IST), fourworkers3184968–71/original lock. Source/fresh/fullCPU accepted;
+new bindingf1645917 passes112 checks normal/-O, rootread/replayed. Assignment
+912b99f3 permits only this cold-five, no full/eval. Separate full packet is being
+prepared DISABLED ahead of the result. It does not stack Recursive.
+
+K2 namespace retryd0f0 completed23:07:14UTC with compiler INTERNAL_ERROR
+NCC_IXGM002: expected9 basic blocks in sg0000/subgraph0 but core1 has1.
+Raw7c40e4f5 authenticated22files by root; only upstream roundtrip finished,
+rank1–3 terminated bytorchrun, no consumer/timing evidence. Route PARKED after
+the one diagnosed retry; no further fix/retry assigned. All nine observed
+process/compiler identities proved absent before clocklaunch. Independent
+terminal interpretation in progress. Native-to-next idle2m43s.
+
+S1 cachepair190ccf4a: independent38071847/root157checks accept measured
+cold845.593623s only. Pair remains refused for missing principal compiler
+bytes; S2neverran, reuse UNRESOLVED. Read-only diagnosis60fe0827/7c9ead66
+recommends bounded capture of three already-named dirs, not another coldrun;
+capture unassigned. Five current training-file hashes match acrosshosts;
+raw integer metadata authenticated, not historicalloader equivalence.
+
+Confirmed6ef7mean0.9901674436550496 unchanged. Original0.986340 did not
+replicate, provisionalbase withdrawn, submissionHOLD. Actual nextfull score
+is pending; goalACTIVE. Statehosts/queuelive fields now match these jobs.
+
 ## 23:02 UTC: both jobs preserved; K2 fresh review actually running
 
 trn21 continues the full75b944 Recursive architecture experiment launched
