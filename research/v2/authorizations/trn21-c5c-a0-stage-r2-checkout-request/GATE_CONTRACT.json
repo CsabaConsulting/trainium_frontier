@@ -1,6 +1,6 @@
 {
   "schema": "trn21-c5c-a0-stage-r2-checkout-request-hold-v1",
-  "status": "IMPLEMENTER_EXACT_ONE_ATTEMPT_REQUEST_DRAFT_PENDING_INDEPENDENT_REQUEST_REVIEW_AND_SUPERVISOR_CHECKOUT_ONLY_ASSIGNMENT_HOLD",
+  "status": "IMPLEMENTER_REPAIRED_DISABLED_REQUEST_DRAFT_PENDING_NEW_INDEPENDENT_REVIEW_AND_SUPERVISOR_CHECKOUT_ONLY_ASSIGNMENT_HOLD",
   "prepared_by_role": "implementer",
   "checkout_dispatch_authorized": false,
   "cpu_g2_authorized": false,
@@ -14,6 +14,10 @@
   "source_capsule_sha256": "32c7181668884488bf920a165982ffd2167096376aebaa6eb4cca2793b1c4264",
   "absent_checkout_one_attempt_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
   "checkout_mode": "0700",
+  "failed_predecessor_request_review_sha256": "8656f59af4ca658d558525b69ed4c2a3b8d54a382ccc88d8603f8c20a0bb1678",
+  "fixed_assignment_bound_attempt_marker_path": "/home/poojith-devan/.local/state/trainium-trn21-c5c-a0-stage-r2-checkout-attempt-once.jsonl",
+  "future_final_independent_request_review_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json",
+  "future_final_review_sha256_must_be_supplied_by_supervisor_assignment_and_rehashed_on_disk": true,
   "frozen_accepted_evidence": {
     "operator_transfer_only_terminal_receipt_sha256": "9ab90252e5e21812f5aad2af7fd0bfd1e71205e2f8f740f6f41faf6606fe6a2e",
     "independent_transfer_result_review_sha256": "bfafcb56ff449708dc31a1ebbe9023448018ea505e37a15847ae78bc3a3a2916",
@@ -23,26 +27,30 @@
     "independent_extraction_implementation_review_sha256": "1a05c6dab4cbae6f49bd7e58760155d26562ba39df6a85524fe4a50289679df4"
   },
   "draft_files": {
-    "disabled_request_sha256": "69e570f91ec337d680e721a8dc6ee2f178da09b969809ae89be6b7b1eb7ffdeb",
-    "disabled_invocation_binding_sha256": "16ce854c76031838ee9c2e251bf46557aa8deb662b54115e6b5347463507b231",
-    "offline_operator_wrapper_sha256": "e2b5d7b4b5d748f6716940e8ea912d2d793e0fbfdba4f396b370b37ad296d56a",
+    "disabled_request_sha256": "fb0ea06f2f3b21f92e06a75e305c54afa3ad05bd14f948cf93e97c3900569629",
+    "disabled_invocation_binding_sha256": "aabf1ae54eb6a5984448b2db224235730107e4aa2aedba9828139410eda21c9c",
+    "offline_operator_wrapper_sha256": "ae06183a5f394c87e81ce5ea81718fab4c720c5ffcd49e9b54fe9901bc8efd11",
     "remote_one_attempt_adapter_sha256": "e3faee8fe1274015b500134bcb767b041e37e6b7eef2e375f23d93a3ba8de3eb",
-    "synthetic_tests_sha256": "409205adc2cf7150b9590616d7070e996f45f5dddc5fc4fd65c15198d707e703"
+    "synthetic_tests_sha256": "32019be67be19b770c18acf7d821274e40d543280abc924b7776c2cf5f652cfa"
   },
   "exact_invocation": {
     "fresh_full_read_only_preflight_argv_sha256": "cc1997adb5b815a739a12cbb09319f3869e08f7d8318899fea9496bee40f66a8",
-    "one_checkout_attempt_argv_sha256": "0700cf456560b75069bb4c18aa51db4b67f6657022e80e96bcd03f9c8fc3c187",
-    "one_checkout_attempt_stdin_sha256": "a37231be7549c80d11861b9d6793c985b96780ac05ef8c751171c28d82178b7c",
-    "one_checkout_attempt_stdin_bytes": 69541,
+    "one_checkout_attempt_argv_sha256": "621078d7a2563c1249500532070b921712f63a7356c50d43991e57f96eb876fe",
+    "one_checkout_attempt_stdin_sha256": "98f91c7be055660d194ca148957ed0885c49bc8e7525c129cb23421703e8a8a6",
+    "one_checkout_attempt_stdin_bytes": 69949,
     "mandatory_separate_full_read_only_postflight_argv_sha256": "cc1997adb5b815a739a12cbb09319f3869e08f7d8318899fea9496bee40f66a8",
     "postflight_even_on_preflight_or_stage_exception": true,
-    "exclusive_fsynced_local_failure_journal": true,
+    "fixed_assignment_bound_o_excl_fsynced_marker_journal_before_any_ssh": true,
+    "same_assignment_different_caller_path_or_same_path_replay_refused": true,
+    "actual_independent_final_review_file_and_exact_sha_authenticated_before_any_ssh": true,
     "no_overwrite_delete_cleanup_rename_or_retry": true
   },
   "required_before_any_checkout": {
     "independent_exact_request_and_argv_review": false,
+    "actual_final_review_receipt_bound_by_supervisor_and_rehashed": false,
     "fresh_live_full_host_preflight": false,
-    "new_supervisor_checkout_only_one_attempt_assignment": false
+    "new_supervisor_checkout_only_one_attempt_assignment": false,
+    "fixed_local_attempt_marker_created_and_fsynced_before_host_contact": false
   },
   "required_after_any_checkout_attempt_before_cpu_g2": {
     "operator_one_attempt": false,
