@@ -1,6 +1,14 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded; both host G1 calibrations PASS; trn21 CPU-only G2 assigned but not run; scored training on both hosts still HOLD; no new BPB result.**
+Status: **both guest disks expanded; both host G1 calibrations PASS; trn21 CPU-only G2 assigned but not run; trn22 transfer final review HOLD on two defects; scored training on both hosts still HOLD; no new BPB result.**
+
+At 04:21 UTC, the trn22 repaired exact transfer request received an
+[independent final HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R2_HOLD.md):
+late Neuron activity could still permit exclusive target creation, and a
+file-backed old `.git` aborted the full read-only probe. A separate
+Implementer is repairing both; there is no final PASS, assignment or host
+transfer. The Operator's limited read-only trn22 probe found about 54 GiB
+free and no active job but did not clear the transfer gate.
 
 At 04:15 UTC, trn21's exact stage-r2 CPU-only final request received
 [independent static PASS](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/INDEPENDENT_FINAL_CPU_G2_REVIEW.PASS.json),

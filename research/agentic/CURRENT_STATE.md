@@ -1,6 +1,19 @@
 # Current state
 
-Last reconciled: 2026-09-25 04:15 UTC
+Last reconciled: 2026-09-25 04:21 UTC
+
+## New handoff: trn22 final transfer HOLD on two reproduced defects
+
+An [independent final review](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R2_HOLD.md)
+of the repaired trn22 r4 transfer request is HOLD. Its adversarial tests
+reproduced two blockers: Neuron activity arising during the final identity
+audit did not prevent target creation, and file-backed old `.git` paths caused
+`NotADirectoryError` before the full read-only host probe could produce a
+receipt. A separate Implementer is repairing these without overwriting the
+HOLD evidence. No final PASS or Supervisor transfer assignment exists, and no
+trn22 transfer occurred. The trn22 Operator's read-only feasibility probe
+reached the host and found it otherwise idle with roughly 54 GiB free, but
+that point-in-time observation is not a transfer preflight or authority.
 
 ## New handoff: trn21 CPU-only G2 assigned; scored training still HOLD
 
