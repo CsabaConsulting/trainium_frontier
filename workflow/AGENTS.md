@@ -1,5 +1,16 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**NEWEST HUMAN OVERRIDE (2026-09-25 IST):** Read the byte-identical
+`workflow/codex_directive_final_push.txt` and the top of the repository-root
+`AGENTS.md` first. The Final Push directive supersedes this file's older freeze,
+S0-first priority, pre-launch review ceremonies for verified flag-only runs,
+human-acknowledgement rule for research-base adoption and research cold-cache
+policy wherever they conflict. Competition legality, credential protection,
+one-job-per-host preflight and the human-only list remain. The user explicitly
+authorizes up to $150/day for isolated Bedrock builder lanes plus a matching
+AWS Budgets alert, but no new instances or higher spend. This older manual is
+retained for evidence and details that do not conflict with the new directive.
+
 This file is the operating manual for autonomous coding agents (Codex or similar) working on this
 project. Copy `workflow/` into the research repository's root and place this file at the repo root as
 `AGENTS.md`. Codex reads it automatically. Every Codex session follows it. The per-role files in

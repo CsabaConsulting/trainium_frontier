@@ -10,7 +10,11 @@ The newest human directive is preserved **verbatim** at
 It overrides every older mission, priority list and parked-list decision in this file,
 `workflow/`, and `research/` wherever they conflict. Keep the competition legality rules,
 credential/data protections, one-job-per-host preflight, durable results, and the
-human-only list (AWS instance lifecycle and leaderboard submission). Read the exact
+human-only list: leaderboard submission, AWS instance/volume/bucket/IAM changes, breaker
+resets, submission-branch merges and decision-threshold changes. A new spending
+exception is Poojith's explicit **up to $150/day** for isolated Bedrock builder lanes
+and the requested matching AWS Budgets alert; it does not authorize new instances or
+spend above that amount. Read the exact
 directive before selecting or launching further work; it is the active operating goal.
 
 Immediate order: A2 tables on trn22 and A1 tables on trn21 once each host is free,
