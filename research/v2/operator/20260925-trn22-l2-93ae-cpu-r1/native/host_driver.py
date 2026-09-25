@@ -51,7 +51,7 @@ def phase(name,argv,env):
 try:
     stop_check()
     env=environment(CACHE)
-    env.update({'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS':'1800','NEURON_COMPETITION_R1_OUT_DIR':str(ROOT/'out')})
+    env.update({'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS':'1800','NEURON_COMPETITION_R1_OUT_DIR':str(ROOT/'out'), 'TORCH_NEURONX_ENABLED_METRIC_TABLES':'graph_stats', 'TORCH_NEURONX_METRICS_DIR':str(ROOT/'metrics-training')})
     rc=phase('training',[VENV+'torchrun','--standalone','--nproc_per_node=4','train.py',*FLAGS],env)
     if rc: raise RuntimeError('TRAIN_EXIT_'+str(rc))
     stop_check()

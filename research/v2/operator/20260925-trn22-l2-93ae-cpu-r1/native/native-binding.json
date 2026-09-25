@@ -33,7 +33,7 @@
   ],
   "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
   "driver_path": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/host_driver.py",
-  "driver_sha256": "f20b1d36051bf2aa3effcdd8c13e3bde0f62359d922409809e1cf410e60e5d1c",
+  "driver_sha256": "da58b422aeb136b1cc80cea336cc103c9a25694fe7d7bfc750c86858782d7a59",
   "eval_cache": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/eval",
   "evaluation_command": [
     "/home/ubuntu/workspace/native_venv/bin/python",
@@ -58,6 +58,14 @@
   "fallback_pointer_unchanged": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/next-resolution.json",
   "hand_back": "After native training AND fresh evaluation terminal, verify no workload/device holders and lock free, archive result, remove only owned PAUSE_NEXT, restart exact reviewed queue with unchanged bootstrap/pointer unless Supervisor replaces its unstarted tail. Never overlap queue and manual work.",
   "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+  "metrics_export": {
+    "behavior": "Existing unconditional graph records, exit-only synchronize and CSV export; no general metrics enable, no model, SDK, compiler or cache mutation.",
+    "installed_source": "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/metrics.py",
+    "installed_source_sha256": "c1702b4bea54596a6e762697adcc1f0b6b97ccb53d74ad9744e4ecea9fad1786",
+    "limitations": "Zero compilation time can be a missing cache entry, not proof of a hit. Exit synchronization and CSV write are included in actual phase wall-time and budget evidence.",
+    "precreate_directory": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/metrics-training",
+    "scope": "Training only; separate evaluation does not inherit these variables and cannot overwrite the training CSVs."
+  },
   "outer_command": [
     "/usr/bin/flock",
     "-n",
@@ -88,7 +96,9 @@
     "PYTHONUNBUFFERED": "1",
     "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
     "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
     "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_l2_unet8x1024_93ae_20260925_trn22_r1/native/fs-20260925-l2-unet8x1024-93ae-trn22-full-r1/metrics-training",
     "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
     "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
     "TRN_EXP_LABEL": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1"
