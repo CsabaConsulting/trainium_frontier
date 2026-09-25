@@ -26,7 +26,7 @@ jobs are preserved; pending packets remain disabled until their lock/check
 implementation is reviewed. The source, legality, disk, STOP, budget and
 correctness gates remain unchanged.
 
-At 00:57 IST the three existing automation prompts were updated in the app:
+By 00:57 IST the three existing automation prompts were updated in the app:
 `trainium-safety-gated-controller`, `trainium-04-00-ist-self-audit`, and
 `trainium-07-45-ist-morning-report`. Their schedules and task target did not
 change. Operator was notified; pending-driver hardening and test receipts are
