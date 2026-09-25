@@ -59,6 +59,24 @@ higher-value arms. Memorization remains a hypothesis. Gather-outside-compile
 code is reviewed and parked, not a next hardware job. No new BPB improvement
 has been measured; latest official score remains human-reported **0.9901**.
 
+Next-slot handoff at16:55 UTC: trn21 Operator has staged exact FP8 CPU
+OFF/ON/reference inputs; trn22 Operator is assigned the exact93ae architecture
+CPU packet297c8044. Both wait for current training AND fresh eval to finish;
+then use the owned between-job pause to take priority over scalar fallbacks.
+See `research/v2/verification/20260925-post-a1-next-slot-cpu-packets.md`.
+No FP8/architecture native launch is yet cleared. FP8 timing is being narrowed
+to one matched OFF/ON pair, with repeats only for ambiguous measurements.
+At16:52 UTC trn21 had reached step1490 and trn22 step670, both ~269k tok/s;
+at16:54:22 trn21 reached1770 with939 s remaining. No new terminal score yet.
+
+The read-only A2 artifact comparison found no retained matching compiler
+input pair: normal SDK completion removes temporary compiler inputs, and
+no key-specific cache-hit/miss records were logged. Source/configured paths
+match, but the miss cause remains unproven. Operators will opportunistically
+retrieve one already-existing live compiler input during otherwise-needed
+matched work; no extra run, cache flags or new logging framework is required.
+Details: `research/v2/lanes/table-compile/CACHE_ARTIFACT_RECOVERY_2026-09-25.md`.
+
 ## Historical handoffs (superseded where they conflict with the section above)
 
 ## Latest correction and A2 startup truncation, 15:55 UTC
