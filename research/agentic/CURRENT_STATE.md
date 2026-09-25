@@ -1,11 +1,14 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:33 UTC
+Last reconciled: 2026-09-25 06:44 UTC
 
 The Sep 25 noon-IST S0 submission-package target was missed. Neither of the
 required cold replays has begun, and no new file is ready for human upload.
-Distinct trn22 final-r2 and trn21 r5 final transfer-only candidates are
-under independent review, without any assignment or host action. A narrow
+Distinct trn22 final-r2 and trn21 r5 final transfer-only candidates now have
+[independent](../v2/verification/20260925-trn22-fifo-final-r2-independent-HOLD.md)
+[HOLDs](../v2/verification/20260925-trn21-r5-enabled-final-transfer-independent-HOLD.md)
+for STOP introduced during a slow remote final label scan before archive
+creation. Neither has assignment or host action. A narrow
 operational launcher-source successor is also under independent static
 review; it leaves the model and scoring files unchanged. No native control
 or table run has started.

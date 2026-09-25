@@ -1,6 +1,17 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, but trn22's first final enabled transfer request and A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both disabled transfer repairs passed static review, but the trn21 and trn22 enabled transfer requests and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
+
+At 06:44 UTC, the [trn21 r5 enabled transfer-only request](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R5_ENABLED_PENDING_REVIEW.json)
+received [independent HOLD](verification/20260925-trn21-r5-enabled-final-transfer-independent-HOLD.md):
+STOP introduced during its potentially slow final label scan could reach
+target creation without another STOP check. The tentative PASS was removed;
+no assignment or host transfer exists. A distinct repair is required.
+
+At 06:41 UTC, the [trn22 final-r2 transfer-only request](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r2/TRANSFER_REQUEST.FIFO_FINAL_R2.json)
+received [independent HOLD](verification/20260925-trn22-fifo-final-r2-independent-HOLD.md)
+for the analogous remote STOP-during-final-label-scan interval. Its local
+STOP repairs passed, but neither r2 nor earlier requests may dispatch.
 
 At 06:33 UTC, distinct [trn22 final-r2](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r2/RUNBOOK.md)
 and [trn21 r5 final](authorizations/trn21-c5c-a0-r4-transfer-only/FINAL_R5_ENABLED_TRANSFER_ONLY_PENDING_REVIEW_RUNBOOK.md)
