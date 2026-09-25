@@ -1,0 +1,15 @@
+Error in cpuinfo: failed to parse processor information from /proc/cpuinfo
+{"case": "linear_bf16", "status": "PASS", "arms": ["original", "default", "off", "on", "uncached", "oracle"], "steps": 3, "microbatches_per_step": 2, "microbatch": 2, "context": 7, "width": 16, "max_hidden_width": 16, "comparison": "exact bytes, zero tolerance", "traces": {"original": {"cache_before_forward": [[false], [true], [true]], "refresh_calls_per_module": [3]}, "default": {"cache_before_forward": [[false], [true], [true]], "refresh_calls_per_module": [3]}, "off": {"cache_before_forward": [[false], [true], [true]], "refresh_calls_per_module": [3]}, "on": {"cache_before_forward": [[true], [true], [true]], "refresh_calls_per_module": [4]}, "uncached": {"cache_before_forward": [[false], [false], [false]], "refresh_calls_per_module": [0]}, "oracle": {"cache_before_forward": [[false], [true], [true]], "refresh_calls_per_module": [3]}}, "step_losses_original": [0.6306559443473816, 0.8553069829940796, 0.6593823432922363]}
+Traceback (most recent call last):
+  File "/work/reference_exactness.py", line 233, in <module>
+    main()
+    ~~~~^^
+  File "/work/reference_exactness.py", line 206, in main
+    collected[arm], traces[arm] = run_arm(case, arm)
+                                  ~~~~~~~^^^^^^^^^^^
+  File "/work/reference_exactness.py", line 154, in run_arm
+    require(tuple(model.state_dict()) == keys, 'cache is not checkpoint state')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/reference_exactness.py", line 38, in require
+    raise AssertionError(message)
+AssertionError: cache is not checkpoint state
