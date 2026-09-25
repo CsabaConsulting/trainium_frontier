@@ -1,6 +1,27 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:57 UTC
+Last reconciled: 2026-09-25 03:13 UTC
+
+## Current handoff: trn21 checkout assigned once; no training authorization
+
+The trn21 [final exact checkout package](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.FINAL_PENDING_REVIEW.json)
+[passed independent offline review](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json),
+and the Supervisor issued a [checkout-only one-attempt assignment](../v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/SUPERVISOR_CHECKOUT_ONLY_ASSIGNMENT.json).
+The Verifier separately checked all assignment bindings locally; the actual
+review receipt is owner-owned, mode `0644`, and the fixed exclusive attempt
+marker was absent at assignment time. The Operator is checking live gates.
+This is authority for at most one fresh-preflight checkout attempt with an
+unconditional separate read-only postflight, **not** CPU G2, native training,
+evaluation or adoption. No checkout result or new BPB is yet accepted.
+
+The trn22 [r4 transfer-only draft](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.HOLD.json)
+received an [independent static HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_IMPLEMENTATION_REVIEW.md):
+SSH host identity was not explicitly pinned, local STOP was ignored, review
+approval was self-attested, and the root-device alias needs read-only
+reconciliation. A separate Implementer is repairing the disabled package.
+No trn22 transfer, checkout or training is authorized. Both scored A0
+controls remain pending; best confirmed public20M remains `0.9918353324`
+single / `0.9919537735` two-run mean.
 
 ## Current handoff: trn21 repaired checkout draft PASS offline; enabled request HOLD
 
