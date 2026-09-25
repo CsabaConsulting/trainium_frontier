@@ -2,6 +2,18 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## NIGHT MODE (26 September, approximately01:00–08:00 IST)
+
+Read `workflow/NIGHT_MODE_2026-09-26.md` before CT/latestamendments. Do not wait
+for human replies. Log reversible decisions with time/reason/undo in
+`research/v2/DECISIONS.md`; unresolvedhuman-only items go in
+`research/v2/QUESTIONS_FOR_POOJITH.md`. Correctness/budget/legality remain.
+Disk<25GB permits only scoped discarded-run scratchcache/checkpointcleanup,
+neverbest/candidate/submission/sharedactive artifacts. One diagnosed new-label
+run retry, thenpark; two toolfailures=>manualpath. Human-onlyuploads, newAWS/
+non-Bedrockspend, legality, submissionlaunch changes and outside-scratch
+deletions remain. Selfaudit04:00; consolidatedmorningreport07:45IST.
+
 ## Latest compile-time gate (26 September IST)
 
 Read `workflow/COMPILE_TIME_GATE_2026-09-26.md` first. It supersedes the

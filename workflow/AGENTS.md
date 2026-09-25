@@ -1,5 +1,11 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**NIGHT MODE:** `NIGHT_MODE_2026-09-26.md` controls delegated reversible
+decisions until08IST. No blockingquestions; logtime/reason/undo inDECISIONS,
+queuehuman-onlyitems inQUESTIONS_FOR_POOJITH. Correctness/budget/legality
+unchanged; no automaticuploads/AWS/launchcommandchanges. Scopeddiscarded-run
+scratchcleanup only below25GB. Selfaudit04:00, morningreport07:45IST.
+
 **LATEST COMPILE GATE:** `COMPILE_TIME_GATE_2026-09-26.md` overrides the
 immediate full architecture rerun: cold~5step startup test first, full only
 if measured startup<=900seconds. CT priority1 alongside K1/K2; base target600,
