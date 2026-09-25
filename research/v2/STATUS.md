@@ -1,6 +1,20 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 final-r2 and trn22 final-r3 transfer repairs under independent review; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 final-r2 transfer HOLD on label continuity; trn22 final-r3 transfer independent PASS but no assignment or host transfer; scored training on both hosts HOLD; no new BPB result.**
+
+At 04:55 UTC, trn22's exact final-r3 enabled transfer-only request
+[passed independent final review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R3_REVIEW.json)
+with 32 targeted offline tests. Its reviewer made no host contact. Fresh
+read-only host feasibility and a distinct Supervisor one-shot transfer-only
+assignment remain required; this PASS does not authorize native training or
+evaluation. An Operator is gathering the point-in-time host snapshot.
+
+At 04:54 UTC, an independent Verifier reported that the trn21 final-r2
+transfer request still fails its label-continuity condition. The
+[Supervisor HOLD](authorizations/trn21-c5c-a0-r4-transfer-only/SUPERVISOR_FINAL_R2_HOLD.md)
+records the factual result and keeps r2 disabled; the Verifier made no host
+contact or committed review file. A further repair and separate review are
+required. trn22's distinct review continues.
 
 At 04:50 UTC, a distinct [trn21 final-r2 transfer repair](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R2_PENDING_REVIEW.json)
 is under independent final review. Its local safety suite passed, but no
