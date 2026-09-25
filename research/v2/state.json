@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T12:42:17Z",
+  "written_utc": "2026-09-25T13:21:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -16,6 +16,17 @@
     "confirmed_local_public20m_two_run_mean": 0.99195377346572045,
     "first_place_gap_estimate_public20m": 0.045,
     "gap_caveat": "Approximate public-to-official offset is unverified for the current stack; do not treat this as a score prediction"
+  },
+  "latest_handoff_20260925_1321z": {
+    "mode": "POOJITH_BREAK_GLASS_MANUAL_S0_AND_A0_PRELAUNCH_INDEPENDENT_REVIEW_WAIVED_POSTLAUNCH_REVIEW_REQUIRED",
+    "trn21_s0": "fs-20260925-s0-cold-replay-trn21-r1_LAUNCHED_20260925T131722Z_FOUR_TRAIN_RANKS_AND_NEURON_HOLDERS_CONFIRMED_20260925T131741Z_DETACHED_NO_RESULT_YET",
+    "trn22_a0": "fs-20260925-v2-c5c-a0-control-trn22-r10_LAUNCHED_20260925T131956Z_FOUR_TRAIN_RANKS_CONFIRMED_20260925T132010Z_DETACHED_HARNESS_AUTO_EVAL_PENDING_NO_RESULT_YET",
+    "first_launch_ist": "2026-09-25T18:47:22+05:30",
+    "both_hosts_training_before_2000_ist": true,
+    "confirmed_new_public20m_bpb": null,
+    "preassigned_conditional_followup_counts": {"trn21": 1, "trn22": 0},
+    "followup_caveat": "trn21 A0 is preassigned after S0 with exact c5c CPU G2 PASS, but cannot launch while S0 runs. A1/A2 and other moonshot arms remain gate-pending, not six ready jobs per host. Do not claim a result or automatic queue yet.",
+    "control_plane_status": "manual one-off launches active; workflow-v2 run_job.py and old autoloop remain inactive; never dual-launch"
   },
   "latest_handoff_20260925_1242z": {
     "trn22_r10_stage_r5": "AD925338_ONE_SHOT_WRITE_SSH_HOLD_MARKER_CONSUMED_NO_BUNDLE_OR_TARGET_CAUSE_UNKNOWN_INDEPENDENT_RESULT_HOLD_B1387247_NO_RETRY_OR_NATIVE",
@@ -428,7 +439,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "R10_STAGE_R5_ONE_SHOT_WRITE_HOLD_MARKER_CONSUMED_NO_BUNDLE_OR_TARGET_CAUSE_UNKNOWN_NO_SCORE",
+      "status": "MANUAL_BREAK_GLASS_S0_RUNNING_FOUR_RANKS_CONFIRMED_NO_RESULT_R10_STAGE_R5_HISTORICAL_HOLD",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-25T12:10:53Z",
       "free_bytes_read_only_df": 57894498304,
@@ -493,7 +504,7 @@
       "a0_stage_r2_readonly_refresh_scope": "Planning observation only; not checkout preflight or launch authority"
     },
     "trn22": {
-      "status": "R10_STAGE_R5_ONE_SHOT_WRITE_HOLD_MARKER_CONSUMED_NO_BUNDLE_OR_TARGET_CAUSE_UNKNOWN_NO_SCORE",
+      "status": "MANUAL_BREAK_GLASS_A0_RUNNING_FOUR_RANKS_CONFIRMED_NO_RESULT_R10_STAGE_R5_HISTORICAL_HOLD",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-25T11:49:41Z",
       "root_disk_bytes": 268435456000,
@@ -589,7 +600,7 @@
     }
   ],
   "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
-  "updated_utc": "2026-09-25T07:30:00Z",
+  "updated_utc": "2026-09-25T13:21:00Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
