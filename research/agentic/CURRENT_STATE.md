@@ -1,6 +1,16 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:21 UTC
+Last reconciled: 2026-09-25 08:24 UTC
+
+The disabled A2 CPU-only G2 r3 repair `2ed23a16` received
+[independent STATIC PASS only](../v2/verification/20260925-a2-c5c-m64d128-trn22-r3-disabled-g2-independent-static-PASS.md)
+at `4f1eb2e1`: 20 supplied+independent offline cases pass under normal and
+optimized Python, closing the r2 scratch/identity/receipt defects. There
+was no host CPU run. A distinct enabled CPU-only request is being prepared;
+after any eventual CPU run, raw per-table RMS attribution needs separate
+independent numeric review. The disabled trn22 r2 read-only final-continuity
+timing diagnostic `384eb822` is also only an unreviewed source candidate,
+not host authority. No scored work or new BPB resulted.
 
 The disabled trn22 e65→r9 small-bundle r2 repair `a7643f05` received
 [independent HOLD](../v2/verification/20260925-trn22-r9-incremental-stage-r2-independent-HOLD.md)

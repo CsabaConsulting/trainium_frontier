@@ -1,5 +1,12 @@
 # Workflow installation and incremental launch status
 
+At 08:24 UTC, disabled A2 CPU-only G2 r3 `2ed23a16` received
+[independent offline STATIC PASS only](verification/20260925-a2-c5c-m64d128-trn22-r3-disabled-g2-independent-static-PASS.md)
+at `4f1eb2e1`: no host CPU or native run occurred, and a distinct enabled
+request plus raw per-table numeric attribution remain required. The
+disabled trn22 r2 read-only timing candidate `384eb822` awaits independent
+review before any host observation. Both scored launches remain HOLD.
+
 At 08:21 UTC, disabled trn22 e65→r9 small-bundle r2 `a7643f05` received
 [independent HOLD](verification/20260925-trn22-r9-incremental-stage-r2-independent-HOLD.md)
 at `c5c9a8bd`. Offline adversarial tests found process/Neuron/disk changes
