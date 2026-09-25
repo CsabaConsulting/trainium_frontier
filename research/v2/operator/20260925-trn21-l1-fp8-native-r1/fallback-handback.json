@@ -1,0 +1,93 @@
+{
+  "utc": "2026-09-25T17:30:02.067556+00:00",
+  "pid": 2957850,
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/host_queue-6ef7.py",
+    "--manifest",
+    "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/bootstrap-manifest.json",
+    "--manifest-sha256",
+    "d9bedd841876be3a1a28f061420d56fa2d6bb07d1f625c73c42d25ed5696e7f8",
+    "--run"
+  ],
+  "runner_sha256": "7fe160cf0b5eef110caeee963fa4e39f708f4b5aaa6d503a7cf2344f1ac91244",
+  "resolution_manifest_sha256": "a1377a2db5acadbbcd8e701ad5f16662f48408315243888e3355139cd4e5931b",
+  "owned_pause_archived_as": "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/runs/PAUSE_NEXT.fp8-cpu-native-r1.completed.json",
+  "free_disk_bytes": 46720876544,
+  "no_other_workload_before_launch": true,
+  "validation": {
+    "status": "schema_valid",
+    "armed": true,
+    "jobs": 7
+  },
+  "reason": "Exact FP8 component failed backward correctness; no timing/quality launched. Restore previously authorized six fallback jobs unchanged.",
+  "alive_after_one_second": true,
+  "queue_last_event": {
+    "labels": [
+      "fs-20260925-l3-timer-dense-trn21-r1-full",
+      "fs-20260925-fp-c5c-matrixlr0175-trn21-r1",
+      "fs-20260925-fp-c5c-warmdown085-trn21-r1",
+      "fs-20260925-fp-c5c-wd035-trn21-r1",
+      "fs-20260925-fp-c5c-embedlr045-trn21-r1",
+      "fs-20260925-fp-c5c-finallr000-trn21-r1",
+      "fs-20260925-fp-c5c-matrixlr0125-trn21-r1"
+    ],
+    "manifest_sha256": "a1377a2db5acadbbcd8e701ad5f16662f48408315243888e3355139cd4e5931b",
+    "status": "resolution_loaded",
+    "utc": "2026-09-25T17:30:02.105910+00:00"
+  },
+  "next_training_launch": {
+    "command": [
+      "/home/ubuntu/workspace/native_venv/bin/torchrun",
+      "--standalone",
+      "--nproc_per_node=4",
+      "train.py",
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.0175",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "environment": {
+      "HOME": "/home/ubuntu",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/compiler",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+      "PYTHONUNBUFFERED": "1",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/inductor",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/hlo",
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/local",
+      "TRN_EXP_LABEL": "fs-20260925-fp-c5c-matrixlr0175-trn21-r1"
+    },
+    "label": "fs-20260925-fp-c5c-matrixlr0175-trn21-r1",
+    "utc": "2026-09-25T17:30:02.143813+00:00"
+  }
+}
