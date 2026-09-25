@@ -1,0 +1,130 @@
+{
+  "verdict": "CPU_COMPILE_BOUNDARY_PASS_NATIVE_CAUSE_UNRESOLVED",
+  "torch": "2.13.0+cpu",
+  "source_sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+  "backend": "aot_eager",
+  "device": "cpu",
+  "seed": 42,
+  "custom_backward_cases": {
+    "eager_apply": {
+      "forward": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.070432662963867,
+        "expected_norm": 11.070432662963867,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dx": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.841497421264648,
+        "expected_norm": 11.841497421264648,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dw": {
+        "relative_rms": 0.0,
+        "actual_norm": 38.624088287353516,
+        "expected_norm": 38.624088287353516,
+        "actual_nonzero": 256,
+        "expected_nonzero": 256,
+        "exact": true
+      }
+    },
+    "aot_eager_bound_apply": {
+      "forward": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.070432662963867,
+        "expected_norm": 11.070432662963867,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dx": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.841497421264648,
+        "expected_norm": 11.841497421264648,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dw": {
+        "relative_rms": 0.0,
+        "actual_norm": 38.624088287353516,
+        "expected_norm": 38.624088287353516,
+        "actual_nonzero": 256,
+        "expected_nonzero": 256,
+        "exact": true
+      }
+    },
+    "aot_eager_enclosing_function": {
+      "forward": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.070432662963867,
+        "expected_norm": 11.070432662963867,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dx": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.841497421264648,
+        "expected_norm": 11.841497421264648,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dw": {
+        "relative_rms": 0.0,
+        "actual_norm": 38.624088287353516,
+        "expected_norm": 38.624088287353516,
+        "actual_nonzero": 256,
+        "expected_nonzero": 256,
+        "exact": true
+      }
+    },
+    "aot_eager_production_Linear": {
+      "forward": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.070432662963867,
+        "expected_norm": 11.070432662963867,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dx": {
+        "relative_rms": 0.0,
+        "actual_norm": 11.841497421264648,
+        "expected_norm": 11.841497421264648,
+        "actual_nonzero": 128,
+        "expected_nonzero": 128,
+        "exact": true
+      },
+      "dw": {
+        "relative_rms": 0.0,
+        "actual_norm": 38.624088287353516,
+        "expected_norm": 38.624088287353516,
+        "actual_nonzero": 256,
+        "expected_nonzero": 256,
+        "exact": true
+      }
+    }
+  },
+  "archived_files_hash_verified": 8,
+  "native_failed_ranks": [
+    "rank0",
+    "rank1",
+    "rank2",
+    "rank3"
+  ],
+  "zero_gradient_hypothesis": {
+    "dx_reference_absmax": 4.875,
+    "dw_reference_absmax": 326.0,
+    "matches_native_error_maxima": true,
+    "native_zero_gradients_proven": false
+  },
+  "native_executed": false,
+  "candidate_edited": false,
+  "thresholds_changed": false
+}
