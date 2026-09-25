@@ -1,0 +1,24 @@
+{
+  "verdict": "PASS_SCOPED_GUARD_DISPATCH_AND_IMMEDIATE_CHILD_LIFETIME",
+  "reviewed_commit": "65f848af21169dff1978ba9009c217473e3ef885",
+  "original_hold_review_commit": "ab1ac66d885521780ded8f036410519c206a774f",
+  "own_test_sha256": "6eae844ca24a03e36471121f3c319f9207d8f07fee16e09df30cdafc33c71015",
+  "actual_call_ast_test": {
+    "bindings": ["ct", "p"],
+    "before_driver_death_contender_rc": 1,
+    "after_driver_death_contender_rc": 1,
+    "child_alive_at_second_contender": true,
+    "after_child_exit_contender_rc": 0,
+    "passed_normal_and_optimized_python": true
+  },
+  "executions": [
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 research/v2/verification/20260926-idle-guard-repair-independent/test_guard_repair_independent.py", "exit_code": 0, "tests": 13, "reported_seconds": 0.659},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -O research/v2/verification/20260926-idle-guard-repair-independent/test_guard_repair_independent.py", "exit_code": 0, "tests": 13, "reported_seconds": 0.691},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 research/v2/operator/20260926-common-host-idle-guard/test_idle_guard.py", "exit_code": 0, "tests": 15, "reported_seconds": 1.826}
+  ],
+  "arbitrary_deeper_grandchild_fd_inheritance_proven": false,
+  "native_launch_authorized_by_review": false,
+  "host_actions": 0,
+  "tensor_tests": 0,
+  "candidate_edits": 0
+}
