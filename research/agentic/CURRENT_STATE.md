@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:47 UTC
+Last reconciled: 2026-09-25 07:50 UTC
 
 The [07:33 UTC dual-host Operator snapshot](../v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
 is archived at `7929cc2a` and has a [bounded independent PASS](../v2/verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
@@ -10,7 +10,8 @@ or host-lock holder, and clean e65 c5c A0 source checkouts with matching model
 and evaluator hashes. This is point-in-time observation, not launch preflight or
 authority; both launch flags remain false. The r9 trn22-only launcher has
 source-only independent PASS. A disabled r10 trn21 profile was implemented at
-`22bfbab5` and is under a distinct independent source review. A separate
+`22bfbab5` and received [independent source-only PASS](../v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R10_TRN21.md)
+at `cbdfb9d0`; its host-stage and native gates remain HOLD. A separate
 Implementer is preparing a small-bundle, disabled trn22 source stage from its
 existing e65 checkout. There has still been no new scored control, S0 cold
 replay, table result or BPB gain. The Sep 25 noon-IST S0 target was missed.

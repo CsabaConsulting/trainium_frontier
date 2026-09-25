@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-At 07:47 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
+At 07:50 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
 was archived at `7929cc2a` and received a [bounded independent PASS](verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
 at `9868d9a6` for the final host pair and ACL follow-up. Both
 machines were idle in its bounded process/device/lock checks, with about
@@ -8,7 +8,8 @@ machines were idle in its bounded process/device/lock checks, with about
 matched pinned model/evaluator hashes. This is not fresh launch preflight or
 dispatch authority, and controller/host launch flags remain false. The
 disabled trn21 r10 exact launcher profile was implemented at `22bfbab5` and
-is under separate independent source review. An Implementer is preparing a
+received [independent source-only PASS](launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R10_TRN21.md)
+at `cbdfb9d0`; host-stage/native gates remain HOLD. An Implementer is preparing a
 disabled, small-bundle trn22 r9 source stage. No scored run, S0 replay, table
 result, BPB improvement, host transfer or launcher dispatch followed.
 
