@@ -1,0 +1,7 @@
+{
+  "normal_audit": "PASS59 checks",
+  "optimized_audit_error": "RuntimeError: nl resolves through closure in ordinary Python",
+  "cause": "The stdlib compile call initially inherited the audit's -O setting, which removes Python assert statements and therefore the line22 bytecode being inspected.",
+  "correction": "Explicit optimize=0 for source-bytecode inspection only. This does not execute or change candidate source and does not simulate the native compiler.",
+  "native_result_changed": false
+}
