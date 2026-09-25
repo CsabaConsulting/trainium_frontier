@@ -1,0 +1,130 @@
+TRAIN_START_UTC=2026-09-25T13:17:22Z
+[W925 13:17:24.707839886 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0925 13:17:24.268000 2863416 torch/distributed/run.py:851] 
+W0925 13:17:24.268000 2863416 torch/distributed/run.py:851] *****************************************
+W0925 13:17:24.268000 2863416 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0925 13:17:24.268000 2863416 torch/distributed/run.py:851] *****************************************
+[W925 13:17:26.748536796 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 13:17:26.748736460 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 13:17:26.749821612 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W925 13:17:26.753404293 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_s0_cold_20260925_trn21_manual_r1/train.py", line 1481, in <module>
+    main()
+  File "/home/ubuntu/trainium_s0_cold_20260925_trn21_manual_r1/train.py", line 1256, in main
+    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_s0_cold_20260925_trn21_manual_r1/train.py", line 127, in init_runtime
+    dist.init_process_group('neuron')
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 1838, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 2177, in _new_process_group_helper
+    backend_class = creator_fn(dist_backend_opts, backend_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 32, in _create_neuron_process_group
+    _neuron_runtime_setup(rank, size, prefix_store)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 172, in _neuron_runtime_setup
+    torch_neuronx._C._nrt_barrier(0, rank, size)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Compilation error occurred on Neuron for operation=nki_kernel_global;
+error message="COMPILATION FAILED: Failed to read file: /home/ubuntu/trainium_s0_cold_20260925_trn21_manual_r1/cache/debug/neuronx-cc/47773f9a3f7185347fc76735876b8080/module.neff"
+neff cache key=nki_24_set_rng_state_gpsimd_0cce7292df05aa59_()_[1]_((torch.Size([1, 6]), torch.int32),):cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operation
+was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+W0925 13:17:43.958000 2863416 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2863431 closing signal SIGTERM
+W0925 13:17:43.959000 2863416 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2863432 closing signal SIGTERM
+W0925 13:17:43.959000 2863416 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2863433 closing signal SIGTERM
+E0925 13:17:44.273000 2863416 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 3 (pid: 2863434) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-25_13:17:44
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 2863431)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2863431
+[2]:
+  time      : 2026-09-25_13:17:44
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : -15 (pid: 2863432)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2863432
+[3]:
+  time      : 2026-09-25_13:17:44
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : -15 (pid: 2863433)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 2863433
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-25_13:17:43
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : 1 (pid: 2863434)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+TRAIN_END_UTC=2026-09-25T13:17:44Z
