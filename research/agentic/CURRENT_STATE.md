@@ -1,6 +1,22 @@
 # Current state
 
-Last reconciled: 2026-09-25 01:54 UTC
+Last reconciled: 2026-09-25 02:03 UTC
+
+## Current handoff: trn21 persistent transfer independently PASS; checkout review pending
+
+The trn21 persistent-ext4 r2 three-file transfer
+[passed independent result review](../v2/authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_TRANSFER_RESULT_RECEIPT.md).
+The Verifier rehashed the raw Operator records and confirmed exact SHA/byte,
+distinct-process persistence and final postflight evidence for all three files.
+This accepts **transfer only**, not a staged checkout or a live host preflight.
+The [checkout-only package](../v2/authorizations/trn21-c5c-a0-stage-r2-extraction/GATE_CONTRACT.json)
+is now under separate implementation review; extraction, CPU G2, native
+training and evaluation remain HOLD. No science label was consumed or new BPB
+measured. The old `/dev/shm` disappearance remains unexplained.
+
+trn22's frozen r4 safety repair still awaits independent review. Neither host
+has a scored c5c control; best confirmed public20M remains 0.9918353324
+single / 0.9919537735 two-run mean.
 
 ## Current handoff: trn21 transfer complete at Operator level; independent result review pending
 

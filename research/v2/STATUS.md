@@ -2,6 +2,13 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:03 UTC, trn21's archived three-artifact persistent-ext4 transfer
+[passed independent result review](authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_TRANSFER_RESULT_RECEIPT.md).
+It proves transfer only, not checkout or fresh host readiness. The separate
+checkout-only package is under implementation review; extraction, CPU G2,
+native training and evaluation remain HOLD. trn22's next r4 safety source is
+still under independent review, with native dispatch HOLD. No new BPB.
+
 At 01:54 UTC, trn21's transfer-only Operator archived a
 [terminal three-artifact receipt](authorizations/trn21-c5c-a0-stage-r2/operator-transfer-only-terminal-receipt.json)
 claiming distinct-SSH persistence and clean postflight. Its raw evidence is
