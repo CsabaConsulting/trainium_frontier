@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 00:50 UTC
+Last reconciled: 2026-09-25 00:59 UTC
 
 ## Current handoff: trn21 source transfer did not persist; both scored controls HOLD
 
@@ -9,12 +9,18 @@ stopped on a [failed persistence check](../v2/authorizations/fs-20260925-v2-c5c-
 The pinned 104,005,787-byte capsule hashed correctly inside its transfer SSH
 process at 00:44:23 UTC, but the exact `/dev/shm` target was absent in a fresh
 SSH process about five seconds later. The host did not reboot; the transfer
-session's mount namespace was not captured, so the cause remains unknown.
+session's mount namespace was not captured, so the cause remains unknown. Three
+more read-only sessions [confirmed stable follow-up namespace and absence](../v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-forensic-addendum.md);
+the remote writer source bytes were not retained and cannot be audited.
 There was no checkout, CPU G2, native training, evaluation, or new score. The
 stage path may not be retried under its prior assignment; a revised transfer
-plan needs independent review and fresh authority. trn22 A0 remains on HOLD
-pending independent review of its continuous disk-stop interlock. Best
-confirmed public20M remains 0.9918353324 single / 0.9919537735 two-run mean.
+plan needs independent review and fresh authority. trn22 A0 r3 also remains
+HOLD: its [independent interlock review](../v2/disk-monitor/R3_INDEPENDENT_VERIFIER_RECEIPT.md)
+reproduced two emergency-stop failures, so a separate Implementer must repair
+it before another review and exact-source CPU G2. The diagnostic-only table
+rank-hash package has [static planning PASS](verification/20260925-c5c-table-hash50-static-review.md)
+but no host or quality result. Best confirmed public20M remains 0.9918353324
+single / 0.9919537735 two-run mean.
 
 ## Current handoff: trn21 source-stage feasibility independently reviewed
 

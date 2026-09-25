@@ -8,7 +8,12 @@ remote `/dev/shm` file was absent from a separate process about five seconds
 later. The [Operator's HOLD receipt](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-hold.md)
 records an unchanged host boot and unknown cause; no checkout, CPU G2, native
 training or evaluation occurred. That transfer path cannot be retried under
-the old assignment. trn22 is still held for independent disk-interlock review.
+the old assignment. A [read-only addendum](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-forensic-addendum.md)
+found stable follow-up mount namespaces but could not recover the exact
+transfer-writer source. trn22 r3 [failed independent disk-interlock safety review](disk-monitor/R3_INDEPENDENT_VERIFIER_RECEIPT.md):
+post-bind source drift can veto an emergency stop, and a TERM-ignoring guard
+can outlive both monitors. The table rank-hash diagnostic has [static planning
+PASS](../agentic/verification/20260925-c5c-table-hash50-static-review.md) only.
 Neither host has produced a scored c5c control or new BPB result.
 
 At 00:12:54 UTC, trn21's [read-only c5c A0 feasibility audit](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.readonly-feasibility.json)
