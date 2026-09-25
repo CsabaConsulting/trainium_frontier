@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -21,6 +22,42 @@ def sha(raw):
 
 def load(path):
     return json.loads(path.read_text())
+
+
+def check_legacy_scan(tree, outer_command):
+    """Stdlib regression for the independent review's authenticated-parent fixture."""
+    function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'checks')
+    start = next(i for i, n in enumerate(function.body) if isinstance(n, ast.Assign)
+                 and isinstance(n.targets[0], ast.Name) and n.targets[0].id == 'active')
+    scan = compile(ast.Module(body=[function.body[0], *function.body[start:start + 3]],
+                              type_ignores=[]), 'packet-process-scan', 'exec')
+    class Entry:
+        def __init__(self, pid, argv):
+            self.parent = SimpleNamespace(name=str(pid))
+            self.argv = argv
+        def read_bytes(self):
+            return b'\0'.join(s.encode() for s in self.argv) + b'\0'
+    entries = [Entry(100, ['/usr/bin/python3', outer_command[-1]]), Entry(99, outer_command)]
+    class Proc:
+        def glob(self, pattern):
+            return entries
+    def path(value):
+        return Proc() if value == '/proc' else Path(value)
+    for extra, parent, expected in [
+        (None, 99, None),
+        (Entry(200, ['/venv/bin/torchrun', 'train.py']), 99, 'OTHER_WORKLOAD:[200]'),
+        (Entry(201, ['/usr/bin/python3', '/unrelated/host_driver.py']), 99, 'OTHER_WORKLOAD:[201]'),
+        (None, 98, 'AUTHENTICATED_PARENT_CHANGED'),
+    ]:
+        entries[:] = entries[:2] + ([] if extra is None else [extra])
+        context = {'Path': path, 'os': SimpleNamespace(getpid=lambda: 100, getppid=lambda: parent),
+                   'authenticated_outer_pid': 99, 'require': require}
+        error = None
+        try:
+            exec(scan, context)
+        except RuntimeError as exc:
+            error = str(exc)
+        require(error == expected, 'legacy scan regression: ' + repr((error, expected)))
 
 
 def main():
@@ -58,12 +95,17 @@ def main():
         require(request['source_sha256'] == plan['sources'][key]['sha256'], 'arm source')
         require(command[command.index('--train-py') + 1] == plan['sources'][key]['stage_path'], 'source path')
         tree = ast.parse(driver_path.read_text())
+        check_legacy_scan(tree, probe['expected_outer_command'])
         calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)]
         guard = [n for n in calls if isinstance(n.func, ast.Attribute) and n.func.attr == 'require_idle_under_inherited_lock']
         popen = [n for n in calls if isinstance(n.func, ast.Attribute) and n.func.attr == 'Popen']
         require(len(guard) == len(popen) == 1 and guard[0].lineno < popen[0].lineno, 'guard precedes child')
         require(any(k.arg == 'pass_fds' and ast.unparse(k.value) == '(lock_fd,)' for k in popen[0].keywords), 'inherited FD')
-        require('if int(p.parent.name) == os.getpid():' in driver_path.read_text(), 'authenticated self exclusion')
+        require('if int(p.parent.name) in (os.getpid(), authenticated_outer_pid):' in driver_path.read_text(), 'authenticated self/parent exclusion')
+        require("require(os.getppid() == authenticated_outer_pid, 'AUTHENTICATED_PARENT_CHANGED')" in driver_path.read_text(), 'parent identity retained')
+        parent_capture = [n for n in tree.body[-1].body if isinstance(n, ast.Assign)
+                          and any(isinstance(t, ast.Name) and t.id == 'authenticated_outer_pid' for t in n.targets)]
+        require(len(parent_capture) == 1 and parent_capture[0].lineno < guard[0].lineno, 'parent captured before authentication')
         for node in tree.body:
             if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == 'ROOT':
                 node.value = ast.Constant('NORMALIZED_ARM_ROOT')

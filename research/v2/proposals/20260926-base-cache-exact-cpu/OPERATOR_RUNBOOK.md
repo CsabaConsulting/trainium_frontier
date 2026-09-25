@@ -32,11 +32,19 @@ Its old outer lock alone is insufficient now. The new per-arm driver retains
 its CPU environment, resource/STOP/source checks and command behavior, adding
 the **existing** guard before execution and passing its authenticated lock FD
 to the immediate G2 child. The second legacy process scan excludes only the
-authenticated current driver's PID (necessary because it is now named
-`host_driver.py`). The only post-run addition streams the checkpoint file's
+authenticated current driver's PID and its exact authenticated outer flock PID.
+The parent PID is captured before the unchanged guard authenticates it, then
+checked again before the legacy scan. No other parent, ancestor, or process
+name is exempted. The only post-run addition streams the checkpoint file's
 SHA256; it does not load tensors or instrument gradients. All changes are
 listed in the plan and require independent review; old acceptance is not
 silently inherited. No new launcher, queue or approval system is introduced.
+
+Packet-only repair after independent review660232a0: the original5a3c5358
+excluded self but falsely reported its own required flock parent as busy.
+That failure remains in history. Four-arm stdlib regressions now cover the
+own pair, a real torchrun, an unrelated host_driver, and a changed parent.
+Source, commands, shared guard, resource floors and CPU/native gates are unchanged.
 
 ## Scope and resources
 

@@ -31,7 +31,8 @@ def record(name, value):
         stream.flush()
         os.fsync(stream.fileno())
 
-def checks():
+def checks(authenticated_outer_pid):
+    require(os.getppid() == authenticated_outer_pid, 'AUTHENTICATED_PARENT_CHANGED')
     require(socket.gethostname() == 'ip-172-31-32-253', 'HOSTNAME')
     require(sha(Path(REQUEST['command'][REQUEST['command'].index('--train-py') + 1])) == REQUEST['source_sha256'], 'SOURCE_SHA')
     require(sha(Path(REQUEST['command'][2])) == REQUEST['g2_tool_sha256'], 'G2_SHA')
@@ -49,8 +50,8 @@ def checks():
     active = []
     for p in Path('/proc').glob('[0-9]*/cmdline'):
         try:
-            if int(p.parent.name) == os.getpid():
-                continue  # Current driver was authenticated by the inherited-lock guard.
+            if int(p.parent.name) in (os.getpid(), authenticated_outer_pid):
+                continue  # Only self and the exact parent authenticated by the shared guard.
             names = [Path(t.decode(errors='replace')).name for t in p.read_bytes().split(b'\0') if t]
             if any(x in names for x in ('train.py', 'torchrun', 'host_driver.py', 'submission_rehearsal.py',
                                         'preflight_dryrun.py')) or ('prepare.py' in names and 'eval-public' in names):
@@ -70,9 +71,10 @@ try:
     spec = importlib.util.spec_from_file_location('bound_idle_guard', ROOT / 'idle_guard.py')
     guard = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(guard)
+    authenticated_outer_pid = os.getppid()
     lock_fd = guard.require_idle_under_inherited_lock(
         '/home/ubuntu/.cache/trainium_freshstart/device0.lock', ROOT / 'host_driver.py', record)
-    record('preflight.json', checks())
+    record('preflight.json', checks(authenticated_outer_pid))
     env = {'HOME': '/home/ubuntu', 'PATH': VENV + '/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin',
            'NKI_VENV_PATH': VENV, 'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1',
            'OMP_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1',
