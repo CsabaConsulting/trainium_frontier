@@ -1,0 +1,65 @@
+{
+  "schema": "independent-source-gates-v1",
+  "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+  "reviewer": "root Supervisor; did not implement research timer or Recursive source",
+  "passed": true,
+  "scope": "dense6x1024 only: independent source composition review, actual full-parameter CPU G2 and three-step default-OFF identity; NOT native compile or cold-start proof",
+  "source_review": [
+    "research/v2/verification/20260925-startup-predictor-independent-PASS.md",
+    "research/v2/verification/20260925-l3-recursive-source-tiny-independent-PASS.json"
+  ],
+  "cpu_g2": {
+    "path": "research/v2/operator/20260925-trn21-l3-timer-dense-g2-r1/g2.json",
+    "sha256": "48ff468c7fc9131fb70a3319158695176c5d0f54a3ef1a09dddad96687bbe162",
+    "passed": true,
+    "nproc": 4,
+    "steps": 3,
+    "micro_rows": 2,
+    "micro_tokens": 256
+  },
+  "flag_off_identity": {
+    "passed": true,
+    "all_rank_step_losses_identical": true,
+    "loss_count": 12,
+    "parameter_digests_identical": 62,
+    "ownership_plan_identical": true,
+    "off_path": "research/v2/operator/20260925-trn21-l3-timer-dense-off-g2-r1/g2.json",
+    "off_sha256": "6813cf265a125782c6792dd3eca5f6ab47629e8d90e59fc05b87cc5b9c1028ff",
+    "control_path": "research/v2/operator/20260925-trn21-c5c-dense-identity-g2-r1/g2.json",
+    "control_sha256": "2679ea9d132f6b04a511c58f17e071f0b50e0afa49018e45fbbec01f1af06984"
+  },
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--recursive-schedule",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out"
+  ],
+  "cpu_limitations": [
+    "synthetic loader/tokenizer",
+    "Neuro-specific CE disabled on CPU",
+    "deterministic fake clock",
+    "training forward sliced to 2x256; full parameters/optimizer state retained",
+    "no cold startup measurement; no submission approval"
+  ],
+  "native_launch": "Research-only after completed exact proposal and fresh Operator preflight. Native failures are failures, not CPU PASS overrides."
+}
