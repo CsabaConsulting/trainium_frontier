@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import shlex
 from pathlib import Path
 
 
@@ -47,10 +48,13 @@ def main() -> None:
     queue = json.loads((ROOT / "research/v2/queue.json").read_text())
     arm = next(x for x in queue["queue"] if x["id"] == "A1")
     assert arm["argv_delta"]["replace"] == "--no-ngram-ve"
-    assert arm["argv_delta"]["with"] == contract["a1_argv"][14:]
     base = contract["control_argv"]
     assert base.count("--no-ngram-ve") == 1
-    assert contract["a1_argv"] == [x for x in base if x != "--no-ngram-ve"] + arm["argv_delta"]["with"]
+    splice_at = base.index("--no-ngram-ve")
+    assert contract["a1_argv"] == (
+        base[:splice_at] + arm["argv_delta"]["with"] + base[splice_at + 1:]
+    )
+    assert shlex.split(proposal["candidate"]["launch_command"].split("train.py ", 1)[1]) == contract["a1_argv"]
     assert contract["table_expectation"]["keys"] == ["b5", "t5"]
     assert contract["table_expectation"]["rows_per_table"] == 64 * 8192
     assert contract["table_expectation"]["table_parameters_total"] == 2 * 64 * 8192 * 128

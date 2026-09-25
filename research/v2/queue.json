@@ -516,6 +516,28 @@
       ]
     }
   ],
+  "break_glass_next_six_per_host": {
+    "planning_only": true,
+    "active_source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "note": "This is the dependency order for six host slots, not six launch-ready jobs. S0/116188 contrast runs precede table work under the newer human instruction. For each free host choose the first item whose proposal, exact G2, preflight, control and one-shot authority have actually passed; skip a blocked item rather than idling. Live state and run receipts supersede this planning snapshot.",
+    "trn21": [
+      {"order": 1, "item": "c5c A0 base control", "label": "fs-20260925-v2-c5c-a0-control-trn21-r1", "readiness": "ASSIGNED_OR_RUNNING_VERIFY_LIVE; score pending"},
+      {"order": 2, "item": "S0 warm-cache contrast", "label": null, "readiness": "HOLD: new unique proposal/label and Operator preflight after A0"},
+      {"order": 3, "item": "S0 cold-cache replay after contrast diagnosis", "label": null, "readiness": "HOLD: S0 warm and known-good 116188 cold outcomes, diagnosed cold setup, new proposal/label"},
+      {"order": 4, "item": "A1 exact m64d128 four-rank CPU G2", "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-g2", "readiness": "HOLD: repaired A1 packet independent review and memory-safe host slot"},
+      {"order": 5, "item": "A1 native 30-step smoke", "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-smoke", "readiness": "HOLD: exact-size G2 rank trace PASS and native authorization"},
+      {"order": 6, "item": "A1 full 1800-second table arm", "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full", "readiness": "HOLD: smoke PASS, accepted same-host A0 public20M control and fresh preflight"}
+    ],
+    "trn22": [
+      {"order": 1, "item": "c5c A0 base control", "label": "fs-20260925-v2-c5c-a0-control-trn22-r10", "readiness": "LAUNCHED_UNSCORED; require completed eval and independent postlaunch receipt review"},
+      {"order": 2, "item": "known-good 116188 cold-cache contrast", "label": null, "readiness": "HOLD: new unique proposal/label and fresh empty cache/preflight after A0"},
+      {"order": 3, "item": "A2 exact m64d128 four-rank CPU G2", "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-g2", "readiness": "HOLD: exact-size package and memory-safe host gate"},
+      {"order": 4, "item": "A2 native 30-step smoke", "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-smoke", "readiness": "HOLD: exact-size G2 rank trace PASS and native authorization"},
+      {"order": 5, "item": "A2 full 1800-second table arm", "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full", "readiness": "HOLD: smoke PASS, accepted same-host A0 public20M control and fresh preflight"},
+      {"order": 6, "item": "S0 cold-cache replay if contrast diagnosis needs trn22", "label": null, "readiness": "HOLD: compare S0 warm with 116188 cold, select host, diagnose cold setup and issue new proposal/label"}
+    ],
+    "after_six": "Cross-host A1/A2 replicates, then D1 epoch-value on the next free slot, subject to exact gates and same-host controls."
+  },
   "submission_track": [
     {
       "id": "S0",

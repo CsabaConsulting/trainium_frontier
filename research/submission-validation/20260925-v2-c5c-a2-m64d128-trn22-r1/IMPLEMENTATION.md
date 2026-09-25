@@ -36,3 +36,13 @@ four-rank two-step CPU G2 with RMSProp trace, independent rank-record review,
 30-step native smoke, full run, fresh public20M evaluation and verdict are
 all pending. No SSH, host operation, training, AWS action, deletion, breaker
 reset, staging, dispatch or submission was performed in this package.
+# 2026-09-25 control-label reconciliation
+
+The pending trn22 c5c A0 control is now assigned and launched as
+`fs-20260925-v2-c5c-a0-control-trn22-r10`, not the old unrun r2 placeholder.
+The proposal and gate contract name r10 only as a **pending** control; the valid
+same-host control label remains null until its fresh public-20M score and
+independent postlaunch receipt review pass. No A2 dispatch authority follows.
+The older disk/expansion language above is historical; the human has since
+expanded both roots and reset the named breaker. Fresh preflight and an
+A2-specific growth projection still gate every native table attempt.

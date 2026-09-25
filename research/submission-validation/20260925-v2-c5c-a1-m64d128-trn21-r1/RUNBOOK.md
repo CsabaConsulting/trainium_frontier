@@ -51,7 +51,7 @@ override belongs in the scored argv. `NEURON_CC_FLAGS` must include
    separate required postcondition. From the clean repo root, the precise payload is:
 
 ```bash
-python workflow/tools/preflight_dryrun.py --train-py submissions/research_v2/train.py --prepare-dir . --steps 2 --nproc 4 --timeout 3600 --trace-rmsprop --out /dev/shm/fs-20260925-v2-c5c-a1-m64d128-trn21-r1-g2.json -- --n-embd 1024 --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude
+python workflow/tools/preflight_dryrun.py --train-py submissions/research_v2/train.py --prepare-dir . --steps 2 --nproc 4 --timeout 3600 --trace-rmsprop --out /dev/shm/fs-20260925-v2-c5c-a1-m64d128-trn21-r1-g2.json -- --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015
 ```
 
    Require source SHA exactly c5c, unchanged `prepare.py` SHA, `prepare.stub=false`, verdict
