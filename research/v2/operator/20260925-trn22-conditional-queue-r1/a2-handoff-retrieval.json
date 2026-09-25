@@ -1,0 +1,129 @@
+{
+  "utc": "2026-09-25T16:03:47.337692+00:00",
+  "artifacts": {
+    "a2-r1-final/eval.log": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full-source/eval.log",
+      "sha256": "fc663f70117585e9e3c99979854f427445a16e052415c94bb47d72b0cd18bace",
+      "bytes": 3064
+    },
+    "a2-r1-final/eval.exitcode": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full-source/eval.exitcode",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "a2-r1-final/driver.log": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full-source/driver.log",
+      "sha256": "26362415322edf97ddb66c60c2feececd98349c59c92cfb4fed64832e5d2216e",
+      "bytes": 164
+    },
+    "a2-r1-final/eval-rehearsal.json": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full-work/eval/rehearsal.json",
+      "sha256": "618917338971b0f875f4380760940db70a80b51687872a94e4bdef43490d2ac0",
+      "bytes": 133
+    },
+    "a2-r2-launch/attempt.started.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full/attempt.started.json",
+      "sha256": "5531a5799f4f15e15eea22def2f2c6a6e9bc3dedce23a5d8b30a79922b56a344",
+      "bytes": 3006
+    },
+    "a2-r2-launch/preflight.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full/preflight.json",
+      "sha256": "b8d322ed411eb2a0305adb7ed6cbfbd2c08007b4be2e9c6dc7d59fa51be1ccdb",
+      "bytes": 300
+    },
+    "a2-r2-launch/training-process.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full/training-process.json",
+      "sha256": "a7ad254acb1131ae5f6a5c4502803a21c0386fa6d2edc06324c89d93b2529e67",
+      "bytes": 66
+    },
+    "a2-r2-launch/training-launch.json": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full/training-launch.json",
+      "sha256": "9db958ff2d5b67d8d704e6c704947a64be726ba97c735cb86a4710ba8624206e",
+      "bytes": 2685
+    },
+    "a2-r2-launch/training.snapshot.log": {
+      "path": "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/fs-20260925-v2-c5c-a2-m64d128-trn22-r2-warm-full/training.log",
+      "sha256": "85fd9df7c2eab9f9e38ea98d471e67db4749b269b03d7d091cc3153dcd17f175",
+      "bytes": 6845
+    }
+  },
+  "processes": [
+    {
+      "pid": 3051234,
+      "names": [
+        "timeout",
+        "--signal=TERM",
+        "--kill-after=60s",
+        "5400s",
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4"
+      ]
+    },
+    {
+      "pid": 3051235,
+      "names": [
+        "python3",
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4",
+        "train.py",
+        "--n-embd",
+        "1024"
+      ]
+    },
+    {
+      "pid": 3051250,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=1,-1"
+      ]
+    },
+    {
+      "pid": 3051251,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=1,-1"
+      ]
+    },
+    {
+      "pid": 3051252,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=1,-1"
+      ]
+    },
+    {
+      "pid": 3051253,
+      "names": [
+        "python3",
+        "-u",
+        "train.py",
+        "--n-embd",
+        "1024",
+        "--ngram-ve",
+        "--ngram-ve-layers=1,-1"
+      ]
+    }
+  ],
+  "queue_pid": 3050509,
+  "queue_alive": true,
+  "r1_eval_alive": false,
+  "r1_driver_alive": false,
+  "disk_free_bytes": 50682077184
+}
