@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 20:06 UTC (26 September IST)
+Last reconciled: 2026-09-25 20:10 UTC (26 September IST)
 
 ## Guard working within timebox; full architecture running
 
@@ -18,12 +18,24 @@ uses those primed caches, not a fresh-cache submission replay. Its unchanged
 driver retains the same lock through training and fresh public20M/context1024
 eval. Quality/startup/steps for the full run are pending.
 
-trn21 batch262k source received a fresh isolated Astra source/CPU PASS:352own
-checks/11cases;114archive and38binding checks rerun. One-shot timing assignment
-a0a7af2a is issued, Operator is staging; no actual launch claimed yet. It is
-105steps only, same-estimator5%screen versus268831tokens/s, no automatic full
-run/eval. Existing P finished; four SHA-verified runtime traces are local and
-under bounded independent analysis. Device bottleneck and MFU remain unknown.
+trn21 batch262k started20:06:51.640692UTC /01:36:51IST, driver3011316,
+torchrun3011347, four workers3011362–3011365; accumulation2 is logged. Source
+received fresh isolated Astra source/CPU PASS:352own checks/11cases;114archive
+and38binding checks rerun. It is105steps only, same-estimator5%screen versus
+268831tokens/s, no automatic full run/eval. Both launch and corrected local
+path/missing-parent preparation errors are archived in a7c9064f. Those errors
+started no native job. Actual idle after P was14m13s; the user-facing15minute
+alert was premature because launch confirmation arrived later, and was corrected.
+
+At20:09:10UTC, specific historical queue PID2983496/trn21 and3050509 plus
+3053905/trn22 were absent, with no historical runner commands on either host.
+Pauses and original lock inodes are unchanged. Exact receipts are under
+`research/v2/operator/20260926-common-host-idle-guard/retired-hosts/`.
+
+Existing P finished; four SHA-verified runtime traces are local and under
+bounded independent analysis. Initial correlation places the apparent long
+data-fetch host span over queued backward-device work, not proven loader I/O.
+Per-op device bottleneck, complete dtype audit and MFU remain unknown.
 
 K2's ordered-wave arithmetic redesign is research-only (9a26031d), not a
 kernel implementation or native authorization. Original e4d93 remains REFUSE.

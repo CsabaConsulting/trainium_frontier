@@ -35,6 +35,11 @@ to use the common lock/checks; this success does not waive future preflight.
 The full architecture follow-up launched01:32:37IST with the same trn22 lock
 inode832589; its in-lock checks and worker identities are archived under
 `research/v2/operator/20260926-trn22-arch3e79-full/launch/` (e2cd3697).
+Batch timing followed on trn21 at01:36:51IST with original inode596823.
+At01:39:10IST all recorded old queue PIDs (2983496/trn21,3050509 and3053905/
+trn22) were absent and there were no historical launcher command matches.
+Receipts are in `research/v2/operator/20260926-common-host-idle-guard/retired-hosts/`
+and commit a7c9064f. These are process-exit observations, not queue-depth checks.
 
 1. Before each training, native diagnostic or separately launched Neuron eval,
    acquire an exclusive nonblocking `flock` on the target host's existing
