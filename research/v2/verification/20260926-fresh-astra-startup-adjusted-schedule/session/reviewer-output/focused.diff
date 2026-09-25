@@ -1,0 +1,114 @@
+--- baseline_train.py
++++ candidate_train.py
+@@ -3287,30 +3287,42 @@
+     config = GPTConfig(**payload['model_config'])
+     if config.sequence_len < EVAL_MIN_SEQ_LEN:
+         config.sequence_len = EVAL_MIN_SEQ_LEN
+     model = _SubmissionEvalGPT(config)
+     model.init_weights()
+     state = payload['model_state']
+     if EVAL_PREFER_EMA and 'ema_state' in payload:
+         state = payload['ema_state']
+         print(f"load_for_eval: using EMA weights from {checkpoint_path} (raw weights still available under 'model_state')")
+     model.load_state_dict(state, strict=True)
+     model.to(device)
+     model.eval()
+     model.requires_grad_(False)
+     return model
+ 
++def startup_adjusted_schedule_elapsed(step: int, elapsed: float, budget_started: float) -> float:
++    """Optimizer progress only; never change the actual budget/stop clock.
++
++    Reconstruct process age from the existing step-start sample, without a new
++    clock read. Preserve charged excess above the same capped startup allowance.
++    After the fifth boundary, the unchanged budget reset already accounts for it.
++    """
++    if step >= TRAIN_STARTUP_STEPS_EXCLUDED:
++        return elapsed
++    process_age = elapsed + (budget_started - _PROCESS_STARTED)
++    return max(0.0, process_age + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
++
+ def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
+     if step < WARMUP_STEPS:
+         return (step + 1) / max(1, WARMUP_STEPS)
+     if WARMDOWN_RATIO <= 0.0:
+         return 1.0
+     progress = min(1.0, elapsed / max(1e-06, max_train_seconds))
+     if progress < 1.0 - WARMDOWN_RATIO:
+         return 1.0
+     cooldown = (1.0 - progress) / WARMDOWN_RATIO
+     lrm = cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
+     if LRM_QUANTUM > 0:
+         lrm = round(lrm * LRM_QUANTUM) / LRM_QUANTUM
+     return lrm
+ 
+ def batch_ramp_stage(progress: float) -> int:
+@@ -3493,30 +3505,31 @@
+     global USE_WEIGHT_EMA, WEIGHT_EMA_DECAYS, WEIGHT_EMA_START_FRAC
+     global USE_COMPILE_MUON
+     global USE_TRANSPOSED_LINEAR
+     global USE_BYTE_WTE_INIT, BYTE_WTE_INIT_MIX, BYTE_WTE_INIT_NGRAM, BYTE_WTE_INIT_STD
+     global USE_COALESCED_SWIGLU, COALESCED_SWIGLU_HIDDEN
+     global USE_CAUTIOUS_WD, SCALAR_BETA1, SCALAR_BETA2
+     global DEMON_BETA1, DEMON_BETA1_FINAL, DEMON_BETA1_REF, DEMON_BETA1_START_FRAC
+     global MUON_BETA2, MUON_BETA2_FINAL
+     global MUON_DEPTH_LR_BOTTOM, MUON_DEPTH_LR_TOP
+     global MUON_DEPTH_MOM_BOTTOM, MUON_DEPTH_MOM_TOP, MUON_DEPTH_MOM_REF
+     parser = argparse.ArgumentParser(description='Neuron Competition R1 baseline')
+     parser.add_argument('--device-type', type=str, default='')
+     parser.add_argument('--num-steps', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NUM_STEPS', NUM_STEPS)))
+     parser.add_argument('--debug-numerics-steps', type=int, default=0, help='Diagnostic only: synchronize and inspect loss/parameters/gradients at each stage of the first N steps. Invalidates speed measurements.')
+     parser.add_argument('--initial-cache-refresh', action=argparse.BooleanOptionalAction, default=False, help='Refresh differentiable weight casts inside the timed first step before its first forward; default OFF.')
++    parser.add_argument('--startup-adjusted-schedule', action=argparse.BooleanOptionalAction, default=False, help='Use capped-startup-adjusted optimizer progress during the first five steps; scientific schedule change, default OFF; budget accounting unchanged.')
+     parser.add_argument('--max-train-seconds', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS', MAX_TRAIN_SECONDS)))
+     parser.add_argument('--out-dir', type=str, default=os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out'))
+     parser.add_argument('--eval-public', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EVAL_PUBLIC', '1') != '0')
+     parser.add_argument('--eval-tokens', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_EVAL_TOKENS', str(4 * 524288))))
+     parser.add_argument('--compile', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE', '1') != '0', help="enable torch.compile(backend='neuron') on the full model. Default ON (Bucket E, real full-1800s-confirmed win: 827 steps/1.113006 vs eager's 746 steps/1.122271, causality exact) -- pass --no-compile for the plain eager comparison path.")
+     parser.add_argument('--compile-only', action='store_true', help='run one synthetic optimizer step to warm the compile cache, then exit')
+     parser.add_argument('--nki-relu2', action='store_true', default=os.environ.get('NEURON_COMPETITION_R1_NKI_RELU2', '0') != '0', help='use the example fused NKI relu(x)**2 kernel in the MLP (Neuron only; illustration)')
+     parser.add_argument('--nki-rope-norm', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_ROPE_NORM', '1') != '0', help='fuse norm(apply_rotary_emb(x)) into one NKI kernel for q/k (Neuron only). Default ON (Solution 12, real ~15-18%% step-time win, verified to 1-bf16-ULP against eager) -- pass --no-nki-rope-norm for the plain eager comparison path.')
+     parser.add_argument('--nki-softcap-ce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_SOFTCAP_CE', '1') != '0', help='fuse the logit softcap and cross-entropy (fwd+bwd) into one NKI kernel pair (Neuron only), collapsing ~8 full-[B*T,V] NEFF launches into 2. Default ON: verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the plain eager comparison path.')
+     parser.add_argument('--byte-loss-weight', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BYTE_LOSS_WEIGHT', '0') != '0', help="Sub-1.0 plan P4: weight each token's training loss by its byte length (sum(w*l)/sum(w), mean-normalized so the loss scale is unchanged), aligning the objective with bpb. Weights come from the provided tokenizer artifact only. Default OFF = plain mean, bit-identical.")
+     parser.add_argument('--nki-muon', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_MUON', '1') != '0', help="fuse the elementwise ops wrapping Muon's Newton-Schulz matmuls, plus the sign-gated weight update, into three NKI kernels (Neuron only). The matmuls themselves stay in aten. Default ON: removes 92 of Muon's 320 per-step device launches (-25.5%% off the Muon window) on a step whose optimizer window is ~54%% inter-launch gap, with BIT-IDENTICAL update math (research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain eager comparison path.")
+     parser.add_argument('--nki-attn', action='store_true', default=os.environ.get('NEURON_COMPETITION_R1_NKI_ATTN', '0') != '0', help='run causal SDPA through the fused NKI fwd/bwd pair (Neuron only). Default OFF.')
+     parser.add_argument('--compile-sdpa-direct', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT', '1' if COMPILE_SDPA_DIRECT else '0') != '0', help='Call causal SDPA directly when --nki-attn is off, allowing Dynamo to trace it instead of entering the disabled attention wrapper. Default OFF preserves the historical graph partitioning. The custom NKI attention path retains its wrapper when enabled.')
+     parser.add_argument('--muon-lr-fp32', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_MUON_LR_FP32', '0') != '0', help="see the _muon_lr_g docstring. Default OFF (the locked, current behaviour): a 0-dim fp32 lr multiplied against the bf16 Newton-Schulz iterate g gets CAST DOWN to bf16 before the multiply, by PyTorch's own 0-dim type-promotion rule -- quantising every Muon group's effective lr by up to ~0.4%% relative error, every step. ON keeps that product in fp32 instead (g upcast, lr untouched, cast down to w's dtype only at the final subtract). Zero-cost precision fix, no expected throughput impact; does not touch the per-depth [K,1,1] lr path's intentional bf16-matching behaviour. Its own flag and its own A/B, per that docstring.")
+     parser.add_argument('--compile-muon', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_MUON', '1' if USE_COMPILE_MUON else '0') != '0', help="T1.7: run Muon's per-group math body inside torch.compile(backend='neuron') instead of ~80 eager aten launches (Neuron only). Mutually exclusive with --nki-muon by construction -- a compiled region cannot contain an nki.jit call -- so this trades the NKI elementwise fusion for whole-body fusion. See _muon_math.")
+@@ -4055,33 +4068,34 @@
+                 dist.all_reduce(ov, op=dist.ReduceOp.MAX)
+             new_scale, new_clean, skip_step = loss_scale_transition(LOSS_SCALE, loss_scale_clean, bool(ov[0].item() == 0.0), LOSS_SCALE_GROWTH_INTERVAL, LOSS_SCALE_MAX)
+             if skip_step:
+                 loss_scale_skips += 1
+                 print0(f'loss-scale: overflow at step {step}, skipping update (scale {LOSS_SCALE:g} -> {new_scale:g}, skips {loss_scale_skips})', flush=True)
+                 if grad_flat_buffer is not None:
+                     grad_flat_buffer.zero_()
+                 else:
+                     for p in model.parameters():
+                         if p.grad is not None:
+                             p.grad.detach().zero_()
+             LOSS_SCALE, loss_scale_clean = (new_scale, new_clean)
+         unscale_grads_(model, grad_flat_buffer, unscale_with)
+         clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)
+         debug_numerics('clip_and_reduce', step, last_loss, inspect_tensors=True)
+-        lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
++        schedule_elapsed = startup_adjusted_schedule_elapsed(step, elapsed, budget_started) if args.startup_adjusted_schedule else elapsed
++        lrm = lr_multiplier(step, elapsed=schedule_elapsed, max_train_seconds=args.max_train_seconds)
+         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
+-        wd_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
++        wd_progress = min(1.0, schedule_elapsed / max(1e-06, args.max_train_seconds))
+         demon_b1 = demon_beta1_scale(wd_progress)
+         muon_b2 = muon_beta2(wd_progress)
+         for group in optimizer.param_groups:
+             group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm)
+             if group['kind'] == 'muon':
+                 group['momentum'] = muon_momentum(step, wd_progress)
+                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
+                 group['beta2'] = muon_b2
+             elif group['kind'] == 'adamw' and DEMON_BETA1:
+                 _b1, _b2 = group['initial_betas']
+                 group['betas'] = (_b1 * demon_b1, _b2)
+         if not skip_step:
+             optimizer.step(update_adamw=adam_step_now)
+         debug_numerics('optimizer', step, last_loss, inspect_tensors=True)
+         if USE_WEIGHT_EMA and ramp_progress >= WEIGHT_EMA_START_FRAC:

@@ -1,0 +1,351 @@
+{
+  "decision": "PASS",
+  "scope": "Source review and independently executed bounded reduced-CPU exactness evidence establish suitability only for the next separately assigned full-size CPU qualification.",
+  "not_authorized": [
+    "native compilation",
+    "hardware execution",
+    "cold training",
+    "quality or BPB benefit claims",
+    "adoption",
+    "submission",
+    "full-size CPU execution within this task"
+  ],
+  "baseline": {
+    "commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+    "train_py_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c"
+  },
+  "candidate": {
+    "commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "train_py_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb"
+  },
+  "input_manifest_sha256": "fef50271f26087f3a6ed286f217a05e27b96abc40eb1960a1d385813a13f11f4",
+  "input_files": [
+    {
+      "bytes": 329658,
+      "path": "baseline-to-candidate.diff",
+      "sha256": "4c29a8fac23ded3c44d6b6b94b43b354e339b3ea2b5f871eae395663839233bb"
+    },
+    {
+      "bytes": 7631,
+      "path": "lane-spec.md",
+      "sha256": "dc55eb48f987a6f7f398b37e3436d964f4b150b04c2296a60432de5eea672560"
+    },
+    {
+      "bytes": 1526227,
+      "path": "raw/attempt2-stub2/tiny-base.json",
+      "sha256": "8f72b15fb8dcc836dfb9f696364e86f91d65d57456d6ce42dfeffcbb55a05506"
+    },
+    {
+      "bytes": 10503,
+      "path": "raw/attempt2-stub2/tiny-commands.json",
+      "sha256": "e22fe44e53625cedcb39c371160f180e94960707b8173f62b3050f1d56c7e9de"
+    },
+    {
+      "bytes": 1526217,
+      "path": "raw/attempt2-stub2/tiny-default.json",
+      "sha256": "f185b6c7daccad99b14d05008fa94637367497969703c4859b16cb6da33be9b6"
+    },
+    {
+      "bytes": 1526255,
+      "path": "raw/attempt2-stub2/tiny-off.json",
+      "sha256": "8897021ba05351690c09d8502cadf398a33b8cb3f37267e347e82afc61e0a437"
+    },
+    {
+      "bytes": 2989110,
+      "path": "raw/attempt2-stub2/tiny-on1000.json",
+      "sha256": "d631a230e68a433e8dbfdef533aa4d8136e11ab5022aabab551c184ce95720a1"
+    },
+    {
+      "bytes": 2988594,
+      "path": "raw/attempt2-stub2/tiny-on779.json",
+      "sha256": "93c2ff2be80d2520ca0182912a3ca4528fe821ed41f55e96773dd7e73ad8e772"
+    },
+    {
+      "bytes": 2988594,
+      "path": "raw/attempt2-stub2/tiny-on790.json",
+      "sha256": "fac38c865bf7e5fa3fbec64ca4717832ba80fdf57f11445426741f2817f0e230"
+    },
+    {
+      "bytes": 16545,
+      "path": "raw/failed-attempt1-base.json",
+      "sha256": "8b66c1f64bdec04860f1dd4ceb529036a8ad75053dc2f867da3e8c22f3d46857"
+    },
+    {
+      "bytes": 1527405,
+      "path": "raw/tiny-base.json",
+      "sha256": "a62c6fa85510cd0efc59b763aac3fe2574c5ead2c1f90dac2b31883c90576a84"
+    },
+    {
+      "bytes": 10503,
+      "path": "raw/tiny-commands.json",
+      "sha256": "e22fe44e53625cedcb39c371160f180e94960707b8173f62b3050f1d56c7e9de"
+    },
+    {
+      "bytes": 1527396,
+      "path": "raw/tiny-default.json",
+      "sha256": "741028b911905759b0894b927a9b4eea0aa1dd5b6b7006c728eb3be2bc200de6"
+    },
+    {
+      "bytes": 1527434,
+      "path": "raw/tiny-off.json",
+      "sha256": "5f9313f994eb6e8f66ba0b0c9d699e97e61aa82cecc4ec3c5a3a6f2e14122ed4"
+    },
+    {
+      "bytes": 2989543,
+      "path": "raw/tiny-on1000.json",
+      "sha256": "3567c990ffe6905fe77e53da5e6fb25aab87af92f387de0e44a852d1326048f4"
+    },
+    {
+      "bytes": 2987513,
+      "path": "raw/tiny-on779.json",
+      "sha256": "18e1162575510a64d253b2ddd46df7c88d1a36be6a42ec7de80acbdfe6e098e7"
+    },
+    {
+      "bytes": 2987513,
+      "path": "raw/tiny-on790.json",
+      "sha256": "f19c0cdc4425083062d5adf2b0a2c7c8adf14ac5fe4d19c6fb2fbbd84c7da27f"
+    }
+  ],
+  "independent_source_review": {
+    "complete_reconstruction_hashes_match": true,
+    "complete_AST_identity_after_exact_delta_removal": true,
+    "unchanged_protected_definitions": 21,
+    "unchanged_time_call_count": 14,
+    "source_files_edited": false,
+    "findings": [
+      "BooleanOptionalAction is default False and explicit OFF bypasses helper",
+      "Before step 5, process age is reconstructed from existing elapsed sample and origins, then margin/cap applied",
+      "Positive startup excess is retained",
+      "LR and WD share adjusted seconds; downstream schedule/optimizer formulas unchanged",
+      "Fifth-boundary reset and predictor clearing unchanged",
+      "Budget/stop/log/checkpoint/through-exit operations unchanged",
+      "Model/inference/load/checkpoint format unchanged"
+    ]
+  },
+  "independent_numerical_evidence": {
+    "attempt": "attempt2",
+    "status": "PASS",
+    "positive_checks": 996,
+    "expected_failure_negative_controls": 7,
+    "unexpected_failures": 0,
+    "schedule_grid_cases": 600,
+    "default_off_baseline_identity_cases": 200,
+    "boundary_cases": 36,
+    "step5_continuation_cases": 12,
+    "tensor_update_state_exact_cases": 96,
+    "dtype": "CPU IEEE float32; binary64 schedule scalars",
+    "tensor_comparison": "exact bytes for parameters, applied deltas, first/second moments; exact step integers and missing-gradient behavior",
+    "scalar_tolerance": "exact dyadic binary64 clock outputs; independently rearranged LR at most 4e-16 absolute; optimizer LR must match float32 bytes",
+    "fixture_parameter_sizes": [
+      4,
+      2,
+      1
+    ],
+    "fixture_updates_per_run": 8,
+    "fixture_modes": [
+      "baseline",
+      "candidate default",
+      "candidate explicit OFF",
+      "candidate ON"
+    ],
+    "fixture_betas": [
+      0.5,
+      0.75
+    ],
+    "fixture_eps": 0.125,
+    "fixture_weight_decay": 0.125,
+    "fixture_initial_lr": 0.02,
+    "missing_gradient_status": "second parameter None at steps 0,2,5; third always None and no state",
+    "peak_tracked_live_storage_bytes": 372,
+    "max_tensor_bytes": 16,
+    "tensor_limit_bytes": 67108864,
+    "threads": 1,
+    "interop_threads": 1,
+    "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+    "torch": "2.13.0+cpu",
+    "extraction_and_stubs": {
+      "prepare_constants": {
+        "TRAIN_STARTUP_STEPS_EXCLUDED": 5,
+        "TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS": 900.0
+      },
+      "time": "NoClock or scripted values",
+      "optimizer_container": "SimpleNamespace/defaultdict, binding actual methods; no math stub"
+    },
+    "model_executed": false
+  },
+  "receipt_interpretation": {
+    "status": "PASS for internal consistency only",
+    "checks": 2671,
+    "final_receipts": 6,
+    "final_ranks_each": 4,
+    "final_boundary_contract": 5,
+    "earlier_stub_receipts": 6,
+    "earlier_boundary_contract": 2,
+    "earlier_transition_not_qualifying": true,
+    "source_hashes_and_argv_checked": true,
+    "same_rank_baseline_default_off_records_identical": true,
+    "all_rank_after_update_digests_match": true,
+    "missing_recorded_gradients": false,
+    "reduced_parameter_count": 4523316,
+    "reduced_parameter_tensor_count": 65,
+    "observed_forward_shape": [
+      2,
+      128
+    ],
+    "configured_depth": 8,
+    "configured_width": 128,
+    "configured_context": 1024,
+    "configured_vocab": 8192,
+    "hidden_harness_executed": false,
+    "hidden_harness_authenticated": false,
+    "checkpoint_files_available": false,
+    "checkpoint_byte_identity_claim": "matching supplied file SHA256 values only, separate from compared tensor digest records",
+    "sampling_semantics": "1ms fake time per call, delay after first optimizer update, schedule sampled at step start; rank0 logging adds samples",
+    "limitations": [
+      "BF16 CPU selection with FP32 master parameters",
+      "NKI CE no-op",
+      "synthetic data",
+      "sliced forwards and nominal token accounting",
+      "fake clock and artificial delays",
+      "observer implementations absent",
+      "all supplied ON LR multipliers on flat portion; independent high-age tests exercise cooldown"
+    ]
+  },
+  "preserved_failures_and_limits": [
+    {
+      "artifact": "packet_copy/raw/failed-attempt1-base.json",
+      "failure": "All four observers fail: AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'; aggregate process return code 0 does not override worker failures",
+      "treatment": "not successful training evidence"
+    },
+    {
+      "artifact": "diagnostics/receipt_probe_failure.txt",
+      "failure": "Reviewer schema probe KeyError: 'checkpoint_file_sha256' on a nonzero rank",
+      "treatment": "preserved; rank0-only schema corrected"
+    },
+    {
+      "artifact": "receipt_audit/summary.json",
+      "failure": "First reviewer audit REFUSE due to KeyError: 'final_digests' on a nonzero rank",
+      "treatment": "preserved; corrected audit uses all-rank parameter-after-update records"
+    },
+    {
+      "artifact": "attempt2.stderr",
+      "failure": "CPU-information warning: failed to parse processor information from /proc/cpuinfo",
+      "treatment": "preserved in both numerical attempts; no resulting numerical test failure"
+    },
+    {
+      "artifact": "attempt2/results.jsonl",
+      "failure": "Seven deliberately wrong controls fail their expected assertions",
+      "treatment": "expected failures required to validate sensitivity; the tensor_one_bit_mutation label actually replaces a byte and is claimed only as byte corruption"
+    }
+  ],
+  "remaining_gates": [
+    "Separately assigned full-size CPU qualification at the stated 113256724-parameter/65-tensor 8x1024 target",
+    "Separately authorized native/compiler/cold-start and real hardware execution",
+    "Real budget, stop, checkpoint and through-exit qualification",
+    "Scientific quality/BPB evaluation before any adoption or submission",
+    "Any batch-ramp/EMA/dynamic-loss-scaling combination outside selected OFF profile"
+  ],
+  "scientific_interpretation": "ON intentionally changes optimizer scheduling; no ON/OFF equivalence, throughput gain, BPB benefit, or causal explanation of earlier score variation is established.",
+  "failed_requirements_within_pass_scope": [],
+  "started_no_later_than_utc": "2026-09-25T22:36:44+00:00",
+  "decision_written_utc": "2026-09-25T22:46:15.182908+00:00",
+  "outer_session_limit_seconds": 1200,
+  "evidence_artifacts": [
+    {
+      "path": "/work/REPORT.md",
+      "sha256": "754d300076441db5aadca929e3e6b1024a95fde4e465edccfc4e3ecc7378bf24"
+    },
+    {
+      "path": "/work/COMMANDS.md",
+      "sha256": "e739fb14151e4d8ecadd42ea96ab7a0c25ec234e3a210926a84558128f7316b9"
+    },
+    {
+      "path": "/work/input_integrity.json",
+      "sha256": "0277eea2ed57699c7c91f9095cb5e248631dbd376db0e564c63b79995ea1e95b"
+    },
+    {
+      "path": "/work/source_audit.json",
+      "sha256": "4c8ef683c18a605564ecd5668a8e99396bc95a29aea9a70e9fbdf00a9412a803"
+    },
+    {
+      "path": "/work/reference_test.py",
+      "sha256": "1896e2d5d3ba57199835bcb4b1d527c35dcf94a4924b63eb48e08779e55df3d3"
+    },
+    {
+      "path": "/work/reference_test_v1.py",
+      "sha256": "7b972dfad97143b40fe13b3b36fb5d2100aa04b488baba2a92d4fb48464b3385"
+    },
+    {
+      "path": "/work/attempt1/summary.json",
+      "sha256": "a31ea05e8bf98e7ef1ae32aeddc0674d1de0cca633b9c7d634fa7022c1497532"
+    },
+    {
+      "path": "/work/attempt1/results.jsonl",
+      "sha256": "49e8ce876441fc8152115206ed9ef0019a2d1f44708d3ab28323080c76fe7a16"
+    },
+    {
+      "path": "/work/attempt1.stderr",
+      "sha256": "6b34e139874fbd957793fc10358414b6836ce7521d9c97418037bae27879ab35"
+    },
+    {
+      "path": "/work/attempt2/summary.json",
+      "sha256": "a31ea05e8bf98e7ef1ae32aeddc0674d1de0cca633b9c7d634fa7022c1497532"
+    },
+    {
+      "path": "/work/attempt2/results.jsonl",
+      "sha256": "0789a0bbb5a22ef185839e2197f50f68d5a5da21e2c8ac4aa00b14a80f52062b"
+    },
+    {
+      "path": "/work/attempt2/tensor_inputs.json",
+      "sha256": "9baef3f686e206ef59a19f16a43093fc95c3daab27873d6f294babaf56b47435"
+    },
+    {
+      "path": "/work/attempt2/tensor_results.json",
+      "sha256": "d6628b909d91a722fd38ac31b7d590004f33ee4b9857d6b16600d89e0ee3f533"
+    },
+    {
+      "path": "/work/attempt2/failures.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "/work/attempt2/extractions.json",
+      "sha256": "39530fe8941dc65bd0c47f9b5335d8301e01ccfe03f4174899c0f2d8565e2d73"
+    },
+    {
+      "path": "/work/attempt2.stderr",
+      "sha256": "6b34e139874fbd957793fc10358414b6836ce7521d9c97418037bae27879ab35"
+    },
+    {
+      "path": "/work/receipt_audit.py",
+      "sha256": "e4b43ed2622ce9f8f94b45ee0017f8270e0ca8a78f226af809454b72a7851f1a"
+    },
+    {
+      "path": "/work/receipt_audit_v1.py",
+      "sha256": "d8229637a16d63c2dc6b63bc2ab27ba71e1c1639ec173c0366cbe11dbe2f86cb"
+    },
+    {
+      "path": "/work/receipt_audit/summary.json",
+      "sha256": "3b9b2fe92ff85259f8d0aaa8cc3f2e0edeef1038de6e5ef93c0c05a5e271315e"
+    },
+    {
+      "path": "/work/receipt_audit_attempt2/summary.json",
+      "sha256": "6f941361e228fb014d82c93ed46ce36c8027e89193b4c267a51b00e09599e9bf"
+    },
+    {
+      "path": "/work/receipt_audit_attempt2/checks.json",
+      "sha256": "69de4c279792f8812fca269000324ccd461966b5376ea3c1dd74895aff85dc25"
+    },
+    {
+      "path": "/work/receipt_audit_attempt2/details.json",
+      "sha256": "ecaf8022c3775dd431fba5f0e0d37f56eb140780385befb9e2c793ecef9a7a4d"
+    },
+    {
+      "path": "/work/diagnostics/receipt_probe_failed.py",
+      "sha256": "37390945797935a1b2385bbe946f9fc1a1021c075cd8bc1b77899f340604fb62"
+    },
+    {
+      "path": "/work/diagnostics/receipt_probe_failure.txt",
+      "sha256": "a5119ce5ebf57a62ee64bf8a9eb74cfc30bd1e9172c73a3a4d4a1ec3262c9a07"
+    }
+  ]
+}

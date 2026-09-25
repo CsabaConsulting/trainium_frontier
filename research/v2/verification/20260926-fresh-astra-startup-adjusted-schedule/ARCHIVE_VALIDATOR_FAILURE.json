@@ -1,0 +1,19 @@
+{
+  "error": "RuntimeError: complete reviewer inventory",
+  "scope": "Own postterminal archive validation, no source/model execution",
+  "cause": "Own first validator assumed the reviewer manifest omitted only itself and the CLI final response. The reviewer's preserved finalization code explicitly also excludes its in-progress stdout/stderr logs.",
+  "extra_files": ["finalize_review.stderr", "finalize_review.stdout"],
+  "missing_files": [],
+  "correction": "Authenticate the explicit exclusions, finalization count and empty stderr, require exactly these two additional regular files, and retain their exact hashes in the outer complete archive manifest.",
+  "source_or_reviewer_report_changed": false,
+  "second_own_assumption": {
+    "error": "RuntimeError: attempt1 actual tiny bound",
+    "cause": "Own validator incorrectly copied the final-run372-byte peak into the earlier run. The preserved earlier run reports476 bytes; both are below64MiB, largest tensor16 bytes.",
+    "correction": "Authenticate each run's actual recorded peak separately; do not rewrite evidence."
+  },
+  "third_own_assumption": {
+    "error": "KeyError: 'artifact'",
+    "cause": "Own validator assumed every extraction record had an artifact/hash field. Callsite records instead provide role, label and original source line spans.",
+    "correction": "Authenticate hash-bearing records normally and reconstruct the callsite AST directly from the recorded complete-source spans; all artifact files remain independently hash-bound by both manifests."
+  }
+}

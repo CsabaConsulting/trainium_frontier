@@ -1,0 +1,8 @@
+Read-only exploratory schema probe failed with exit status 1.
+Command: python -B - <<'PY' [full preserved probe in receipt_probe_failed.py]
+Failure occurred after successfully reading rank 0 of /packet/raw/tiny-on1000.json.
+Raw error:
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+KeyError: 'checkpoint_file_sha256'
+Cause: checkpoint_file_sha256 exists only in the rank-0 cache record; probe incorrectly indexed it on rank 1. No source or receipt was modified. Subsequent audit uses optional rank-specific fields.
