@@ -18,12 +18,14 @@
   "selection_rationale": "Test the requested native throughput mechanism directly before spending a 30-minute quality budget. Reuse existing checker and timing observer, not a new launcher/framework.",
   "p_improve": null,
   "estimated_host_hours": null,
-  "host_time_note": "Compilation cost is unmeasured. Two 30-step native correctness/conditioning runs plus four 100-step timings, all with unchanged <=1800 charged-second training caps. Do not reserve an invented cold-start estimate.",
+  "host_time_note": "Compilation cost is unmeasured. One native component check, one OFF 100-step run then one ON 100-step run, and one frozen-forward check on the ON checkpoint. Each training run retains the <=1800 charged-second cap. No standalone debug runs or mandatory four-run block.",
   "trainium_feasibility": "LNC2/world4, full chip, dense6x1024, context1024, pack32, total batch131072, one microbatch per rank. Native legacy E4M3 double-row NKI matmul is implemented, but compilation, SBUF allocation/spills, production live HBM and full-model numerics are unproven. BF16 saved effective operands and repeated current-weight preparation can erase the forward gain.",
-  "cheapest_falsifier": "Exact source review/G2 first, supplied native component correctness next, then exact production-shape native correctness before serial OFF/ON/ON/OFF whole-step timing. A valid <3 percent pair rejects full-quality promotion.",
+  "cheapest_falsifier": "Exact source review and exact-size ON/OFF G2/default-OFF identity; supplied native component check once; one production OFF/ON timing pair also supplies native training/finite/checkpoint evidence. A valid clearly sub-3 percent pair rejects full-quality promotion.",
   "prior_result_refs": [
     "20ec99c2dafac893011d5a921a2d18b63fe1cb66:research/v2/verification/20260925-l1-fp8-independent/REVIEW.md",
     "50a901374ae6f76b35b8556d32fd72b1ece28fc6:research/v2/l1-fp8-startup-reset/IMPLEMENTATION.md",
+    "e9109dec72e41f0d481bd55df49aaedf7655bb6a:research/v2/verification/20260925-lane-timer-ports-and-gather-review.md",
+    "0a8247e7737d185f901eca94cadc66f3cbf66335:research/v2/verification/20260925-l1-fp8-independent/TIMING_PACKET_REVIEW_HOLD.md",
     "research/v2/lanes/fp8-projections/README.md",
     "71b8b9c2 is CPU VJP contract only; source199 9.4 percent is MLP forward component only"
   ],
@@ -39,7 +41,7 @@
   "control": {
     "git_commit": "50a901374ae6f76b35b8556d32fd72b1ece28fc6",
     "train_sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
-    "run_label": "Selected-host timing-off1 and timing-off2 labels in runs below; not yet executed",
+    "run_label": "Selected-host timing-off1 label below; not yet executed",
     "public_val_bpb": null,
     "steps": 100,
     "arm_flag": "--no-fp8-proj",
@@ -52,7 +54,7 @@
     "repository_candidate_path": "workflow/proposals/research-v2/train.py",
     "train_sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
     "expected_diff": "No code changes in this packet. Candidate and control source bytes are identical; only the FP8 CLI Boolean differs.",
-    "run_label": "Selected-host timing-on1 and timing-on2 labels in runs below; not yet executed",
+    "run_label": "Selected-host timing-on1 label below; not yet executed",
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 workflow/proposals/research-v2/train.py --depth 6 --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 100 --fp8-proj --out-dir <unique-label-output>",
     "common_argv": ["--depth", "6", "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015", "--seed", "42", "--max-train-seconds", "1800"],
     "timing_argv_tail": ["--num-steps", "100"],
@@ -62,15 +64,13 @@
   "runs": {
     "trn21": {
       "component": "fs-20260925-l1-921271-component-trn21-r1",
-      "native_off": "fs-20260925-l1-921271-native-off-trn21-r1",
-      "native_on": "fs-20260925-l1-921271-native-on-trn21-r1",
-      "timing_order": ["fs-20260925-l1-921271-timing-off1-trn21-r1", "fs-20260925-l1-921271-timing-on1-trn21-r1", "fs-20260925-l1-921271-timing-on2-trn21-r1", "fs-20260925-l1-921271-timing-off2-trn21-r1"]
+      "timing_order": ["fs-20260925-l1-921271-timing-off1-trn21-r1", "fs-20260925-l1-921271-timing-on1-trn21-r1"],
+      "on_checkpoint_check": "fs-20260925-l1-921271-on-checkpoint-trn21-r1"
     },
     "trn22": {
       "component": "fs-20260925-l1-921271-component-trn22-r1",
-      "native_off": "fs-20260925-l1-921271-native-off-trn22-r1",
-      "native_on": "fs-20260925-l1-921271-native-on-trn22-r1",
-      "timing_order": ["fs-20260925-l1-921271-timing-off1-trn22-r1", "fs-20260925-l1-921271-timing-on1-trn22-r1", "fs-20260925-l1-921271-timing-on2-trn22-r1", "fs-20260925-l1-921271-timing-off2-trn22-r1"]
+      "timing_order": ["fs-20260925-l1-921271-timing-off1-trn22-r1", "fs-20260925-l1-921271-timing-on1-trn22-r1"],
+      "on_checkpoint_check": "fs-20260925-l1-921271-on-checkpoint-trn22-r1"
     }
   },
   "timing_contract": {
@@ -81,32 +81,33 @@
     "boundary_right_zero_based": 99,
     "poll_seconds": 0.005,
     "measured_interval_policy": "All 80 consecutive full boundary intervals; no trimming or replacement with printed dt/kernel timing.",
-    "order": ["off", "on", "on", "off"],
-    "pairings": [["off1", "on1"], ["off2", "on2"]],
-    "minimum_step_time_reduction_each_pair": 0.03,
+    "order": ["off", "on"],
+    "pairings": [["off1", "on1"]],
+    "minimum_step_time_reduction": 0.03,
     "polling_adjustment": "1 - (on_mean + on_poll_error)/(off_mean - off_poll_error)",
-    "control_mean_drift_max_fraction": 0.01,
-    "treatment_mean_drift_max_fraction": 0.01,
-    "drift_denominator": "minimum of the two same-arm means",
+    "pair_comparator": "research/v2/proposals/20260925-l1-fp8-whole-step/compare_pair.py",
+    "conditional_repeat": "Only for polling bounds straddling 3 percent, measured compile contamination, documented drift or other concrete comparability uncertainty. New labels plus recorded reason; never average a valid clearly sub-3 percent result into promotion.",
     "distribution": ["n", "mean", "median", "population_stddev", "min", "p10", "p90", "p95", "max", "eight consecutive 10-step block means"],
-    "inconclusive_if": "Source/argv/environment/cache/power/thermal comparability missing; measured compiler activity; fewer than100 boundaries; coalesced or invalid observer stream; >1 percent same-arm mean drift; nonterminal or failed correctness/budget/checkpoint gate.",
+    "inconclusive_if": "Measured compiler activity or documented differential contention/throttling/drift makes the pair incomparable, or polling bounds straddle 3 percent. Missing source/argv/terminal/budget/checkpoint evidence prevents promotion. Unavailable optional telemetry alone and startup above870 seconds do not invalidate this research diagnostic.",
+    "startup_policy": "Record actual startup, capped allowance, charged excess and LR/weight-decay phases. Default weight decay changes continuously with charged time. Do not alter schedules, forgive excess, impose an870-second research cutoff or exceed1800 charged seconds through save/exit.",
     "scope": "Matched early steady-state production steps, not all phases of a 30-minute run and not BPB. Polling error is not a statistical confidence interval."
   },
   "gates": {
     "rules_review": false,
-    "diff_review": false,
+    "diff_review": true,
+    "diff_review_scope": "Original FP8 source/reduced CPU20ec99c2 plus exact timer-composition narrow source/CPU e9109dec. This does not approve this packet or establish exact-size/native results.",
     "cpu_or_static_checks": false,
     "numerical_equivalence": false,
     "causality": false,
     "smoke_run": false,
     "human_run_approval": false,
     "launch_authorized": false,
-    "notes": "Prior20ec99c2 independently clears original dea479 source/reduced CPU only. Timer-composed921271 review and exact6x1024 CPU G2/disposition must be attached by distinct Verifier. This packet self-approves nothing."
+    "notes": "Exact timer-composition review e9109dec is attached by commit/path. Exact6x1024 CPU G2/default-OFF identity and native results remain pending. Revision addresses packet HOLD0a8247e7; distinct packet re-review remains required. This packet self-approves nothing."
   },
   "success_criteria": {
     "quality": "No quality claim from this diagnostic. Only after accepted native correctness and >=3 percent paired gate: Supervisor materializes a new full1800 proposal using exact same dense source/config, then fresh public20M/context1024 and unchanged decide.py against a valid same-host matched OFF control. No full-run label is authorized here.",
-    "throughput": "Both polling-conservative complete-step time reductions >=0.03, all comparability checks accepted and same-arm drift <=0.01. Report distributions and startup separately.",
-    "correctness": "Exact source/argv; full-chip4ranks; finite loss/gradients/parameters; loadable frozen causal batch-independent checkpoint; clean terminal/quiescence; charged elapsed through save/exit <=1800 with unchanged startup cap900."
+    "throughput": "One matched pair polling-conservative complete-step time reduction >=0.03 plus accepted comparability. Report all80 intervals, distributions, startup and charged-time schedule phase. No automatic second pair.",
+    "correctness": "Exact source/argv; full-chip4ranks; finite training losses and both finite checkpoints; all four clean exits and quiescence per timed run; ON checkpoint strict-load/frozen causal batch-independent forward after the pair; native component VJP finite; charged elapsed through save/exit <=1800 with unchanged startup cap900. No claim of inspecting every gradient during timed training."
   },
   "abort_conditions": ["Any source, correctness, budget, finite, causal, checkpoint, disk, STOP or quiescence gate fails", "Host busy or concurrent launcher/job", "Changed compiler, SDK, topology, power mode, cache policy or data/evaluator", "Native failure or unsupported operation: archive exact error, no CPU fallback/no kernel substitution", "Insufficient boundaries or ambiguous comparison: inconclusive, never promote", "Valid paired time reduction below3 percent: no full quality run"],
   "human_approved_by": "Human selected direction only; applicable gates and distinct Supervisor/Operator execution remain",
