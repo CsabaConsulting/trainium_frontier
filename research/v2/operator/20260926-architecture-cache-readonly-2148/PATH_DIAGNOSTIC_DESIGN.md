@@ -1,0 +1,15 @@
+# Path-only compilation-key hypothesis — design only
+
+Status: NOT implemented, NOT queued, NOT launch-authorized. Supervisor requested a reversible design. No train.py, evaluator, compiler input, cache internals or submission command changes are proposed.
+
+Question: with exact immutable 3e79 source and fixed science/compiler flags, does retaining the research train.py absolute pathname stabilize principal compilation fingerprints and permit actual reuse, compared with the normal unique-run pathname?
+
+Use one host, serially, under existing lifetime lock and fresh in-lock process/device checks. A completed proposal and separately reviewed binding are prerequisites. Four bounded five-step startup runs form two pairs: U1 at unique pathname U1 with fresh cache U, then U2 at another unique pathname U2 reusing U; S1 at a source-SHA-addressed immutable stable research pathname S with fresh cache S, then S2 at the identical pathname S reusing S. Exact 3e79 bytes, seed 42, model/science argv, 1800-second setting, five-step loop limit, four ranks/LNC2, compiler flags and environment stay fixed. No full training/eval or adoption follows automatically.
+
+Each run gets distinct output/receipt roots without overwriting checkpoints. Working directory and all non-source path differences are explicit nuisance variables: preserve them identically where possible, and require authenticated compiler-input comparisons to determine whether they affect fingerprints. The current rehearsal copies train.py into a unique sandbox; it does NOT already implement this stable-source route. A minimal research-only source-path binding would require separate review; no harness/evaluator modification or fabricated stable-path claim is allowed.
+
+Capture each matched forward/backward binary MLIR (lossless bytes and SHA), all four closed graph-stat tables, exact argv/env/source filename, corresponding graph keys, and authenticated existing/written/reused NEFF identity where supported by existing logs. Capture uncapped launch-to-fifth boundary. Read-only decoding/diff may distinguish source-location metadata from arithmetic changes but must never rewrite/normalize compiler inputs.
+
+Support the hypothesis only if unique-path repetitions change the major fingerprints while stable-path repetitions retain them, matching compiler inputs demonstrate the relevant difference, and existing native evidence confirms actual artifact reuse/no major recompile. Timing alone, zero compile_us alone, equal directory names, or a missing file are insufficient. If matching compiler bytes or NEFF mapping cannot be obtained, report the hypothesis unresolved and stop rather than running an open-ended campaign.
+
+Reversibility: source-SHA-addressed stable file is immutable and new; caches are new private roots for each pair; all logs and artifacts retained; no overwrite or deletion. Return to the original unique-path binding simply by not selecting the diagnostic binding. Production/submission launch remains unchanged. This design may cost four startup runs; Supervisor should prioritize it against BPB work, not silently schedule it.
