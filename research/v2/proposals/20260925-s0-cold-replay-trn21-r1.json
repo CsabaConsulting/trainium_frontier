@@ -1,0 +1,79 @@
+{
+  "proposal_id": "20260925-s0-cold-replay-trn21-r1",
+  "status": "HUMAN_APPROVED_BREAK_GLASS_PENDING_FRESH_OPERATOR_GATES",
+  "owner_role": "human-proposed-supervisor-recorded",
+  "hypothesis": "The review-clean S0 file, launched bare from an isolated cold-cache sandbox, reproduces the September 24 dense LR 0.015 result within predeclared noise and produces a loadable checkpoint inside the competition budget.",
+  "single_causal_change": "Submission-only review-clean refactor from 116188 to S0; intended training arithmetic is unchanged, but this is a cold replay and not a claim of an improvement.",
+  "mechanism_class": "submission_safety_control",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.002, 0.002],
+  "candidate_shortlist": [
+    {
+      "idea": "S0 cold replay on trn21 with the bare launch command",
+      "mechanism_class": "submission_safety_control",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Human priority and missing submission-safety evidence; S0 has exact-byte CPU G2 and lockstep receipts but no native cold replay."
+    },
+    {
+      "idea": "Research-v2 A0 dense control on trn22",
+      "mechanism_class": "control",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Runs in parallel on the other host and supplies the table-arm comparator."
+    }
+  ],
+  "selection_rationale": "Poojith directly ordered this as tonight's first trn21 job in break-glass and moonshot mode; an accepted S0 floor protects the team while higher-upside stacks are tested.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.1,
+  "trainium_feasibility": "S0 bare launch is LNC2 x four ranks on the full Trn2 chip, seed 42 and 1800-second training budget baked into train.py; use an empty job-owned compile cache. Copy only into a new isolated run location and confirm at least 6.5 GiB free and no Neuron job immediately before launch.",
+  "cheapest_falsifier": "Exact S0 SHA and bare argv CPU G2 review, fresh host SHA after scp/rsync, prepare.py check, disk/idle preflight, then first five startup boundaries and finite checkpoint.",
+  "prior_result_refs": [
+    "fs-20260924-c595-matrixlr015-trn21-r1: 3635 steps, public20M 0.9920722144854677",
+    "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 3654 steps, public20M 0.9918353324459732"
+  ],
+  "evidence": [
+    "submissions/candidates/S0/EVIDENCE.md",
+    "workflow/evidence/lockstep3-S0-bare.json",
+    "workflow/evidence/lockstep3-116188-vs-S0.json",
+    "workflow/evidence/S0-eval-path-equivalence.txt",
+    "research/v2/BREAK_GLASS_2026-09-25.md"
+  ],
+  "duplicate_search_terms": ["S0", "cold replay", "review-clean dense", "trn21"],
+  "control": {
+    "git_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
+    "run_label": "fs-20260924-c595-matrixlr015-confirm-trn21-r2",
+    "public_val_bpb": 0.9918353324459732,
+    "steps": 3654,
+    "box_constraint": "Same trn21 host, historical LR 0.015 reference; cold-vs-historical cache effects and run noise must be stated."
+  },
+  "candidate": {
+    "branch": "agent/control-plane-20260921",
+    "files_allowed": ["train.py"],
+    "expected_diff": "Use existing S0 train.py bytes SHA-256 ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb; no new science edit.",
+    "run_label": "fs-20260925-s0-cold-replay-trn21-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": true,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Fresh-process public20M/context1024 BPB within 0.0008 of the two-run historical mean 0.99195377346572045; otherwise record mismatch and investigate, not submission-ready.",
+    "throughput": "Informational steps and tok/s; cold startup and complete checkpoint must remain inside the official 1800-second charging rule.",
+    "correctness": "Exact host SHA/argv, seed 42, no crash/NaN, strict checkpoint load, no budget breach, and fresh-process public20M evaluation."
+  },
+  "abort_conditions": [
+    "Host disk free is below 6.5 GiB or another train/Neuron process is present",
+    "Copied S0 train.py SHA or bare launch differs from this proposal",
+    "The unique run destination or label already exists",
+    "Any crash, NaN, missing checkpoint, strict-load, budget, or evaluation failure",
+    "Any modification of prepare.py, evaluator, tokenizer, data or existing worktrees",
+    "Any attempt to submit automatically or call a failed/unscored run a win"
+  ],
+  "human_approved_by": "Poojith direct break-glass and moonshot messages, 2026-09-25 IST",
+  "verdict": null
+}
