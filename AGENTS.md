@@ -2,6 +2,16 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Newest selection amendment: fixed budget for every arm
+
+Read `workflow/FIXED_BUDGET_SELECTION_2026-09-25.md`. Poojith removed the
+step-window gate for ALL arms: compare final public20M/context1024 at the
+official1,800-second budget. Steps below60% of control, spikes and stalls are
+diagnostic alarms only. Budget, startup charging, correctness, replication and
+BPB thresholds remain; cold startup must be measured before submission.
+All older table-only waivers and step-count adoption gates are OVERRIDDEN.
+Do not ask for further exemptions. Post-A1 queue priorities remain in force.
+
 ## Newest priority correction after A1 (25 September, about22:00 IST)
 
 Read `workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md` first. Poojith

@@ -1,5 +1,13 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**NEWEST SELECTION AMENDMENT:** `FIXED_BUDGET_SELECTION_2026-09-25.md`
+overrides ALL older step-window gates and table-only exemptions. Every arm is
+judged on final public20M/context1024 at the official1,800-second budget.
+Step count is reported; below60% of control or spikes/stalls prompt diagnosis,
+not an automatic verdict. Budget/startup charging, correctness, two-host
+replication, BPB thresholds and cold submission audit remain unchanged.
+No further exemption requests. Post-A1 scheduling priorities still apply.
+
 **NEWEST POST-A1 PRIORITY:** Read `POST_A1_PRIORITY_CORRECTION_2026-09-25.md`
 first. Stop A2 warm-r2; tables are low priority. Schedule, checked8x1024
 architecture and FP8 whole-step timing lead. Only one later epoch2-freeze
