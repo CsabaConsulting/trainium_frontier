@@ -19,13 +19,21 @@ independent receipts remain authoritative.
 - A2's CPU G2 package also names tools absent from the pinned e65 Git tree;
   host presence is unknown. Its one-shot marker must not be consumed until
   a separate read-only exact-path proof or reviewed tool stage resolves this.
+- Both disabled r10 source-stage operators were found to read their local
+  breaker state from the older `Documents/ChatGPT/Trainium` worktree instead
+  of the active `Desktop/Trainium` controller. At 10:05 UTC their state-file
+  SHA-256 values differed (`9e859fdf…` versus `07543c62…`). A tripped active
+  breaker could therefore be missed. Final staging remains HOLD until both
+  operators bind the current authority and independent regressions prove a
+  stale Documents state cannot override an active Desktop STOP/breaker.
 
 ## Shortest approved critical path
 
-1. Correct the exact trn22 e65→r10 stage receipt pin, add a real-byte
-   regression test, and obtain a new independent static verdict. The trn21
-   e65→r10 disabled source already has a static-only PASS. Do not stage r9
-   on trn22 for scored work: it would break the same-HEAD pre-run rule.
+1. The exact trn22 e65→r10 receipt pin was corrected and received a
+   source-only static PASS. Repair the newly found controller-root pin in
+   both r10 stage operators, add fail-closed stale-state regressions, and
+   independently review the exact repaired bytes. Do not stage r9 on trn22
+   for scored work: it would break the same-HEAD pre-run rule.
 2. In parallel, review and run strictly read-only live timing/feasibility
    probes for the exact r10 stage on each host. A safe refusal is not a
    usable stage result; record the timing before consuming a one-shot label.
