@@ -1,6 +1,6 @@
 {
   "schema": "k2-resident-consumer-falsifier-v1",
-  "status": "DISABLED_PENDING_INDEPENDENT_REVIEW_AND_OPERATOR_BINDING",
+  "status": "DISABLED_REPORTING_REPAIR_PENDING_INDEPENDENT_REVIEW_AND_REBIND",
   "role": "Implementer",
   "recorded_utc": "2026-09-25 20:50:00 UTC",
   "source_adoption": false,
@@ -111,10 +111,11 @@
     "compiler_inventory": "Record real per-rank graph inventory and compile logs; dynamic count changes must not silently cause a per-count specialization. Zero metric durations do not establish hits."
   },
   "support_sha256": {
-    "check_native.py": "17e2d2ad417407c12327e1446aed857f273d445946839357102e93dea46d4435",
+    "check_native.py": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
     "consumer_nki.py": "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
     "reference.py": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
-    "test_reference.py": "972cb83fe1d31a4a5cd328d36b2e196123b8ef74bbcdff081981373c257f90d4"
+    "test_reference.py": "972cb83fe1d31a4a5cd328d36b2e196123b8ef74bbcdff081981373c257f90d4",
+    "test_reporting.py": "8dd3fe2e064cf17b7403576c8c205b534dbde1d66b72c0ee5e53c6862906abd3"
   },
   "resources": {
     "cpu_math_peak_bound_bytes": 8388608,
@@ -144,5 +145,17 @@
     "reason": "Test resident-state legal primitives/order before investing in device routing",
     "undo": "Decline packet; no production integration or host state exists"
   },
-  "preserved_gates": "Existing exactness/default-OFF/full-size/native/whole-step>=5% and cold startup/1800-budget/quality rules remain. No consumer result replaces those gates."
+  "preserved_gates": "Existing exactness/default-OFF/full-size/native/whole-step>=5% and cold startup/1800-budget/quality rules remain. No consumer result replaces those gates.",
+  "reporting_repair": {
+    "recorded_utc": "2026-09-25 21:57:53 UTC",
+    "original_commit": "077481d0",
+    "original_checker_sha256": "17e2d2ad417407c12327e1446aed857f273d445946839357102e93dea46d4435",
+    "original_review": "90db28e0:research/v2/verification/20260926-fresh-astra-k2-consumer/session/reviewer-output/report.md",
+    "original_verdict": "REFUSE_PRESERVED",
+    "scope": "JSON-safe nonfinite max_abs marker and guaranteed local process-group cleanup if final reporting fails. No arithmetic, threshold, kernel, fixture, autograd wrapper, source or launcher change.",
+    "independent_repair_review": "PENDING",
+    "native_binding": "8555da97 remains unchanged, stale and DISABLED; separate reviewed rebinding and sole Operator assignment required",
+    "local_checks": "Five stdlib reporting groups normal/-O PASS; real Torch helper optional and separately recorded after CPU-slot availability",
+    "native_execution": false
+  }
 }

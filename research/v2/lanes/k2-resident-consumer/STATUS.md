@@ -7,10 +7,10 @@ bypassing the intended local cleanup/return. No false PASS or native result.
 Own reviewer42CPU exactness cases passed,10 negative controls detected; these
 do not prove NKI compilation or native rounding. Kernel remains unexecuted.
 
-Next: narrow JSON-safe failure-reporting repair preserving zero tolerance and
-raw failure evidence, retest finite/NaN/+Inf/-Inf cases and refusal completion,
-independent fresh-source reassessment. Update checker hash in disabled binding
-after review; no launch under the stale8555 binding. No tolerance relaxation.
-Current Implementer priority is the user's exact-score clean submission port;
-this repair is pending, not silently running. Supplied metadata is still a tiny
-falsifier only; production device-side routing and whole-step speed are absent.
+Reporting-only successor implemented at 21:57 UTC; see REPORTING_REPAIR.md.
+Original REFUSE and raw evidence remain unchanged. Five stdlib reporting groups
+pass normal/-O; independent repair review remains PENDING. No source acceptance,
+native result or tolerance relaxation. The original 8555 binding is stale and
+DISABLED; a separately reviewed exact rebind and Operator assignment are required.
+Supplied metadata is still a tiny falsifier only; production device-side routing
+and whole-step speed are absent. No host action or production source change.

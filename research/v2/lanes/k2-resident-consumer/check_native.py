@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import importlib.metadata
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -83,7 +84,10 @@ def main():
                       actual_sha256=hashlib.sha256(tensor_bytes(cpu)).hexdigest(),
                       expected_sha256=hashlib.sha256(tensor_bytes(expected)).hexdigest())
         if cpu.shape == expected.shape:
-            record['max_abs'] = float((cpu.double() - expected.double()).abs().max()) if cpu.numel() else 0.0
+            maximum = float((cpu.double() - expected.double()).abs().max()) if cpu.numel() else 0.0
+            record['max_abs'] = maximum if math.isfinite(maximum) else None
+            if not math.isfinite(maximum):
+                record['max_abs_nonfinite'] = repr(maximum)
         return record
 
     def make_wrapper(kernel, output_dtype):
@@ -180,12 +184,16 @@ def main():
         receipt['diagnostic_elapsed_seconds'] = time.monotonic() - started
         receipt['elapsed_scope'] = 'checker entry through receipt finalization; includes imports and CPU fixture/metadata, excludes outer launcher'
         # No end barrier: preserve each rank's error even if another rank fails.
-        if args.out_dir.is_dir():
-            with (args.out_dir / ('rank' + str(rank) + '.json')).open('x') as stream:
-                json.dump(receipt, stream, indent=2, allow_nan=False)
-                stream.write('\n')
-        print(json.dumps(receipt, allow_nan=False), flush=True)
-        dist.destroy_process_group()
+        try:
+            # Encode before exclusive creation so invalid metrics cannot leave partial JSON.
+            encoded = json.dumps(receipt, indent=2, allow_nan=False)
+            if args.out_dir.is_dir():
+                with (args.out_dir / ('rank' + str(rank) + '.json')).open('x') as stream:
+                    stream.write(encoded)
+                    stream.write('\n')
+            print(json.dumps(receipt, allow_nan=False), flush=True)
+        finally:
+            dist.destroy_process_group()
     if error:
         print(error, file=sys.stderr, flush=True)
         return 1
