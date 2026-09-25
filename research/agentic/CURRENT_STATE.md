@@ -1,6 +1,15 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:57 UTC
+Last reconciled: 2026-09-25 09:04 UTC
+
+The disabled trn22 e65→r9 no-unlink r4 stage `19fbfdc8` received
+[independent STATIC PASS only](../v2/verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md)
+at `7eae104e`: no host transfer or native training was authorized. Live
+stage timing, exact enabled request, final review and one-shot assignment
+remain separate gates. R9 on trn22 and r10 on trn21 would violate the
+matching-HEAD scored-run protocol, so a distinct disabled trn22 e65→r10
+rebind is being prepared. The trn21 r10 r11 disabled repair `3e846589` is
+under independent static review. No new BPB exists.
 
 The A2 exact-size trn22 CPU-only G2 final-pending package `164cfcd8`
 received [independent HOLD](../v2/verification/20260925-a2-c5c-m64d128-trn22-r4-cpu-g2-final-independent-HOLD.md)

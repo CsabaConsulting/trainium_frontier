@@ -1,5 +1,13 @@
 # Workflow installation and incremental launch status
 
+At 09:04 UTC, disabled trn22 e65→r9 no-unlink r4 stage `19fbfdc8`
+received [independent STATIC PASS only](verification/20260925-trn22-r9-incremental-stage-r4-independent-static-PASS.md)
+at `7eae104e`. No host transfer, native run, or BPB followed; live timing,
+enabled request, final review, and one-shot assignment remain required. A
+distinct trn22 e65→r10 rebind is in preparation so both scored hosts can
+eventually satisfy the same-HEAD protocol. Trn21 r10 r11 disabled stage
+`3e846589` is under independent review.
+
 At 08:57 UTC, the trn22 A2 CPU-only final-pending package `164cfcd8`
 received [independent HOLD](verification/20260925-a2-c5c-m64d128-trn22-r4-cpu-g2-final-independent-HOLD.md)
 at `bb4cc184`: its two hardcoded e65 tool paths lack Git-tree evidence and
