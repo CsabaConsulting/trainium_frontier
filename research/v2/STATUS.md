@@ -1,6 +1,21 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded; both host G1 calibrations PASS; trn21 CPU-only G2 assigned but not run; trn22 transfer final review HOLD on two defects; scored training on both hosts still HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 evidence archived, independent numeric review pending; trn21 enabled transfer final HOLD on late-label race; trn22 r3 disabled transfer static PASS but no enabled final request; scored training on both hosts HOLD; no new BPB result.**
+
+At 04:41 UTC, trn21's assigned four-rank three-step synthetic CPU G2 attempt
+has a complete [Operator terminal receipt](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/operator-evidence-20260925T042828Z/OPERATOR_TERMINAL_RECEIPT.md)
+and raw redacted journal with clean pre/run/postflight transport. The
+independent numerical verdict remains pending, and CPU evidence alone cannot
+authorize native training or evaluation. The trn21 r4 enabled transfer
+[failed independent final review](authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md)
+because of a reproduced late science-label race; a separate Implementer is
+repairing it. The trn22 r3 disabled safety repair
+[passed independent static review](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_R3_STATIC_REVIEW.md)
+with targeted adversarial tests, but a distinct enabled request, independent
+final review, fresh host checks and one-shot Supervisor assignment are still
+required before any transfer. Neither host has a scored A0 control, S0 cold
+replay or table run; no new public BPB. The noon-IST S0 package target is at
+risk.
 
 At 04:21 UTC, the trn22 repaired exact transfer request received an
 [independent final HOLD](authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_FINAL_R2_HOLD.md):

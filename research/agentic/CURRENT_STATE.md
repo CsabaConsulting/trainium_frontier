@@ -1,6 +1,26 @@
 # Current state
 
-Last reconciled: 2026-09-25 04:21 UTC
+Last reconciled: 2026-09-25 04:41 UTC
+
+## Latest handoff: CPU evidence archived; both transfer repairs remain gated
+
+The assigned trn21 synthetic four-rank, three-step CPU-only G2 attempt ended
+with return code zero and clean pre/postflight checks. The complete
+[Operator receipt](../v2/authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/operator-evidence-20260925T042828Z/OPERATOR_TERMINAL_RECEIPT.md)
+and redacted raw journal are archived; an independent numerical verdict is
+still pending. This is not native-training or evaluation authority.
+
+The trn21 clean-r4 transfer's
+[independent final review](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md)
+reproduced a late science-label race and placed the enabled package on HOLD.
+A separate Implementer is repairing it. The trn22 r3 disabled repair has
+[independent static PASS](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_R3_STATIC_REVIEW.md),
+but an exact enabled r3 final request, independent final review, fresh host
+checks and Supervisor one-shot assignment are still required. Neither
+transfer has touched a host. Both scored controls, both S0 cold replays, and
+table runs remain unstarted; best confirmed public20M is unchanged at
+0.9918353324 single / 0.9919537735 two-run mean. The Sep 25 noon-IST S0
+package target is at risk and must not be represented as ready.
 
 ## New handoff: trn22 final transfer HOLD on two reproduced defects
 
