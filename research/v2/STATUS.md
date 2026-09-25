@@ -2,6 +2,16 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 01:23 UTC, trn21's persistent-ext4 source-transfer r2 package had an
+[independent static planning PASS](authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md)
+and a new [transfer-only assignment](authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json).
+The Operator may write only the three exact new ext4 targets after fresh full
+preflight and must prove each in later distinct SSH sessions. There is no
+retrieved transfer result yet; checkout/extraction, CPU G2, training and eval
+remain HOLD. trn22's frozen r4 [999b](disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md)
+and [f8fe](disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md) reviews both
+failed safety gates; the latest repair is not reviewed or dispatched. No new BPB.
+
 At 00:44:23 UTC, the assigned trn21 c5c A0 source transfer reported an exact
 104,005,787-byte SHA-verified capsule inside its SSH process, but the exact
 remote `/dev/shm` file was absent from a separate process about five seconds

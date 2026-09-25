@@ -1,6 +1,25 @@
 # Current state
 
-Last reconciled: 2026-09-25 00:59 UTC
+Last reconciled: 2026-09-25 01:23 UTC
+
+## Current handoff: trn21 transfer-only r2 assigned; trn22 r4 still unsafe
+
+The trn21 [persistent-ext4 source-stage r2 package](../v2/authorizations/trn21-c5c-a0-stage-r2/GATE_CONTRACT.json)
+passed [independent static review](../v2/authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md)
+for planning only. A new [Supervisor transfer-only assignment](../v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json)
+now permits the Operator to write only three exact new ext4 targets after fresh
+full preflight, then prove persistence in distinct SSH sessions. Checkout,
+extraction, CPU G2, native training and evaluation remain HOLD; no transfer
+result has been retrieved yet. The prior `/dev/shm` target is not retried.
+
+On trn22, two frozen r4 interlock revisions received independent
+[999b FAIL](../v2/disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md)
+and [f8fe FAIL](../v2/disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md)
+receipts. The remaining problems are unrelated-process signaling through the
+guard's marker-only cleanup and a false clean finish with a markerless live
+worker. An Implementer is repairing both. No native dispatch is authorized.
+There is no new scored control or BPB result; best confirmed public20M remains
+0.9918353324 single / 0.9919537735 two-run mean.
 
 ## Current handoff: trn21 source transfer did not persist; both scored controls HOLD
 
