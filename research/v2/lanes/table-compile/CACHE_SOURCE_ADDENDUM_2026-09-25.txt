@@ -1,0 +1,168 @@
+Read-only source addendum, 2026-09-25 approximately 16:40–16:46 UTC.
+Host: trn21, pinned existing SSH transport to
+ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com.
+Only sed/nl/grep/sha256sum source reads were used remotely. No SDK imports,
+evaluation, flags, writes, cache deletion, process attachment or signals.
+This is a selected literal source excerpt, not an executed SDK report.
+SDK prefix: /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx
+
+SHA256 (read on host):
+ee4466465240d67fe69effd28ccca5ca5767d60fafe8d4d83d287c46a663e33b utils.py
+f07c26ec6f6ca1aede1a25835a004fa32155b856da4f37773bc684ee833a45ba neuron_dynamo_backend/backend.py
+4a3b73ecb02aeabfbbbadf1f5eb813fd81363fbdb91abec084bd76a19cb571a8 neuron_dynamo_backend/compile.py
+37b9c6f56388695fd5dd44a4638576461d8d075f9508cb80b0df9b04dfbd10a2 nki_kernel.py
+
+SOURCE neuron_dynamo_backend/compile.py
+20: # Attributes to strip from StableHLO before caching (non-deterministic across ranks/runs)
+21: _NON_DETERMINISTIC_ATTRS = frozenset({"torch.debug_dump_path"})
+
+SOURCE utils.py
+27: @functools.lru_cache(maxsize=1)
+28: def global_version_hash() -> str:
+29:     """Version hash combining source code + package versions.
+30:
+31:     Hashes all .py files in torch_neuronx lowering directories plus
+32:     package versions into a single SHA-256 digest. Used to invalidate
+33:     persistent caches when code or package versions change.
+34:
+35:     """
+36:     import torch_neuronx
+37:
+38:     hasher = hashlib.sha256()
+39:
+40:     # Hash source files
+41:     root = Path(torch_neuronx.__file__).parent
+42:     for d in [root / "python_ops", root / "neuron_dynamo_backend"]:
+43:         if d.exists():
+44:             for py_file in sorted(d.rglob("*.py")):
+45:                 hasher.update(str(py_file.relative_to(root)).encode())
+46:                 hasher.update(py_file.read_bytes())
+47:
+48:     # Hash package versions
+49:     hasher.update(torch.__version__.encode())
+50:     hasher.update(getattr(torch_neuronx, "__version__", "unknown").encode())
+51:     try:
+52:         import torch_mlir
+53:
+54:         hasher.update(getattr(torch_mlir, "__version__", "unknown").encode())
+55:     except Exception:
+56:         pass
+57:     try:
+58:         import neuronxcc
+59:
+60:         hasher.update(neuronxcc.__version__.encode())
+61:     except Exception:
+62:         pass
+63:     try:
+64:         import nki
+65:
+66:         hasher.update(getattr(nki, "__version__", "unknown").encode())
+67:     except Exception:
+68:         pass
+69:
+70:     return hasher.hexdigest()
+
+SOURCE neuron_dynamo_backend/backend.py
+269:             final_cache_key = compile_graph.compile()
+270:
+271:             # Serialize HLO bytes for embedding in NeuronOutputCode.
+272:             # The embedded bytes make the Dynamo cache self-contained —
+273:             # no dependency on the ephemeral /tmp/hlo_cache/ directory.
+274:             bytecode_buf = io.BytesIO()
+275:             stablehlo_mlir.operation.write_bytecode(bytecode_buf)
+276:             hlo_bytes_raw = bytecode_buf.getvalue()
+277:
+278:             # Record compilation metrics (stablehlo_to_neff timing populated lazily at sync)
+279:             record_compilation(
+280:                 NeuronCompilationMetrics(
+281:                     graph_id=final_cache_key,
+282:                     graph_name=graph_name,
+283:                     model_name=model_name,
+284:                     has_collectives=has_collectives,
+285:                     graph_node_count=len(gm.graph.nodes),
+286:                     timestamp=segment_id,
+287:                 )
+288:             )
+289:
+290:             from torch_neuronx.neuron_dynamo_backend.cache_artifact import NeuronOutputCode
+291:
+292:             output_code = NeuronOutputCode(
+293:                 graph_name=model_name,
+294:                 cache_key=final_cache_key,
+295:                 hlo_bytes=hlo_bytes_raw,
+
+SOURCE nki_kernel.py
+201:         # No cache key (unhashable args) or persistent cache disabled — compile directly
+202:         dconfig = self._compile_dump_config(converted, cache_opts)
+203:         if dc_cache is not None and cache_key is not None:
+204:             dc_cache[cache_key] = dconfig
+205:         return dconfig
+206:
+207:     def _compile_dump_config(self, converted: dict, cache_opts: CompileOptions) -> DumpedConfig:
+208:         """Compile to BIR to build the backend config."""
+209:         compile_opts = self._compile_opts()
+210:
+211:         nir = self._cached_compile_to_bir(
+212:             frontend=self._frontend_cls(enable_backend_opt=self._enable_backend_opt),
+213:             inputs=converted,
+214:             compile_opts=compile_opts,
+215:         )
+216:
+217:         config = nir.build_config()
+218:
+219:         return DumpedConfig(
+220:             return_types=[(spec.dtype, spec.shape) for spec in config.output_specs],
+221:             dumped_config=config.backend_config_b64.decode("ascii"),
+222:             operand_output_aliases=config.operand_output_aliases,
+223:         )
+
+SOURCE csrc/core/compilation/CompilationCache.cpp
+Hash in prior operator archive:
+af2ec3edbc8bdb45667f14228bac373b4973938d800c6c22e1e6a063ffb30ed8
+248:   // Check persistent cache (NFS/disk) using the persistent key from CompilationCacheKey.
+249:   // GetPersistentKey() returns nullptr if HLO bytes aren't available
+250:   // (e.g., NeffDirectKernelExecution paths) — gracefully skip persistent
+251:   // lookup in that case and register pending compilation.
+252:   const std::string* persistent_cache_key = key.GetPersistentKey();
+253:   if (persistent_cache_key == nullptr) {
+254:     TORCH_NEURONX_DEBUG("Skipping persistent cache (no HLO bytes):", key.ToString());
+255:     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+256:     auto compilation_promise = std::make_shared<std::promise<std::shared_ptr<CacheEntry>>>();
+257:     pending_compilations_.emplace(cache_key, PendingCompilation(compilation_promise));
+258:     return false;
+259:   }
+260:   auto neff_bytes = persistent_cache_->Get(*persistent_cache_key);
+261:   if (neff_bytes) {
+262:     TORCH_NEURONX_DEBUG("Persistent cache hit:", key.ToString());
+263:
+264:     // Record persistent cache hit.
+265:     TORCH_NEURONX_COUNTER("CompilationCache.PersistentHits", 1);
+266:
+267:     // Create cache entry and store in memory cache.
+268:     auto cache_entry = std::make_shared<CacheEntry>(std::move(*neff_bytes), *persistent_cache_key,
+269:                                                     std::chrono::milliseconds(0));
+270:
+271:     {
+272:       std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+273:       cache_[cache_key] = cache_entry;
+274:
+275:       // Create managed pointer and set on kernel execution.
+276:       auto neff_ptr = CreateNeffBytesPtr(cache_entry->neff_bytes, cache_key);
+277:       kernel_execution.SetCachedNeff(std::move(neff_ptr));
+278:     }
+279:     // Check if eviction is needed after adding new entry.
+280:     CheckAndEvictIfNeeded();
+281:     return true;
+282:   }
+283:
+284:   // Persistent cache miss — double-check and register pending.
+285:   {
+286:     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+287:     TORCH_NEURONX_COUNTER("CompilationCache.PersistentMisses", 1);
+288:     TORCH_NEURONX_DEBUG("Persistent cache miss:", key.ToString());
+
+Collection caveat: two read-only path guesses failed (utils.py was initially
+looked for under neuron_dynamo_backend and nki_kernel.py under python_ops).
+The corrected existing paths above were then read and hashed. These failed
+reads did not import the SDK or touch the running jobs. This addendum does not
+claim the above live SDK hashes are historical manifests for A2-r1/r2.
