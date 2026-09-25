@@ -1,0 +1,24 @@
+{
+  "verdict": "HOLD",
+  "reviewed_commit": "bdfa06a359fd91c5e559584ee18eb04eb0d87818",
+  "guard_sha256": "5d735b4baf1b68bab2e9528adc4b1d09a930cb2beafdd069f1a6a513f65c34fb",
+  "own_test_sha256": "d94fccb50e2548b8816e86d95badc407c96dc3d4cdcf97f2491026151ef0baf9",
+  "blocking_finding": {
+    "id": "LOCK_RELEASED_WITH_LIVE_CHILD",
+    "cause": "Authenticated descriptor not passed through default-close_fds subprocess.call in both drivers",
+    "before_driver_death_contender_rc": 1,
+    "after_driver_death_contender_rc": 0,
+    "child_alive_at_second_contender": true,
+    "reproduced_normal_and_optimized_python": true,
+    "observed_native_orphan": false
+  },
+  "executions": [
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 research/v2/verification/20260926-idle-guard-independent/test_guard_independent.py", "exit_code": 0, "tests": 10, "reported_seconds": 0.314},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -O research/v2/verification/20260926-idle-guard-independent/test_guard_independent.py", "exit_code": 0, "tests": 10, "reported_seconds": 0.305},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 research/v2/operator/20260926-common-host-idle-guard/test_idle_guard.py", "exit_code": 0, "tests": 11, "reported_seconds": 0.115}
+  ],
+  "test_ok_is_candidate_acceptance": false,
+  "host_actions": 0,
+  "tensor_tests": 0,
+  "candidate_edits": 0
+}
