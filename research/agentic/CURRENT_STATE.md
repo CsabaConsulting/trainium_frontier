@@ -1,6 +1,20 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:15 UTC
+Last reconciled: 2026-09-25 07:30 UTC
+
+The disabled trn22 final-r3 read-only timing diagnostic `4fd59da6` received
+[independent HOLD](../v2/verification/20260925-trn22-fifo-final-r3-timing-independent-HOLD.md)
+at `791a93ff`: a supplied-test `SyntaxError` prevents all eight tests from
+loading, and completed trial timings could be lost if the 600-second SSH
+timeout fires before the remote JSON emission. No host contact or timing
+attempt occurred. The A0 launcher-source r9 repair `e046de16` has
+[independent source-only PASS](../v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R9.md)
+at `a669d4eb`, but its exact A0 profile is trn22-only and refuses trn21. A
+disabled trn21 e65-to-r9 incremental stage draft (~99-KiB Git bundle) was
+parked uncommitted because it cannot enable native trn21 A0. An exact trn21
+r10 launcher-profile repair is under implementation and needs independent
+review before a corrected stage package. No host transfer occurred.
+Neither host has a new scored control, S0 replay, table result, or BPB win.
 
 The operational launcher-source r8 successor `d3f39dd8` received an
 [independent HOLD](../v2/launcher-safety/INDEPENDENT_SOURCE_VERIFIER_HOLD_R8.md)

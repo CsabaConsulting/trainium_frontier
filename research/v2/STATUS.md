@@ -1,5 +1,18 @@
 # Workflow installation and incremental launch status
 
+At 07:30 UTC, the disabled trn22 final-r3 read-only timing diagnostic
+`4fd59da6` received [independent HOLD](verification/20260925-trn22-fifo-final-r3-timing-independent-HOLD.md)
+at `791a93ff`: its supplied test file has a `SyntaxError`, so zero supplied
+tests run, and its all-at-once remote JSON emission could lose completed trial
+timings on the 600-second SSH timeout. No timing probe or host contact occurred.
+The distinct A0 launcher-source r9 repair `e046de16` has
+[independent source-only PASS](launcher-safety/INDEPENDENT_SOURCE_VERIFIER_PASS_R9.md)
+at `a669d4eb`; its exact profile is **trn22-only** and rejects trn21. A proposed
+trn21 e65-to-r9 incremental stage was therefore parked before commit or host
+contact, despite its small (~99 KiB) Git bundle. A separate exact trn21 r10
+launcher profile is under implementation and needs independent review. No
+transfer or scored run is authorized. Best confirmed public20M BPB is unchanged.
+
 At 07:15 UTC, disabled trn21 r6 transfer repair `71d6701f` received
 [independent static PASS](verification/20260925-trn21-r6-post-label-disabled-independent-static-PASS.md)
 at `8f9e4402` for its exact six-file package. Both the supplied and independent
