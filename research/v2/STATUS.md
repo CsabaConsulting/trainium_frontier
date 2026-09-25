@@ -1,5 +1,12 @@
 # Workflow installation and incremental launch status
 
+At 08:21 UTC, disabled trn22 e65→r9 small-bundle r2 `a7643f05` received
+[independent HOLD](verification/20260925-trn22-r9-incremental-stage-r2-independent-HOLD.md)
+at `c5c9a8bd`. Offline adversarial tests found process/Neuron/disk changes
+during final label scans can reach first write, and a delay after freshness
+measurement can yield a falsely fresh success. A distinct disabled repair
+is assigned; no host stage, native control, table run or new BPB followed.
+
 At 08:06 UTC, the exact-size A2 CPU-only G2 draft `701ecb65` received
 [independent static HOLD](verification/20260925-a2-c5c-m64d128-trn22-r2-disabled-g2-independent-HOLD.md)
 at `14011c45`: scratch/TMPDIR locality and several request/result validators

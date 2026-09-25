@@ -1,6 +1,15 @@
 # Current state
 
-Last reconciled: 2026-09-25 08:16 UTC
+Last reconciled: 2026-09-25 08:21 UTC
+
+The disabled trn22 e65→r9 small-bundle r2 repair `a7643f05` received
+[independent HOLD](../v2/verification/20260925-trn22-r9-incremental-stage-r2-independent-HOLD.md)
+at `c5c9a8bd`: activity/Neuron/disk loss during final label scans could
+still reach first write, and a delayed `O_EXCL` could falsely report a
+fresh write. Its 19 checked-in and 9 independent offline tests ran in
+normal and optimized Python; no host contact or source stage occurred.
+A distinct disabled r3 repair is assigned to an Implementer. Both launch
+flags remain false; there is no new scored A0 control or BPB improvement.
 
 The [MobileLLM depth-over-width suggestion](MOBILELLM_DEPTH_TRIAGE_2026-09-25.md)
 was reviewed as literature plus historical Trainium evidence, not as an
