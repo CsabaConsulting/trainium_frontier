@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+    "--package",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-basebcbd-cold-trn22-r1-packet/package",
+    "--sandbox",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-basebcbd-cold-trn22-r1-packet/train",
+    "--mode",
+    "train",
+    "--fresh-caches"
+  ],
+  "environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-basebcbd-cold-trn22-r1-packet/train/caches/compiler",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-basebcbd-cold-trn22-r1-packet/metrics-training",
+    "TRN_EXP_LABEL": "fs-20260926-ct-basebcbd-cold-trn22-r1"
+  },
+  "harness_sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+  "label": "fs-20260926-ct-basebcbd-cold-trn22-r1",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+  "utc": "2026-09-25T21:16:10.429842+00:00"
+}
