@@ -1,0 +1,148 @@
+{
+  "schema": "k2-resident-consumer-falsifier-v1",
+  "status": "DISABLED_PENDING_INDEPENDENT_REVIEW_AND_OPERATOR_BINDING",
+  "role": "Implementer",
+  "recorded_utc": "2026-09-25 20:50:00 UTC",
+  "source_adoption": false,
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "host_actions": 0,
+  "training_data_used": false,
+  "production_train_edits": false,
+  "selection": "Supervisor selected tiny native consumer falsifier plus stdlib CPU emulation only; no production route/integration.",
+  "base_source": {
+    "commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "path": "workflow/proposals/research-v2/train.py",
+    "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+  },
+  "research_proposal": {
+    "commit": "3f984419",
+    "path": "research/v2/lanes/k2-resident-row-research/PROPOSAL.md"
+  },
+  "rejected_candidate": {
+    "sha256": "e4d93babb4cec8ce53ee1ef9f9d4cc4238c40b93dff0245b66fbcf6bae158b03",
+    "status": "REFUSE_UNCHANGED"
+  },
+  "implementation_scope": {
+    "shape": {
+      "V": 256,
+      "C": 128,
+      "T": 256,
+      "P": 128
+    },
+    "supported_upstream_dtypes": [
+      "BF16",
+      "FP32"
+    ],
+    "metadata": "Supplied synthetic CPU-fixture counts, starts, stable token positions and group maximums; uploaded as int32 before calls",
+    "routing_production_implementation": false,
+    "ordered_fp32_addition": true,
+    "default_off": "No NKI/Torch import or device work without explicit --enable-experimental; no production imports/monkeypatches",
+    "native_compilation": "NOT_RUN",
+    "native_arithmetic": "UNMEASURED",
+    "actual_model_backward": "NOT_IMPLEMENTED_OR_TESTED",
+    "no_scatter_atomics": true,
+    "no_gradient_reassociation": true
+  },
+  "checks": {
+    "scalar_cases": 20,
+    "normal": "PASS",
+    "optimized": "PASS_STDLIB_ONLY",
+    "scope": "Stdlib recurrence and static/default-OFF checks only, no tensor/native source gate",
+    "independent_review": "PENDING"
+  },
+  "future_native": {
+    "label": "fs-20260926-k2-resident-consumer-trn22-r1",
+    "host": "trn22_PROPOSED_NOT_ASSIGNED",
+    "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-trn22-r1-packet",
+    "command": [
+      "/home/ubuntu/workspace/native_venv/bin/torchrun",
+      "--standalone",
+      "--nproc_per_node=4",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-trn22-r1-packet/check_native.py",
+      "--enable-experimental",
+      "--label",
+      "fs-20260926-k2-resident-consumer-trn22-r1",
+      "--out-dir",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-resident-consumer-trn22-r1-packet/receipts",
+      "--expected-kernel-sha256",
+      "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
+      "--expected-reference-sha256",
+      "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+      "--timing-repeats",
+      "3"
+    ],
+    "command_scope": "Workload argv only, MUST NOT be invoked directly; separate sole-Operator host_driver binding with existing shared guard required",
+    "disabled": true,
+    "required_environment": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats"
+    },
+    "timeout_proposal_seconds": 600,
+    "term_grace_seconds": 60,
+    "preflight": [
+      "Independent source and packet review; separate Supervisor assignment; current jobs preserved",
+      "Exact source/support and argv hashes; unique absent root; required STOP/disk/host checks",
+      "Original exclusive /home/ubuntu/.cache/trainium_freshstart/device0.lock authenticated and retained through job; fresh ps AND neuron-ls idle under lock; fail closed",
+      "Fresh per-run SDK cache roots for cold evidence, real worker effective-environment/compiler evidence, no shared cache deletion or prewarm",
+      "No automatic retry, full run, eval, queue change or adoption; failure requires process/compiler/device quiescence before any later job"
+    ],
+    "output": "Four rank receipts plus full logs/exit/compiler graph_stats and guard/cache/environment receipts; missing or STARTED-only cases are incomplete, never PASS",
+    "criterion": "Identical shape/dtype/bytes at every direct/repeat/native eager/compiled enclosing gradient comparison AND actual dense CPU oracle; zero tolerance. All four ranks/all prescribed cases required. Any unsupported primitive, nonfinite, flush/rounding, wrong order, missing gradient or runtime error => REFUSE/park.",
+    "cases": [
+      "cross_tile_large",
+      "cross_tile_unit",
+      "unique",
+      "all_same",
+      "counts_253_1_1_1",
+      "boundary_rows",
+      "signed_zero",
+      "bf16_subnormal",
+      "fp32_subnormal",
+      "empty"
+    ],
+    "empty_scope": "Zero-trip fixed-storage direct consumer only; empty autograd not tested or implied.",
+    "optional_timing": "Only if exactness completes: two warm calls plus three synchronized measured consumer calls for unique/all_same and each dtype. Excludes synthetic metadata construction/upload; never whole-step or production-route speedup.",
+    "compiler_inventory": "Record real per-rank graph inventory and compile logs; dynamic count changes must not silently cause a per-count specialization. Zero metric durations do not establish hits."
+  },
+  "support_sha256": {
+    "check_native.py": "17e2d2ad417407c12327e1446aed857f273d445946839357102e93dea46d4435",
+    "consumer_nki.py": "57b5b118e86eb9d78e26a011b276904aed9065868b8a12f39169e1257c3a1843",
+    "reference.py": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "test_reference.py": "972cb83fe1d31a4a5cd328d36b2e196123b8ef74bbcdff081981373c257f90d4"
+  },
+  "resources": {
+    "cpu_math_peak_bound_bytes": 8388608,
+    "tensor_jobs_run_locally": 0,
+    "metadata_bytes": 3080,
+    "output_bytes": 131072,
+    "input_bf16_bytes": 65536,
+    "input_fp32_bytes": 131072,
+    "per_group_named_large_sbuf_bytes": 262144,
+    "per_group_named_metadata_sbuf_bytes_upper_bound": 8192,
+    "two_groups_simultaneously_live_named_sbuf_upper_bound": 540672,
+    "sbuf_scope": "Logical named tiles only, NOT compiler allocation, hidden temporaries, spill or liveness proof",
+    "Q_min": 2,
+    "Q_max": 256,
+    "padded_fp32_additions_min": 32768,
+    "padded_fp32_additions_max": 4194304,
+    "useful_bf16_gradient_payload_bytes": 65536,
+    "useful_fp32_gradient_payload_bytes": 131072,
+    "accumulator_hbm_reads": 0,
+    "final_dense_output_stores_per_row": 1,
+    "runtime_seconds_estimate": null,
+    "cold_compile_seconds_estimate": null,
+    "whole_step_speedup": null
+  },
+  "night_mode": {
+    "decision": "Implement reversible isolated micro-falsifier, no production or remote changes",
+    "reason": "Test resident-state legal primitives/order before investing in device routing",
+    "undo": "Decline packet; no production integration or host state exists"
+  },
+  "preserved_gates": "Existing exactness/default-OFF/full-size/native/whole-step>=5% and cold startup/1800-budget/quality rules remain. No consumer result replaces those gates."
+}
