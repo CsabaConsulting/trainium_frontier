@@ -1,0 +1,57 @@
+{
+  "schema": "trn21-c5c-a0-native-hold-gate-contract-v1",
+  "status": "IMPLEMENTER_DRAFT_NON_DISPATCHABLE",
+  "prepared_by_role": "implementer",
+  "host_action_authorized": false,
+  "native_dispatch_authorized": false,
+  "request_path": "research/v2/authorizations/trn21-c5c-a0-native-request-hold/NATIVE_REQUEST.HOLD.json",
+  "request_sha256": "abe50c7b4ab64e1eadbfd12f997349c584adadf7813632895f55d0b89d336f2d",
+  "accepted_source_checkout": {
+    "source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "checkout_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+    "independent_result_review_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2-checkout-result/INDEPENDENT_CHECKOUT_RESULT_REVIEW.PASS.json",
+    "independent_result_review_sha256": "b3c82bd594ae312142925cc3888f1de532473854f246a17b4ac4251baf37b89c",
+    "review_scope": "SOURCE_CHECKOUT_ONLY"
+  },
+  "source_safety_disposition": {
+    "e65_old_launcher_is_native_safe": false,
+    "old_launcher_lacks_dispatch_authorized_gate": true,
+    "old_launcher_lacks_live_paired_monitor_interlock": true,
+    "old_guard_uses_legacy_process_group_signal_route": true,
+    "r4_source_commit": "446b657695f086f9b484fa601c9a3b61c2495912",
+    "r4_source_review_path": "research/v2/disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md",
+    "r4_source_review_sha256": "2a5f2b0c51a852a154f7fef44de092ddbbaaf45cc72aa36ca4fd90921f6b17b7",
+    "r4_review_scope": "LOCAL_SOURCE_ONLY_NOT_HOST_OR_DISPATCH",
+    "minimum_safety_delta_files": [
+      "research/fresh_start_launch.py",
+      "research/fresh_start_guard.py",
+      "research/fresh_start_host.py",
+      "research/fresh_start_monitor_interlock.py",
+      "research/v2/disk-monitor/root_free_guard_monitor.py",
+      "research/v2/disk-monitor/paired_root_free_guard_monitor.py"
+    ],
+    "clean_new_source_checkout_required": true,
+    "in_place_e65_edit_authorized": false,
+    "source_identity_carryforward_requires_independent_verifier": true
+  },
+  "stage_and_run_gates_in_order": [
+    "A separate Implementer prepares a trn21-specific clean 446b source-stage package; a different Verifier reviews its exact capsule and private new checkout target. The accepted e65 checkout is preserved unchanged.",
+    "A new Supervisor assignment, fresh full host preflight and one-attempt Operator stage prove exact 446b checkout and unchanged protected checkpoint/cache identities. A separate Verifier accepts the stage result.",
+    "An independent Verifier compares exact c5c train.py, prepare.py, effective env, train argv and four-rank CPU harness bytes between e65 and 446b before deciding whether an e65 CPU G2 numerical PASS can carry. Until then G2 remains pending.",
+    "A final 446b-source native request and request-to-base-to-pair monitor hash chain receive an independent package review. Stage both monitor scripts and the read-only optimizer-boundary observer at exact hashes and private paths.",
+    "A fresh full trn21 host preflight rehashes clean source and all six caches and both protected checkpoints, proves science output/log/step absent, no STOP/breaker/process/Neuron/lock holder, and root free >= 10 GiB.",
+    "Both authenticated paired disk monitors become live and ready before launch; observer is live before guard. The r4 launcher fail-closes on source/monitor drift and records durable no-spawn or ambiguity HOLD.",
+    "Only then may Supervisor issue an exact one-label one-attempt native assignment binding source stage, G1, independently accepted G2, request/bindings, monitor/observer, fresh preflight and command. Operator alone may attempt dispatch.",
+    "A distinct read-only postflight is unconditional on native launch outcome; any crash, below-floor sample, missing boundary/checkpoint, dirty tree, budget or causality failure is terminal HOLD and consumes the label. Fresh public20M evaluation requires separate authorization."
+  ],
+  "current_missing_evidence": {
+    "g2_numeric_result_independent_pass": null,
+    "new_446b_source_stage_independent_pass": null,
+    "source_identity_carryforward_independent_pass": null,
+    "final_native_request_independent_pass": null,
+    "live_monitor_and_observer_readiness": null,
+    "fresh_full_host_preflight": null,
+    "supervisor_one_attempt_native_assignment": null
+  },
+  "forbidden_now": "No host contact, CPU G2, Neuron training, evaluation, protected cleanup, AWS action, breaker reset, adoption or submission under this contract."
+}

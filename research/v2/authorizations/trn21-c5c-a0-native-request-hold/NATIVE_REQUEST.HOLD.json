@@ -1,0 +1,125 @@
+{
+  "schema": "trn21-c5c-a0-native-request-disabled-v1",
+  "status": "IMPLEMENTER_HOLD_SAFETY_SOURCE_AND_G2_NUMERIC_REVIEW_PENDING",
+  "prepared_by_role": "implementer",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+  "dispatch_authorized": false,
+  "host_action_authorized": false,
+  "cpu_g2_authorized": false,
+  "evaluation_authorized": false,
+  "submission_authorized": false,
+  "one_attempt_only": true,
+  "executable_request": false,
+  "source_checkout": {
+    "path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+    "commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "device": 66305,
+    "inode": 3168319,
+    "train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "independent_checkout_result_review_path": "research/v2/authorizations/trn21-c5c-a0-stage-r2-checkout-result/INDEPENDENT_CHECKOUT_RESULT_REVIEW.PASS.json",
+    "independent_checkout_result_review_sha256": "b3c82bd594ae312142925cc3888f1de532473854f246a17b4ac4251baf37b89c"
+  },
+  "science": {
+    "logical_nc_config": 2,
+    "nproc_per_node": 4,
+    "full_chip": true,
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "outer_timeout_seconds": 3600,
+    "environment": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    },
+    "train_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "checkpoint_output": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260925-v2-c5c-a0-control-trn21-r1/final.pt",
+    "step_log": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/run-logs/fs-20260925-v2-c5c-a0-control-trn21-r1.steps.jsonl"
+  },
+  "preserve": {
+    "warm_cache_root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train",
+    "warm_cache_root_device": 66305,
+    "warm_cache_root_inode": 2945950,
+    "warm_cache_children_device": 66305,
+    "warm_cache_children_inodes": {
+      "neff": 2945951,
+      "local": 2945952,
+      "hlo": 2945953,
+      "inductor": 2945954,
+      "compiler": 2945955,
+      "debug": 2945956
+    },
+    "protected_checkpoints": [
+      {
+        "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/sandbox/out/final.pt",
+        "device": 66305,
+        "inode": 2947631,
+        "bytes": 469834849,
+        "sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535"
+      },
+      {
+        "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+        "device": 66305,
+        "inode": 2938565,
+        "bytes": 469831009,
+        "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9"
+      }
+    ],
+    "cache_cleanup_authorized": false,
+    "checkpoint_prune_authorized": false
+  },
+  "disk_safety": {
+    "minimum_prelaunch_free_bytes": 10737418240,
+    "operational_floor_bytes": 6979321856,
+    "stop_free_bytes": 9126805504,
+    "monitor_poll_seconds": 0.25,
+    "floor_breach_is_failure": true
+  },
+  "safety_source_gap": {
+    "e65_launcher_sha256": "822d4317408a09ee0dd6ab3eaaa4f706f0a173741659ea5e47cc12e45e4f1bef",
+    "e65_guard_sha256": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "e65_host_sha256": "c4442b917084239099864f8dd53e4a5467ec8440b8eec9057bbdad5b19a84065",
+    "e65_monitor_interlock_present": false,
+    "e65_paired_monitor_present": false,
+    "r4_source_commit": "446b657695f086f9b484fa601c9a3b61c2495912",
+    "r4_launcher_sha256": "9488efa918119439a33cbe68cb5638bd1af3b15f1f8f61ec790a216e2bc1e3f4",
+    "r4_guard_sha256": "df902becb2faf009d04d7ecfaee3791df67e822e90ec6112adbc39be81599ecc",
+    "r4_host_sha256": "b34c368c12175615514e63daebc296ec09332ef801e176e0d19cc3edc045fed3",
+    "r4_interlock_sha256": "f2fcecd427ea0c4fd5396799fe845d327c2e1384b05e1ef9445b8fb3cf9d2b4d",
+    "r4_base_monitor_sha256": "91dae71468d5d029857371ccd2c960769b71874e855bb058130e738b91bb2c60",
+    "r4_paired_monitor_sha256": "9e2d6ed26d918131c3e12b9937093e465b39aa895a9bf2be7339de8ae5094344",
+    "r4_independent_source_review_path": "research/v2/disk-monitor/R4_446B6576_INDEPENDENT_VERIFIER_RECEIPT.md",
+    "r4_independent_source_review_sha256": "2a5f2b0c51a852a154f7fef44de092ddbbaaf45cc72aa36ca4fd90921f6b17b7",
+    "source_matched_native_safety_installed": false
+  },
+  "pending_gate_receipts": {
+    "g1_trn21_independent_pass_path": "research/agentic/verification/20260925-g1-trn21-r2-calibration-result-review.md",
+    "g1_trn21_independent_pass_sha256": "2c0674fe4eb0e3ad64cf07bbcf6a6d24bbc89595d6e5d1b488c93b0e06f84ed0",
+    "g2_final_request_path": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn21-stage-r2-final-pending/GATE_CONTRACT.json",
+    "g2_final_request_sha256": "743d75e489831d21cd682a3a7a2b84becd8f0dc8f8cfc914dc4aa27123c9d905",
+    "g2_numeric_result_independent_pass": null,
+    "clean_r4_source_stage_independent_pass": null,
+    "native_request_independent_pass": null,
+    "fresh_host_preflight": null,
+    "boundary_observer_live_ready": null,
+    "paired_monitor_live_ready": null,
+    "supervisor_one_attempt_assignment": null,
+    "unconditional_postflight": null
+  },
+  "boundary_observer_source_sha256": "a6f437fe8a9d0a14ec3025bc822f1afa12e3f355fca730e4ae0db7ae00263592",
+  "native_launcher": null,
+  "paired_monitor_binding": null,
+  "one_attempt_guard": null,
+  "command": null,
+  "forbidden_actions": [
+    "No host SSH, CPU G2, Neuron training, eval, AWS resource action, artifact/cache deletion, breaker reset, source overwrite or leaderboard submission under this draft."
+  ]
+}
