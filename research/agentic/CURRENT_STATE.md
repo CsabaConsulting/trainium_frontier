@@ -1,6 +1,19 @@
 # Current state
 
-Last reconciled: 2026-09-25 02:22 UTC
+Last reconciled: 2026-09-25 02:27 UTC
+
+## Current handoff: trn22 CPU numeric G2 carries forward; host/native gates HOLD
+
+A separate Verifier's
+[source-identity disposition](../v2/disk-monitor/r4-hold/G2_R3_TO_R4_SOURCE_IDENTITY_DISPOSITION.md)
+accepted trn22's earlier four-rank CPU G2 **numeric** result for frozen r4:
+`train.py`, `prepare.py`, ordered Track-A training argv, effective seed/LNC/
+compiler/budget values and CPU harness bytes match. This avoids a redundant
+CPU-numeric rerun if the eventual r4 checkout/request matches those exact
+bytes and values. It is not a host r4 execution or safety-monitor proof.
+Exact r4 source transfer/checkout, fresh host checks, new dispatchable
+request/bindings, live paired monitors/observer and one-shot native authority
+remain HOLD. No new BPB was measured.
 
 ## Current handoff: trn21 read-only feasibility refreshed; exact checkout still HOLD
 

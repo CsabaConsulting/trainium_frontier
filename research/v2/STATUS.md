@@ -2,6 +2,12 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 02:27 UTC, trn22's prior exact-env four-rank CPU G2 numeric PASS
+[carried forward by independent source-identity review](disk-monitor/r4-hold/G2_R3_TO_R4_SOURCE_IDENTITY_DISPOSITION.md)
+to the unchanged c5c training bytes and argv at frozen r4 source 446b6576.
+It is not a new host r4 run; source stage, live safety/monitor and one-shot
+native gates remain HOLD.
+
 At 02:19:45 UTC, trn21's
 [read-only feasibility refresh](authorizations/trn21-c5c-a0-stage-r2-extraction/OPERATOR_READONLY_FEASIBILITY_REFRESH_20260925T021945Z.md)
 confirmed exact three-file persistence, absent checkout/output, intact assets,
