@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T00:59:00Z",
+  "written_utc": "2026-09-25T01:27:34Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -156,7 +156,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "G1_PASS_A0_SOURCE_STAGE_TRANSFER_NOT_PERSISTENT_HOLD_NO_SCIENCE_SCORE",
+      "status": "G1_PASS_A0_SOURCE_STAGE_R2_TRANSFER_ONLY_ASSIGNED_RESULT_PENDING_NO_SCIENCE_SCORE",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-25T00:45:55Z",
       "free_bytes_read_only_df": 58676199424,
@@ -177,10 +177,16 @@
       "a0_source_stage_hold_receipt_sha256": "1710449665cf889349a2527cf793a1a247ab88ecc903a9c6aaf2cf7823f46135",
       "a0_source_stage_forensic_addendum": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-forensic-addendum.md",
       "a0_source_stage_forensic_addendum_sha256": "60df65fd3080aa070f8ebf8a348baf5fa55dd8b6d3ad2a70b930cc4624e7eb11",
-      "a0_source_stage_persistent": false
+      "a0_source_stage_persistent": false,
+      "a0_stage_r2_package": "research/v2/authorizations/trn21-c5c-a0-stage-r2/GATE_CONTRACT.json",
+      "a0_stage_r2_independent_static_review": "research/v2/authorizations/trn21-c5c-a0-stage-r2/INDEPENDENT_VERIFIER_RECEIPT.md",
+      "a0_stage_r2_transfer_assignment": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn21-r1.source-stage-r2-transfer-assignment.json",
+      "a0_stage_r2_transfer_assignment_sha256": "0127358fed6e97787b8a7d60208ede3cadb0e870791baece2f12830300c09fd5",
+      "a0_stage_r2_transfer_scope": "Exact 3-file persistent-ext4 transfer only after fresh full preflight and distinct cross-session verification; no extraction, CPU G2, native training or eval",
+      "a0_stage_r2_transfer_result": null
     },
     "trn22": {
-      "status": "A0_R3_CONTINUOUS_DISK_INTERLOCK_INDEPENDENT_SAFETY_FAIL_HOLD_NO_SCORE",
+      "status": "A0_R4_CONTINUOUS_DISK_INTERLOCK_INDEPENDENT_SAFETY_FAIL_HOLD_NO_SCORE",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-24T23:39:25Z",
       "root_disk_bytes": 268435456000,
@@ -208,7 +214,10 @@
       "telemetry_note": "Operator authenticated guard PID/UID/argv and signaled only that guard on first below-floor observation; postflight host_clean=false solely on disk floor, cleanup actions and remaining are empty; terminal evidence retrieved and independently reviewed",
       "a0_r3_interlock_review": "research/v2/disk-monitor/R3_INDEPENDENT_VERIFIER_RECEIPT.md",
       "a0_r3_interlock_review_sha256": "c0c23f9d5097c9058108a0a17a8a56c9e0829fb2ec972b97fb789eddd79bb83e",
-      "a0_r3_native_dispatch_allowed": false
+      "a0_r3_native_dispatch_allowed": false,
+      "a0_r4_999b_independent_fail": "research/v2/disk-monitor/R4_999B_MARKER_SPOOF_INDEPENDENT_RECEIPT.md",
+      "a0_r4_f8fe_independent_fail": "research/v2/disk-monitor/R4_F8FE_INDEPENDENT_VERIFIER_RECEIPT.md",
+      "a0_r4_native_dispatch_allowed": false
     }
   },
   "breakers": {
@@ -249,8 +258,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn21 c5c A0 read-only feasibility independently PASS for exact-source stage planning only; e65 source transfer/CPU G2 package is Implementer-prepared but awaits independent review and separate Operator assignment. trn22 c5c A0 remains HOLD for a reviewed continuous disk monitor and fail-closed liveness interlock. Neither host has completed a new scored control or BPB improvement.",
-  "updated_utc": "2026-09-25T00:24:51Z",
+  "last_event": "trn21 c5c A0 persistent-ext4 source-transfer r2 has independent static PASS and a new transfer-only Supervisor assignment; Operator result remains pending, and checkout/G2/native/eval remain HOLD. trn22 r4 frozen revisions 999b and f8fe failed independent interlock safety review; further repair is pending. Neither host has completed a new scored control or BPB improvement.",
+  "updated_utc": "2026-09-25T01:27:34Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -307,7 +316,7 @@
     "monitor_hold": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json",
     "monitor_hold_sha256": "6a740101fbc5e6db52bb031330a6c65d85cba3ff08b05e929d8de9bc2d75c044",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "A continuous <=1-second authenticated owned-guard root-disk monitor with 2-GiB reserve must be implemented and independently reviewed; then repeat fresh live checks, start the observer and monitor, and issue separate one-shot authorization. No native/scored launch has occurred; r2 science label unused."
+    "remaining": "Frozen r4 revisions 999b and f8fe failed independent safety review; repair marker-only guard cleanup and markerless live-worker false-clean, then freeze/review exact new source, repeat exact-source G2 and fresh live checks, start observer/monitor, and issue separate one-shot authorization. No native/scored launch has occurred; r2 science label unused."
   },
   "a0_trn21_control_package": {
     "status": "RATIFIED_STATIC_PASS_G1_PASS_SOURCE_STAGE_AND_G2_PENDING_DISPATCH_HOLD",
@@ -319,7 +328,7 @@
     "supervisor_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
     "supervisor_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "G1 independently passed. A new clean exact-c5c source stage/commit must be authenticated; then exact-env four-rank G2 and independent numerical review, fresh host/cache/checkpoint/disk checks, reviewed continuous monitor and boundary observer, and a separate one-shot authorization. No scored training launch is authorized."
+    "remaining": "G1 independently passed. Persistent-ext4 r2 source transfer has a conditional transfer-only assignment but no retrieved result; independently review cross-session persistence, then separately authorize clean checkout/extraction, exact-env four-rank G2 and numerical review, fresh host/cache/checkpoint/disk checks, reviewed continuous monitor and boundary observer, and a one-shot native authorization. No scored training launch is authorized."
   },
   "submission_s0": {
     "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",
