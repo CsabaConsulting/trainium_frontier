@@ -1,0 +1,68 @@
+{
+  "schema": "trn-research-adoption-v1",
+  "status": "PROVISIONAL_RESEARCH_COMPONENT_REPLICATION_PENDING",
+  "arm_id": "L2-unet8x1024-3e79-primed",
+  "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "source_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out",
+    "--unet-8x1024",
+    "--attention-layers",
+    "0,2,4,6,7",
+    "--initial-cache-refresh"
+  ],
+  "authority": [
+    "workflow/NEXT_12_HOURS_2026-09-26.md",
+    "workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md"
+  ],
+  "selector_verdict": "NOMINATE",
+  "selector_changed": false,
+  "human_architecture_rule": "Single matched-host delta <= -0.005: adopt provisionally, replicate on trn21 next, stack the schedule, then LR x0.8/x1.25 on the new shape",
+  "result_labels": [
+    "fs-20260926-arch3e79-primed-trn22-r2-full"
+  ],
+  "public_20m": [
+    0.9863403052402583
+  ],
+  "public_20m_mean": 0.9863403052402583,
+  "mean_scope": "One authenticated run only; not a confirmed two-host mean",
+  "same_host_deltas": [
+    -0.005173653090253749
+  ],
+  "previous_confirmed_schedule_base_mean": 0.9901674436550496,
+  "independent_result_review": "research/v2/verification/20260926-architecture3e79-result-review/FINAL_REVIEW.md",
+  "charged_through_exit_seconds": 1789.2084840420866,
+  "full_run_cold": false,
+  "earlier_separate_cold_five_seconds": 844.35300997796,
+  "source_train_py_mutated": false,
+  "submission_eligible": false,
+  "clean_submission_port": "In implementation on proven116188 vehicle; exact-score old schedule, unchanged historical launch command; no Downloads overwrite",
+  "next": [
+    "Preserve live seed43+eval, then reviewed exact3e79 cross-host replicate ontrn21",
+    "Build clean old-schedule submission derivative and prove CPU identity/cold full replay before upload advice",
+    "Port adopted Recursive schedule separately, then tune new shape only"
+  ],
+  "rollback": "Retain immutable research result; return development base to confirmed6ef7 if replicate/correctness rejects provisional architecture. Do not alter ledger/raw artifacts."
+}

@@ -1,5 +1,23 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 02:40 IST
+
+The installation/staging snapshots below are historical, not current gates.
+Use `research/agentic/CURRENT_STATE.md`, `research/v2/state.json` and the latest
+single-launcher/NIGHT/CT amendments for live state. Old launchers are stopped;
+the common locked path passed real runs before its deadline.
+
+New authenticated architecture result: public20M **0.9863403052402583**, delta
+-0.005173653090253749 against matched control,3629steps,1789.208484s charged.
+Provisional research-base decision is in `adoptions/20260926-architecture3e79-provisional.json`;
+cross-host confirmation and clean submission preparation continue. The upload
+file is NOT ready: the exact-score clean116188 port still needs independent
+review, full-size identity, cold replay and human-mediated Claude audit.
+
+trn21 is evaluating seed43 before the next reviewed architecture repeat.
+trn22 completed four full-parameter CPU probes; retrieved evidence review is
+pending. No new default launcher or automatic bypass is authorized here.
+
 At 09:56 UTC, the disabled direct trn22 e65→r10 stage `3d26e963`
 received [independent HOLD](verification/20260925-trn22-r10-incremental-stage-r1-independent-static-HOLD.md)
 at `3a7cda68` for a mistyped r4-review SHA pin. A different Implementer

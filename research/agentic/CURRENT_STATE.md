@@ -1,6 +1,49 @@
 # Current state
 
-Last reconciled: 2026-09-25 21:00 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:10 UTC (26 September IST)
+
+## Current: authenticated architecture gain; clean upload port in preparation
+
+Exact3e79/trn22 fresh public20M/context1024 is **0.9863403052402583**, versus
+matched c5c/trn22 control0.991513958330512: delta **-0.005173653090253749**.
+3629steps, charged-through-exit1789.208484seconds, over_budgetFalse. Raw final
+archive7132a648 and independent final reviewa2aa74ea pass65training+58final
+checks normally and under-O; Supervisor replayed both. The unchanged selector
+says NOMINATE. Per the direct <=-.005 architecture rule, this is now a
+PROVISIONAL research base, recorded in
+`research/v2/adoptions/20260926-architecture3e79-provisional.json` and ledger.
+It is one result, NOT a confirmed two-host mean or an official score. The old
+confirmed6ef7 mean0.9901674436550496 remains separate. Full run was primed;
+the separate844.353second true-cold-five gate is not a cold full replay.
+
+The human now requests an upload file for this exact result while research
+continues. Implementer is preparing a clean116188 derivative with the SAME
+historical long launch command, old schedule, architecture+cache fix baked.
+No research adapters or untested Recursive/kernel additions go into it.
+Reduced8x128/3step identity and a256token custom-MLP CPU probe reportedly pass;
+source/proposal commit, independent review, full-size CPU, cold full+fresh20M
+and Claude-via-human compliance audit still pending. Do not provide old
+Downloads/train.py or label the new file ready before those gates. No Downloads
+artifact has been changed. The separate narrow Recursive research port is
+checkpointedfe0969fd, not yet qualified; it is not this submission candidate.
+
+trn21 seed43 training finished3646steps, Operator-reported charge1790.265859s;
+attached fresh20M started21:07:16UTC under the same lock. Preserve it. Pure3e79
+cross-host replicate bindingaf53137f is next after eval/independent release,
+same c5c schedule/no Recursive, not the seed43 control as comparator.
+trn22 bcbd full117M CPU reference/default/OFF/ON all completed and Operator
+reported exact loss/62digest/checkpoint matches. Closed88file receipt retrieval
+is in progress after SCP timeout; independent acceptance and any cold/native
+assignment remain pending. No rerun or failed training occurred.
+
+K2 fresh reviewer returned REFUSE on JSON serialization of nonfinite diagnostic
+values (NaN/Inf), not an arithmetic failure:42CPU cases and10negative controls
+passed; native never ran. Archive90db28e0 preserves449files and exact error
+reproducers. Keep packet/binding disabled until narrow checker repair and review.
+P decode is still plan-only; K3 static finding remains, no no-op flag run.
+Safeguard deadline passed; old queue processes are stopped, not merely starved.
+
+The following live snapshots are historical, superseded by this section.
 
 ## Current: architecture training complete, fresh eval running; CPU follow-up assigned
 
