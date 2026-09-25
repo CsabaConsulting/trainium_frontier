@@ -292,6 +292,13 @@ def run_bounded(command, env, root, excluded, lock_fd, limits, deadline, stdout_
         if child is not None:
             try:
                 result['termination'] = stop_owned(child, known, limits['grace'])
+                unexpected = {row['pid']: row for event in result['termination']
+                              for row in event['identities'] if row['pid'] != child.pid}
+                if unexpected:
+                    result['final_cleanup_unexpected_descendants'] = list(unexpected.values())
+                    result['final_cleanup_error'] = 'UNEXPECTED_DECODER_DESCENDANT_AT_FINAL_CLEANUP'
+                    result.setdefault('error', result['final_cleanup_error'])
+                    result['status'] = 'REFUSED_OR_INCOMPLETE'
             finally:
                 child.stdout.close()
                 child.stderr.close()

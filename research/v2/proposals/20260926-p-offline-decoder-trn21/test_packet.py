@@ -185,6 +185,17 @@ class Packet(unittest.TestCase):
         rows[11]['ppid']=1
         self.assertEqual(set(h.owned_descendants(rows,10,{11:201})),{11})
 
+    def test_late_detached_descendant_cannot_retain_success(self):
+        script='import os,time; os.close(1); os.close(2); time.sleep(.04); pid=os.fork();\nif pid: os._exit(0)\nos.setsid(); time.sleep(30)'
+        result=self.run_tiny(script, interval=.1)
+        self.assertEqual(result['returncode'], 0)
+        self.assertEqual(result['status'], 'REFUSED_OR_INCOMPLETE')
+        self.assertIn('UNEXPECTED_DECODER_DESCENDANT', result['error'])
+        self.assertGreaterEqual(len(result['observed_process_identities']), 2)
+        terminated=[row for event in result['termination'] for row in event['identities']]
+        self.assertTrue(terminated)
+        self.assertFalse(h.owned_descendants(h.proc_rows(),-1,result['observed_process_identities'],os.getpid()))
+
     def test_fast_double_fork_is_subreaped_and_stopped(self):
         script='import os,time; pid=os.fork();\nif pid: os._exit(0)\npid=os.fork()\nif pid: os._exit(0)\nos.setsid(); time.sleep(30)'
         result=self.run_tiny(script)

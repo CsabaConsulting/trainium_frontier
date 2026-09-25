@@ -14,7 +14,7 @@ import time
 ROOT = Path('/home/ubuntu/trainium_p_offline_summary_20260926_trn21_r1')
 PROJECT = Path('/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2')
 LOCK = '/home/ubuntu/.cache/trainium_freshstart/device0.lock'
-PINS = {"EXPERIMENT_PROPOSAL.json":"867359ea4a8735008ad956041a5458c4689fb1415186033229f75919ee1606c3","decoder_support.py":"4ab61ecec601e99bebbe0baa499e0b5df2d7b5148f7fd5d9c3b1b5634a50bf27","idle_guard.py":"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737","dispatch_driver.py":"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"}
+PINS = {"EXPERIMENT_PROPOSAL.json":"867359ea4a8735008ad956041a5458c4689fb1415186033229f75919ee1606c3","decoder_support.py":"96aebc1e9a43843f57691e67053c75ecbe904f2cec6899688a9e3036c863efd9","idle_guard.py":"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737","dispatch_driver.py":"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"}
 
 
 def utc():

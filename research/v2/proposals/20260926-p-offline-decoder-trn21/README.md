@@ -1,5 +1,7 @@
 # Disabled fixed P offline decoder — trn21
 
+Successor repair: independent review reproduced a final-census classification gap in frozen 8429c1a2. A child created after the last monitor census was correctly killed/reaped in cleanup, but its leader's zero-exit status survived. The successor retains every original failure artifact and changes only final-cleanup classification: any authenticated nonleader in termination receipts forces REFUSED_OR_INCOMPLETE and records its identities and reason. All limits, argv, input set, guards and cleanup mechanics are unchanged. A seventeenth stdlib test covers the late closed-pipe/detached-child race. Original sixteen-test receipts below describe the original packet, not this successor.
+
 Preparation only. No trace or native file was read here, no SDK/model was imported, no host was contacted, and no current job or cache/checkpoint was touched. Proposal-first commit: 3bd0ba36. Independent mechanics review and a separate sole Operator assignment remain required.
 
 ## One existing trace, one attempt
