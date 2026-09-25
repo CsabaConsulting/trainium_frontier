@@ -1,0 +1,67 @@
+{
+  "proposal_id": "20260925-v2-c5c-a1-m64d128-trn21-r1-hash50",
+  "status": "RESEARCHER_PROPOSED_IMPLEMENTER_PACKAGED_DISPATCH_HOLD",
+  "owner_role": "researcher; transcribed into the experiment template by the implementer without launch authority",
+  "hypothesis": "After 50 completed seed-42 full-chip Neuron optimizer steps in exact c5c A1, all four ranks have byte-identical BF16 b5/t5 weights and RMSProp exp_avg_sq moments, each at state step 50.",
+  "single_causal_change": "Use an observational diagnostic-only copy of c5c that reads complete raw BF16 tables and moments after synchronized optimizer step 49; the A1 science argv is unchanged except --num-steps 50 and unique --out-dir. No scored-model arithmetic or data change is proposed.",
+  "mechanism_class": "correctness_diagnostic",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [0.0, 0.0],
+  "prediction_basis": "The observer is after the final optimizer step and cannot establish a BPB benefit; no public or private evaluation is authorized.",
+  "candidate_shortlist": [
+    {"idea": "Full raw BF16 b5/t5 weight and RMSProp-moment hashes from each of four ranks at step 50", "mechanism_class": "correctness_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Directly answers the older queue's native 50-step rank-equality criterion without changing scored c5c."},
+    {"idea": "Only rank-0 checkpoint hash", "mechanism_class": "correctness_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Rejected as a falsifier because c5c saves no other rank's optimizer moment."},
+    {"idea": "Sampled table rows", "mechanism_class": "correctness_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Rejected because unequal unsampled rows could be missed."},
+    {"idea": "Reduced m8 CPU-only table test", "mechanism_class": "correctness_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Useful narrow local check, but cannot certify exact m64 Neuron state."}
+  ],
+  "selection_rationale": "The Researcher proposed full per-rank table and moment hashes because neither the prior reduced-size CPU result nor a 30-step native smoke proves exact c5c/m64 optimizer-state agreement at 50 steps. This is a gate for later scored science, not a score result.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.0,
+  "host_hours_caveat": "Planning placeholder only; compile/startup and exact A1 memory/throughput are not measured or authorized.",
+  "trainium_feasibility": "trn21 only; exact c5c A1 profile, LNC2/world4, seed42 and 1800-second cap. b5 and t5 are each 524288 x 128 BF16. Weights, dense gradients and BF16 RMSProp moments alone imply 805306368 bytes per rank before activations, compiler temporaries, checkpoint and cache. Exact m64 four-rank G2, native 30-step smoke, HBM/root projection, live monitor/interlock and clean host preflight remain mandatory HOLD gates.",
+  "cheapest_falsifier": "Independent static source/argv review and exact-profile four-rank CPU lockstep against unmodified c5c; then separately approved exact m64 two-step G2. Local tiny RMSProp lockstep is not equivalent to either.",
+  "prior_result_refs": [
+    "research/agentic/proposals/20260925-c5c-table-native50-hash.md: Researcher diagnostic proposal",
+    "research/v2/queue.json: IMPL-1 native 50-step equal-rank table-hash acceptance",
+    "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/: distinct non-dispatchable scored-arm package"
+  ],
+  "evidence": [
+    "submissions/research_v2/train.py SHA256 c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare.py SHA256 5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/v2/queue.json SHA256 1e9dcc4fd5f38e62829dc19460d2337662184ecfbd4d21d8a20f15993be9dd00",
+    "research/diagnostics/20260925-c5c-table-hash50/GATE_CONTRACT.json: exact profile, source/env/argv and HOLD gates"
+  ],
+  "duplicate_search_terms": ["c5c", "A1", "m64d128", "hash50", "b5", "t5", "exp_avg_sq", "native50"],
+  "duplicate_search_files": ["research/v2/ledger.jsonl", "research/agentic/DECISION_LOG.md", "research/v2/queue.json", "research/submission-validation/", "research/diagnostics/"],
+  "duplicate_finding": "The Researcher reports no completed exact c5c/m64 native 50-step full rank-weight-and-moment equality proof. Recheck label, output and host path absence before any later one-shot request; this Implementer made no live host claim.",
+  "control": {
+    "git_commit": null,
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "run_label": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Unmodified c5c exact A1 on trn21 at seed42 with the same data order and compiler settings. A separately verified 30-step smoke supplies steps-0/1 loss identity only. This 50-step diagnostic has no BPB control or selection metric."
+  },
+  "candidate": {
+    "branch": "codex/20260925-c5c-table-hash50-diagnostic-r1",
+    "files_allowed": ["research/diagnostics/20260925-c5c-table-hash50/ only; scored source, prepare.py, evaluator, data and decide.py forbidden"],
+    "expected_diff": "Diagnostic-only copy of c5c: new header/imports, bounded read-only raw-BF16 scanner, atomic per-rank JSON writer and one post-synchronize step-49 observer call. The c5c science AST and scored source bytes remain unchanged.",
+    "run_label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-hash50",
+    "launch_command": "DISPATCH HOLD. No executable one-shot host request or authorization exists. Future Operator must bind the diagnostic SHA, trn21 checkout, exact env -i/cache identities and ordered torchrun --standalone --nproc_per_node=4 train.py argv in GATE_CONTRACT.json only after all independent gates PASS."
+  },
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": false, "numerical_equivalence": false, "causality": false, "smoke_run": false, "human_run_approval": false},
+  "success_criteria": {
+    "quality": "Not measured. Predicted BPB delta zero by design; no validation eval, quality verdict, adoption or submission from this diagnostic.",
+    "throughput": "Do not judge final-step timing; the full raw-hash observer contaminates it. Earlier unprobed steps may be logged for safety only.",
+    "correctness": "After independent exact-profile CPU/G2 and native30 gates, one approved native50 job has boundaries 0..49 exactly once, finite losses and full quiescence. Four fsynced A1 rank manifests must agree on full raw BF16 b5/t5 weight and exp_avg_sq hashes, expected shapes/dtypes/bytes, nonmissing finite gradient, nonzero weights/moments, state step50 and owned-plan exclusion. Strict model-only checkpoint load plus deterministic synthetic causality/batch-independence must pass; no public eval."
+  },
+  "abort_conditions": [
+    "Any independent review, exact m64 CPU lockstep/G2, separate unmodified c5c native30, host/monitor/interlock, cache, disk/HBM projection or one-shot authorization gate missing or failed",
+    "Hostname/source/prepare/queue/diagnostic hash, exact argv/effective env, private step-log identity or unique path/label mismatch",
+    "Busy/dirty trn21, Neuron holder, active lock, open breaker, insufficient disk/HBM headroom or more than one job on the host",
+    "Missing step, crash, NaN, unequal rank hash, missing or wrong moment/gradient/state, missing checkpoint, budget/floor breach or incomplete quiescence",
+    "Any attempt to score, submit, adopt, update decide.py, alter protected files or treat this non-dispatchable package as authority"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}
