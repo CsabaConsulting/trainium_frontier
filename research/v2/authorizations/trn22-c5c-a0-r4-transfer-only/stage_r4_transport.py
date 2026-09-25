@@ -1,0 +1,293 @@
+"""Offline exact SSH argv builder and evidence validators; no dispatch CLI.
+
+The only source stage is the frozen 446b capsule into one new trn22 ext4 path.
+Importing or executing this module never opens SSH or changes host state.
+"""
+
+import datetime
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import shlex
+import stat
+
+
+HERE = Path(__file__).resolve().parent
+REMOTE = HERE / "stage_r4_remote.py"
+REMOTE_SHA256 = "d02dbf6d9efee6062a20fe620743460ab247240964e9266875a1599f95bcfd50"
+SOURCE = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trainium-c5c-r4-446b-one-commit-20260925.tar.gz")
+SOURCE_BYTES = 104154875
+SOURCE_SHA256 = "767d1d0ce0526b822c680fccc5d79ed0423827d6f2ce3570b8d7d8b5c5d7c84a"
+TARGET = "/home/ubuntu/trainium-c5c-r4-446b-one-commit-20260925.trn22-stage-r1.tar.gz"
+ENDPOINT = "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com"
+IDENTITY_FILE = "/home/poojith-devan/Desktop/Trainium/trn2.pem"
+SCHEMA = "trn22-c5c-a0-r4-transfer-only-v1"
+PRE_FREE = 13177973911
+POST_FREE = 10737418240
+MIN_INODES = 10000
+CHECKPOINT_DEV_INO = (66305, 2417091)
+CHECKPOINT_BYTES = 469831009
+CHECKPOINT_SHA256 = "1b1d1a3f0ec6b5580312b760f5fee4f702c3fe97c9ddd01ed811472736aadf1b"
+CACHE_DEV = 66305
+CACHE_INODES = {"neff": 2430420, "local": 2430421, "hlo": 2430422,
+                "inductor": 2430423, "compiler": 2430424, "debug": 2430425}
+
+
+def sha256(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def argv_sha256(argv):
+    return sha256(json.dumps(argv, separators=(",", ":")).encode("utf-8"))
+
+
+def reviewed_remote_source():
+    data = REMOTE.read_bytes()
+    if sha256(data) != REMOTE_SHA256:
+        raise RuntimeError("reviewed remote source hash drift")
+    return data.decode("utf-8")
+
+
+def remote_constants():
+    reviewed_remote_source()
+    spec = importlib.util.spec_from_file_location("trn22_r4_remote_exact", REMOTE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def checked_local_source():
+    parent = SOURCE.parent.lstat()
+    if (not stat.S_ISDIR(parent.st_mode) or parent.st_uid != os.getuid() or
+            stat.S_IMODE(parent.st_mode) & 0o077):
+        raise RuntimeError("source artifact directory is not private")
+    named = SOURCE.lstat()
+    if (not stat.S_ISREG(named.st_mode) or named.st_nlink != 1 or
+            named.st_uid != os.getuid() or stat.S_IMODE(named.st_mode) != 0o600 or
+            named.st_size != SOURCE_BYTES):
+        raise RuntimeError("local source type, owner, mode, link or bytes drift")
+    fd = os.open(SOURCE, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        opened = os.fstat(fd)
+        identity = ("st_dev", "st_ino", "st_size", "st_mode", "st_mtime_ns", "st_ctime_ns")
+        if any(getattr(opened, key) != getattr(named, key) for key in identity):
+            raise RuntimeError("source changed during no-follow open")
+        digest, count = hashlib.sha256(), 0
+        while True:
+            block = os.read(fd, 4 * 1024 * 1024)
+            if not block:
+                break
+            count += len(block)
+            digest.update(block)
+        if (count != SOURCE_BYTES or digest.hexdigest() != SOURCE_SHA256 or
+                any(getattr(snapshot, key) != getattr(opened, key)
+                    for snapshot in (os.fstat(fd), SOURCE.lstat()) for key in identity)):
+            raise RuntimeError("source bytes/hash or inode changed while hashing")
+        return {"path": str(SOURCE), "bytes": count, "sha256": digest.hexdigest(),
+                "device": opened.st_dev, "inode": opened.st_ino, "mode": "0o600"}
+    finally:
+        os.close(fd)
+
+
+def build_ssh_argv(operation):
+    if operation not in ("probe", "write", "verify"):
+        raise ValueError("only fixed probe/write/verify operations exist")
+    source = reviewed_remote_source()
+    words = ["exec", "python3", "-c", source, operation]
+    command = " ".join(shlex.quote(word) for word in words)
+    if shlex.split(command) != words:
+        raise RuntimeError("remote command quoting drift")
+    return ["ssh", "-T", "-i", IDENTITY_FILE, "-o", "BatchMode=yes",
+            "-o", "IdentitiesOnly=yes", "-o", "StrictHostKeyChecking=yes",
+            "-o", "ConnectTimeout=20", ENDPOINT, command]
+
+
+def _fresh(when, max_age_seconds=180):
+    observed = datetime.datetime.fromisoformat(when)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if (observed.tzinfo is None or
+            not -5 <= (now - observed).total_seconds() <= max_age_seconds):
+        raise RuntimeError("remote read-only probe is stale or from future")
+
+
+def _identity(receipt):
+    before, after = receipt["identity_before"], receipt["identity_after"]
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+        if before.get(key) != after.get(key):
+            raise RuntimeError("host/boot/mount changed during one SSH process: " + key)
+    if before["hostname"] != "ip-172-31-32-253" or before["uid"] != 1000:
+        raise RuntimeError("wrong trn22 host or UID")
+    mount = before["mount"]
+    if mount["filesystem"] != "ext4" or mount["source"] != "/dev/root":
+        raise RuntimeError("not the fixed trn22 persistent ext4 source")
+    ancestry = before["ancestry"]
+    for name, expected_uid in (("root", 0), ("home", 0), ("ubuntu", 1000)):
+        item = ancestry[name]
+        if (item["type"] != "directory" or item["uid"] != expected_uid or
+                int(item["mode"], 8) & 0o022):
+            raise RuntimeError("unsafe stage ancestor: " + name)
+    if ancestry["ubuntu"]["device"] != int(os.makedev(*map(int, mount["major_minor"].split(":")))):
+        raise RuntimeError("stage parent not on fixed ext4 device")
+    return before
+
+
+def validate_probe(probe, *, before_write):
+    """Require a complete fresh safety and old-path inventory on every probe."""
+    remote = remote_constants()
+    if probe.get("schema") != SCHEMA or probe.get("operation") != "probe":
+        raise RuntimeError("wrong probe schema/operation")
+    _fresh(probe["utc"])
+    identity = _identity(probe)
+    floor = PRE_FREE if before_write else POST_FREE
+    if (identity["root_free_bytes"] < floor or
+            probe["identity_after"]["root_free_bytes"] < floor or
+            identity["root_free_inodes"] < MIN_INODES):
+        raise RuntimeError("fresh persistent root space/inode gate failed")
+    old = probe["old_inventory"]
+    if old.get("catalog_complete") is not True or set(old["paths"]) != set(remote._old_paths()):
+        raise RuntimeError("old r1/r2/r3 source/cache/output inventory incomplete")
+    allowed = {remote.ROOT + "/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_" + name
+               for name in ("r1", "r2", "r3", "r4")}
+    if not set(old["top_level_matching_sources"]).issubset(allowed):
+        raise RuntimeError("unknown old A0 source root; inventory needs independent review")
+    for path, item in old["paths"].items():
+        if (item.get("exists") is not True and item.get("exists") is not False) or (
+                item.get("exists") is True and item.get("type") not in ("directory", "regular")):
+            raise RuntimeError("unsafe or unclassified old path: " + path)
+    for path, item in old["top_level_matching_sources"].items():
+        if old["paths"].get(path) != item:
+            raise RuntimeError("dynamic old source root differs from fixed inventory")
+    for path in (remote.CHECKOUT, remote.MONITOR, remote.CHECKOUT + "/out",
+                 remote.CHECKOUT + "/out/" + remote.LABEL,
+                 remote.CHECKOUT + "/out/" + remote.LABEL + "-work",
+                 remote.CHECKOUT + "/research/run-logs/" + remote.LABEL + ".log",
+                 remote.CHECKOUT + "/research/run-logs/" + remote.LABEL + ".steps.jsonl",
+                 remote.CHECKOUT + "/research/run-logs/" + remote.LABEL + ".process.json",
+                 remote.CHECKOUT + "/research/run-logs/" + remote.LABEL + ".postflight.json",
+                 remote.OBSERVER + "/" + remote.LABEL + ".observer.json",
+                 remote.OBSERVER + "/" + remote.LABEL + ".observer.stderr.log"):
+        if probe["targets"].get(path, {}).get("exists") is not False:
+            raise RuntimeError("future checkout/monitor/output path already exists")
+    archive = probe["targets"].get(TARGET, {})
+    if before_write and archive.get("exists") is not False:
+        raise RuntimeError("new one-shot archive target already exists")
+    if not before_write and archive.get("exists") not in (True, False):
+        raise RuntimeError("postflight could not classify one-shot target")
+    if archive.get("exists") is True and (
+            archive.get("type") != "regular" or archive.get("mode") != "0o600" or
+            archive.get("uid") != 1000 or archive.get("nlink") != 1 or
+            archive.get("device") != identity["ancestry"]["ubuntu"]["device"]):
+        raise RuntimeError("partial/completed archive target metadata unsafe")
+    expected_stops = set(remote.STOP_PATHS + [
+        remote.CHECKOUT + "/research/agentic/STOP",
+        remote.CHECKOUT + "/research/v2/STOP"])
+    if set(probe["stops"]) != expected_stops or any(
+            item.get("exists") is not False for item in probe["stops"].values()):
+        raise RuntimeError("STOP path present or incomplete")
+    protected = probe["protected"]
+    checkpoint = protected["checkpoint"]
+    if (checkpoint.get("type") != "regular" or
+            (checkpoint.get("device"), checkpoint.get("inode")) != CHECKPOINT_DEV_INO or
+            checkpoint.get("uid") != 1000 or checkpoint.get("nlink") != 1 or
+            checkpoint.get("bytes") != CHECKPOINT_BYTES or
+            checkpoint.get("read_bytes") != CHECKPOINT_BYTES or
+            checkpoint.get("sha256") != CHECKPOINT_SHA256):
+        raise RuntimeError("protected checkpoint changed")
+    if (protected["cache_root"].get("type") != "directory" or
+            protected["cache_root"].get("device") != CACHE_DEV or
+            protected["cache_root"].get("uid") != 1000 or
+            set(protected["six_caches"]) != set(CACHE_INODES)):
+        raise RuntimeError("protected warm-cache root changed")
+    for name, inode in CACHE_INODES.items():
+        item = protected["six_caches"][name]
+        if (item.get("type") != "directory" or item.get("uid") != 1000 or
+                item.get("device") != CACHE_DEV or
+                item.get("inode") != inode):
+            raise RuntimeError("protected warm-cache child changed: " + name)
+    if (old["paths"][remote.CHECKPOINT] != {key: value for key, value in checkpoint.items()
+             if key not in ("read_bytes", "sha256")} or
+            old["paths"][remote.CACHE_ROOT] != protected["cache_root"]):
+        raise RuntimeError("old inventory and protected checkpoint/cache disagree")
+    if (probe["processes"].get("matched") != [] or
+            probe["processes"].get("unreadable_cmdlines") != 0):
+        raise RuntimeError("matched or unreadable trn22 process")
+    label = probe["science_label_scan"]
+    if (label.get("rc") != 0 or label.get("match_count") != 0 or
+            label.get("matches") != [] or label.get("truncated") is not False or
+            label.get("stderr_empty") is not True):
+        raise RuntimeError("r4 science label is already used or scan uncertain")
+    lock, neuron0, neuron_ls = (probe["shared_lock_fuser"],
+                                probe["neuron0_fuser"], probe["neuron_ls"])
+    checkpoint_fuser = probe["checkpoint_fuser"]
+    if (checkpoint_fuser.get("path_exists") is not True or
+            checkpoint_fuser.get("rc") != 1 or checkpoint_fuser.get("pids") != [] or
+            checkpoint_fuser.get("stderr_empty") is not True or
+            lock.get("pids") != [] or (lock.get("path_exists") and lock.get("rc") != 1) or
+            (lock.get("path_exists") and lock.get("stderr_empty") is not True) or
+            neuron0.get("path_exists") is not True or neuron0.get("rc") != 1 or
+            neuron0.get("pids") != [] or neuron0.get("stderr_empty") is not True or
+            neuron_ls.get("rc") != 0 or neuron_ls.get("stderr_empty") is not True or
+            neuron_ls.get("json_valid") is not True or
+            neuron_ls.get("schema_valid") is not True or
+            neuron_ls.get("device_count", 0) < 1 or
+            neuron_ls.get("non_diagnostic_pids") != []):
+        raise RuntimeError("shared lock or Neuron busy/uncertain")
+    return probe
+
+
+def compare_sessions(write, verify):
+    if (write.get("schema") != SCHEMA or verify.get("schema") != SCHEMA or
+            write.get("operation") != "write" or verify.get("operation") != "verify" or
+            write.get("status") != "HASH_VERIFIED_IN_THIS_SESSION_ONLY" or
+            verify.get("status") != write.get("status")):
+        raise RuntimeError("missing write plus independent read-only verify")
+    for receipt in (write, verify):
+        _identity(receipt)
+        if (receipt["path"] != TARGET or receipt["expected_bytes"] != SOURCE_BYTES or
+                receipt["expected_sha256"] != SOURCE_SHA256 or
+                receipt["readback_sha256"] != SOURCE_SHA256 or
+                receipt["target_stat"]["bytes"] != SOURCE_BYTES or
+                receipt["target_stat"]["mode"] != "0o600" or
+                receipt["target_stat"]["nlink"] != 1):
+            raise RuntimeError("receipt does not match exact capsule target")
+    if (write["streamed_sha256"] != SOURCE_SHA256 or
+            verify["streamed_sha256"] is not None or
+            write["target_stat"] != verify["target_stat"]):
+        raise RuntimeError("cross-session stream, inode or mode mismatch")
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+        if write["identity_after"][key] != verify["identity_before"][key]:
+            raise RuntimeError("cross-session host/boot/mount drift: " + key)
+    if write["process_identity"] == verify["process_identity"]:
+        raise RuntimeError("verification not in a distinct SSH process")
+    first, second = (datetime.datetime.fromisoformat(receipt["utc"])
+                     for receipt in (write, verify))
+    if first.tzinfo is None or second.tzinfo is None or second <= first:
+        raise RuntimeError("read-only verification did not occur after write")
+    return {"status": "CROSS_SESSION_PERSISTENCE_HASH_PASS", "path": TARGET,
+            "bytes": SOURCE_BYTES, "sha256": SOURCE_SHA256,
+            "target_stat": verify["target_stat"],
+            "boot_id": verify["identity_after"]["boot_id"]}
+
+
+def compare_postflight(pre, post, *, persistence=None):
+    validate_probe(pre, before_write=True)
+    validate_probe(post, before_write=False)
+    for key in ("hostname", "uid", "boot_id", "mount_namespace", "mount", "ancestry"):
+        if pre["identity_after"][key] != post["identity_before"][key]:
+            raise RuntimeError("pre/postflight host/boot/mount drift: " + key)
+    if pre["old_inventory"] != post["old_inventory"]:
+        raise RuntimeError("old r1/r2/r3 source/cache/output paths changed")
+    if pre["protected"] != post["protected"]:
+        raise RuntimeError("protected checkpoint/cache changed")
+    if persistence is not None:
+        target = post["targets"][TARGET]
+        if target != persistence["target_stat"] or target["bytes"] != SOURCE_BYTES:
+            raise RuntimeError("postflight archive inode differs from verified transfer")
+    return {"status": "READ_ONLY_POSTFLIGHT_PASS", "archive_exists":
+            post["targets"][TARGET]["exists"]}
+
+
+if __name__ == "__main__":
+    raise SystemExit("DISPATCH HOLD: this module only builds/reviews commands; it never opens SSH")
