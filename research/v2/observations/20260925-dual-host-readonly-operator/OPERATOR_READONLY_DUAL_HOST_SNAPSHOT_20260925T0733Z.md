@@ -89,9 +89,9 @@ parsed receipts, and before/after controller flags. The final paired remote
 source SHA-256 was
 `4a8b8ed413240c229ce943dd9bd8d6781bbddf7c348aa76b5b496f5c5d14f70a`.
 Neither raw stream was suppressed by the credential-pattern filter; neither
-contained SSH stderr. No PEM bytes, credentials, token or environment values
-were read or archived. No remote write, process signal, AWS API, marker use,
-training, evaluation, or submission occurred.
+contained SSH stderr. No PEM bytes were read, and no credentials, tokens or
+environment values were printed or archived. No remote write, process signal,
+AWS API, marker use, training, evaluation, or submission occurred.
 
 Final expanded raw receipts:
 
