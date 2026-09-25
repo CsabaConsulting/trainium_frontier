@@ -1,6 +1,9 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:25 UTC
+Last reconciled: 2026-09-25 06:30 UTC
+
+The Sep 25 noon-IST S0 submission-package target was missed. Neither of the
+required cold replays has begun, and no new file is ready for human upload.
 
 The distinct trn22 FIFO/nonblocking-lock transfer successor now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),

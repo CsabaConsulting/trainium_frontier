@@ -1,6 +1,6 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, but trn22's first final enabled transfer request and A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both distinct transfer repairs have disabled-only static PASS, but trn22's first final enabled transfer request and A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
 
 At 06:25 UTC, the [trn22 final transfer-only r1 candidate](authorizations/trn22-c5c-a0-r4-transfer-lock-final-r1/TRANSFER_REQUEST.FIFO_FINAL_R1.json)
 received [independent HOLD](verification/20260925-trn22-fifo-final-r1-independent-HOLD.md):
