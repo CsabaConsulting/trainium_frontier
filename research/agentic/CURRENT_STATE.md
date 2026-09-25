@@ -1,6 +1,17 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:52 UTC
+Last reconciled: 2026-09-25 06:03 UTC
+
+The distinct trn22 FIFO/nonblocking-lock transfer successor now has
+[independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),
+but remains dispatch HOLD pending a separately reviewed enabled request,
+fresh host checks and one-shot Supervisor assignment. No trn22 source transfer
+or scored run occurred. The trn21 final-r4 private-lock successor received
+[independent static HOLD](../v2/verification/20260925-trn21-r4-private-lock-independent-static-HOLD.md)
+because a below-floor terminal inode observation could falsely PASS the
+preflight/postflight validator; a distinct disabled repair is in progress.
+The trn22 A0 r5 native package remains under independent review. Best confirmed
+public20M is unchanged at 0.9918353324 single / 0.9919537735 two-run mean.
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 

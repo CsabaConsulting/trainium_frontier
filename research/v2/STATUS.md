@@ -1,6 +1,19 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22 disabled private-cache repair independently held on FIFO open with successor underway; trn21 disabled final-r4 lock successor and trn22 A0 r5 package under independent review; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn22's distinct nonblocking-lock successor has disabled-only static PASS, while trn21's final-r4 transfer has independent HOLD; trn22 A0 r5 package remains under review; scored training on both hosts HOLD; no new BPB result.**
+
+At 06:02 UTC, the [distinct trn22 nonblocking-lock successor](authorizations/trn22-c5c-a0-r4-transfer-lock-nonblock-hold/GATE_CONTRACT.HOLD.json)
+received [independent PASS for disabled static bytes only](verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md).
+FIFO and optimized-Python refusal negatives passed. An enabled request, separate
+final review, fresh host preflight and Supervisor assignment are still absent;
+no host transfer or native launch is authorized. The historical FIFO HOLD
+remains recorded.
+
+At 06:03 UTC, the [trn21 final-r4 private-lock successor](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R4_HOLD.json)
+received an [independent static HOLD](verification/20260925-trn21-r4-private-lock-independent-static-HOLD.md):
+the inherited validator could PASS preflight/postflight with terminal free
+inodes below the required floor. A distinct disabled repair is being prepared;
+no trn21 transfer is authorized.
 
 At 05:52 UTC, a [distinct disabled trn21 final-r4 lock successor](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R4_HOLD.json)
 and a [disabled trn22 A0 r5 control package](authorizations/trn22-c5c-a0-r5-native-hold/GATE_CONTRACT.json)
