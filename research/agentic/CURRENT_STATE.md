@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 12:35 UTC
+Last reconciled: 2026-09-25 12:42 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
 capacity. Both one-shot r10 source-stage attempts passed their fresh
@@ -20,10 +20,13 @@ retry and nonsecret failure classification passed independent static review
 no-write diagnostic (`5b60d9ec`) received independent static HOLD
 (`d8e70c2b`) because its separate remote GNU-timeout identity probe came
 after, rather than before, a diagnostic phase. The trn21 diagnostic
-(`2b1dbff6`) is built but awaiting independent static review. The distinct disabled
-trn22 r2 diagnostic (`e9ef3115`) now has independent static-only PASS
-(`6fe2b2a1`); it still needs a request-bound final review and Supervisor
-assignment before read-only host contact. Further write attempts
+(`2b1dbff6`) received independent static HOLD (`9ff556d4`): its local
+receipt parser could accept missing pre-open proof and an unexpected raw
+field; a narrow disabled repair is in progress. The distinct disabled trn22
+r2 diagnostic (`e9ef3115`) has independent static-only PASS (`6fe2b2a1`).
+Its exact enabled-pending read-only request (`0fe98ae2`) is awaiting a
+different request-bound final review and Supervisor assignment before host
+contact. Further write attempts
 are HOLD pending diagnosis and distinct independent authority. The human
 approved at most one new safe attempt per host **conditional on a read-only
 diagnosis identifying a fix and independent safety review**; see
