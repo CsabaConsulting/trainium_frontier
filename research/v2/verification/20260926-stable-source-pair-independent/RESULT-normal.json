@@ -1,0 +1,303 @@
+{
+  "verdict": "PASS_DISABLED_PAIR_MECHANICS_ONLY",
+  "checks": 90,
+  "candidate_commit": "3edbc186353891983ed8d02005fa16d4583830c6",
+  "plan_sha256": "518c039d570d02b5ac34a4649b866465e18df834061a992949841ca0b8981cca",
+  "driver_sha256": "25d154da94f03751ad8c962d750d05eeec90219c739acf6d1c4740d087bd49b6",
+  "helper_sha256": "85eef95494f6a4da41ee5284d5089b5fe6df7c2555c5bea5bc16e86965d7a8f4",
+  "driver_faults": {
+    "guard1": {
+      "children": 0,
+      "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+      "timeline": [
+        "guard1"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "guard2": {
+      "children": 0,
+      "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+      "timeline": [
+        "guard1",
+        "guard2"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "changed-fd": {
+      "children": 0,
+      "error": "LOCK_FD_CHANGED",
+      "timeline": [
+        "guard1",
+        "guard2"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "LOCK_FD_CHANGED",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "guard3": {
+      "children": 1,
+      "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "guard4": {
+      "children": 1,
+      "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3",
+        "validateS1",
+        "captureS1",
+        "guard4"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "guard5": {
+      "children": 2,
+      "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3",
+        "validateS1",
+        "captureS1",
+        "guard4",
+        "child2",
+        "guard5"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "GUARD_FIXTURE_BUSY_OR_ERROR",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "exit": {
+      "children": 1,
+      "error": "HARNESS_EXIT_NONZERO:S1",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "HARNESS_EXIT_NONZERO:S1",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "source-changed": {
+      "children": 1,
+      "error": "SOURCE_OR_PACKAGE_CHANGED_DURING_PHASE",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "SOURCE_OR_PACKAGE_CHANGED_DURING_PHASE",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "S1-acceptance": {
+      "children": 1,
+      "error": "S1_COLD_FIFTH_OVER_900",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3",
+        "validateS1"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "S1_COLD_FIFTH_OVER_900",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    },
+    "missing-inputs": {
+      "children": 1,
+      "error": "MATCHED_PRINCIPAL_COMPILER_BYTES_MISSING",
+      "timeline": [
+        "guard1",
+        "guard2",
+        "child1",
+        "guard3",
+        "validateS1",
+        "captureS1"
+      ],
+      "terminal": {
+        "utc": "fixture",
+        "status": "PAIR_REFUSED_OR_INCOMPLETE",
+        "error": "MATCHED_PRINCIPAL_COMPILER_BYTES_MISSING",
+        "no_retry": true,
+        "no_S2_fallback": true,
+        "no_eval": true,
+        "no_automatic_full": true
+      }
+    }
+  },
+  "no_hosts": true,
+  "no_tensors": true,
+  "no_training": true,
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "reuse_proven": false,
+  "actual_import_origin_observed": false,
+  "causal_path_only_proven": false,
+  "checks_passed": [
+    "manifest EXPERIMENT_PROPOSAL.json",
+    "manifest PAIR_BINDING.disabled.json",
+    "manifest checks-normal.json",
+    "manifest checks-optimized.json",
+    "manifest host_driver.py",
+    "manifest identity_checks.py",
+    "manifest test_packet.py",
+    "manifest README.md",
+    "manifest s1/package/launch-command.txt",
+    "manifest s1/package/provenance.json",
+    "manifest s2/package/launch-command.txt",
+    "manifest s2/package/provenance.json",
+    "manifest pin",
+    "driver/helper pins",
+    "compiled plan pin",
+    "source git bytes",
+    "harness immutable",
+    "prepare immutable",
+    "guard immutable",
+    "dispatch immutable",
+    "S1 science unchanged",
+    "S1 exact launch",
+    "S1 native settings",
+    "S1 exact shared caches",
+    "S1 timeout and no eval",
+    "S1 clean import env",
+    "S2 science unchanged",
+    "S2 exact launch",
+    "S2 native settings",
+    "S2 exact shared caches",
+    "S2 timeout and no eval",
+    "S2 clean import env",
+    "phase order/fresh distinction",
+    "exact original outer lock",
+    "disabled/no broad claims",
+    "immutable source identity stable/no import",
+    "import override",
+    "writable source",
+    "symlink ancestor",
+    "hardlink source",
+    "same-byte replacement differs",
+    "S1 inclusive900",
+    "S1 just over900",
+    "S2 inclusive charged1800",
+    "S2 over charged1800",
+    "S2 startup cap applied",
+    "receipt returncode",
+    "receipt step_boundaries",
+    "receipt charged_through_process_exit",
+    "receipt startup_allowance_observed",
+    "receipt charged_through_process_exit_within_budget",
+    "receipt wall_seconds",
+    "receipt checkpoint_sha256",
+    "receipt checkpoint_bytes",
+    "receipt fresh_empty_sdk_caches",
+    "unordered steps",
+    "nonfinite boundary",
+    "nonfinite loss",
+    "all rank exact input fixture",
+    "copied exact compiler fixture 7971a7e1ddf95851233620063457a9a070da9a1afa47f3c9392a29f6bedb4f20",
+    "copied exact compiler fixture a6442379d37b2d7988bf383dcdfab0c835544d7e5703ea8c5eb87411ebe3c2a2",
+    "missing exact compiler bytes refuses completeness",
+    "child inherited original fd 0",
+    "child inherited original fd 1",
+    "exact two synchronous phases",
+    "fail closed guard1",
+    "fail closed guard2",
+    "fail closed changed-fd",
+    "child inherited original fd 0",
+    "fail closed guard3",
+    "child inherited original fd 0",
+    "fail closed guard4",
+    "child inherited original fd 0",
+    "child inherited original fd 1",
+    "fail closed guard5",
+    "child inherited original fd 0",
+    "fail closed exit",
+    "child inherited original fd 0",
+    "fail closed source-changed",
+    "child inherited original fd 0",
+    "fail closed S1-acceptance",
+    "child inherited original fd 0",
+    "fail closed missing-inputs",
+    "guard both fresh checks",
+    "other driver not excluded",
+    "torchrun refuses",
+    "malformed neuron refuses",
+    "ps error refuses",
+    "neuron stderr refuses",
+    "direct invocation lacks authenticated outer flock"
+  ]
+}
