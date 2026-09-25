@@ -11,6 +11,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shlex
 import stat
 import subprocess
@@ -34,6 +35,10 @@ EXTRACTION_CODE_SHA256 = "e66afb7a1e3368ed7854eaa679e2bad9a6b8529e3b793e0f8fff2c
 PERSISTENCE_BUNDLE_SHA256 = "13db20bb2887eb6ff1c9feda31ea8453c9252ace18ff571021f866780e7cfe86"
 TRANSFER_PREFIX = "research/v2/authorizations/trn21-c5c-a0-stage-r2/"
 FLOOR = 10737418240
+ATTEMPT_MARKER_PATH = ("/home/poojith-devan/.local/state/"
+                       "trainium-trn21-c5c-a0-stage-r2-checkout-attempt-once.jsonl")
+FINAL_REVIEW_PATH = ("research/v2/authorizations/trn21-c5c-a0-stage-r2-checkout-request/"
+                     "INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json")
 
 
 def sha256(data):
@@ -107,7 +112,12 @@ def build_plan():
             request["extraction_code_sha256"] != EXTRACTION_CODE_SHA256 or
             request["remote_adapter_sha256"] != sha256(remote_source) or
             request["operator_wrapper_sha256"] != sha256(Path(__file__).read_bytes()) or
-            request["persistence_bundle_sha256"] != PERSISTENCE_BUNDLE_SHA256):
+            request["persistence_bundle_sha256"] != PERSISTENCE_BUNDLE_SHA256 or
+            request.get("attempt_marker_path") != ATTEMPT_MARKER_PATH or
+            request.get("attempt_marker_exclusive_fsync_before_any_host_contact") is not True or
+            request.get("attempt_marker_parent_mode_required") != "0700" or
+            request.get("independent_exact_request_review_path") != FINAL_REVIEW_PATH or
+            request.get("independent_exact_request_review_sha256") is not None):
         raise RuntimeError("checkout request drifted from reviewed code or evidence")
     validate_full_snapshot(terminal["final_postflight_snapshot"], request,
                            before_stage=True, require_fresh=False)
@@ -140,7 +150,11 @@ def build_plan():
             binding["stage_stdin_bytes"] != len(payload) or
             binding["host"] != request["host"] or
             binding["checkout_path"] != request["checkout_path"] or
-            binding["source_commit"] != request["source_commit"]):
+            binding["source_commit"] != request["source_commit"] or
+            binding.get("attempt_marker_path") != request["attempt_marker_path"] or
+            binding.get("independent_exact_request_review_path") !=
+            request["independent_exact_request_review_path"] or
+            binding.get("independent_final_review_sha256_supplied_by_later_supervisor_assignment") is not True):
         raise RuntimeError("exact one-attempt argv or payload binding drifted")
     return {"request": request, "request_sha256": sha256(request_bytes),
             "binding": binding, "binding_sha256": sha256(binding_bytes),
@@ -222,6 +236,92 @@ def validate_full_snapshot(snapshot, request, *, before_stage, require_fresh=Tru
     return snapshot
 
 
+def _unique_json_object(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise RuntimeError("duplicate key in independent review receipt")
+        value[key] = item
+    return value
+
+
+def verify_independent_request_review(plan, assignment):
+    """Rehash the actual later Verifier PASS receipt before any host contact.
+
+    The request fixes its path but deliberately does not embed its own future
+    review hash. The later Supervisor assignment supplies that SHA-256, avoiding
+    a request/review hash cycle while refusing a made-up digest or absent file.
+    """
+    relative = plan["request"]["independent_exact_request_review_path"]
+    expected = assignment.get("independent_request_review_sha256")
+    if (assignment.get("independent_request_review_path") != relative or
+            not isinstance(expected, str) or
+            re.fullmatch(r"[0-9a-f]{64}", expected) is None):
+        raise RuntimeError("DISPATCH HOLD: assignment has no exact final review path and SHA-256")
+    path = REPO / relative
+    cursor = REPO
+    for component in Path(relative).parts[:-1]:
+        cursor = cursor / component
+        info = os.lstat(cursor)
+        if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode):
+            raise RuntimeError("DISPATCH HOLD: final review ancestry is not a directory")
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+        try:
+            before = os.fstat(fd)
+            if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid() or
+                    before.st_nlink != 1 or before.st_mode & 0o022 or
+                    not 0 < before.st_size <= 1_048_576):
+                raise RuntimeError("DISPATCH HOLD: final review is not an intact local receipt")
+            chunks = []
+            while True:
+                chunk = os.read(fd, 65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                if sum(map(len, chunks)) > 1_048_576:
+                    raise RuntimeError("DISPATCH HOLD: final review exceeds size bound")
+            after = os.fstat(fd)
+        finally:
+            os.close(fd)
+    except OSError as error:
+        raise RuntimeError("DISPATCH HOLD: independent final review receipt is absent or unsafe") from error
+    data = b"".join(chunks)
+    if (len(data) != before.st_size or
+            (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) !=
+            (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) or
+            sha256(data) != expected):
+        raise RuntimeError("DISPATCH HOLD: actual independent final review SHA-256 differs")
+    try:
+        review = json.loads(data, object_pairs_hook=_unique_json_object)
+    except (UnicodeError, ValueError) as error:
+        raise RuntimeError("DISPATCH HOLD: independent final review is not JSON") from error
+    required = {
+        "schema": "trn21-c5c-a0-checkout-independent-final-request-review-v1",
+        "verdict": "PASS_EXACT_CHECKOUT_REQUEST_ONLY",
+        "prepared_by_role": "verifier",
+        "host": plan["request"]["host"],
+        "checkout_path": plan["request"]["checkout_path"],
+        "source_commit": plan["request"]["source_commit"],
+        "reviewed_request_sha256": plan["request_sha256"],
+        "reviewed_binding_sha256": plan["binding_sha256"],
+        "reviewed_operator_wrapper_sha256": plan["request"]["operator_wrapper_sha256"],
+        "reviewed_remote_adapter_sha256": plan["request"]["remote_adapter_sha256"],
+        "reviewed_audit_argv_sha256": plan["binding"]["audit_argv_sha256"],
+        "reviewed_stage_argv_sha256": plan["binding"]["stage_argv_sha256"],
+        "reviewed_stage_stdin_sha256": plan["binding"]["stage_stdin_sha256"],
+        "attempt_marker_path": plan["request"]["attempt_marker_path"],
+        "checkout_only": True,
+        "cpu_g2_authorized": False,
+        "native_training_authorized": False,
+        "evaluation_authorized": False,
+    }
+    if not isinstance(review, dict) or any(review.get(key) != value
+                                           for key, value in required.items()):
+        raise RuntimeError("DISPATCH HOLD: actual review does not PASS these exact bytes")
+    return {"path": relative, "sha256": expected}
+
+
 class Journal:
     """Exclusive, fsynced append-only local evidence; no overwrite or cleanup."""
 
@@ -230,12 +330,22 @@ class Journal:
         parent = self.path.parent
         info = parent.stat(follow_symlinks=False)
         if (not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or
-                info.st_mode & 0o022):
-            raise RuntimeError("journal directory must be owned and not group/world writable")
+                stat.S_IMODE(info.st_mode) != 0o700):
+            raise RuntimeError("attempt-marker directory must be owner-private 0700")
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC
         self.fd = os.open(self.path, flags, 0o600)
-        self.parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
-        os.fsync(self.parent_fd)
+        try:
+            self.parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            opened_parent = os.fstat(self.parent_fd)
+            if (opened_parent.st_dev, opened_parent.st_ino) != (info.st_dev, info.st_ino):
+                raise RuntimeError("attempt-marker parent changed during exclusive create")
+            os.fsync(self.fd)
+            os.fsync(self.parent_fd)
+        except BaseException:
+            if hasattr(self, "parent_fd"):
+                os.close(self.parent_fd)
+            os.close(self.fd)
+            raise
 
     def emit(self, event, **details):
         payload = canonical_json({"utc": datetime.datetime.now(
@@ -333,7 +443,7 @@ def _run_with_unconditional_postflight(plan, journal, transport):
 
 
 def operator_once(assignment, journal_path, transport=pinned_ssh_transport):
-    """Future Operator API; current disabled request and absent assignment refuse."""
+    """Future Operator API; one fixed fsynced marker is consumed before SSH."""
     plan = build_plan()
     request = plan["request"]
     if (request.get("checkout_authorized") is not True or
@@ -349,15 +459,22 @@ def operator_once(assignment, journal_path, transport=pinned_ssh_transport):
             assignment.get("binding_sha256") != plan["binding_sha256"] or
             assignment.get("stage_argv_sha256") != plan["binding"]["stage_argv_sha256"] or
             assignment.get("audit_argv_sha256") != plan["binding"]["audit_argv_sha256"] or
-            not isinstance(assignment.get("independent_request_review_sha256"), str) or
-            len(assignment["independent_request_review_sha256"]) != 64 or
+            assignment.get("attempt_marker_path") != request["attempt_marker_path"] or
+            assignment.get("independent_request_review_path") !=
+            request["independent_exact_request_review_path"] or
             assignment.get("fresh_local_breaker_and_stop_gate") is not True):
         raise RuntimeError("DISPATCH HOLD: no matching one-attempt Supervisor assignment")
-    journal = Journal(journal_path)
+    if str(journal_path) != request["attempt_marker_path"]:
+        raise RuntimeError("DISPATCH HOLD: caller path differs from fixed assignment-bound marker")
+    review = verify_independent_request_review(plan, assignment)
+    journal = Journal(request["attempt_marker_path"])
     try:
         journal.emit("EXACT_CHECKOUT_ASSIGNMENT_BOUND", assignment=assignment,
                      request_sha256=plan["request_sha256"],
-                     binding_sha256=plan["binding_sha256"])
+                     binding_sha256=plan["binding_sha256"],
+                     independent_request_review=review,
+                     marker_path=request["attempt_marker_path"],
+                     marker_consumed_before_host_contact=True)
         return _run_with_unconditional_postflight(plan, journal, transport)
     finally:
         journal.close()
