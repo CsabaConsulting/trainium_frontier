@@ -1,0 +1,186 @@
+{
+  "proposal_id": "20260925-l3-timer-dense-trn21-r1",
+  "status": "READY_PENDING_HOST_PREFLIGHT",
+  "owner_role": "Supervisor-assigned, exact binding materialized by Operator",
+  "human_selected_direction": "Poojith FINAL PUSH L3 and S-A; task assigned by Supervisor",
+  "hypothesis": "The Recursive schedule package improves public-20M BPB on the dense base under the unchanged 1800-second budget.",
+  "single_causal_change": "Recursive schedule ON versus dense c5c/LR0.015 same-host control. Candidate also contains the separately reviewed narrow startup lookahead reset after step5; startup cap, budget charging and all model/optimizer arithmetic outside the schedule are unchanged. Record this operational source difference explicitly.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "User-selected L3 exact Recursive schedule package",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Explicit current user priority; limited train.py-only change while A1/A2 run."
+    }
+  ],
+  "selection_rationale": "Supervisor explicitly assigned this independent dense schedule lane to available trn21 after A1 full result was negative. A2 warm repeat remains pending/unknown; this does not falsely select the table-negative branch.",
+  "p_improve": null,
+  "estimated_host_hours": null,
+  "trainium_feasibility": "Independent source/timer review plus exact full-parameter four-rank CPU G2 and three-step default-OFF identity passed for 6ef7. Native compilation and full-budget BPB remain unmeasured.",
+  "cheapest_falsifier": "Independent diff review, exact-size CPU G2 and already completed boundary/flag-OFF checks; abort on any finite/state/load failure.",
+  "prior_result_refs": [
+    "research/v2/verification/20260925-trn22-c5c-a0-r10-result-independent-PASS.md",
+    "research/v2/verification/20260925-trn22-a2-exact-cpu-g2-r2-independent-NUMERIC-PASS.md",
+    "3f6fcf8864a683871706ba6022bb2eb057b72e97:research/v2/verification/20260925-s-a-a2-l4-new-directive-independent-HOLD.md"
+  ],
+  "evidence": [
+    "workflow/parallel_ai_lanes.md",
+    "workflow/codex_directive_final_push.txt",
+    "research/v2/lanes/recursive-schedule/README.md",
+    "https://github.com/recursive-org/first-steps-toward-automated-ai-research/blob/a962ec43e2e3d7c018e59a2ece623fe6e232fdfb/nanochat_autoresearch/solutions/optimized_from_karpathy.py",
+    "research/v2/operator/20260925-trn21-l3-timer-dense-g2-r1/g2.json",
+    "research/v2/operator/20260925-trn21-l3-timer-dense-off-g2-r1/identity-vs-c5c.json",
+    "research/v2/operator/20260925-trn21-a1-full-final/OPERATOR_RESULT.md"
+  ],
+  "duplicate_search_terms": [
+    "recursive-schedule",
+    "S-A",
+    "decoupled warmdown",
+    "NorMuon beta2"
+  ],
+  "control": {
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "required": "trn21 exact c5c A0 dense LR0.015; same full-chip shape, seed, data, compiler and fresh20M/context1024",
+    "available_a0_controls": {
+      "trn21": {
+        "run_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+        "public_val_bpb": 0.9914739939934344,
+        "steps": 3675
+      },
+      "trn22": {
+        "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r10",
+        "public_val_bpb": 0.991513958330512,
+        "steps": 3633
+      }
+    },
+    "table_control_status": "not applicable",
+    "steps": 3675,
+    "public_val_bpb": 0.9914739939934344,
+    "box_constraint": "trn21 only",
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "review": "research/v2/verification/20260925-trn21-c5c-a0-r1-result-independent-PASS.md",
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "evaluated_utc": "2026-09-25T14:26:47Z",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ]
+  },
+  "candidate": {
+    "branch": "agent/control-plane-20260921",
+    "files_allowed": [
+      "train.py"
+    ],
+    "repository_candidate_path": "workflow/proposals/research-v2/train.py",
+    "train_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "expected_diff": "Default-OFF Recursive schedule package plus separately reviewed startup predictor reset; no model/evaluator/data changes.",
+    "run_label": "fs-20260925-l3-timer-dense-trn21-r1-full",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --recursive-schedule --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--recursive-schedule",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "source_commit": "a4aa4351"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": true,
+    "cpu_or_static_checks": true,
+    "cpu_scope": "Exact6ef7/denseON productionargv4rank3stepCPU G2 PASS; fullparameters, synthetic2x256microforward, nativeTorch2.11.",
+    "numerical_equivalence": true,
+    "numerical_equivalence_scope": "Exact6ef7defaultOFF versus exactc5c, fullwidth1024,all12losses and62parameterdigests andownershipplanidentical.",
+    "causality": null,
+    "causality_note": "Model forward/eval unchanged by reviewed source composition; no new hardware causality measurement is claimed.",
+    "smoke_run": false,
+    "human_run_approval": true,
+    "independent_review_status": "PASS research-only fb540549; fresh host preflight and Supervisor proposal check remain.",
+    "independent_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
+    "independent_review_sha256": "ae1de1421162f3f7e91328e9eb522d6f06736e0bf8917a28aa64657435431282"
+  },
+  "success_criteria": {
+    "quality": "Use unchanged decide.py thresholds on fresh public-20M/context-1024; delta <= -0.005 allows provisional research adoption under current directive, pending replicate.",
+    "throughput": "Record steps/tok-s and budget; no speed claim before hardware.",
+    "correctness": "Finite training, loadable checkpoint, true causality gate, within budget, exact-source preflight and archived eval."
+  },
+  "abort_conditions": [
+    "Independent verifier rejects code or identity",
+    "Exact-size CPU G2 fails",
+    "Any correctness/budget/source-identity check fails",
+    "Machine is not clean and idle"
+  ],
+  "human_approved_by": "Poojith current standing development directive, subject to gates; no submission authorization",
+  "verdict": null,
+  "native_profile_selection": "Explicit Supervisor assignment for the independent dense schedule lane; do not adopt a table/no-table research base from pending A2.",
+  "queue_binding": {
+    "host": "trn21",
+    "label": "fs-20260925-l3-timer-dense-trn21-r1-full",
+    "source_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015",
+      "--recursive-schedule",
+      "--seed",
+      "42",
+      "--max-train-seconds",
+      "1800",
+      "--num-steps",
+      "1000000",
+      "--out-dir",
+      "out"
+    ],
+    "kind": "schedule_arm",
+    "arm_id": "L3-timer-dense",
+    "base_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586"
+  }
+}
