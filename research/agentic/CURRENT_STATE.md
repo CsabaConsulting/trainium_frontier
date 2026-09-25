@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 05:01 UTC
+Last reconciled: 2026-09-25 05:21 UTC
 
 ## Latest handoff: both transfer writers HOLD; CPU evidence archived
 
@@ -28,6 +28,15 @@ after source analysis found the same label-timing gap. Its 04:58 UTC
 [read-only host snapshot](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_READONLY_FINAL_R3_FEASIBILITY_20260925T045814Z.md)
 was clean, but is only point-in-time feasibility; it does not override the
 writer HOLD. No transfer assignment may be issued for trn22 r3.
+The newer trn22 [disabled lock-and-final-scan repair](../v2/authorizations/trn22-c5c-a0-r4-transfer-lock-final-scan-hold/GATE_CONTRACT.HOLD.json)
+has an [independent static HOLD](../v2/authorizations/trn22-c5c-a0-r4-transfer-lock-final-scan-hold/INDEPENDENT_LOCK_FINAL_SCAN_STATIC_HOLD.md):
+its runbook misstates a transport hash, and its group-write directory policy
+rejects the host's observed `0775` lock parent. A separate read-only
+[lock feasibility check](../v2/authorizations/trn22-c5c-a0-r4-source-feasibility/OPERATOR_LOCK_READONLY_FEASIBILITY_20260925T051136Z.md)
+did acquire and release the existing lock without a metadata change, but
+does not clear that policy HOLD. On trn21, a separate
+[disabled final-r3 repair](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R3_HOLD.json)
+is under independent static review; its live lock-parent modes are unknown.
 Neither r4 transfer has touched a host. Both scored controls, both S0 cold replays, and
 table runs remain unstarted; best confirmed public20M is unchanged at
 0.9918353324 single / 0.9919537735 two-run mean. The Sep 25 noon-IST S0
