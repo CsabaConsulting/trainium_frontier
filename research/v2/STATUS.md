@@ -1,7 +1,8 @@
 # Workflow installation and incremental launch status
 
-At 07:42 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
-was archived at `7929cc2a` and sent for independent evidence review. Both
+At 07:47 UTC, the [07:33 UTC dual-host Operator snapshot](observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
+was archived at `7929cc2a` and received a [bounded independent PASS](verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
+at `9868d9a6` for the final host pair and ACL follow-up. Both
 machines were idle in its bounded process/device/lock checks, with about
 54 GiB free each; the exact existing e65 c5c A0 checkouts were clean and
 matched pinned model/evaluator hashes. This is not fresh launch preflight or

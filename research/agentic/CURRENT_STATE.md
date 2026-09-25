@@ -1,9 +1,10 @@
 # Current state
 
-Last reconciled: 2026-09-25 07:42 UTC
+Last reconciled: 2026-09-25 07:47 UTC
 
 The [07:33 UTC dual-host Operator snapshot](../v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T0733Z.md)
-is archived at `7929cc2a` and awaiting independent evidence review. At that
+is archived at `7929cc2a` and has a [bounded independent PASS](../v2/verification/20260925-dual-host-readonly-final-pair-independent-PASS.md)
+at `9868d9a6` for the final host pair and ACL follow-up. At that
 instant both hosts had about 54 GiB free, no matched train/eval, Neuron-device
 or host-lock holder, and clean e65 c5c A0 source checkouts with matching model
 and evaluator hashes. This is point-in-time observation, not launch preflight or
