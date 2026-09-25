@@ -53,6 +53,8 @@ def host_check():
     free = os.statvfs("/").f_bavail * os.statvfs("/").f_frsize
     assert free >= 10 * 1024**3, "DISK"
     assert (A0 / "run-exit-code.txt").is_file() and (A0 / "eval-exit-code.txt").is_file(), "A0_NOT_TERMINAL"
+    assert (A0 / "run-exit-code.txt").read_text().strip() == "0", "A0_TRAIN_FAILED"
+    assert (A0 / "eval-exit-code.txt").read_text().strip() == "0", "A0_EVAL_FAILED"
     for p in ("/home/ubuntu/research/agentic/STOP", "/home/ubuntu/research/v2/STOP", "/home/ubuntu/trainium_freshstart_20260918/research/agentic/STOP", "/home/ubuntu/trainium_freshstart_20260918/research/v2/STOP", str(PREP.parent / "research/agentic/STOP"), str(PREP.parent / "research/v2/STOP")):
         assert not os.path.lexists(p), "STOP"
     assert sha(PREP) == C["prep_sha"], "PREPARE_FILE"
