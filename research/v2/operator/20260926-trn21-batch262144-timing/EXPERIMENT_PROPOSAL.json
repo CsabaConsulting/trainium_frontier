@@ -123,8 +123,8 @@
     "min_relative_tok_s_gain": 0.05,
     "threshold_tok_s": 282272.55,
     "primary": "Same-definition median printed tokens/s at steps10,20,...100 vs archived same-host control's identical early window.",
-    "additional_conservative_check": "Observed100step aggregate26214400/(boundary104-boundary4) must also reach282272.55 before recommending a full run. Baseline lacks same external observer, so report this as a conservative cross-method check, not a paired aggregate measurement.",
-    "fail_or_incomplete": "Missing105sequentialboundaries, fewer10printed samples, any bad/nonfinite loss, accumulationnot2, malformedreceipt, nonzeroexit, budgetfailure or either speedcheck below5%: no full recommendation, archiveactual reason.",
+    "aggregate_sanity_diagnostic_only": "Report observed100step aggregate26214400/(boundary104-boundary4), but do not compare it as a veto to the historical printed median. No same-window control aggregate is available. Divergence/stalls are reported for review; matched10..100 median alone owns the5% speed decision.",
+    "fail_or_incomplete": "Missing105sequentialboundaries, fewer10printed samples, any bad/nonfinite loss, accumulationnot2, malformedreceipt, nonzeroexit, budgetfailure or matchedmedian speedgain below5%: no full recommendation, archiveactual reason. Preserve actual stall/hang evidence; do not silently convert a different throughput estimator into another numeric gate.",
     "pass": "Only SPEED_SCREEN_PASS_PENDING_REVIEW; never quality/adoption/cold/submission evidence. A full1800+fresh20M and all native/cold gates remain separate."
   },
   "measurement_caveat": "Documented rank0 STEP_LOG writes are inside source dt here but absent from historical control; harness polls outside model. Extra logging can conservatively lower candidate TPS, and sample medians are not full-run averages. No P profiler active.",

@@ -21,15 +21,16 @@ new scoped release, after current P/CT work; ready K1/K2 can preempt this packet
 Predeclared same-host baseline is completed control
 fs-20260925-l3-base-repeat-trn21-r2-full. At steps10,20,...100 its median printed
 speed is268831tokens/s (all LR multipliers1.000). The5% threshold is282272.55.
-Compare the identical printed window, not short-run BPB. Also require observed
-100-step candidate aggregate speed to reach that threshold as a conservative
-cross-method check: there is no same-observer aggregate baseline. Rank0 documented
+Compare the identical printed window, not short-run BPB. Report observed100-step
+candidate aggregate speed as a sanity diagnostic only: there is no same-observer
+aggregate baseline, so it must not veto against the historical printed median.
+Preserve divergence/stall/hang/budget evidence for review. Rank0 documented
 STEP_LOG writes add real overhead absent from the historical control; disclose
 it instead of treating sampled/aggregate definitions as interchangeable.
 
 The offline analyzer verifies native/accumulation markers, finite logged samples,
 105 sequential boundaries, checkpoint and budget receipt, expected LR window,
-and both speed checks. It cannot launch, adopt or approve a full run. Any failure
+and the matched median speed check. It cannot launch, adopt or approve a full run. Any failure
 archives the actual error. Source/cold/native/full1800+public20M gates remain.
 
 Reuse the reviewed shared guardadafb54a and dispatcher c71474bc. The same common
