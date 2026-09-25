@@ -88,6 +88,11 @@ try:
     require(rc == 0, 'DIAGNOSTIC_EXIT_' + str(rc))
     ranks = [json.loads((ROOT / 'receipts/diagnostic' / ('diagnostic-rank' + str(r) + '.json')).read_text()) for r in range(4)]
     require(all(v['verdict'] == 'DIAGNOSTIC_ONLY_NOT_COMPONENT_PASS' and v['train_sha256'] == SOURCE_SHA and v['checker_sha256'] == BINDING['checker_sha256'] and v['label'] == PHASE['label'] and v['world_size'] == 4 and v['rank'] == i for i, v in enumerate(ranks)), 'DIAGNOSTIC_RECEIPTS')
+    expected_cases = {'original_compiled_bound_apply', 'compiled_enclosing_wrapper',
+                      'eager_apply_inspected', 'compiled_bound_apply_inspected_replay'}
+    require(all(set(v['cases']) == expected_cases and
+                all(case['status'] == 'OBSERVED' for case in v['cases'].values())
+                for v in ranks), 'DIAGNOSTIC_CASE_INCOMPLETE')
     record('postflight.json', checks())
     record('terminal.json', {'utc': utc(), 'status': 'DIAGNOSTIC_COMPLETE_NOT_COMPONENT_PASS', 'label': PHASE['label'],
                             'source_sha256': SOURCE_SHA, 'exit_code': rc, 'ranks': ranks})
