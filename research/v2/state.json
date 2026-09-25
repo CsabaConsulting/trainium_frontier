@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T16:43:38Z",
+  "written_utc": "2026-09-25T17:47:00Z",
   "latest_handoff_20260925_1555z": {
     "trn21": {
       "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
@@ -67,12 +67,13 @@
   },
   "active_standing_directive": {
     "compile_correction": "workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md",
-    "latest_correction": "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md",
+    "latest_correction": "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
     "path": "workflow/codex_directive_final_push.txt",
     "sha256": "dd3a2d852f9d9b546aa891f11b3e27c0654d45833c4814aff4a7f3e1d846050c",
     "overrides": "Older missions and conflicting priorities, including the app goal's stale MOONSHOT wording; legality and human-only actions remain",
     "lane_prompts": "workflow/parallel_ai_lanes.md",
-    "table_first_policy": "OVERRIDDEN; A1 DISCARD, A2 human-aborted, no table adoption"
+    "table_first_policy": "OVERRIDDEN; A1 DISCARD, A2 human-aborted, no table adoption",
+    "priority_correction": "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md"
   },
   "laptop_restart_recovery_20260925_1512z": {
     "local_boot_ist": "2026-09-25T20:36:27+05:30",
@@ -97,10 +98,12 @@
     "first_place_official_user_snapshot": 0.9464,
     "top_ten_cutoff_official_user_snapshot": 0.9824,
     "snapshot_source": "workflow/CONTROLLER_PROMPT.md (user supplied on 2026-09-25 IST; not independently live-refreshed)",
-    "confirmed_local_public20m_single": 0.9918353324459732,
-    "confirmed_local_public20m_two_run_mean": 0.99195377346572045,
-    "first_place_gap_estimate_public20m": 0.045,
-    "gap_caveat": "Approximate public-to-official offset is unverified for the current stack; do not treat this as a score prediction"
+    "confirmed_local_public20m_single": 0.9900560897366009,
+    "confirmed_local_public20m_two_run_mean": 0.9901674436550496,
+    "first_place_gap_estimate_public20m": null,
+    "gap_caveat": "No public-to-official prediction; leaderboard numbers above remain dated user snapshots.",
+    "confirmed_research_adoption": "research/v2/adoptions/20260925-recursive-schedule.json",
+    "official_score_user_report": 0.9901
   },
   "latest_handoff_20260925_1408z": {
     "trn22_a0": "TRAIN_COMPLETE_3633_STEPS_CHECKPOINT_SAVED_FRESH_PUBLIC20M_EVAL_ACTIVE_UNSCORED",
@@ -594,20 +597,16 @@
   },
   "hosts": {
     "trn21": {
-      "label": "fs-20260925-l3-timer-dense-trn21-r1-full",
-      "arm_id": "L3-timer-dense",
-      "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
-      "started_utc": "2026-09-25T16:26:55Z",
-      "last_process_check_utc": "2026-09-25T17:09:50.977320Z",
-      "status": "TRAIN_COMPLETE_FRESH_PUBLIC20M_EVAL_RUNNING",
-      "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
-      "queue_pid": 2930000,
-      "workers": [],
-      "startup_complete": true,
-      "df_h_root_available": "46G",
-      "pending_staged_fallback_count": 6,
+      "training_steps": null,
+      "training_seconds": null,
+      "startup_seconds": null,
+      "public_20m": null,
+      "over_budget": null,
+      "submission_eligible": false,
+      "cold_startup_proven": false,
+      "previous_completed_result": "research/v2/adoptions/20260925-recursive-schedule.json",
+      "pending_staged_fallback_count": 5,
       "fallback_labels": [
-        "fs-20260925-fp-c5c-matrixlr0175-trn21-r1",
         "fs-20260925-fp-c5c-warmdown085-trn21-r1",
         "fs-20260925-fp-c5c-wd035-trn21-r1",
         "fs-20260925-fp-c5c-embedlr045-trn21-r1",
@@ -616,50 +615,38 @@
       ],
       "resolved_manifest": "research/v2/operator/20260925-trn21-overnight-fallback-tail-r1/resolved-schedule-plus-six-r1.json",
       "resolved_manifest_sha256": "a1377a2db5acadbbcd8e701ad5f16662f48408315243888e3355139cd4e5931b",
-      "receipt": "research/v2/operator/20260925-trn21-l3-timer-dense-full-r1/",
-      "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
-      "submission_eligible": false,
       "launch_allowed": true,
-      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
-      "last_process_check_scope": "Training terminal and evaluation launch; ongoing monitoring by assigned Operator",
-      "previous_training_workers": [
-        2930018,
-        2930019,
-        2930020,
-        2930021
+      "label": "fs-20260925-fp-c5c-matrixlr0175-trn21-r1",
+      "arm_id": "matrixlr0175",
+      "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+      "started_utc": "2026-09-25T17:30:02.143813Z",
+      "last_process_check_utc": "2026-09-25T17:30:32.584526Z",
+      "status": "FOUR_WORKERS_STARTUP_AT_LAST_ARCHIVED_CHECK",
+      "driver": "HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
+      "queue_pid": 2957850,
+      "torchrun_pid": 2957853,
+      "workers": [
+        2957868,
+        2957869,
+        2957870,
+        2957871
       ],
-      "training_steps": 3669,
-      "training_ended_utc": "2026-09-25T17:09:50.977320Z",
-      "training_exit_code": 0,
-      "eval_pid": 2954582,
-      "public_20m": null,
-      "training_seconds": 1784.8,
-      "startup_allowance_est": 783.4,
-      "charged_seconds_est": 1785.2,
-      "over_budget": false,
-      "last_training_progress_sample": {
-        "step": 450,
-        "loss": 3.3391,
-        "tokens_per_second": 269966,
-        "observed_utc": "2026-09-25T16:43:38Z"
-      },
-      "completion_receipt": "research/v2/operator/20260925-trn21-l3-timer-dense-full-r1/",
-      "owned_pause_after_eval": true,
-      "next_priority": "Exact9212 CPU ON/OFF/c5c; independent numeric review, then prepared FP8 native matched timing",
-      "fallback_handback": "Six staged jobs preserved; Operator resumes serial fallback if priority gate blocks, never dual launch"
+      "free_disk_bytes_at_preflight": 46720876544,
+      "receipt": "research/v2/operator/20260925-trn21-l1-fp8-native-r1/fallback-live-proof.json",
+      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
+      "next_priority": "Reviewed bounded FP8 backward diagnostic only after current train and fresh20M finish; native component failure still blocks timing/quality",
+      "owned_pause_after_eval": false,
+      "fallback_handback": "FP8 correctness failed; original queue restored, no breaker reset, five unstarted fallbacks"
     },
     "trn22": {
-      "label": "fs-20260925-l3-timer-dense-trn22-r1-full",
-      "arm_id": "L3-timer-dense",
-      "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
-      "started_utc": "2026-09-25T16:32:57.497606Z",
-      "last_process_check_utc": "2026-09-25T17:16:28.191784Z",
-      "status": "TRAIN_COMPLETE_FRESH_PUBLIC20M_EVAL_RUNNING",
-      "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
-      "queue_pid": 3053905,
-      "workers": [],
-      "startup_complete": true,
-      "df_h_root_available": "45G",
+      "training_steps": null,
+      "training_seconds": null,
+      "startup_seconds": null,
+      "public_20m": null,
+      "over_budget": null,
+      "submission_eligible": false,
+      "cold_startup_proven": false,
+      "previous_completed_result": "research/v2/adoptions/20260925-recursive-schedule.json",
       "pending_staged_fallback_count": 6,
       "fallback_labels": [
         "fs-20260925-fp-c5c-matrixlr0125-trn22-r1",
@@ -671,37 +658,30 @@
       ],
       "resolved_manifest": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/resolved-with-six-fallbacks.json",
       "resolved_manifest_sha256": "c0b539a2a95a8a19ac81f75215151ab6ef82a5e7309d4d5a27bb9147453cf7f3",
-      "receipt": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/",
-      "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
-      "submission_eligible": false,
       "launch_allowed": true,
-      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
-      "last_process_check_scope": "Training terminal and evaluation launch; ongoing monitoring by assigned Operator",
-      "previous_training_workers": [
-        3053923,
-        3053924,
-        3053925,
-        3053926
+      "label": "fs-20260925-l2-unet8x1024-93ae-trn22-full-r1",
+      "arm_id": "L2-unet8x1024",
+      "train_py_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
+      "started_utc": "2026-09-25T17:41:38.131604Z",
+      "last_process_check_utc": "2026-09-25T17:43:12Z",
+      "status": "FOUR_WORKERS_COMPILING_AT_LAST_ARCHIVED_CHECK",
+      "driver": "REVIEWED_MANUAL_DETACHED_TRAIN_THEN_FRESH_PUBLIC20M",
+      "flock_pid": 3079487,
+      "driver_pid": 3079488,
+      "torchrun_pid": 3079490,
+      "workers": [
+        3079505,
+        3079506,
+        3079507,
+        3079508
       ],
-      "training_steps": 3657,
-      "training_ended_utc": "2026-09-25T17:16:28.191784Z",
-      "training_exit_code": 0,
-      "eval_pid": 3077306,
-      "public_20m": null,
-      "training_seconds": 1784.9,
-      "startup_allowance_est": 817.9,
-      "charged_seconds_est": 1785.3,
-      "over_budget": false,
-      "last_training_progress_sample": {
-        "step": 0,
-        "loss": 9.0112,
-        "tokens_per_second": 298,
-        "observed_utc": "2026-09-25T16:43:38Z"
-      },
-      "completion_receipt": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/completed-training/",
+      "free_disk_bytes_at_preflight": 46126444544,
+      "receipt": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/",
+      "source_review": "research/v2/verification/20260925-trn22-architecture-fullsize-cpu-PASS.md",
+      "launch_scope": "Only exact completed architecture proposal accepted02ed1896; old queue exited; no concurrent launchers",
       "owned_pause_after_eval": true,
-      "next_priority": "Exact93ae CPU ON/OFF/c5c/6ef7; independent numeric review, then prepared architecture full run",
-      "fallback_handback": "Six staged jobs preserved; Operator resumes serial fallback if priority gate blocks, never dual launch"
+      "next_priority": "Finish architecture and fresh20M, then Operator handback to checked priority or preserved fallback",
+      "fallback_handback": "Six fallbacks preserved; old queue must stay exited while manual driver runs"
     }
   },
   "breakers": {
@@ -749,7 +729,7 @@
     }
   ],
   "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
-  "updated_utc": "2026-09-25T16:43:38Z",
+  "updated_utc": "2026-09-25T17:47:00Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -765,7 +745,7 @@
   },
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {
-    "trn21": 6,
+    "trn21": 5,
     "trn22": 6
   },
   "table_a1_exact_gate_package": {
@@ -984,7 +964,7 @@
     }
   },
   "latest_post_a1_handoff": {
-    "utc": "2026-09-25T16:43:38Z",
+    "utc": "2026-09-25T17:47:00Z",
     "authority": "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md",
     "a1": {
       "status": "DISCARD",
@@ -1008,14 +988,18 @@
       "receipt": "research/v2/operator/20260925-trn22-a2-warm-r2-human-stop/"
     },
     "next_priority": [
-      "checked8x1024 architecture",
-      "verified FP8 matched whole-step timing, >=3% faster before full run",
-      "required confirmations",
-      "one later A1 epoch2-freeze diagnostic",
-      "staged scalar fallback bank when no higher-priority ready job"
+      "Finish isolated architecture on trn22 and scalar arm on trn21",
+      "Reviewed bounded FP8 backward diagnostic after a free slot",
+      "Confirmations and new proposals on adopted Recursive research base",
+      "One later A1 epoch2-freeze diagnostic after collective-correctness gate",
+      "Staged scalar fallback when no higher-priority checked job is ready"
     ],
     "cache": "Actual live TORCH_NEURONX NEFF/local/HLO roots verified persistent; train.py setdefault does not override. NEFF files are written. Effective hit/miss cause unproven; do not enable disabled NKI persistence blindly.",
     "official_score_user_report": 0.9901,
-    "new_bpb_gain": false
+    "new_bpb_gain": true,
+    "research_adoption": "research/v2/adoptions/20260925-recursive-schedule.json",
+    "research_mean_public20m": 0.9901674436550496,
+    "fp8": "NATIVE_BACKWARD_CORRECTNESS_FAILED; diagnostic under independent review; no timing or quality acceptance",
+    "architecture": "Exact93ae launched17:41:38UTC; warm research only; no result"
   }
 }

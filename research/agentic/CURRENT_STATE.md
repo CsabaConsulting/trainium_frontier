@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 17:40 UTC
+Last reconciled: 2026-09-25 17:47 UTC
 
 ## Latest adoption and native handoff, 17:40 UTC
 
@@ -30,9 +30,18 @@ pause was recoverably renamed. Source/control stays the declaredc5c contrast.
 
 trn22 architecture93ae passed actual8x1024 CPU ON plus exact OFF identity to
 bothc5c and6ef7, and root released the prepared native job at02ed1896 after
-independent raw numeric review. Operator is launching the declared isolated
-architecture arm againstc5c; do not silently add the newly adopted schedule.
-Six fallbacks are preserved. No native result is claimed until launch receipt.
+independent raw numeric review. It actually launched at17:41:38UTC /
+23:11:38IST, with four native workers confirmed and compilation active.
+Label: `fs-20260925-l2-unet8x1024-93ae-trn22-full-r1`. The comparison stays
+againstc5c; do not silently add the newly adopted schedule. Fresh20M eval
+is attached to the detached driver. Six fallbacks are preserved with the
+old queue exited; the Operator must hand back only after train AND eval finish.
+Evidence: `research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/`.
+This is a launch, not a native correctness/quality or cold-cache pass.
+
+Current host fields in `research/v2/state.json` and `queue.json` are reconciled
+to these receipts. Five fallback jobs remain unstarted on trn21, six on trn22.
+Timestamped historical handoffs below and in JSON are not current host state.
 
 Both next native bindings retain startup/exit evidence; warm research is NOT
 cold-cache proof. The architecture needs measured cold accounting before any
