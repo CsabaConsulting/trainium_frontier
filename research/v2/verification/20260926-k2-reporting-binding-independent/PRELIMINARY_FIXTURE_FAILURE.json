@@ -1,0 +1,7 @@
+{
+  "scope": "Independent review script construction only, no host/tensor/checker execution",
+  "error": "RuntimeError: literal check exists eager_autograd_forward",
+  "cause": "Own static test incorrectly expected complete generated labels as source literals; exact checker generates mode + '_forward' or '_backward'.",
+  "correction": "Inspect actual AST string constants and derive the four prescribed mode/suffix labels. No candidate, threshold or expected case inventory changed.",
+  "candidate_failure": false
+}
