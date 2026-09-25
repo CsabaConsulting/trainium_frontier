@@ -13,7 +13,7 @@ ROOT = Path('/home/ubuntu/trainium_l1_fp8_native_20260925_trn21_r1')
 BINDING_SHA = '552c9cee54c9e107c3a33c59fc937bc084ad928cfb560adf661c0fc7f52d6fa7'
 SOURCE_SHA = '921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858'
 QUEUE_ROOT = Path('/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1')
-REVIEW_PATH = ROOT / 'cpu-independent-review.json'
+REVIEW_PATH = ROOT / 'cpu-independent-review.md'
 REVIEW_SHA = sys.argv[1]
 
 def utc():
