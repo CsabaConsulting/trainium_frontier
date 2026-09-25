@@ -1,23 +1,26 @@
 # Current state
 
-Last reconciled: 2026-09-25 11:45 UTC
+Last reconciled: 2026-09-25 11:55 UTC
 
 The immediate execution bottleneck is source staging, not idea supply or disk
-capacity. Trn22's prior r4 one-attempt stage stopped locally **before SSH or
-marker creation** (`532ded62`) because it checked the local uutils `timeout`
-instead of the remote GNU command. The exact r5 repair (`7f5e0bd3`) received
-independent source-stage-only PASS (`66de5da3`), and the Supervisor issued a
-new one-attempt, stage-only assignment (`80de62ef`). An independent assignment
-check and fresh Operator preflight are pending; **no r5 host stage has run**.
-Trn21's previous read-only timing failed its strict one-second freshness gate
-at 1.161466714 seconds (`228abbb5`). Its distinct one-final-scan r4 repair
-(`826d1dc5`) received disabled static PASS (`b8c9c36b`), and an exact enabled
-stage-only request (`49f2941f`) is awaiting independent final review. No
-trn21 r4 host stage has run. Both r10 A0 control proposals are independently
-verified and Supervisor-selected (`6a3aa8e9`, `8aec974e`), but native launch
-remains HOLD on each host until source and native gates pass. Neither host has
-a new scored run or BPB. The best confirmed local public20M/context-1024
-result remains 0.9918353324 (single) / 0.9919537735 (two-run mean).
+capacity. Trn22's exact r5 one-shot source-stage attempt passed fresh preflight
+and the live remote GNU timeout check, then failed during the write SSH phase
+(`ad925338`). Its marker is consumed, but a distinct-process postflight found
+**no bundle or target**, intact e65 science/checkpoint/caches, no holder or
+STOP, and about 58.45 GB free. The independent result is HOLD (`b1387247`):
+the reviewed wrapper suppressed the remote error, so the underlying cause is
+**unknown**, not proven to be timing. There was no cleanup, retry, native run,
+or eval. A separately labelled, disabled repair with bounded pre-open timing
+retry and nonsecret failure classification is being developed; any future
+stage needs fresh independent authority. Trn21's r4 enabled stage request
+received independent final HOLD (`06451f16`) for a narrow STOP-before-remote-
+probe gap. Its distinct disabled r5 repair (`2db60693`) is under independent
+static review; no trn21 r10 host stage has run. Both r10 A0 control proposals
+remain selected (`6a3aa8e9`, `8aec974e`), but native launch is HOLD on both
+hosts. A disabled trn21 native package (`726eca9f`) is under independent
+static review. Neither host has a new scored run or BPB. The best confirmed
+local public20M/context-1024 result remains 0.9918353324 (single) /
+0.9919537735 (two-run mean).
 
 Earlier 10:50 UTC handoff follows; later paragraph statuses may have been
 superseded by the update above.
