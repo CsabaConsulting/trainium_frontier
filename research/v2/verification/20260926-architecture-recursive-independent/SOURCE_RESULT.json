@@ -1,0 +1,183 @@
+{
+  "verdict": "PASS_SOURCE_AND_REDUCED_NUMERICAL_SCOPE_ONLY_FRESH_REVIEW_PENDING",
+  "checks": 2835,
+  "decimal_lr_cases": 462,
+  "maximum_decimal_lr_error": 1.1102230246251565e-16,
+  "on_changed_final_tensors": 65,
+  "source_hashes": {
+    "baseline": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+    "candidate": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+    "adopted": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+  },
+  "raw_receipt_hashes": {
+    "reference": "ab20ac34f011c476cee5913e812730f16c78bf273d9ca5a71281b166b3cdc357",
+    "default": "db8f03e81d0ecd8db096e66dddfe7c09928465ac0a41322483a446f406803b7c",
+    "off": "47a53a74dbb868dbb2beccccc1bd08dacea9abb58b21e44cdf9e53c3df5b0b57",
+    "on": "fac24e14937223420f431b06ac2a55555c31dcf8363c3a3ab1861cd971a76db2"
+  },
+  "raw_plan_sha256": "83b06c658067902fe9e255779ce792e5117006563c932b16bc1f4bba6f6595d5",
+  "test_name_sha256": "9af52f822f07066d0d44f05705a4ae6a85a130575497321d71b2028c70a59ad6",
+  "static_and_receipt_tests": [
+    "exact source pins",
+    "lr_multiplier exact adopted AST",
+    "muon_momentum exact adopted AST",
+    "muon_beta2 exact adopted AST",
+    "GPT unchanged baseline AST",
+    "GPTConfig unchanged baseline AST",
+    "_SubmissionEvalGPT unchanged baseline AST",
+    "load_for_eval unchanged baseline AST",
+    "save_checkpoint unchanged baseline AST",
+    "_install_submission_training unchanged baseline AST",
+    "device scalar fill unchanged",
+    "beta2 scalar transport (False, -1.0)",
+    "beta2 scalar transport (True, -1.0)",
+    "beta2 scalar transport (False, 0.97)",
+    "group kind/flat precedence ('adamw', True)",
+    "group kind/flat precedence ('rmsprop', False)",
+    "group kind/flat precedence ('rmsprop', True)",
+    "checkpoint toggle restoration {}",
+    "checkpoint toggle restoration {'toggles': {'RECURSIVE_SCHEDULE': False}}",
+    "checkpoint toggle restoration {'toggles': {'RECURSIVE_SCHEDULE': True}}",
+    "CLI default false",
+    "reference source pin",
+    "reference actual CPU scope",
+    "reference all rank ids",
+    "reference rank finite/update/consistency 0",
+    "reference rank finite/update/consistency 1",
+    "reference rank finite/update/consistency 2",
+    "reference rank finite/update/consistency 3",
+    "reference rank0 all65 retained digests",
+    "reference actual retained reload",
+    "default source pin",
+    "default actual CPU scope",
+    "default all rank ids",
+    "default rank finite/update/consistency 0",
+    "default rank finite/update/consistency 1",
+    "default rank finite/update/consistency 2",
+    "default rank finite/update/consistency 3",
+    "default rank0 all65 retained digests",
+    "default actual retained reload",
+    "off source pin",
+    "off actual CPU scope",
+    "off all rank ids",
+    "off rank finite/update/consistency 0",
+    "off rank finite/update/consistency 1",
+    "off rank finite/update/consistency 2",
+    "off rank finite/update/consistency 3",
+    "off rank0 all65 retained digests",
+    "off actual retained reload",
+    "on source pin",
+    "on actual CPU scope",
+    "on all rank ids",
+    "on rank finite/update/consistency 0",
+    "on rank finite/update/consistency 1",
+    "on rank finite/update/consistency 2",
+    "on rank finite/update/consistency 3",
+    "on rank0 all65 retained digests",
+    "on actual retained reload",
+    "default exact actual12losses/all65rank0finaldigests/plan",
+    "off exact actual12losses/all65rank0finaldigests/plan",
+    "ON intentionally differs"
+  ],
+  "numeric_grid": {
+    "warmup_steps": [
+      0,
+      3,
+      300
+    ],
+    "steps": [
+      0,
+      1,
+      2,
+      3,
+      299,
+      300,
+      600
+    ],
+    "elapsed_seconds": [
+      -180.0,
+      0.0,
+      89.999999,
+      90.0,
+      90.000001,
+      450.0,
+      630.0,
+      900.0,
+      1710.0,
+      1800.0,
+      1980.0
+    ],
+    "max_train_seconds": 1800,
+    "kinds": [
+      "muon",
+      "adamw"
+    ],
+    "independent_reference_tolerance": 2e-15,
+    "exact_adopted_and_OFF_comparisons": true
+  },
+  "representative_ON_values": [
+    {
+      "progress": 0,
+      "step": 600,
+      "muon_lr": 1.0,
+      "adam_lr": 1.0,
+      "momentum": 0.95,
+      "beta2": 0.95
+    },
+    {
+      "progress": 0.05,
+      "step": 600,
+      "muon_lr": 1.0,
+      "adam_lr": 1.0,
+      "momentum": 0.95,
+      "beta2": 0.95
+    },
+    {
+      "progress": 0.25,
+      "step": 600,
+      "muon_lr": 0.8,
+      "adam_lr": 1.0,
+      "momentum": 0.9429085872576177,
+      "beta2": 0.9542105263157894
+    },
+    {
+      "progress": 0.35,
+      "step": 600,
+      "muon_lr": 0.7000000000000001,
+      "adam_lr": 1.0,
+      "momentum": 0.9340443213296399,
+      "beta2": 0.9563157894736841
+    },
+    {
+      "progress": 0.5,
+      "step": 600,
+      "muon_lr": 0.5499999999999999,
+      "adam_lr": 0.7807692307692307,
+      "momentum": 0.9140997229916897,
+      "beta2": 0.9594736842105263
+    },
+    {
+      "progress": 0.95,
+      "step": 600,
+      "muon_lr": 0.10000000000000006,
+      "adam_lr": 0.12307692307692314,
+      "momentum": 0.8063988919667591,
+      "beta2": 0.9689473684210526
+    },
+    {
+      "progress": 1,
+      "step": 600,
+      "muon_lr": 0.05,
+      "adam_lr": 0.05,
+      "momentum": 0.79,
+      "beta2": 0.97
+    }
+  ],
+  "fullsize_cpu": "PENDING",
+  "native": "PENDING",
+  "cold": "PENDING",
+  "quality": "PENDING",
+  "production_source_edited": false,
+  "tensor_allocations": false,
+  "hosts": false
+}
