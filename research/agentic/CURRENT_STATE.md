@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 06:44 UTC
+Last reconciled: 2026-09-25 06:48 UTC
 
 The Sep 25 noon-IST S0 submission-package target was missed. Neither of the
 required cold replays has begun, and no new file is ready for human upload.
@@ -9,9 +9,11 @@ Distinct trn22 final-r2 and trn21 r5 final transfer-only candidates now have
 [HOLDs](../v2/verification/20260925-trn21-r5-enabled-final-transfer-independent-HOLD.md)
 for STOP introduced during a slow remote final label scan before archive
 creation. Neither has assignment or host action. A narrow
-operational launcher-source successor is also under independent static
-review; it leaves the model and scoring files unchanged. No native control
-or table run has started.
+operational launcher-source successor `e74f9995` received independent
+HOLD at `339c3009`: it still accepts an unbounded `timeout 0` and permits a
+non-source fingerprint to reach the local SSH seam. A distinct source repair
+is being prepared; model and scoring files remain unchanged. No native
+control or table run has started.
 
 The distinct trn22 FIFO/nonblocking-lock transfer successor now has
 [independent disabled-only static PASS](../v2/verification/20260925-trn22-fifo-nonblock-5740-independent-static-review.md),

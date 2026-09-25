@@ -2,6 +2,14 @@
 
 Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; both disabled transfer repairs passed static review, but the trn21 and trn22 enabled transfer requests and trn22 A0 r5 native package have independent HOLDs; scored training on both hosts HOLD; no new BPB result. The Sep 25 noon-IST S0 package target was missed because both cold replays remain unstarted.**
 
+At 06:48 UTC, the narrow launcher-source successor `e74f9995` received
+independent HOLD at `339c3009` (branch
+`codex/20260925-trn22-a0-launcher-r7-source-hold-verifier`). Its explicit
+optimization refusal works, but local and remote gates still accept
+`timeout 0`, and a non-source fingerprint reaches a local receipt/SSH seam.
+These were reproduced with fake contact only. A distinct r8 source repair
+is being prepared; neither r7 nor the frozen launcher may run natively.
+
 At 06:44 UTC, the [trn21 r5 enabled transfer-only request](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R5_ENABLED_PENDING_REVIEW.json)
 received [independent HOLD](verification/20260925-trn21-r5-enabled-final-transfer-independent-HOLD.md):
 STOP introduced during its potentially slow final label scan could reach
