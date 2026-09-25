@@ -1,0 +1,90 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "2",
+    "--out-dir",
+    "/home/ubuntu/trainium_c5c_a1_exact_g2_20260925_trn21_r2/tmp/g2-sg1ufc20/out"
+  ],
+  "cross_rank_mismatches": [],
+  "losses": [
+    9.013445854187012,
+    9.026535987854004
+  ],
+  "n_changed": 68,
+  "n_params": 68,
+  "plan_sha256": "82ad32341246717dbcca790065f1724fc70e40ee014130167e6faff19dfcaad4",
+  "plan_summary": {
+    "elements_by_owner": [
+      27405059,
+      30540035,
+      30408963,
+      29362179
+    ],
+    "estimated_ms_by_owner": [
+      12.991316601116363,
+      12.99464796558983,
+      12.984647965589831,
+      12.988706969361804
+    ],
+    "shard_elements": 30540160,
+    "total_padded_bytes": 488642560
+  },
+  "rank": 1,
+  "rmsprop_trace": {
+    "calls": 2,
+    "checks": [
+      {
+        "grad_abs_median_touched": 5.638867150992155e-10,
+        "max_abs_err_over_lr": 0.0067636438104701395,
+        "numel": 67108864,
+        "rows_touched": 2045,
+        "step_t": 1,
+        "untouched_rows_unchanged": true
+      },
+      {
+        "grad_abs_median_touched": 5.602487362921238e-10,
+        "max_abs_err_over_lr": 0.0067636438104701395,
+        "numel": 67108864,
+        "rows_touched": 2042,
+        "step_t": 1,
+        "untouched_rows_unchanged": true
+      },
+      {
+        "grad_abs_median_touched": 8.905772119760513e-09,
+        "max_abs_err_over_lr": 0.01690799639071428,
+        "numel": 67108864,
+        "rows_touched": 2045,
+        "step_t": 2,
+        "untouched_rows_unchanged": true
+      },
+      {
+        "grad_abs_median_touched": 8.905772119760513e-09,
+        "max_abs_err_over_lr": 0.017789718444982852,
+        "numel": 67108864,
+        "rows_touched": 2043,
+        "step_t": 2,
+        "untouched_rows_unchanged": true
+      }
+    ],
+    "optimizer_steps": 2
+  },
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens",
+    "MuonAdamW._rmsprop_step traced (float64 recomputation of every table update)"
+  ],
+  "status": "PASS",
+  "tables": [
+    "ngram_embeds.b5.weight",
+    "ngram_embeds.t5.weight"
+  ],
+  "torch": "2.11.0+cpu",
+  "unchanged_params": [],
+  "unchanged_tables": []
+}
