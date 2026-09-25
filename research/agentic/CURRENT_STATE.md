@@ -1,6 +1,65 @@
 # Current state
 
-Last reconciled: 2026-09-25 15:55 UTC
+Last reconciled: 2026-09-25 16:43:38 UTC
+
+## Post-A1 priority change; both schedule jobs running; overnight queues installed
+
+`workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md` now controls. Earlier
+table-first conditional branches below are HISTORICAL and overridden. The
+final fresh public-20M/context-1024 A1 result is **0.9986312057378084**, versus
+same-host trn21 control **0.9914739939934344**, delta **+0.007157211744374**:
+DISCARD for quality, not a throughput-confounded result. A1 completed 3,051
+steps versus its same-host control's 3,675 (16.98% fewer), native training
+1784.9 s and charged estimate1785.5 s. First five logged steps total991.79 s;
+uncapped full process startup remains unknown. Do not substitute the900 s cap.
+
+A2-r1's five-step score is INVALID QUALITY. Per Poojith's explicit request,
+A2 warm-r2 was stopped at **16:29:30 UTC /21:59:30 IST**, workers clear by
+16:29:32 UTC. It completed one step, no checkpoint and no eval. Preserve its
+raw `TRAINING_EXIT_1` as an induced human abort, never a model-quality loss.
+Receipt: `research/v2/operator/20260925-trn22-a2-warm-r2-human-stop/`.
+
+Both hosts now run exact timer-fixed Recursive source **6ef7d090**:
+
+- trn21: `fs-20260925-l3-timer-dense-trn21-r1-full`, started16:26:55 UTC /
+  **21:56:55 IST**. At16:43:38 UTC, all four workers live, step450, loss3.3391,
+  269,966 tokens/s, remaining1583 s. Root disk46G available.
+- trn22: `fs-20260925-l3-timer-dense-trn22-r1-full`, started16:32:57 UTC /
+  **22:02:57 IST**. At16:43:38 UTC, all four workers live, first step completed
+  in440.55 s, still startup. Root disk45G available. This is the requested
+  schedule fallback while architecture's full-size gates remain pending.
+
+Each reviewed host-resident serial queue automatically follows training with
+fresh public20M/context1024 eval, then has **six actually staged/armed c5c
+scalar fallback jobs**. trn21 order: matrixLR.0175, warmdown.85, WD.35,
+embeddingLR.45, finalLRfraction0, matrixLR.0125. trn22 order: matrixLR.0125,
+embeddingLR.45, finalLRfraction0, WD.35, warmdown.85, matrixLR.0175. Evidence:
+`research/v2/operator/20260925-trn21-overnight-fallback-tail-r1/` and
+`research/v2/operator/20260925-trn22-l3-timer-dense-r1/`. New checked architecture,
+FP8 and required replicates preempt only the unstarted tail. No dual launcher.
+
+L2 timer-fixed architecture93ae1f92 and L1 timer-fixed FP8921271d7 have
+independent source/reduced-CPU/timer review, but **full-size CPU G2 and native
+checks remain pending**. Independent review:
+`research/v2/verification/20260925-lane-timer-ports-and-gather-review.md`.
+Their launch packets are being prepared by separate local implementers. FP8
+needs a matched full-step speedup >=3% before a full quality run. Current
+queue registry supports c5c/f9b6/6ef7, not93ae/9212: a separately reviewed
+registry addition or the proven manual path is required for those new sources.
+
+Live cache inspection proves intended persistent TORCH_NEURONX NEFF/local/HLO
+roots, not train.py's `/tmp` default, are in use. NEFF files are being written.
+It does **not** yet prove hits or the reason for repeat compilation. The SDK
+hashes serialized MLIR plus version/configuration; NKI dump persistence is
+disabled upstream for correctness reasons. Do not enable it speculatively.
+Evidence: `research/v2/operator/20260925-trn21-live-cache-diagnosis/`.
+
+Tables are low priority: only one later A1 freeze-at-epoch2 test after the
+higher-value arms. Memorization remains a hypothesis. Gather-outside-compile
+code is reviewed and parked, not a next hardware job. No new BPB improvement
+has been measured; latest official score remains human-reported **0.9901**.
+
+## Historical handoffs (superseded where they conflict with the section above)
 
 ## Latest correction and A2 startup truncation, 15:55 UTC
 

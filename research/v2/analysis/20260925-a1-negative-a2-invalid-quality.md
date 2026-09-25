@@ -50,6 +50,15 @@ The observed BPB was independently recomputed from164,930,432nats and
 
 ## Consequences
 
+Update16:43 UTC: the bullets immediately below describe the earlier handoff.
+Poojith subsequently stopped A2-r2 at16:29:30 UTC after one completed step,
+no checkpoint and no eval. Its status is `human_aborted_not_quality`.
+`workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md` supersedes the old
+continue-A2 policy: both hosts now run the gated dense Recursive arm, with
+checked architecture and FP8 prioritized. Six staged scalar fallbacks per
+host are permitted only behind ready higher-value work. No automatic table
+adoption, A3 or table-base LR branch follows this negative/aborted evidence.
+
 - A2-r2 launched16:01:54UTC /21:31:54IST, exactc5c, warm and RESEARCH_ONLY.
   Read-only snapshot16:21:05UTC showed step0 at1040.11s, proving directory
   reuse has not removed the first-step delay. No claim of effective hits.

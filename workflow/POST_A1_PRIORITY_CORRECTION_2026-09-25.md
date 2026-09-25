@@ -40,8 +40,15 @@ A2 warm-r2 stopped at16:29:30.734UTC /21:59:30IST with targeted SIGTERM.
 By16:29:32.735UTC expected workers had exited and Neuron was clear. Subsequent
 Operator inspection16:30:50UTC confirmed no live compiler/eval/queue process
 and a free shared lock. One completed step, dt1040.11s, no checkpoint/eval.
-The raw Operator receipt is being retrieved; these timestamps are reported
-by the assigned Operator, not an invented result.
+The raw Operator receipt is archived at
+`research/v2/operator/20260925-trn22-a2-warm-r2-human-stop/` and includes the
+targeted signals, process identities, raw terminal error and empty-device
+postflight. These are observed timestamps, not an invented result.
+
+trn22 Recursive6ef7 launched16:32:57UTC /22:02:57IST. Both reviewed serial
+queues now have six staged/armed scalar fallback jobs, as documented in
+`research/v2/queue.json`. Source/timer gates for architecture93ae and FP89212
+are partially complete, but their full-size CPU/native checks remain pending.
 
 The six completed c5c scalar-flag proposals per host are authorized as a
 fallback tail after active schedule jobs. They remain explicitly lower

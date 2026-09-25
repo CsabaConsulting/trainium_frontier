@@ -12,10 +12,11 @@ OVERRIDDEN. Preserve cache/timer investigation and all unchanged legal gates.
 
 ## Latest correction (Poojith, 25 September 21:11 IST)
 
-The subsequent `workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md` also
-controls: rerun A2 warm as research-only, measure cold startup before any table
-submission, prioritize gather/graph-count compile fixes, and CPU-verify clearing
-excluded startup durations from the stop predictor without changing charging.
+`workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md` remains active only
+where consistent with the newer post-A1 correction: measure cold startup and
+CPU-verify clearing excluded startup durations from the predictor without
+changing charging. Its A2 rerun and table-compile priority are OVERRIDDEN;
+A2 is stopped and the reviewed gather patch is parked.
 
 Read `workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md` first. Work is resumed.
 The fixed-1800-second A1/A2 table arms are explicitly step-window exempt;

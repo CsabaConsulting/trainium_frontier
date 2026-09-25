@@ -1,22 +1,64 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T15:55:00Z",
+  "written_utc": "2026-09-25T16:43:38Z",
   "latest_handoff_20260925_1555z": {
-    "trn21": {"label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full", "observed_utc": "2026-09-25T15:51:20Z", "status": "TRAINING", "step": 2500, "tokens_per_second": 239536, "remaining_training_seconds": 313},
-    "trn22": {"label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full", "observed_utc": "2026-09-25T15:51:19Z", "status": "TRAIN_STARTUP_TRUNCATED_FRESH_PUBLIC20M_EVAL_RUNNING", "training_exitcode": 0, "steps": 5, "first_two_step_seconds": [1056.75, 903.47], "startup_allowance_observed": 900.0, "charged_through_process_exit": 1097.294311970938, "eligible_for_table_quality_branch": false},
+    "trn21": {
+      "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+      "observed_utc": "2026-09-25T15:51:20Z",
+      "status": "TRAINING",
+      "step": 2500,
+      "tokens_per_second": 239536,
+      "remaining_training_seconds": 313
+    },
+    "trn22": {
+      "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full",
+      "observed_utc": "2026-09-25T15:51:19Z",
+      "status": "TRAIN_STARTUP_TRUNCATED_FRESH_PUBLIC20M_EVAL_RUNNING",
+      "training_exitcode": 0,
+      "steps": 5,
+      "first_two_step_seconds": [
+        1056.75,
+        903.47
+      ],
+      "startup_allowance_observed": 900.0,
+      "charged_through_process_exit": 1097.294311970938,
+      "eligible_for_table_quality_branch": false
+    },
     "queue": "CONDITIONAL_RUNNER_7BEAD4C9_TESTED_REVIEW_IN_PROGRESS_NOT_INSTALLED",
     "table_step_window": "EXEMPT_ONLY_WITH_TABLE_KIND_THROUGHPUT_EXEMPT_TRUE_BUDGET1800; OTHER_GATES_UNCHANGED",
-    "local_builders": {"L1": "GPT-6 Astra FP8 implementation active", "L2": "GPT-6 Astra commit99261e75; tiny tests PASS; independent review and exact-size G2 pending"},
+    "local_builders": {
+      "L1": "GPT-6 Astra FP8 implementation active",
+      "L2": "GPT-6 Astra commit99261e75; tiny tests PASS; independent review and exact-size G2 pending"
+    },
     "fable": "NO_MORE_CALLS_OR_REWORDED_RETRIES",
     "recursive_schedule": "f9b6a9cb integrated; tiny checks PASS; committed independent receipt and exact-size selected-profile G2 pending",
     "new_quality_result": null
   },
   "latest_handoff_20260925_1524z": {
-    "trn21": {"label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full", "started_utc": "2026-09-25T15:11:55Z", "driver_pid": 2905397, "torchrun_pid": 2905399, "status": "FOUR_WORKERS_LIVE_STARTUP", "last_live_check_utc": "2026-09-25T15:19:28Z", "eval": "HOST_DETACHED_FRESH_PUBLIC20M_AFTER_TRAIN"},
-    "trn22": {"label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full", "started_utc": "2026-09-25T15:12:50Z", "driver_pid": 3043794, "torchrun_pid": 3043813, "status": "FOUR_WORKERS_LIVE_STARTUP", "last_live_check_utc": "2026-09-25T15:19:28Z", "eval": "HOST_DETACHED_FRESH_PUBLIC20M_AFTER_TRAIN"},
+    "trn21": {
+      "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+      "started_utc": "2026-09-25T15:11:55Z",
+      "driver_pid": 2905397,
+      "torchrun_pid": 2905399,
+      "status": "FOUR_WORKERS_LIVE_STARTUP",
+      "last_live_check_utc": "2026-09-25T15:19:28Z",
+      "eval": "HOST_DETACHED_FRESH_PUBLIC20M_AFTER_TRAIN"
+    },
+    "trn22": {
+      "label": "fs-20260925-v2-c5c-a2-m64d128-trn22-r1-full",
+      "started_utc": "2026-09-25T15:12:50Z",
+      "driver_pid": 3043794,
+      "torchrun_pid": 3043813,
+      "status": "FOUR_WORKERS_LIVE_STARTUP",
+      "last_live_check_utc": "2026-09-25T15:19:28Z",
+      "eval": "HOST_DETACHED_FRESH_PUBLIC20M_AFTER_TRAIN"
+    },
     "a0_controls": "BOTH_INDEPENDENT_PASS_AND_RECORDED_IN_LEDGER",
     "table_cpu_g2": "A1_AND_A2_INDEPENDENT_NUMERIC_PASS",
-    "ready_pending_host_preflight": {"trn21": 6, "trn22": 6},
+    "ready_pending_host_preflight": {
+      "trn21": 6,
+      "trn22": 6
+    },
     "host_queue_runner": "UNDER_INDEPENDENT_REVIEW_NOT_INSTALLED",
     "bedrock_l1_l2": "BOTH_LAUNCHED_151752Z_THEN_TERMINATED_PROVIDER_FRONTIER_LLM_NO_PATCH",
     "bedrock_evidence": "research/v2/bedrock/20260925-l1-l2-recovery.md",
@@ -25,11 +67,12 @@
   },
   "active_standing_directive": {
     "compile_correction": "workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md",
-    "latest_correction": "workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md",
+    "latest_correction": "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md",
     "path": "workflow/codex_directive_final_push.txt",
     "sha256": "dd3a2d852f9d9b546aa891f11b3e27c0654d45833c4814aff4a7f3e1d846050c",
     "overrides": "Older missions and conflicting priorities, including the app goal's stale MOONSHOT wording; legality and human-only actions remain",
-    "lane_prompts": "workflow/parallel_ai_lanes.md"
+    "lane_prompts": "workflow/parallel_ai_lanes.md",
+    "table_first_policy": "OVERRIDDEN; A1 DISCARD, A2 human-aborted, no table adoption"
   },
   "laptop_restart_recovery_20260925_1512z": {
     "local_boot_ist": "2026-09-25T20:36:27+05:30",
@@ -86,7 +129,10 @@
     "s0_submission_gate": "HOLD_REQUIRE_WARM_S0_VS_COLD_116188_DIAGNOSTIC_AND_CLEAN_S0_COLD_FULL_REPLAY_PUBLIC20M_INDEPENDENT_REVIEW",
     "host_training_deadline": "BOTH_HOSTS_LAUNCHED_BEFORE_20260925T143000Z; A0_LAUNCH_IS_NOT_A_SCORED_RESULT",
     "confirmed_new_public20m_bpb": null,
-    "next_scheduled_diagnostics": ["trn21 S0 normal warm research cache after trn21 A0", "known-good 116188 fresh empty cold cache on next compatible slot"],
+    "next_scheduled_diagnostics": [
+      "trn21 S0 normal warm research cache after trn21 A0",
+      "known-good 116188 fresh empty cold cache on next compatible slot"
+    ],
     "table_queue": "A1_A2_PREPARATION_CONTINUES; FULL_TABLE_RUNS_NOT_READY_UNTIL_CPU_G2_NATIVE_SMOKE_AND_SAME_HOST_A0_SCORE"
   },
   "latest_handoff_20260925_1324z": {
@@ -95,7 +141,10 @@
     "trn22_a0": "fs-20260925-v2-c5c-a0-control-trn22-r10_RUNNING_FOUR_RANKS_NO_RESULT_YET",
     "confirmed_new_public20m_bpb": null,
     "s0_failure_excerpt": "RuntimeError: Compilation error occurred on Neuron for operation=nki_kernel_global; COMPILATION FAILED: Failed to read file: .../cache/debug/neuronx-cc/47773f9a3f7185347fc76735876b8080/module.neff",
-    "first_launch_times": {"trn21_s0_utc": "2026-09-25T13:17:22Z", "trn22_a0_utc": "2026-09-25T13:19:56Z"},
+    "first_launch_times": {
+      "trn21_s0_utc": "2026-09-25T13:17:22Z",
+      "trn22_a0_utc": "2026-09-25T13:19:56Z"
+    },
     "note": "Launch is not success; post-launch receipts and public20M remain pending. S0 label consumed, no score."
   },
   "latest_handoff_20260925_1321z": {
@@ -105,7 +154,10 @@
     "first_launch_ist": "2026-09-25T18:47:22+05:30",
     "both_hosts_training_before_2000_ist": true,
     "confirmed_new_public20m_bpb": null,
-    "preassigned_conditional_followup_counts": {"trn21": 1, "trn22": 0},
+    "preassigned_conditional_followup_counts": {
+      "trn21": 1,
+      "trn22": 0
+    },
     "followup_caveat": "trn21 A0 is preassigned after S0 with exact c5c CPU G2 PASS, but cannot launch while S0 runs. A1/A2 and other moonshot arms remain gate-pending, not six ready jobs per host. Do not claim a result or automatic queue yet.",
     "control_plane_status": "manual one-off launches active; workflow-v2 run_job.py and old autoloop remain inactive; never dual-launch"
   },
@@ -121,7 +173,10 @@
     "human_r10_stage_retry_decision": "ONE_NEW_SAFE_ATTEMPT_PER_HOST_CONDITIONAL_ON_READONLY_DIAGNOSIS_AND_INDEPENDENT_SAFETY_REVIEW_NO_NATIVE_OR_CLEANUP",
     "trn21_r10_a0_native": "726ECA9F_INDEPENDENT_STATIC_PASS_A254D223_DISABLED_ONLY_NO_TRAINING",
     "trn22_r10_a0_native": "8BDC727B_INDEPENDENT_STATIC_PASS_AE718458_DISABLED_ONLY_NO_TRAINING",
-    "ready_job_counts": {"trn21": 0, "trn22": 0},
+    "ready_job_counts": {
+      "trn21": 0,
+      "trn22": 0
+    },
     "scored_controls_started": false,
     "new_public20m_bpb": null,
     "launch_authorized": false
@@ -132,7 +187,10 @@
     "trn21_r10_stage_r5": "2DB60693_DISABLED_STOP_REPAIR_STATIC_REVIEW_PENDING_NO_HOST_STAGE",
     "trn21_r10_a0_native": "726ECA9F_DISABLED_IMPLEMENTER_PACKAGE_INDEPENDENT_STATIC_REVIEW_PENDING_NO_TRAINING",
     "trn22_r10_a0_native": "8BDC727B_INDEPENDENT_STATIC_PASS_AE718458_DISABLED_ONLY_NO_TRAINING",
-    "ready_job_counts": {"trn21": 0, "trn22": 0},
+    "ready_job_counts": {
+      "trn21": 0,
+      "trn22": 0
+    },
     "scored_controls_started": false,
     "new_public20m_bpb": null,
     "launch_authorized": false
@@ -142,7 +200,10 @@
     "trn21_r10_stage_r4": "826D1DC5_DISABLED_STATIC_PASS_B8C9C36B_ENABLED_REQUEST_49F2941F_INDEPENDENT_FINAL_REVIEW_PENDING_NO_HOST_STAGE",
     "trn21_r10_a0_proposal": "96FCEC98_INDEPENDENT_PROPOSAL_PASS_DD9891C6_SUPERVISOR_RATIFIED_8AEC974E_NATIVE_HOLD",
     "trn22_r10_a0_proposal": "1CF9A290_INDEPENDENT_PROPOSAL_PASS_E0755B6E_SUPERVISOR_RATIFIED_6A3AA8E9_NATIVE_HOLD",
-    "ready_job_counts": {"trn21": 0, "trn22": 0},
+    "ready_job_counts": {
+      "trn21": 0,
+      "trn22": 0
+    },
     "scored_controls_started": false,
     "new_public20m_bpb": null,
     "launch_authorized": false
@@ -153,7 +214,10 @@
     "trn22_r10_a0_native_r1": "8BDC727B_INDEPENDENT_STATIC_PASS_AE718458_DISABLED_ONLY_NO_TRAINING",
     "trn22_r10_stage_enabled_request": "IMPLEMENTATION_IN_PROGRESS_NO_STAGE_OR_NATIVE_AUTHORITY",
     "trn21_r10_stage_enabled_request": "PENDING_LIVE_TIMING_NO_STAGE_OR_NATIVE_AUTHORITY",
-    "ready_job_counts": {"trn21": 0, "trn22": 0},
+    "ready_job_counts": {
+      "trn21": 0,
+      "trn22": 0
+    },
     "scored_controls_started": false,
     "new_public20m_bpb": null,
     "launch_authorized": false
@@ -163,7 +227,10 @@
     "trn21_r10_timing_r1": "ABB4EF4D_INDEPENDENT_STATIC_HOLD_11F10F35_FALSE_POSITIVE_NUMERIC_RESULT_NO_HOST_CONTACT",
     "dual_host_readonly_snapshot": "research/v2/observations/20260925-dual-host-readonly-operator/OPERATOR_READONLY_DUAL_HOST_SNAPSHOT_20260925T1021Z.md",
     "snapshot_scope": "At 10:21 UTC both hosts quiescent and approximately 54 GiB root free each; point-in-time only, not launch preflight",
-    "ready_job_counts": {"trn21": 0, "trn22": 0},
+    "ready_job_counts": {
+      "trn21": 0,
+      "trn22": 0
+    },
     "scored_controls_started": false,
     "new_public20m_bpb": null,
     "launch_authorized": false
@@ -382,7 +449,7 @@
     "s0_noon_ist_target": "AT_RISK_COLD_REPLAYS_NOT_STARTED"
   },
   "launch_authorized": false,
-  "active_launcher": "one-off legacy fresh_start_launch/guard; no unattended controller",
+  "active_launcher": "One reviewed host_queue.py per host, SHA256 7fe160cf0b5eef110caeee963fa4e39f708f4b5aaa6d503a7cf2344f1ac91244; retired local autoloop stays disabled",
   "one_job_authorization": {
     "status": "CONSUMED_FAILED_DISK_FLOOR_PRE_STEP_NO_RELAUNCH",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
@@ -394,7 +461,8 @@
   },
   "controller": {
     "enabled": false,
-    "lease": null
+    "lease": null,
+    "note": "Legacy local controller disabled; current execution is the two independent serial host queues, not two competing launchers on a host."
   },
   "codex_heartbeat": {
     "status": "ACTIVE_15_MINUTE_FINAL_PUSH_SUPERVISION",
@@ -415,7 +483,10 @@
     "G1": {
       "status": "PASS_BOTH_HOSTS_FRESH_PUBLIC20M_CALIBRATION",
       "blocking": false,
-      "host_specific_blocking": {"trn21": false, "trn22": false},
+      "host_specific_blocking": {
+        "trn21": false,
+        "trn22": false
+      },
       "scope": "Each host separately reproduced its own retained-checkpoint public20M score; this is not scored A0 control or new model quality evidence",
       "receipt": "research/v2/g1.json",
       "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
@@ -519,6 +590,231 @@
     }
   },
   "hosts": {
+    "trn21": {
+      "label": "fs-20260925-l3-timer-dense-trn21-r1-full",
+      "arm_id": "L3-timer-dense",
+      "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "started_utc": "2026-09-25T16:26:55Z",
+      "last_process_check_utc": "2026-09-25T16:43:38Z",
+      "status": "TRAINING_STEP450",
+      "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
+      "queue_pid": 2930000,
+      "workers": [
+        2930018,
+        2930019,
+        2930020,
+        2930021
+      ],
+      "latest_logged_step": 450,
+      "latest_logged_loss": 3.3391,
+      "latest_logged_toks_per_second": 269966,
+      "startup_complete": true,
+      "df_h_root_available": "46G",
+      "pending_staged_fallback_count": 6,
+      "fallback_labels": [
+        "fs-20260925-fp-c5c-matrixlr0175-trn21-r1",
+        "fs-20260925-fp-c5c-warmdown085-trn21-r1",
+        "fs-20260925-fp-c5c-wd035-trn21-r1",
+        "fs-20260925-fp-c5c-embedlr045-trn21-r1",
+        "fs-20260925-fp-c5c-finallr000-trn21-r1",
+        "fs-20260925-fp-c5c-matrixlr0125-trn21-r1"
+      ],
+      "resolved_manifest": "research/v2/operator/20260925-trn21-overnight-fallback-tail-r1/resolved-schedule-plus-six-r1.json",
+      "resolved_manifest_sha256": "a1377a2db5acadbbcd8e701ad5f16662f48408315243888e3355139cd4e5931b",
+      "receipt": "research/v2/operator/20260925-trn21-l3-timer-dense-full-r1/",
+      "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
+      "submission_eligible": false,
+      "launch_allowed": true,
+      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission"
+    },
+    "trn22": {
+      "label": "fs-20260925-l3-timer-dense-trn22-r1-full",
+      "arm_id": "L3-timer-dense",
+      "train_py_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "started_utc": "2026-09-25T16:32:57.497606Z",
+      "last_process_check_utc": "2026-09-25T16:43:38Z",
+      "status": "FOUR_WORKERS_LIVE_STARTUP_STEP0",
+      "driver": "ONE_HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
+      "queue_pid": 3053905,
+      "workers": [
+        3053923,
+        3053924,
+        3053925,
+        3053926
+      ],
+      "latest_logged_step": 0,
+      "latest_logged_loss": 9.0112,
+      "latest_logged_toks_per_second": 298,
+      "startup_complete": false,
+      "df_h_root_available": "45G",
+      "pending_staged_fallback_count": 6,
+      "fallback_labels": [
+        "fs-20260925-fp-c5c-matrixlr0125-trn22-r1",
+        "fs-20260925-fp-c5c-embedlr045-trn22-r1",
+        "fs-20260925-fp-c5c-finallr000-trn22-r1",
+        "fs-20260925-fp-c5c-wd035-trn22-r1",
+        "fs-20260925-fp-c5c-warmdown085-trn22-r1",
+        "fs-20260925-fp-c5c-matrixlr0175-trn22-r1"
+      ],
+      "resolved_manifest": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/resolved-with-six-fallbacks.json",
+      "resolved_manifest_sha256": "c0b539a2a95a8a19ac81f75215151ab6ef82a5e7309d4d5a27bb9147453cf7f3",
+      "receipt": "research/v2/operator/20260925-trn22-l3-timer-dense-r1/",
+      "source_review": "research/v2/verification/20260925-6ef7-dense-source-g2-identity-independent-PASS.json",
+      "submission_eligible": false,
+      "launch_allowed": true,
+      "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission"
+    }
+  },
+  "breakers": {
+    "global_correctness": {
+      "tripped": false
+    },
+    "trn21": {
+      "tripped": false
+    },
+    "trn22": {
+      "tripped": false,
+      "reason": null,
+      "human_reset_required": false,
+      "last_cleared_incident": {
+        "reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
+        "failed_label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
+        "cleared_utc": "2026-09-24T22:35:15Z",
+        "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+        "independent_safety_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+        "independent_safety_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+        "fresh_root_free_bytes": 58454974464
+      }
+    }
+  },
+  "alert_cmd": "${TRAINIUM_ALERT_CMD}",
+  "pending_human_decisions": [],
+  "resolved_human_decisions": [
+    {
+      "item": "Human AWS-side 200-to-250-GiB root EBS expansion and guest p1/ext4 expansion on both hosts",
+      "verified_by": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
+      "verified_utc": "2026-09-24T22:26:14Z"
+    },
+    {
+      "item": "Conditional human acknowledgement of trn22 disk-breaker re-arm after fresh independent safety review",
+      "acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+      "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+      "resolved_utc": "2026-09-24T22:35:15Z",
+      "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
+    }
+  ],
+  "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
+  "updated_utc": "2026-09-25T16:43:38Z",
+  "latest_breaker_rearm": {
+    "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
+    "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
+    "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
+    "independent_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
+    "cleared_utc": "2026-09-24T22:35:15Z",
+    "does_not_authorize_launch": true
+  },
+  "latest_disk_audit": {
+    "path": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
+    "sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
+    "scope": "Read-only guest disk/partition/ext4/df, process/device/host-lock quiescence, and prior breaker/postflight snapshot; not full preflight"
+  },
+  "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
+  "ready_job_counts": {
+    "trn21": 0,
+    "trn22": 0
+  },
+  "table_a1_exact_gate_package": {
+    "status": "STATIC_PASS_INDEPENDENT_REVIEW_HOLD_NO_DISPATCH",
+    "path": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "verifier_receipt": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json",
+    "verifier_receipt_sha256": "05fa1efa929a20b95d7768619fbdbc507ba566848cfd198ddfb93575d8c5985a",
+    "remaining": "Host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated. Storage-only gate passed."
+  },
+  "table_a2_exact_gate_package": {
+    "status": "STATIC_PASS_INDEPENDENT_R2_REVIEW_DISPATCH_HOLD",
+    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1",
+    "contract_sha256": "a40723151099e0fec912d670b702ef9f2774fe14853025660a9ffc116d2fc364",
+    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md",
+    "verifier_receipt_sha256": "c1f4665335c3af3201593ff3c1770b21c6430abf821be078422e890f4a16d85d",
+    "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
+  },
+  "table_a2_native_smoke_package": {
+    "status": "INDEPENDENT_R2_STATIC_PASS_FOR_OPERATOR_STAGING_NATIVE_DISPATCH_HOLD",
+    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/NATIVE_SMOKE_GATE_CONTRACT.json",
+    "review": "research/agentic/verification/20260925-v2-c5c-a2-native30-r2-static-review.md",
+    "review_sha256": "5364720fa66448a500c4d2f78bf474363e94af5c817b3d3456e3496125d40bd9",
+    "finding": "Repaired external step-log parent and guard receipt parent passed static review for staging only. A 30-step smoke does not resolve the older separate 50-step per-rank table/moment hash criterion.",
+    "native_or_scored_training_started": false
+  },
+  "a0_trn22_retry_package": {
+    "status": "FINAL_STATIC_PASS_PRELAUNCH_PASS_CONTINUOUS_DISK_MONITOR_HOLD_NO_DISPATCH",
+    "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+    "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2",
+    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
+    "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
+    "ratification": "research/v2/authorizations/20260925-trn22-c5c-a0-r2-proposal-ratification.json",
+    "ratification_sha256": "a5de803e0e138c56b10f6cbca39c3c1050f527e8956953ba6f8095649b8f1be1",
+    "final_request": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.request.pending.json",
+    "final_request_sha256": "7c4d1af77fe8c332170feebf444e0c292ef8d78ff3bf76d5ef3056533e2279cc",
+    "independent_final_review": "research/agentic/verification/20260925-trn22-c5c-a0-r2-final-request-review.md",
+    "independent_final_review_sha256": "58f2025549204f73fcbb170545ac87534fb90147ff3e08b7dd26bdc8809b32f3",
+    "prelaunch_readonly": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json",
+    "prelaunch_readonly_sha256": "2ef2dfb359d3867560519f1d0811c8b300df746dee66f09702f4902fdbd2c179",
+    "monitor_hold": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json",
+    "monitor_hold_sha256": "6a740101fbc5e6db52bb031330a6c65d85cba3ff08b05e929d8de9bc2d75c044",
+    "required_prelaunch_free_bytes": 10737418240,
+    "remaining": "Frozen r4 revisions 999b, f8fe and 11379083 failed independent safety review; repair detached markerless-worker false-clean and early launcher no-spawn proof, then freeze/review exact new source, repeat exact-source G2 and fresh live checks, start observer/monitor, and issue separate one-shot authorization. No native/scored launch has occurred; r2 science label unused."
+  },
+  "a0_trn21_control_package": {
+    "status": "RATIFIED_STATIC_PASS_G1_PASS_SOURCE_STAGE_AND_G2_PENDING_DISPATCH_HOLD",
+    "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1",
+    "contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
+    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
+    "verifier_receipt_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
+    "supervisor_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
+    "supervisor_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
+    "required_prelaunch_free_bytes": 10737418240,
+    "remaining": "G1 independently passed. Persistent-ext4 r2 source transfer has a conditional transfer-only assignment but no retrieved result; independently review cross-session persistence, then separately authorize clean checkout/extraction, exact-env four-rank G2 and numerical review, fresh host/cache/checkpoint/disk checks, reviewed continuous monitor and boundary observer, and a one-shot native authorization. No scored training launch is authorized."
+  },
+  "submission_s0": {
+    "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",
+    "source_sha256": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
+    "static_audit": "research/agentic/verification/20260925-s0-submission-static-recheck.md",
+    "static_audit_sha256": "b45beba69ee6d92d8928897aa5421461d194f9c4ff1877915aab456c27600778",
+    "remaining": "Neuron lockstep and batch-independence; same-checkpoint compiler-environment comparison; two cold bare-command replays and fresh public20M on its own checkpoints; human-only submission."
+  },
+  "ideation_policy": {
+    "cycle_interval_seconds": 12600,
+    "approximate_daily_calls": 50,
+    "verification_budget_separate": true,
+    "scheduler_runtime_verified": false
+  },
+  "legacy_controller": {
+    "service": "trainium-autoloop.service",
+    "prior_state": "activating/auto-restart",
+    "restart_count": 20,
+    "action": "local obsolete service stopped and disabled after laptop reboot to prevent concurrent legacy/v2 dispatch",
+    "unit_file_state": "disabled",
+    "confirmed_state": "inactive/dead",
+    "main_pid": 0,
+    "aws_instance_action": false,
+    "training_stopped": false,
+    "legacy_breaker_preserved": {
+      "reason": "box repeatedly not clean/idle",
+      "at": "2026-09-23T16:32:26Z",
+      "box": "trn21"
+    },
+    "source_breaker_reset": false
+  },
+  "validation_only": {
+    "cpu_g2": "PASS; four baseline/S0 exact-argv CPU/gloo probes, three identical comparisons, retrieved hashed receipts, no surviving processes or device holders.",
+    "native_or_scored_training_authorized": "none; the one-shot fs-20260925-v2-c5c-a0-control-trn22-r1 authority was consumed by its terminal failed pre-step launch",
+    "calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn22-r1",
+    "trn21_calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn21-r2"
+  },
+  "historical_host_state_before_post_a1": {
     "trn21": {
       "status": "S0_COLD_REPLAY_FAILED_ZERO_STEP_NKI_MODULE_NEFF_READ_A0_MANUAL_PREP_IN_PROGRESS",
       "launch_allowed": false,
@@ -642,150 +938,39 @@
       "a0_r4_transfer_repaired_static_review_sha256": "7dcfc65cde4dd29a409e8541ace24ada72465b15964d89af5852a5fd89f896db"
     }
   },
-  "breakers": {
-    "global_correctness": {
-      "tripped": false
+  "latest_post_a1_handoff": {
+    "utc": "2026-09-25T16:43:38Z",
+    "authority": "workflow/POST_A1_PRIORITY_CORRECTION_2026-09-25.md",
+    "a1": {
+      "status": "DISCARD",
+      "public_20m": 0.9986312057378084,
+      "same_host_control": 0.9914739939934344,
+      "delta": 0.007157211744374,
+      "steps": 3051,
+      "control_steps": 3675,
+      "training_seconds": 1784.9,
+      "first_five_logged_seconds": 991.79,
+      "uncapped_full_startup_seconds": null
     },
-    "trn21": {
-      "tripped": false
+    "a2_r1": "INVALID_QUALITY_5_STEPS",
+    "a2_r2": {
+      "status": "human_aborted_not_quality",
+      "stopped_utc": "2026-09-25T16:29:30.733940Z",
+      "workers_clear_utc": "2026-09-25T16:29:32.735400Z",
+      "steps": 1,
+      "checkpoint": null,
+      "public_20m": null,
+      "receipt": "research/v2/operator/20260925-trn22-a2-warm-r2-human-stop/"
     },
-    "trn22": {
-      "tripped": false,
-      "reason": null,
-      "human_reset_required": false,
-      "last_cleared_incident": {
-        "reason": "DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP",
-        "failed_label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
-        "cleared_utc": "2026-09-24T22:35:15Z",
-        "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
-        "independent_safety_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
-        "independent_safety_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
-        "fresh_root_free_bytes": 58454974464
-      }
-    }
-  },
-  "alert_cmd": "${TRAINIUM_ALERT_CMD}",
-  "pending_human_decisions": [],
-  "resolved_human_decisions": [
-    {
-      "item": "Human AWS-side 200-to-250-GiB root EBS expansion and guest p1/ext4 expansion on both hosts",
-      "verified_by": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
-      "verified_utc": "2026-09-24T22:26:14Z"
-    },
-    {
-      "item": "Conditional human acknowledgement of trn22 disk-breaker re-arm after fresh independent safety review",
-      "acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
-      "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
-      "resolved_utc": "2026-09-24T22:35:15Z",
-      "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
-    }
-  ],
-  "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
-  "updated_utc": "2026-09-25T13:24:35Z",
-  "latest_breaker_rearm": {
-    "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
-    "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
-    "independent_review": "research/agentic/verification/20260925-trn22-disk-breaker-rearm-review.md",
-    "independent_review_sha256": "05dc7ff165117b7f32cc79008d647410c09c73014d543ac523c5e7da1a91b087",
-    "cleared_utc": "2026-09-24T22:35:15Z",
-    "does_not_authorize_launch": true
-  },
-  "latest_disk_audit": {
-    "path": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
-    "sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
-    "scope": "Read-only guest disk/partition/ext4/df, process/device/host-lock quiescence, and prior breaker/postflight snapshot; not full preflight"
-  },
-  "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
-  "ready_job_counts": {"trn21": 0, "trn22": 0},
-  "table_a1_exact_gate_package": {
-    "status": "STATIC_PASS_INDEPENDENT_REVIEW_HOLD_NO_DISPATCH",
-    "path": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1",
-    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
-    "verifier_receipt": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json",
-    "verifier_receipt_sha256": "05fa1efa929a20b95d7768619fbdbc507ba566848cfd198ddfb93575d8c5985a",
-    "remaining": "Host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated. Storage-only gate passed."
-  },
-  "table_a2_exact_gate_package": {
-    "status": "STATIC_PASS_INDEPENDENT_R2_REVIEW_DISPATCH_HOLD",
-    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1",
-    "contract_sha256": "a40723151099e0fec912d670b702ef9f2774fe14853025660a9ffc116d2fc364",
-    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md",
-    "verifier_receipt_sha256": "c1f4665335c3af3201593ff3c1770b21c6430abf821be078422e890f4a16d85d",
-    "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
-  },
-  "table_a2_native_smoke_package": {
-    "status": "INDEPENDENT_R2_STATIC_PASS_FOR_OPERATOR_STAGING_NATIVE_DISPATCH_HOLD",
-    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/NATIVE_SMOKE_GATE_CONTRACT.json",
-    "review": "research/agentic/verification/20260925-v2-c5c-a2-native30-r2-static-review.md",
-    "review_sha256": "5364720fa66448a500c4d2f78bf474363e94af5c817b3d3456e3496125d40bd9",
-    "finding": "Repaired external step-log parent and guard receipt parent passed static review for staging only. A 30-step smoke does not resolve the older separate 50-step per-rank table/moment hash criterion.",
-    "native_or_scored_training_started": false
-  },
-  "a0_trn22_retry_package": {
-    "status": "FINAL_STATIC_PASS_PRELAUNCH_PASS_CONTINUOUS_DISK_MONITOR_HOLD_NO_DISPATCH",
-    "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
-    "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2",
-    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
-    "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
-    "ratification": "research/v2/authorizations/20260925-trn22-c5c-a0-r2-proposal-ratification.json",
-    "ratification_sha256": "a5de803e0e138c56b10f6cbca39c3c1050f527e8956953ba6f8095649b8f1be1",
-    "final_request": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.request.pending.json",
-    "final_request_sha256": "7c4d1af77fe8c332170feebf444e0c292ef8d78ff3bf76d5ef3056533e2279cc",
-    "independent_final_review": "research/agentic/verification/20260925-trn22-c5c-a0-r2-final-request-review.md",
-    "independent_final_review_sha256": "58f2025549204f73fcbb170545ac87534fb90147ff3e08b7dd26bdc8809b32f3",
-    "prelaunch_readonly": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.prelaunch-readonly.json",
-    "prelaunch_readonly_sha256": "2ef2dfb359d3867560519f1d0811c8b300df746dee66f09702f4902fdbd2c179",
-    "monitor_hold": "research/v2/authorizations/fs-20260925-v2-c5c-a0-control-trn22-r2.monitor-hold.json",
-    "monitor_hold_sha256": "6a740101fbc5e6db52bb031330a6c65d85cba3ff08b05e929d8de9bc2d75c044",
-    "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Frozen r4 revisions 999b, f8fe and 11379083 failed independent safety review; repair detached markerless-worker false-clean and early launcher no-spawn proof, then freeze/review exact new source, repeat exact-source G2 and fresh live checks, start observer/monitor, and issue separate one-shot authorization. No native/scored launch has occurred; r2 science label unused."
-  },
-  "a0_trn21_control_package": {
-    "status": "RATIFIED_STATIC_PASS_G1_PASS_SOURCE_STAGE_AND_G2_PENDING_DISPATCH_HOLD",
-    "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
-    "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1",
-    "contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
-    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
-    "verifier_receipt_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
-    "supervisor_ratification": "research/v2/authorizations/20260925-trn21-c5c-a0-r1-proposal-ratification.json",
-    "supervisor_ratification_sha256": "c483e2b00653ede82226a73cd9d9b7f3b01fb2988828c1f749f66e416641551d",
-    "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "G1 independently passed. Persistent-ext4 r2 source transfer has a conditional transfer-only assignment but no retrieved result; independently review cross-session persistence, then separately authorize clean checkout/extraction, exact-env four-rank G2 and numerical review, fresh host/cache/checkpoint/disk checks, reviewed continuous monitor and boundary observer, and a one-shot native authorization. No scored training launch is authorized."
-  },
-  "submission_s0": {
-    "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",
-    "source_sha256": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
-    "static_audit": "research/agentic/verification/20260925-s0-submission-static-recheck.md",
-    "static_audit_sha256": "b45beba69ee6d92d8928897aa5421461d194f9c4ff1877915aab456c27600778",
-    "remaining": "Neuron lockstep and batch-independence; same-checkpoint compiler-environment comparison; two cold bare-command replays and fresh public20M on its own checkpoints; human-only submission."
-  },
-  "ideation_policy": {
-    "cycle_interval_seconds": 12600,
-    "approximate_daily_calls": 50,
-    "verification_budget_separate": true,
-    "scheduler_runtime_verified": false
-  },
-  "legacy_controller": {
-    "service": "trainium-autoloop.service",
-    "prior_state": "activating/auto-restart",
-    "restart_count": 20,
-    "action": "local obsolete service stopped and disabled after laptop reboot to prevent concurrent legacy/v2 dispatch",
-    "unit_file_state": "disabled",
-    "confirmed_state": "inactive/dead",
-    "main_pid": 0,
-    "aws_instance_action": false,
-    "training_stopped": false,
-    "legacy_breaker_preserved": {
-      "reason": "box repeatedly not clean/idle",
-      "at": "2026-09-23T16:32:26Z",
-      "box": "trn21"
-    },
-    "source_breaker_reset": false
-  },
-  "validation_only": {
-    "cpu_g2": "PASS; four baseline/S0 exact-argv CPU/gloo probes, three identical comparisons, retrieved hashed receipts, no surviving processes or device holders.",
-    "native_or_scored_training_authorized": "none; the one-shot fs-20260925-v2-c5c-a0-control-trn22-r1 authority was consumed by its terminal failed pre-step launch",
-    "calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn22-r1",
-    "trn21_calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn21-r2"
+    "next_priority": [
+      "checked8x1024 architecture",
+      "verified FP8 matched whole-step timing, >=3% faster before full run",
+      "required confirmations",
+      "one later A1 epoch2-freeze diagnostic",
+      "staged scalar fallback bank when no higher-priority ready job"
+    ],
+    "cache": "Actual live TORCH_NEURONX NEFF/local/HLO roots verified persistent; train.py setdefault does not override. NEFF files are written. Effective hit/miss cause unproven; do not enable disabled NKI persistence blindly.",
+    "official_score_user_report": 0.9901,
+    "new_bpb_gain": false
   }
 }
