@@ -22,6 +22,20 @@ Confirm the historical queue runner process has actually exited on both
 hosts using fresh process identity evidence; an empty inbox is insufficient.
 No new jobs may be published to an unguarded historical runner.
 
+### Verified timebox outcome
+
+The guarded path passed real launches at01:08:22IST on trn21 and01:09:16IST
+on trn22, before the01:24deadline. Both diagnostics completed successfully;
+manual fallback was not required. Independent repair review is preserved at
+`research/v2/verification/20260926-idle-guard-repair-independent/REVIEW.md`.
+Historical queue processes were confirmed absent on both hosts at01:04:26IST
+(commitd9a0a247), not merely idle or out of queued jobs. New launches continue
+to use the common lock/checks; this success does not waive future preflight.
+
+The full architecture follow-up launched01:32:37IST with the same trn22 lock
+inode832589; its in-lock checks and worker identities are archived under
+`research/v2/operator/20260926-trn22-arch3e79-full/launch/` (e2cd3697).
+
 1. Before each training, native diagnostic or separately launched Neuron eval,
    acquire an exclusive nonblocking `flock` on the target host's existing
    `/home/ubuntu/.cache/trainium_freshstart/device0.lock`.
