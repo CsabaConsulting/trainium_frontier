@@ -9,7 +9,7 @@ git init -q && echo "print('train')" > train.py && git add train.py && git -c us
 SHA=$(sha256sum train.py | cut -d' ' -f1); HEAD=$(git rev-parse HEAD)
 cat > "$T/host.json" <<J
 {"host": "trn21", "python": "python3", "out_root": "out", "archive_dir": "$T/archive", "disk_floor_gib": 0.5, "use_cgroup": false,
- "env": {"NEURON_LOGICAL_NC_CONFIG": "2"}, "eval_args": [], "eval_args_verified": true,
+ "env": {"NEURON_LOGICAL_NC_CONFIG": "2", "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"}, "eval_args": [], "eval_args_verified": true,
  "train_cmd_override": ["python3", "$W/fake/fake_train.py"], "eval_cmd_override": ["python3", "$W/fake/fake_eval.py"]}
 J
 mkjob(){ l=$1; a=$2; k=$3; s=${4:-$SHA}; mkdir -p research/v2/experiments/$l
