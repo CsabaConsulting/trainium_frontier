@@ -3299,6 +3299,18 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
     model.requires_grad_(False)
     return model
 
+def startup_adjusted_schedule_elapsed(step: int, elapsed: float, budget_started: float) -> float:
+    """Optimizer progress only; never change the actual budget/stop clock.
+
+    Reconstruct process age from the existing step-start sample, without a new
+    clock read. Preserve charged excess above the same capped startup allowance.
+    After the fifth boundary, the unchanged budget reset already accounts for it.
+    """
+    if step >= TRAIN_STARTUP_STEPS_EXCLUDED:
+        return elapsed
+    process_age = elapsed + (budget_started - _PROCESS_STARTED)
+    return max(0.0, process_age + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
+
 def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
     if step < WARMUP_STEPS:
         return (step + 1) / max(1, WARMUP_STEPS)
@@ -3505,6 +3517,7 @@ def main() -> None:
     parser.add_argument('--num-steps', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NUM_STEPS', NUM_STEPS)))
     parser.add_argument('--debug-numerics-steps', type=int, default=0, help='Diagnostic only: synchronize and inspect loss/parameters/gradients at each stage of the first N steps. Invalidates speed measurements.')
     parser.add_argument('--initial-cache-refresh', action=argparse.BooleanOptionalAction, default=False, help='Refresh differentiable weight casts inside the timed first step before its first forward; default OFF.')
+    parser.add_argument('--startup-adjusted-schedule', action=argparse.BooleanOptionalAction, default=False, help='Use capped-startup-adjusted optimizer progress during the first five steps; scientific schedule change, default OFF; budget accounting unchanged.')
     parser.add_argument('--max-train-seconds', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS', MAX_TRAIN_SECONDS)))
     parser.add_argument('--out-dir', type=str, default=os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out'))
     parser.add_argument('--eval-public', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EVAL_PUBLIC', '1') != '0')
@@ -4067,9 +4080,10 @@ def main() -> None:
         unscale_grads_(model, grad_flat_buffer, unscale_with)
         clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)
         debug_numerics('clip_and_reduce', step, last_loss, inspect_tensors=True)
-        lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
+        schedule_elapsed = startup_adjusted_schedule_elapsed(step, elapsed, budget_started) if args.startup_adjusted_schedule else elapsed
+        lrm = lr_multiplier(step, elapsed=schedule_elapsed, max_train_seconds=args.max_train_seconds)
         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
-        wd_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
+        wd_progress = min(1.0, schedule_elapsed / max(1e-06, args.max_train_seconds))
         demon_b1 = demon_beta1_scale(wd_progress)
         muon_b2 = muon_beta2(wd_progress)
         for group in optimizer.param_groups:
