@@ -20,6 +20,13 @@ changed optimizer schedule are poorer controls because genuinely new graphs are
 expected. A2-r2 is human-aborted, not a quality result; do not resume it for this
 diagnostic.
 
+Follow-up: the bounded read-only recovery was attempted; the exact matched pair
+is unavailable in the inspected run/cache directories. See
+`CACHE_ARTIFACT_RECOVERY_2026-09-25.md` for actual file inventory, input/source
+hashes, the installed temporary-directory cleanup lifecycle, and a smaller
+next-job collection plan. Random compiler work-directory names are not cache
+keys. The cause of repeated startup cost remains unproven.
+
 ## What the evidence establishes
 
 Primary archive:
