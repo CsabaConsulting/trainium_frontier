@@ -97,9 +97,11 @@
   "no_eval": true,
   "no_automatic_full": true,
   "driver_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch3e79-cold-trn22-r1-packet/host_driver.py",
-  "driver_sha256": "4be8925a065e537de745447810c4596b0a7396d900d95589e8eb4c6e96700919",
+  "driver_sha256": "03ba9c6b200a0c5ff34b5ac3a32fc90940d3f24fc2776671f304a8e057904d86",
   "idle_guard_source": "research/v2/operator/20260926-common-host-idle-guard/idle_guard.py",
-  "idle_guard_sha256": "5d735b4baf1b68bab2e9528adc4b1d09a930cb2beafdd069f1a6a513f65c34fb",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+  "detached_entrypoint": "Stage shared dispatch_driver.py in this root and spawn /usr/bin/python3 -I -B <root>/dispatch_driver.py. It invokes the exact outer_command and always archives outer-flock-exit.json, including lock refusal before driver entry. No automatic retry.",
   "under_lock_preflight": "Exact inherited lifetime flock descriptor and parent argv authenticated; fresh ps and neuron-ls --json-output immediately before spawn; unknown/busy/error refuses. Receipt under-lock-idle.json. No release/reacquire gap.",
   "outer_command": [
     "/usr/bin/flock",

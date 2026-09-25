@@ -68,10 +68,26 @@ def inherited_lock(lock_path, driver_path):
 
 
 def check_idle(run, own_pid, outer_pid, evidence):
-    ps = run(PS, capture_output=True, text=True, timeout=15, env=CHECK_ENV)
-    evidence['ps'] = {'command': PS, 'returncode': ps.returncode,
-                      'stdout_sha256': digest(ps.stdout),
-                      'stderr_sha256': digest(ps.stderr)}
+    def checked(command, name):
+        evidence[name] = {'command': command, 'returncode': None}
+        try:
+            result = run(command, capture_output=True, text=True, timeout=15, env=CHECK_ENV)
+        except subprocess.TimeoutExpired as exc:
+            stderr = exc.stderr or ''
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode(errors='replace')
+            evidence[name].update({'timed_out': True, 'timeout_seconds': exc.timeout,
+                                   'stderr': stderr, 'error': str(exc)})
+            raise RuntimeError(name.upper() + '_COMMAND_TIMEOUT') from exc
+        except OSError as exc:
+            evidence[name]['error'] = type(exc).__name__ + ': ' + str(exc)
+            raise
+        evidence[name].update({'returncode': result.returncode,
+                               'stdout_sha256': digest(result.stdout),
+                               'stderr_sha256': digest(result.stderr),
+                               'stderr': result.stderr})
+        return result
+    ps = checked(PS, 'ps')
     if ps.returncode != 0 or ps.stderr:
         raise RuntimeError('PS_COMMAND_FAILED')
     rows = ps.stdout.splitlines()
@@ -102,10 +118,7 @@ def check_idle(run, own_pid, outer_pid, evidence):
     if not {own_pid, outer_pid}.issubset(seen):
         raise RuntimeError('PS_OWN_LOCK_PROCESSES_MISSING')
     # Run both requested checks even when ps reports a busy machine.
-    nl = run(NEURON_LS, capture_output=True, text=True, timeout=15, env=CHECK_ENV)
-    evidence['neuron_ls'] = {'command': NEURON_LS, 'returncode': nl.returncode,
-                             'stdout_sha256': digest(nl.stdout),
-                             'stderr_sha256': digest(nl.stderr)}
+    nl = checked(NEURON_LS, 'neuron_ls')
     if nl.returncode != 0 or nl.stderr:
         raise RuntimeError('NEURON_LS_COMMAND_FAILED')
     devices = json.loads(nl.stdout)
@@ -141,6 +154,7 @@ def require_idle_under_inherited_lock(lock_path, driver_path, record):
         evidence['lock'] = inherited_lock(lock_path, driver_path)
         check_idle(subprocess.run, os.getpid(), os.getppid(), evidence)
         evidence['status'] = 'PASS'
+        return evidence['lock']['fd']
     except Exception as exc:
         evidence['error'] = type(exc).__name__ + ': ' + str(exc)
         raise
