@@ -1,0 +1,78 @@
+{
+  "proposal_id": "20260925-v2-c5c-a0-control-trn22-r3",
+  "status": "DRAFT_SAFETY_INTERLOCK_NOT_AUTHORIZED",
+  "owner_role": "implementer-safety-package",
+  "hypothesis": "The unchanged c5c dense A0 recipe can produce a valid same-host public20M control once an independently verified paired disk monitor and launch interlock prevent recurrence of the zero-step disk failure.",
+  "single_causal_change": "No model, data, evaluator, optimizer, or training-command change from r2; a unique-label retry with paired host-local disk monitors and a fail-closed guard-spawn interlock.",
+  "mechanism_class": "control-with-operational-safety-gate",
+  "candidate_shortlist": [
+    {
+      "idea": "Exact c5c A0 r3 with paired root-free monitors and pre-spawn interlock",
+      "mechanism_class": "control",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "The required same-host c5c public20M control is still missing after r1 zero-step disk stop and r2 monitor HOLD."
+    }
+  ],
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.001, 0.001],
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.1,
+  "selection_rationale": "r2 remains HOLD because the initial external disk monitor had no independent liveness protection. The pinned launcher creates the job after preflight and the guard's process receipt only after spawn. This r3 package tests a safety-only interlock without changing the A0 recipe.",
+  "trainium_feasibility": "Exact c5c source SHA c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586; full-chip LNC2/world4, seed 42, max_train_seconds 1800, warm caches only. Prelaunch root free remains at least 10,737,418,240 bytes; monitor TERM threshold remains 9,126,805,504 bytes, above the 6.5 GiB floor. This draft does not authorize a host action.",
+  "cheapest_falsifier": "Fail on absent independent Verifier receipt, non-unique label, absent one-shot authorization, any source/request/binding hash drift, either monitor dead or stale, no mutual PEER_BOUND, root free below 10 GiB, occupied/dirty host, Neuron holder, or missing exact-env G2.",
+  "prior_result_refs": [
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2/EXPERIMENT_PROPOSAL.json: r2 draft and exact unchanged science command",
+    "research/v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json: zero-step disk safety stop",
+    "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/GATE_CONTRACT.json: CPU G2 pins e65a3097 checkout, not new e4272b4d launcher-only source",
+    "research/agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-numeric-review.md: prior PASS is CPU G2 only; native r2 HOLD",
+    "research/v2/disk-monitor/RUNBOOK.md: initial single-monitor package remains HOLD"
+  ],
+  "evidence": [
+    "research/v2/disk-monitor/R3_INTERLOCK_RUNBOOK.md: disabled safety package and residual boundary",
+    "research/v2/disk-monitor/R3_IMPLEMENTER_TEST_RECEIPT.md: synthetic test results",
+    "research/v2/disk-monitor/fs-20260925-v2-c5c-a0-control-trn22-r3.request.DISABLED.json: exact draft request and science command"
+  ],
+  "duplicate_search_terms": ["c5c A0", "trn22 r3", "paired disk monitor", "pre-spawn interlock", "r2 HOLD"],
+  "candidate": {
+    "branch": "codex/20260925-a0-trn22-r3-interlock",
+    "source_commit": "e4272b4dbd8e7b676694afec14b248fef588f8a8",
+    "run_label": "fs-20260925-v2-c5c-a0-control-trn22-r3",
+    "files_allowed": ["train.py unchanged", "research/fresh_start_launch.py safety interlock", "research/fresh_start_monitor_interlock.py", "research/v2/disk-monitor external safety monitor"],
+    "expected_diff": "Only launch/monitor safety plumbing; train.py and prepare.py retain r2 SHA-256 exactly.",
+    "request_path": "research/v2/disk-monitor/fs-20260925-v2-c5c-a0-control-trn22-r3.request.DISABLED.json",
+    "request_sha256": "9202999d0ffc315e9d9c7ef2d4030a38fc2ca1fbe92ec37888c47a49cebea575",
+    "launch_command": "Pending one-shot request uses the exact r2 command argv after only r2-to-r3 output label/path substitutions. It is disabled and must not be launched from this package."
+  },
+  "control": {
+    "git_commit": "499f753ca554c5c732c35ab4eab7e96488d5e355",
+    "run_label": "fs-20260924-v2-35c9-lr015-control-trn22-r1",
+    "public_val_bpb": null,
+    "public20m_status": "unknown; historical same-host step-0/1 anchor, not a c5c public20M control"
+  },
+  "gates": {
+    "rules_review": false,
+    "independent_diff_review": false,
+    "implementer_synthetic_tests": true,
+    "independent_synthetic_review": false,
+    "g2_source_identity_reconciled": false,
+    "host_preflight": false,
+    "paired_monitor_liveness": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "Fresh-process public20M BPB must be in the predeclared [0.99095, 0.99295] equivalence band; this establishes a control, not a quality win.",
+    "correctness": "All source and host gates PASS, paired monitors remain live or authenticated guard is stopped, at least five optimizer boundaries, finite model-only checkpoint, clean postflight, no budget breach. Separate public20M and causality checks remain mandatory."
+  },
+  "abort_conditions": [
+    "Any r2 label reuse or attempt to dispatch this disabled r3 request",
+    "Either paired monitor missing, stale, wrong UID/PID birth/argv, or no mutual heartbeat",
+    "Root free below 10 GiB at launch or at/below 9,126,805,504 bytes during guard operation",
+    "Any source/request/binding/auth hash mismatch, monitor failure, no-spawn receipt, or unknown process identity",
+    "No independent disposition of the e65a3097 CPU G2 versus e4272b4d r3 source-commit mismatch",
+    "Crash, NaN, missing boundary/checkpoint, causality failure, dirty/occupied host, or disk/breaker trip"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}

@@ -1,0 +1,104 @@
+{
+  "schema": "fresh-start-request-v2",
+  "state": "DISABLED_PENDING_INDEPENDENT_VERIFIER_AND_ONE_SHOT_AUTHORIZATION",
+  "dispatch_authorized": false,
+  "authorization": {
+    "one_attempt_only": true,
+    "status": "NO_LAUNCH_AUTHORITY_FROM_THIS_STATIC_PACKAGE"
+  },
+  "host": "trn22",
+  "label": "fs-20260925-v2-c5c-a0-control-trn22-r3",
+  "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3",
+  "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+  "purpose": "Same c5c seed-42, 1800-second dense A0 control as r2; retry only after a separately reviewed paired-monitor safety interlock. This draft does not authorize host work.",
+  "expected_hostname": "ip-172-31-32-253",
+  "expected_commit": "e4272b4dbd8e7b676694afec14b248fef588f8a8",
+  "min_free_bytes": 6979321856,
+  "pre_launch_required_free_bytes": 10737418240,
+  "non_overwrite": true,
+  "runner_owns_manifest": false,
+  "checkpoint_prune_authorized": false,
+  "monitor_interlock": {
+    "pair_binding_path": "/home/ubuntu/trainium_a0_disk_monitor_20260925_r3/fs-20260925-v2-c5c-a0-control-trn22-r3.pair-binding.json",
+    "interlock_path": "/home/ubuntu/trainium_a0_disk_monitor_20260925_r3/fs-20260925-v2-c5c-a0-control-trn22-r3.interlock.json",
+    "no_spawn_path": "/home/ubuntu/trainium_a0_disk_monitor_20260925_r3/fs-20260925-v2-c5c-a0-control-trn22-r3.no-spawn.json"
+  },
+  "external_boundary_observer": {
+    "must_start_before_guard": true,
+    "script": "/home/ubuntu/trainium_a0_boundary_observer_20260925_r1/a0_boundary_observer.py",
+    "script_sha256": "a6f437fe8a9d0a14ec3025bc822f1afa12e3f355fca730e4ae0db7ae00263592",
+    "stdout_receipt": "/home/ubuntu/trainium_a0_boundary_observer_20260925_r1/fs-20260925-v2-c5c-a0-control-trn22-r3.observer.json",
+    "stderr_log": "/home/ubuntu/trainium_a0_boundary_observer_20260925_r1/fs-20260925-v2-c5c-a0-control-trn22-r3.observer.stderr.log",
+    "command": [
+      "/usr/bin/python3",
+      "/home/ubuntu/trainium_a0_boundary_observer_20260925_r1/a0_boundary_observer.py",
+      "--label", "fs-20260925-v2-c5c-a0-control-trn22-r3",
+      "--process-json", "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r3.process.json",
+      "--boundary-file", "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r3.steps.jsonl",
+      "--postflight-json", "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r3.postflight.json",
+      "--guard-script", "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/research/fresh_start_guard.py",
+      "--poll-seconds", "0.02", "--timeout-seconds", "4800"
+    ]
+  },
+  "expected_sha256": {
+    "train.py": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_host.py": "c4442b917084239099864f8dd53e4a5467ec8440b8eec9057bbdad5b19a84065",
+    "research/fresh_start_launch.py": "b2527f56fa6f5f7043b721333a8d1209f45ef63a236e52338bb639f6c24c890a",
+    "research/fresh_start_monitor_interlock.py": "f2fcecd427ea0c4fd5396799fe845d327c2e1384b05e1ef9445b8fb3cf9d2b4d",
+    "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+    "research/run_experiment.py": "88243a74f0f080929f93d0b88ddedbe6f5351ad37bf272229d9ae6d26efd5d2d",
+    "research/v2/disk-monitor/root_free_guard_monitor.py": "ae7538e01c5bff1338bc3c469a7d1e0980e12ade30daff99ae29c5c56ee54511",
+    "research/v2/disk-monitor/paired_root_free_guard_monitor.py": "32569f15366c16a8efef651b3db981386e6db6b63e8ed968d1c469e29e73c87c"
+  },
+  "fingerprint_paths": [
+    "train.py", "prepare.py", "research/run_experiment.py",
+    "research/fresh_start_launch.py", "research/fresh_start_sync.py",
+    "research/fresh_start_guard.py", "research/fresh_start_host.py",
+    "research/fresh_start_backup.py", "research/fresh_start_monitor_interlock.py",
+    "research/v2/disk-monitor/root_free_guard_monitor.py",
+    "research/v2/disk-monitor/paired_root_free_guard_monitor.py"
+  ],
+  "environment": {
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local"
+  },
+  "command": [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
+    "env", "-i", "HOME=/home/ubuntu",
+    "PATH=/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH=/home/ubuntu/workspace/native_venv", "PYTHONUNBUFFERED=1",
+    "NEURON_LOGICAL_NC_CONFIG=2",
+    "NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED=42", "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS=1800",
+    "TORCH_NEURONX_NEFF_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCHINDUCTOR_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+    "NEURON_COMPILE_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+    "TORCH_NEURONX_DEBUG_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug",
+    "NEURON_COMPETITION_R1_OUT_DIR=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/out/fs-20260925-v2-c5c-a0-control-trn22-r3",
+    "NEURON_COMPETITION_R1_STEP_LOG=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r3/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r3.steps.jsonl",
+    "TRAINIUM_FRESH_START_RUN_ID=fs-20260925-v2-c5c-a0-control-trn22-r3",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone",
+    "--nproc_per_node=4", "train.py", "--n-embd", "1024", "--no-ngram-ve",
+    "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+    "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+    "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
+  ],
+  "warm_cache_policy": {
+    "cache_cleanup_authorized": false,
+    "cold_cache_authorized": false,
+    "reuse_existing_only": ["neff", "local", "hlo", "inductor", "compiler", "debug"]
+  }
+}
