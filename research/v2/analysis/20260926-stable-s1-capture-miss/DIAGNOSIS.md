@@ -1,6 +1,6 @@
 # Stable-source S1: evidence-capture miss, cause unresolved
 
-Read-only Analyst diagnosis, 2026-09-25 23:05–23:10 UTC. No training/tool source
+Read-only Analyst diagnosis, 2026-09-25 23:05–23:08 UTC. No training/tool source
 change, host call, retry, staging, cache scan or independent acceptance. Raw
 archive **190ccf4a40d48bf318e2ed231d0316918b6182e9**:
 `research/v2/operator/20260926-trn22-stable-source-pair/completed/`.
