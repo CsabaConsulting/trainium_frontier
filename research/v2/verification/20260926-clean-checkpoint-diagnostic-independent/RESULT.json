@@ -1,0 +1,406 @@
+{
+  "verdict": "PASS_CPU_DIAGNOSTIC_SOURCE_AND_BINDING_ONLY",
+  "commit": "d524de5cb974aa77883037cdf858fcfddba3113d",
+  "checks": 94,
+  "tests": [
+    "manifest EXPERIMENT_PROPOSAL.json",
+    "manifest README.md",
+    "manifest checks-normal.json",
+    "manifest checks-optimized.json",
+    "manifest cpu/BINDING.disabled.json",
+    "manifest cpu/host_driver.py",
+    "manifest neuron/BINDING.disabled.json",
+    "manifest neuron/host_driver.py",
+    "manifest probe.py",
+    "manifest test_diagnostic.py",
+    "manifest tiny-helper-check.json",
+    "manifest validate_receipts.py",
+    "canonical exact byte identity",
+    "exact classification",
+    "exact raw exact reference",
+    "exact byte mismatch reference",
+    "exact independent absolute error",
+    "exact mismatch count",
+    "one exact binary perturbation classification",
+    "one exact binary perturbation raw exact reference",
+    "one exact binary perturbation byte mismatch reference",
+    "one exact binary perturbation independent absolute error",
+    "one exact binary perturbation mismatch count",
+    "signed zero bytes classification",
+    "signed zero bytes raw exact reference",
+    "signed zero bytes byte mismatch reference",
+    "signed zero bytes independent absolute error",
+    "signed zero bytes mismatch count",
+    "small diff strict classification",
+    "small diff strict raw exact reference",
+    "small diff strict byte mismatch reference",
+    "small diff strict independent absolute error",
+    "small diff strict mismatch count",
+    "same small diff causal classification",
+    "same small diff causal raw exact reference",
+    "same small diff causal byte mismatch reference",
+    "same small diff causal independent absolute error",
+    "same small diff causal mismatch count",
+    "large causal diff classification",
+    "large causal diff raw exact reference",
+    "large causal diff byte mismatch reference",
+    "large causal diff independent absolute error",
+    "large causal diff mismatch count",
+    "NaN retained classification",
+    "NaN retained raw exact reference",
+    "NaN retained byte mismatch reference",
+    "NaN retained strict JSON-safe error",
+    "Inf retained classification",
+    "Inf retained raw exact reference",
+    "Inf retained byte mismatch reference",
+    "Inf retained strict JSON-safe error",
+    "any failed case prevents success",
+    "no cases prevents success",
+    "shape mismatch HOLD",
+    "dtype mismatch HOLD",
+    "independent causal row model exact",
+    "batch-dependent negative detected",
+    "causal reference prefix exact",
+    "noncausal negative detected",
+    "state mutation fingerprint changes",
+    "hook negative refuses",
+    "training-mode negative refuses",
+    "CPU binding literals",
+    "driver pin",
+    "CPU600+15 exactly one inference child",
+    "CPU thread env",
+    "disabled and preserved REFUSE",
+    "common outer flock exact",
+    "actual immutable source candidate",
+    "actual immutable source reference",
+    "unchanged idle_guard.py",
+    "unchanged dispatch_driver.py",
+    "probe/validator pins",
+    "exact retained checkpoint",
+    "one child inherited lifetime fd",
+    "no source monkeypatch or update in probe",
+    "no dtype/table floor patch",
+    "resource floors",
+    "guard precedes actual child",
+    "checkpoint before-after rehash",
+    "refuse WRONG_HOST",
+    "refuse RAM_BELOW_64_GIB",
+    "refuse DISK_HEADROOM",
+    "refuse CHECKPOINT_SHA",
+    "refuse SUPPORT_SHA:probe.py",
+    "refuse COMPILER_URL_DIR",
+    "refuse ARTIFACT_CAP_STOPPED_DIAGNOSTIC",
+    "validator complete",
+    "validator rank",
+    "validator missing case",
+    "validator failed case",
+    "validator source changed",
+    "validator order changed",
+    "validator source accepted falsely"
+  ],
+  "tiny_reference_rows": [
+    {
+      "name": "exact",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "f09fdd6fff8bc0651601b4a2f296ad7e8e889a3a95b3a7552102912bfa2eb36f",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "f09fdd6fff8bc0651601b4a2f296ad7e8e889a3a95b3a7552102912bfa2eb36f",
+        "finite": true
+      },
+      "exact_bytes": true,
+      "passed": true,
+      "element_equal": true,
+      "max_abs": 0.0,
+      "max_relative": 0.0,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.0,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 0,
+      "byte_mismatch_count": 0,
+      "max_error_coordinate": [
+        0
+      ],
+      "actual_at_max": 1.0,
+      "expected_at_max": 1.0,
+      "metric_nonfinite": false
+    },
+    {
+      "name": "one exact binary perturbation",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "d94db0d57b32abb6c460f4b0a0a9681dcbc06a17323879049ef97af86be770f5",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "f09fdd6fff8bc0651601b4a2f296ad7e8e889a3a95b3a7552102912bfa2eb36f",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": false,
+      "max_abs": 0.125,
+      "max_relative": 0.03125,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.027277234941720963,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 1,
+      "max_error_coordinate": [
+        3
+      ],
+      "actual_at_max": 4.125,
+      "expected_at_max": 4.0,
+      "metric_nonfinite": false
+    },
+    {
+      "name": "signed zero bytes",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "81914a623f4dc55b208d08d60f0948da987c6ed3e3bd9a205dbb78f405cebe56",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": true,
+      "max_abs": 0.0,
+      "max_relative": 0.0,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.0,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 0,
+      "byte_mismatch_count": 1,
+      "max_error_coordinate": [
+        0
+      ],
+      "actual_at_max": 0.0,
+      "expected_at_max": -0.0,
+      "metric_nonfinite": false
+    },
+    {
+      "name": "small diff strict",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "0b93e3d4cdf5bad82ae578b6f7c9a1b06bc6e907a3988b7fe4fe2dd2676f60b4",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": false,
+      "max_abs": 0.004999999888241291,
+      "max_relative": 5000000000.0,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.0013363061007112265,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 4,
+      "max_error_coordinate": [
+        0
+      ],
+      "actual_at_max": 0.004999999888241291,
+      "expected_at_max": 0.0,
+      "metric_nonfinite": false
+    },
+    {
+      "name": "same small diff causal",
+      "criterion": "prepare synthetic suffix causal1e-2",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "0b93e3d4cdf5bad82ae578b6f7c9a1b06bc6e907a3988b7fe4fe2dd2676f60b4",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": true,
+      "element_equal": false,
+      "max_abs": 0.004999999888241291,
+      "max_relative": 5000000000.0,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.0013363061007112265,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 4,
+      "max_error_coordinate": [
+        0
+      ],
+      "actual_at_max": 0.004999999888241291,
+      "expected_at_max": 0.0,
+      "metric_nonfinite": false,
+      "tolerance": 0.01,
+      "cut": 512,
+      "compared_prefix": 511
+    },
+    {
+      "name": "large causal diff",
+      "criterion": "prepare synthetic suffix causal1e-2",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "b01058fb4c6a424bfd7d53a3bc8111014ef2569c2f65c229406fd433de358961",
+        "finite": true
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": false,
+      "max_abs": 0.019999999552965164,
+      "max_relative": 20000000000.0,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": 0.005345224402844906,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 4,
+      "max_error_coordinate": [
+        0
+      ],
+      "actual_at_max": 0.019999999552965164,
+      "expected_at_max": 0.0,
+      "metric_nonfinite": false,
+      "tolerance": 0.01,
+      "cut": 512,
+      "compared_prefix": 511
+    },
+    {
+      "name": "NaN retained",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "3a4efa941207dbe83e974aea027a06735174f607b015ff3b7ab106e78bcbee4b",
+        "finite": false
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": false,
+      "max_abs": null,
+      "max_relative": null,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": null,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 2,
+      "max_error_coordinate": [],
+      "actual_at_max": null,
+      "expected_at_max": null,
+      "metric_nonfinite": true
+    },
+    {
+      "name": "Inf retained",
+      "criterion": "same-backend identical dtype/shape/bytes; any difference HOLD",
+      "actual": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "0f6a80d4c237da1d8cc3cc651044d3e5f85ee71631a76f347a98c7dd09d32f76",
+        "finite": false
+      },
+      "expected": {
+        "shape": [
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "4c9c4f354e74153db012329d71c8562ec23e498148174b2c49de58f45d47cdbe",
+        "finite": true
+      },
+      "exact_bytes": false,
+      "passed": false,
+      "element_equal": false,
+      "max_abs": null,
+      "max_relative": null,
+      "relative_denominator": "max(abs(expected),1e-12)",
+      "relative_rms": null,
+      "rms_denominator": "max(sqrt(mean(expected**2)),1e-12)",
+      "element_mismatch_count": 1,
+      "byte_mismatch_count": 2,
+      "max_error_coordinate": [],
+      "actual_at_max": null,
+      "expected_at_max": null,
+      "metric_nonfinite": true
+    }
+  ],
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "largest_independent_tensor_elements": 8,
+  "probe_sha256": "d21d35c68440e6a2b62abf5338603f0c8a4891a454bb61d3df0fdc420d7682a1",
+  "cpu_binding_sha256": "0e5fd285080e57d0b03de80c927d89b87d1f35d094e82baf16af7bb3a8964e3e",
+  "cpu_driver_sha256": "a2620e94474aeda9463baa173233ac43ac7074ce03c04ba48fdf641518faeb9d",
+  "manifest_sha256": "251ef57349d3449c49f7c81980c0e974f5c42eb0d9d81534a45fc3ac88a1d10a",
+  "source_review": "REFUSE_UNCHANGED",
+  "native_review": "NOT_ACCEPTED_BY_THIS_RECEIPT",
+  "host_actions": false,
+  "full_model_imported": false,
+  "full_training": "HOLD",
+  "upload": "HOLD"
+}
