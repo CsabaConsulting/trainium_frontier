@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 04:44 UTC
+Last reconciled: 2026-09-25 04:50 UTC
 
 ## Latest handoff: CPU evidence archived; both transfer repairs remain gated
 
@@ -17,8 +17,9 @@ an archived child listing, and no separate step-log byte archive.
 
 The trn21 clean-r4 transfer's
 [independent final review](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/INDEPENDENT_FINAL_ENABLEMENT_HOLD.md)
-reproduced a late science-label race and placed the enabled package on HOLD.
-A separate Implementer is repairing it. The trn22 r3 disabled repair has
+reproduced a late science-label race and placed that enabled package on HOLD.
+A separate [final-r2 repair](../v2/authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R2_PENDING_REVIEW.json)
+is now under independent final review; the old HOLD remains historical. The trn22 r3 disabled repair has
 [independent static PASS](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/INDEPENDENT_CONTINUITY_R3_STATIC_REVIEW.md),
 and a [new exact enabled r3 request](../v2/authorizations/trn22-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.CONTINUITY_FINAL_R3.json)
 is under independent final review. A final PASS, fresh host

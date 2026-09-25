@@ -1,6 +1,11 @@
 # Workflow installation and incremental launch status
 
-Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 enabled transfer final HOLD on late-label race; trn22 r3 enabled transfer request under independent final review; scored training on both hosts HOLD; no new BPB result.**
+Status: **both guest disks expanded and G1 calibrations PASS; trn21 CPU-only G2 independent numeric PASS; trn21 final-r2 and trn22 final-r3 transfer repairs under independent review; scored training on both hosts HOLD; no new BPB result.**
+
+At 04:50 UTC, a distinct [trn21 final-r2 transfer repair](authorizations/trn21-c5c-a0-r4-transfer-only/TRANSFER_REQUEST.FINAL_R2_PENDING_REVIEW.json)
+is under independent final review. Its local safety suite passed, but no
+final PASS, fresh host feasibility, Supervisor assignment, or trn21 r4
+transfer exists. The held r1 package remains held.
 
 At 04:44 UTC, trn21's archived CPU-only G2 attempt received
 [independent numeric PASS](authorizations/trn21-c5c-a0-stage-r2-cpu-g2-final/INDEPENDENT_CPU_G2_RESULT_REVIEW.PASS.json):
