@@ -1,0 +1,243 @@
+--- base.py
++++ candidate.py
+@@ -193,14 +193,15 @@
+ LOSS_SCALE_MAX = 8192.0
+ loss_scale_clean = 0
+ loss_scale_skips = 0
+ LOSS_SCALE = 1.0
+ WARMDOWN_RATIO = 0.75
+ FINAL_LR_FRAC = 0.05
+ RECURSIVE_SCHEDULE = False
++USE_EMBEDDING_SCATTER = False
+ USE_TENSOR_LR_SCALARS = True
+ LRM_QUANTUM = 0
+ USE_FOREACH_OPTIM = True
+ WD_DECAY_TO_ZERO = True
+ MUON_MOMENTUM_WARMUP_STEPS = 300
+ MUON_MOMENTUM_COOLDOWN_FRAC = 0.045
+ MUON_MOMENTUM_FINAL = 0.85
+@@ -1899,14 +1900,126 @@
+         q = self.w_q(h) if self.w_q is not None else h
+         alpha = torch.sigmoid((norm(q) * norm(k)).sum(dim=-1, keepdim=True) * self._scale)
+         vt = alpha * v
+         if self.conv is None:
+             return vt
+         return F.silu(self.conv(norm(vt))) + vt
+ 
++_embedding_scatter_kernel = None
++
++def _build_embedding_scatter_kernel():
++    """K2: coalesce duplicate IDs on device before unique gather/add/scatter.
++
++    BF16 inputs are the existing embedding output-cast's backward values;
++    all gradient sums, read/modify/write state and returned masters are FP32.
++    Two programs own disjoint channel slices, including initialization.
++    Native correctness, compiled autograd and cold cost are pending gates.
++    """
++    global nl, nisa
++    import nki
++    import nki.language as nl
++    import nki.isa as nisa
++
++    @nki.jit
++    def scatter(gradient, ids, vocabulary: int):
++        tokens, channels = gradient.shape
++        if gradient.dtype != nl.bfloat16 or tokens % 128 or vocabulary % 128:
++            raise ValueError('K2 native kernel requires BF16 and 128-row multiples')
++        if channels % 2 or channels > 1024 or vocabulary + 128 >= 2 ** 24:
++            raise ValueError('K2 native shape is outside the reviewed contract')
++        if ids.shape != (tokens,):
++            raise ValueError('K2 IDs must be flattened')
++        width = channels // 2
++        c0 = nl.program_id(0) * width
++        # Nonrepresentative positions map to DISTINCT private dummy rows.
++        # This makes each tile's scatter collision-free, even all-same IDs.
++        out = nl.ndarray((vocabulary + 128, channels), dtype=nl.float32, buffer=nl.shared_hbm)
++        zero = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.memset(dst=zero, value=0.0)
++        for vi in nl.sequential_range(vocabulary // 128 + 1):
++            nisa.dma_copy(dst=out[vi * 128:(vi + 1) * 128, c0:c0 + width], src=zero)
++        later = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.iota(dst=later, pattern=[[1, 128]], channel_multiplier=-1)
++        nisa.tensor_scalar(dst=later, data=later, op0=nl.greater, operand0=0.0)
++        dummy = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.iota(dst=dummy, pattern=[[0, 1]], offset=vocabulary, channel_multiplier=1)
++        for ti in nl.sequential_range(tokens // 128):
++            # IDs remain exactly represented in FP32; never round IDs to BF16.
++            rows = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
++            cols = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.dma_copy(dst=rows, src=ids.ap(pattern=[[1, 128], [0, 1]], offset=ti * 128))
++            nisa.dma_copy(dst=cols, src=ids.ap(pattern=[[0, 128], [1, 128]], offset=ti * 128))
++            equal = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
++            nisa.tensor_scalar(dst=equal, data=cols, op0=nl.equal, operand0=rows)
++            following = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_tensor(dst=following, data1=equal, data2=later, op=nl.multiply)
++            keep = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_reduce(dst=keep, data=following, op=nl.add, axis=(1,))
++            nisa.tensor_scalar(dst=keep, data=keep, op0=nl.equal, operand0=0.0)
++            # Pick the LAST occurrence of each ID within the tile.
++            dead = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_scalar(dst=dead, data=keep, op0=nl.subtract, operand0=1.0, reverse0=True)
++            chosen = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_tensor(dst=chosen, data1=rows, data2=keep, op=nl.multiply)
++            nisa.tensor_tensor(dst=dead, data1=dead, data2=dummy, op=nl.multiply)
++            unique = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
++            nisa.tensor_tensor(dst=unique, data1=chosen, data2=dead, op=nl.add)
++            values = nl.ndarray((128, width), dtype=nl.bfloat16, buffer=nl.sbuf)
++            nisa.dma_copy(dst=values, src=gradient[ti * 128:(ti + 1) * 128, c0:c0 + width])
++            grouped = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.psum)
++            # equal is symmetric: equal.T @ values sums every matching token.
++            nisa.nc_matmul(dst=grouped, stationary=equal, moving=values, accumulate=False)
++            selected = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_scalar(dst=selected, data=grouped, op0=nl.multiply, operand0=keep)
++            existing = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
++            address = out.ap(pattern=[[channels, 128], [1, width]], offset=c0,
++                             vector_offset=unique, indirect_dim=0)
++            nisa.dma_copy(dst=existing, src=address, dge_mode=nisa.dge_mode.swdge)
++            nisa.tensor_tensor(dst=selected, data1=existing, data2=selected, op=nl.add)
++            nisa.dma_copy(dst=address, src=selected, dge_mode=nisa.dge_mode.swdge)
++        return out
++    return scatter
++
++def _install_embedding_scatter(device):
++    global _embedding_scatter_kernel
++    if device.type == 'neuron':
++        from torch_neuronx import wrap_nki
++        _embedding_scatter_kernel = wrap_nki(_build_embedding_scatter_kernel())
++    elif device.type != 'cpu':
++        raise ValueError('K2 supports the gated native path and CPU reference only')
++
++class _EmbeddingScatter(torch.autograd.Function):
++    @staticmethod
++    def forward(ctx, weight, ids, output_dtype):
++        if weight.dtype != torch.float32:
++            raise ValueError('K2 requires FP32 embedding masters')
++        ctx.save_for_backward(ids)
++        ctx.shape = weight.shape
++        # Preserve the existing FP32 gather followed by its compute-dtype cast.
++        return F.embedding(ids, weight).to(output_dtype)
++
++    @staticmethod
++    def backward(ctx, gradient):
++        (ids,) = ctx.saved_tensors
++        vocabulary, channels = ctx.shape
++        flat = gradient.reshape(-1, channels).contiguous()
++        if gradient.device.type == 'cpu':
++            # CPU contract only, not a substitute for the native component gate.
++            result = torch.zeros(ctx.shape, dtype=torch.float32, device=gradient.device)
++            result.index_add_(0, ids.reshape(-1).long(), flat.float())
++        elif gradient.device.type == 'neuron':
++            if _embedding_scatter_kernel is None or flat.dtype != torch.bfloat16:
++                raise RuntimeError('K2 native kernel not installed or upstream not BF16')
++            if flat.shape[0] % 128 or vocabulary % 128 or channels % 2 or channels > 1024:
++                raise ValueError('K2 native shape is unsupported; no silent fallback')
++            result = _embedding_scatter_kernel[2](flat, ids.reshape(-1).contiguous(), vocabulary)[:vocabulary]
++        else:
++            raise ValueError('K2 backward requires CPU or native Neuron')
++        return result, None, None
++
+ class GPT(nn.Module):
+ 
+     def __init__(self, config: GPTConfig):
+         super().__init__()
+         self.config = config
+         padded_vocab_size = (config.vocab_size + 63) // 64 * 64
+         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
+@@ -2223,24 +2336,30 @@
+                 group['initial_betas'] = tuple(group['betas'])
+         return opt
+ 
+     def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean'):
+         _b, t = idx.shape
+         assert t <= self.config.sequence_len
+         cos, sin = (self.cos[:, :t], self.sin[:, :t])
+-        x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
++        if USE_EMBEDDING_SCATTER and self.training:
++            x = _EmbeddingScatter.apply(self.transformer.wte.weight, idx, COMPUTE_DTYPE)
++        else:
++            x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
+         x = norm(x)
+         x0 = x
+         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
+         ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None
+         engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None
+         pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
+         pool_buf: list[torch.Tensor] = []
+         for i, block in enumerate(self.transformer.h):
+-            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
++            if USE_EMBEDDING_SCATTER and self.training and str(i) in self.value_embeds:
++                ve = _EmbeddingScatter.apply(self.value_embeds[str(i)].weight, idx, COMPUTE_DTYPE)
++            else:
++                ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+             ve_bi = ve_tri = None
+             if ngram_idx is not None:
+                 if f'b{i}' in self.ngram_embeds:
+                     ve_bi = self._ngram_lookup(f'b{i}', ngram_idx[f'b{i}'], engram_raw)
+                 if f't{i}' in self.ngram_embeds:
+                     ve_tri = self._ngram_lookup(f't{i}', ngram_idx[f't{i}'], engram_raw)
+             if USE_CAUSAL_FASTPATH and doc_mask is None and (not self.layer_is_short[i]):
+@@ -3427,14 +3546,15 @@
+             f = d / span
+             target = MUON_DEPTH_MOM_BOTTOM + f * (MUON_DEPTH_MOM_TOP - MUON_DEPTH_MOM_BOTTOM)
+             mom_mult.append((1.0 - target) / max(1e-06, 1.0 - MUON_DEPTH_MOM_REF))
+     return (lr_mult, mom_mult)
+ 
+ def main() -> None:
+     global RECURSIVE_SCHEDULE
++    global USE_EMBEDDING_SCATTER
+     global NGRAM_VE_FREEZE_EPOCH, FRESH_TAIL_FRAC, REQUEUE_IDENTITY
+     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
+     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
+     global USE_VE
+     global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
+     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
+     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
+@@ -3594,14 +3714,15 @@
+     _hp('--embedding-lr', EMBEDDING_LR, float, 'T0.4: wte (and value-embedding) AdamW lr before the (n_embd/768)**-0.5 scale. Currently 0.30.')
+     _hp('--unembedding-lr', UNEMBEDDING_LR, float, 'T0.4: lm_head AdamW lr before the d_model scale. Currently 0.006.')
+     _hp('--scalar-lr', SCALAR_LR, float, 'T0.4: AdamW lr for the scalar/skip params. Currently 0.20.')
+     _hp('--weight-decay', WEIGHT_DECAY, float, "T0.4: Muon groups' weight decay (decayed to zero over the run unless --no-wd-decay-to-zero). Currently 0.10.")
+     _hp('--final-lr-frac', FINAL_LR_FRAC, float, 'T0.4: LR floor at the end of cooldown as a fraction of peak. Currently 0.05.')
+     _hp('--warmdown-ratio', WARMDOWN_RATIO, float, 'T0.4: fraction of the wall-clock budget spent on LR cooldown. Currently 0.75.')
+     parser.add_argument('--recursive-schedule', action=argparse.BooleanOptionalAction, default=False, help='Recursive schedule package: Muon/Adam warmdowns 0.95/0.65 with floor 0.05, quadratic Muon momentum to 0.79 and NorMuon beta2 0.95->0.97. Flat table LR takes precedence. Default OFF.')
++    parser.add_argument('--embedding-scatter', action=argparse.BooleanOptionalAction, default=False, help='K2 research: duplicate-coalesced NKI WTE/value-embedding backward with FP32 accumulation. Default OFF; native correctness and cold-cost gates required.')
+     _hp('--init-scale', INIT_SCALE, float, 'T0.4: multiplier on the attn/mlp uniform-init bound. Currently 0.68.')
+     _hp('--attn-cproj-init', ATTN_CPROJ_INIT_SCALE, float, 'T0.4: attn.c_proj init bound as a multiple of the shared bound s; 0.0 (default) keeps the historical exact-zero init.')
+     _hp('--logit-softcap', LOGIT_SOFTCAP, float, 'T0.4: tanh logit softcap. Currently 15.0.')
+     _hp('--muon-ns-steps', MUON_NS_STEPS, int, 'T0.4: Newton-Schulz iterations per Muon step (3 matmuls each). Currently 5.')
+     _hp('--muon-momentum-cooldown-frac', MUON_MOMENTUM_COOLDOWN_FRAC, float, 'T0.4: ramp Muon momentum from its warmed-up 0.95 down to --muon-momentum-final over this trailing fraction of the wall-clock budget. 0.0 (default) = no cooldown, bit-identical to the old schedule.')
+     _hp('--muon-momentum-final', MUON_MOMENTUM_FINAL, float, 'T0.4: momentum at the very end of the cooldown. Only read when --muon-momentum-cooldown-frac > 0.')
+     parser.add_argument('--wd-decay-to-zero', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_WD_DECAY_TO_ZERO', '1' if WD_DECAY_TO_ZERO else '0') != '0', help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of holding it constant. Currently ON.")
+@@ -3653,14 +3774,15 @@
+     UNEMBEDDING_LR = args.unembedding_lr
+     SCALAR_LR = args.scalar_lr
+     WEIGHT_DECAY = args.weight_decay
+     WD_DECAY_TO_ZERO = args.wd_decay_to_zero
+     FINAL_LR_FRAC = args.final_lr_frac
+     WARMDOWN_RATIO = args.warmdown_ratio
+     RECURSIVE_SCHEDULE = args.recursive_schedule
++    USE_EMBEDDING_SCATTER = args.embedding_scatter
+     INIT_SCALE = args.init_scale
+     ATTN_CPROJ_INIT_SCALE = args.attn_cproj_init
+     LOGIT_SOFTCAP = args.logit_softcap
+     MUON_NS_STEPS = args.muon_ns_steps
+     MUON_MOMENTUM_COOLDOWN_FRAC = args.muon_momentum_cooldown_frac
+     MUON_MOMENTUM_FINAL = args.muon_momentum_final
+     USE_VE = args.ve
+@@ -3824,14 +3946,16 @@
+         print0('muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run')
+     device_type = detect_device_type(args.device_type)
+     if USE_NKI_NGRAM_RMS and (device_type != 'neuron' or not _HAS_NKI):
+         parser.error('--nki-ngram-rms requires a Neuron device and available NKI backend')
+     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+     global COMPUTE_DTYPE
+     COMPUTE_DTYPE = compute_dtype_for(device)
++    if USE_EMBEDDING_SCATTER:
++        _install_embedding_scatter(device)
+     print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')
+     print0(f'training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s')
+     print0(f'gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}')
+     print0(f'attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT} bf16_sdpa_input={USE_BF16_SDPA_INPUT}')
+     print0(f'branch_precision: bf16_norm_output={USE_BF16_NORM_OUTPUT} nki_local_conv={USE_NKI_LOCAL_CONV}')
+     if args.num_steps < args.max_train_seconds:
+         print0(f'WARNING: --num-steps {args.num_steps} is below max_train_seconds={args.max_train_seconds}s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default ({NUM_STEPS}).')

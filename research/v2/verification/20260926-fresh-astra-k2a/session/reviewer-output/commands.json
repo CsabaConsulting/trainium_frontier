@@ -1,0 +1,30 @@
+{
+  "executions": [
+    {
+      "command": "ls -la /work /packet /AGENTS.md /work/AGENTS.md",
+      "exit_code": 2,
+      "interpretation": "Read-only discovery: /AGENTS.md and /work/AGENTS.md do not exist; not a test failure."
+    },
+    {
+      "command": "/opt/cpu/bin/python /work/audit_packet.py > /work/packet_audit.stdout 2> /work/packet_audit.stderr",
+      "exit_code": 0,
+      "stderr": "packet_audit.stderr",
+      "stdout": "packet_audit.stdout"
+    },
+    {
+      "command": "env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 /opt/cpu/bin/python /work/reference_exactness_test.py > /work/reference_test.stdout 2> /work/reference_test.stderr",
+      "exit_code": 1,
+      "interpretation": "Completed with six retained exactness failures in CPU semantic emulation; no harness exception.",
+      "repeats": 0,
+      "stderr": "reference_test.stderr",
+      "stdout": "reference_test.stdout",
+      "tool_session_id": 83698
+    },
+    {
+      "command": "/opt/cpu/bin/python /work/finalize_artifacts.py",
+      "exit_code": 0,
+      "interpretation": "Initial packaging execution completed; regenerated after correcting report line references. This command does not rerun the test."
+    }
+  ],
+  "scope": "Evidence-producing executions and initial instruction-file discovery; shell reads are summarized in REVIEW.md and retained tool transcript."
+}

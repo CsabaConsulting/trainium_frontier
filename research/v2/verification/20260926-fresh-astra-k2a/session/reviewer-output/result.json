@@ -1,0 +1,582 @@
+{
+  "accounting": {
+    "budget_seconds": 1800,
+    "fullchip": true,
+    "lnc": 2,
+    "native_assignment": "sole Operator",
+    "seed": 42,
+    "startup_allowance_cap_seconds": 900,
+    "startup_excess_charged": true,
+    "world_size": 4
+  },
+  "ancestry_independently_verified": false,
+  "artifacts": {
+    "commands": "commands.json",
+    "input_hashes": "input_hashes.json",
+    "manifest": "ARTIFACT_MANIFEST.json",
+    "raw_stderr": "reference_test.stderr",
+    "raw_stdout": "reference_test.stdout",
+    "receipts": "receipt_audit.json",
+    "report": "REVIEW.md",
+    "tensors": "reference_tensors.pt",
+    "test_results": "reference_results.json",
+    "test_source": "reference_exactness_test.py"
+  },
+  "authority": {
+    "hardware_launch_permission": false,
+    "merge_permission": false
+  },
+  "base_commit_metadata": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+  "candidate_commit_metadata": "25b731f7638672aa8d03a7cd15b6a02b8f5776ea",
+  "check_groups": {
+    "absent_value": {
+      "failed": 0,
+      "passed": 48
+    },
+    "cast_backward": {
+      "failed": 0,
+      "passed": 2
+    },
+    "cli": {
+      "failed": 0,
+      "passed": 6
+    },
+    "component": {
+      "failed": 0,
+      "passed": 280
+    },
+    "config": {
+      "failed": 0,
+      "passed": 1
+    },
+    "emulation": {
+      "failed": 6,
+      "passed": 12
+    },
+    "eval": {
+      "failed": 0,
+      "passed": 16
+    },
+    "grad_alias": {
+      "failed": 0,
+      "passed": 24
+    },
+    "reject_invalid_index": {
+      "failed": 0,
+      "passed": 2
+    },
+    "reject_non_fp32_master": {
+      "failed": 0,
+      "passed": 1
+    },
+    "three_step": {
+      "failed": 0,
+      "passed": 306
+    },
+    "unchanged_ast": {
+      "failed": 0,
+      "passed": 10
+    }
+  },
+  "findings": [
+    {
+      "correction_required": "Preserve the agreed dense accumulation semantics and pass retained counterexamples at zero tolerance; an approximate contract requires explicit user approval.",
+      "evidence_kind": "Independent CPU semantic emulation plus actual dense/candidate CPU backward; not native execution",
+      "exact_bf16_counterexample": {
+        "actual_candidate_cpu": 0,
+        "channels": 8,
+        "dense_cpu": 0,
+        "emulated_tile_grouping": 1,
+        "flattened_positions": [
+          0,
+          128,
+          129
+        ],
+        "ids_shape": [
+          2,
+          128
+        ],
+        "row": 3,
+        "upstream": [
+          16777216,
+          1,
+          -16777216
+        ],
+        "vocabulary": 256
+      },
+      "id": "R1",
+      "severity": "blocking",
+      "source_locations": [
+        "candidate.py:1945",
+        "candidate.py:1970",
+        "candidate.py:1977",
+        "candidate.py:2008"
+      ],
+      "title": "Per-tile duplicate coalescing changes FP32 accumulation order and fails dense CPU exactness"
+    }
+  ],
+  "full_model_executed": false,
+  "input_files": 11,
+  "input_hashes_verified": true,
+  "native_executed": false,
+  "nonblocking_observations": [
+    {
+      "evaluation_effect": "None found: evaluation bypasses scatter regardless of live flag; full load_for_eval not executed.",
+      "id": "O1",
+      "title": "Training scatter flag is absent from saved checkpoint toggles and metadata"
+    }
+  ],
+  "pending_scope": [
+    "Resolution of R1 for exact CPU semantic equivalence.",
+    "Native NKI/compiler/DMA legality and correctness, production shapes, compiled autograd and two-program operation.",
+    "Production world4 collectives and full-model correctness/evaluation.",
+    "Cold startup and >=5% faster whole step versus base, under official accounting.",
+    "Applicable quality gates; separate Operator assignment required for native work."
+  ],
+  "performance_verdict": "UNMEASURED",
+  "positive_evidence": [
+    "Complete reconstructed base/candidate sources match lane hashes; every listed input matches packet manifest.",
+    "All 696 non-emulation checks pass, including actual candidate CPU backward, BF16 cast behavior and FP32 repeated accumulation.",
+    "Three-step tiny extracted lookup/AdamW comparisons match base for candidate default/OFF/ON at every recorded output/gradient/parameter/moment.",
+    "Supplied G2 recorded losses and all 22 rank-0 final digest strings match across base/default/OFF/ON; reduced shimmed CPU scope only.",
+    "No assigned architecture/schedule/data/optimizer/evaluation/timer changes in supplied source diff."
+  ],
+  "production_distributed_executed": false,
+  "quality_verdict": "UNESTABLISHED",
+  "raw_failures": [
+    {
+      "actual_sha256": "74751936d4ccffa0546074d915da999bb11131ecefb0db4956754e9f1012b24e",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "12db5b0f33cf85a10520625a5259ac723f54607ee15f95a5e2aa6702bf774d92",
+      "first_numeric_mismatches": [
+        {
+          "actual": 5.002978801727295,
+          "expected": 5.002979278564453,
+          "index": [
+            7,
+            33
+          ]
+        },
+        {
+          "actual": -1.569169044494629,
+          "expected": -1.569169282913208,
+          "index": [
+            7,
+            95
+          ]
+        }
+      ],
+      "input_bf16_exact": false,
+      "max_abs_error": 4.76837158203125e-07,
+      "name": "emulation/all_same/matmul",
+      "pass_exact": false,
+      "shape": [
+        512,
+        128
+      ]
+    },
+    {
+      "actual_sha256": "74751936d4ccffa0546074d915da999bb11131ecefb0db4956754e9f1012b24e",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "12db5b0f33cf85a10520625a5259ac723f54607ee15f95a5e2aa6702bf774d92",
+      "first_numeric_mismatches": [
+        {
+          "actual": 5.002978801727295,
+          "expected": 5.002979278564453,
+          "index": [
+            7,
+            33
+          ]
+        },
+        {
+          "actual": -1.569169044494629,
+          "expected": -1.569169282913208,
+          "index": [
+            7,
+            95
+          ]
+        }
+      ],
+      "input_bf16_exact": false,
+      "max_abs_error": 4.76837158203125e-07,
+      "name": "emulation/all_same/sequential",
+      "pass_exact": false,
+      "shape": [
+        512,
+        128
+      ]
+    },
+    {
+      "actual_sha256": "a9ddbcc5f133626718272be0fd4ee4b594af5880f6279385a05a83dd8f4c280c",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "first_numeric_mismatches": [
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            0
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            1
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            2
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            3
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            4
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            5
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            6
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            7
+          ]
+        }
+      ],
+      "input_bf16_exact": true,
+      "max_abs_error": 5.960464477539063e-08,
+      "name": "emulation/cross_tile_rounding_unit/matmul",
+      "pass_exact": false,
+      "shape": [
+        256,
+        8
+      ]
+    },
+    {
+      "actual_sha256": "a9ddbcc5f133626718272be0fd4ee4b594af5880f6279385a05a83dd8f4c280c",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "first_numeric_mismatches": [
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            0
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            1
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            2
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            3
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            4
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            5
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            6
+          ]
+        },
+        {
+          "actual": 5.960464477539063e-08,
+          "expected": 0.0,
+          "index": [
+            3,
+            7
+          ]
+        }
+      ],
+      "input_bf16_exact": true,
+      "max_abs_error": 5.960464477539063e-08,
+      "name": "emulation/cross_tile_rounding_unit/sequential",
+      "pass_exact": false,
+      "shape": [
+        256,
+        8
+      ]
+    },
+    {
+      "actual_sha256": "c286f356fafa14b6c5340e6ca622ee601e39c9d7fd15892ec087e5c6e5c21e3a",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "first_numeric_mismatches": [
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            0
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            1
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            2
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            3
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            4
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            5
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            6
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            7
+          ]
+        }
+      ],
+      "input_bf16_exact": true,
+      "max_abs_error": 1.0,
+      "name": "emulation/cross_tile_rounding_large/matmul",
+      "pass_exact": false,
+      "shape": [
+        256,
+        8
+      ]
+    },
+    {
+      "actual_sha256": "c286f356fafa14b6c5340e6ca622ee601e39c9d7fd15892ec087e5c6e5c21e3a",
+      "dtype": "torch.float32",
+      "execution": "reviewer CPU emulation; no NKI",
+      "expected_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+      "first_numeric_mismatches": [
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            0
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            1
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            2
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            3
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            4
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            5
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            6
+          ]
+        },
+        {
+          "actual": 1.0,
+          "expected": 0.0,
+          "index": [
+            3,
+            7
+          ]
+        }
+      ],
+      "input_bf16_exact": true,
+      "max_abs_error": 1.0,
+      "name": "emulation/cross_tile_rounding_large/sequential",
+      "pass_exact": false,
+      "shape": [
+        256,
+        8
+      ]
+    }
+  ],
+  "schema": "independent-k2-source-cpu-review-v1",
+  "scope": "Supplied packet only; bounded CPU exactness and static source review; authorized SAME-family substitute, no cross-family claim.",
+  "source_hashes": {
+    "base.py": {
+      "bytes": 318875,
+      "lines": 4890,
+      "matches_lane_spec": true,
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3"
+    },
+    "candidate.py": {
+      "bytes": 326383,
+      "lines": 5014,
+      "matches_lane_spec": true,
+      "sha256": "e4d93babb4cec8ce53ee1ef9f9d4cc4238c40b93dff0245b66fbcf6bae158b03"
+    }
+  },
+  "test_command": "env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 /opt/cpu/bin/python /work/reference_exactness_test.py > /work/reference_test.stdout 2> /work/reference_test.stderr",
+  "test_exit_code": 1,
+  "test_metadata": {
+    "device": "cpu",
+    "limits": {
+      "max_context": 128,
+      "max_microbatch": 2,
+      "max_tokens": 256,
+      "max_vocabulary": 512,
+      "max_width": 128
+    },
+    "python": "3.14.4",
+    "seed": 42,
+    "threads": {
+      "configured_MKL": 1,
+      "configured_NUMEXPR": 1,
+      "configured_OMP": 1,
+      "configured_OpenBLAS": 1,
+      "inter_op": 1,
+      "intra_op": 1
+    },
+    "tolerance": {
+      "atol": 0,
+      "criterion": "same dtype/shape and identical tensor bytes",
+      "rtol": 0
+    },
+    "torch": "2.13.0+cpu"
+  },
+  "test_summary": {
+    "actual_cpu_path_failures": 0,
+    "checks": 714,
+    "failures": 6
+  },
+  "verdict": "REFUSE"
+}

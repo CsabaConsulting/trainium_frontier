@@ -1,0 +1,8 @@
+{
+  "scope": "Operator-derived descriptive supplement, not the fresh review test or candidate source",
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 /home/poojith-devan/venv/bin/python research/v2/verification/20260926-fresh-astra-k2a/operator-derived/derive_failure_metrics.py",
+  "exit_code": 1,
+  "stderr": "seeded input recovery failed: emulation/all_same/matmul\n",
+  "observed_runtime_difference": "Reviewer torch_build.txt reports CPU capability usage DEFAULT inside isolation without /proc/cpuinfo; initial operator supplement used same PyTorch build with AVX2 on host.",
+  "repair": "Set ATEN_CPU_CAPABILITY=default before importing PyTorch, then require recovered input reference/emulation hashes to equal unchanged saved reviewer hashes. No native execution, candidate change, model request, reviewer retry or equality relaxation."
+}
