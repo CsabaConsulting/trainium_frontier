@@ -14,7 +14,7 @@ label, and create an isolated CPU output directory. Do not install packages,
 change prepare.py, use real training data, or include local test_support in
 PYTHONPATH. The real organizer prepare module is imported for compatibility;
 the unchanged G2 tool supplies deterministic synthetic inputs and its recorded
-CPU shims. Use the proven host Python 2.11 Torch runtime, not the laptop Torch
+CPU shims. Use the proven host Python with Torch 2.11, not the laptop Torch
 2.6 compatibility shim.
 
 The exact argv for each possible selected profile is in `PROFILES.json`.
