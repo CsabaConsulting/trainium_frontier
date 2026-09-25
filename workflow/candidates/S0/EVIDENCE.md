@@ -42,10 +42,19 @@
 1. **Neuron 100-step lockstep** against 116188 (116188 with its flag argv, S0 bare). Steps 0–1 identical;
    later steps within 1e-4 relative. The NKI kernels (rope+norm, local conv, softcap CE) and the
    `_FusedMLP` path on Neuron are not exercised on CPU.
-2. **Two cold replays** of S0: fresh `NEURON_COMPILE_CACHE_DIR`, the bare command, public-20M within
-   ±0.0008 of 0.99195, startup ≤ 840 s, `over_budget=False`.
+2. **Two demonstrably cold replays** of S0: each must start with a distinct absent cache root,
+   precreate and verify empty native caches, bind Neuron's documented `NEURON_COMPILE_CACHE_URL`
+   to that root without a higher-priority `NEURON_CC_FLAGS --cache_dir` override, and record new
+   compiler objects under the URL. Use the bare command, complete the 1,800-second training run,
+   then obtain a fresh-process public-20M score within ±0.0008 of 0.99195, startup ≤ 840 s,
+   `over_budget=False`. An empty `NEURON_COMPILE_CACHE_DIR` alone is not proof of coldness.
 3. **Eval-path check on Neuron:** evaluate one S0-trained checkpoint through both S0's and 116188's
    `load_for_eval` at public-2M. The BPB must be identical. S0's `GPTConfig` drops two unused fields, so
    S0 cannot load an *old* 116188 checkpoint; load S0-trained checkpoints through both files instead.
 4. **Verifier checklist C** (`workflow/roles/verifier.md`), then the human submits and records the result
    in `research/v2/calibration.json`.
+
+The first trn21 S0 attempt (`fs-20260925-s0-cold-replay-trn21-r1`) failed before training
+with an NKI RNG `module.neff` read error and no checkpoint or BPB. Its documented persistent
+cache URL was not isolated, so it neither establishes a successful cold replay nor separates
+S0 source behavior from the cache setup. Preserve its artifacts; never reuse that label.
