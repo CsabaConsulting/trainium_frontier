@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-25 20:50 UTC (26 September IST)
+Last reconciled: 2026-09-25 21:00 UTC (26 September IST)
 
 ## Current: architecture training complete, fresh eval running; CPU follow-up assigned
 
@@ -10,12 +10,14 @@ exit1789.208484s<=1800. Source separately reports1784.7training seconds and
 over_budgetFalse. Checkpoint453048594bytes, SHA
 068749c2559f7c68f6acc76d558caff9d3806d85273fa8562483d87bbad50d25.
 Raw training/observer/guarded eval handoff is archived55da2532. Independent
-final-result authentication is underway; no score yet. Its fresh public20M
+training authentication366fd1be passed65checks; no score yet. Its fresh public20M
 evaluation started20:46:04UTC under the same lifetime lock. Do not interrupt.
 This full run was primed-cache research, not a full cold submission replay.
 
-Seed43/trn21 remains healthy; last Operator observation20:46UTC reached1080
-steps at267168tokens/s. Preserve its training and attached fresh20M.
+Seed43/trn21 remains healthy; last Operator observation20:58:03UTC reached2520
+steps at269250tokens/s,567source-seconds remaining. Architecture evaluator's
+original PID3135741 was live with advancing CPU time under original driver/
+lock at that observation. Preserve both jobs and attached fresh20M.
 
 Fresh isolated basebcbd review is complete, canonical25317b2a: restricted
 BF16/FP32-master CPU-qualification suitability PASS,8own fixtures/3183bitwise
@@ -33,10 +35,21 @@ RAM/disk/STOP checks each time. Stop first failure; no native follow-up yet.
 Independent numeric review follows retrieval. An actually ready architecture
 decision-tree job can preempt before first launch; none is released now.
 
-K2 Implementer is building only the tiny resident-row consumer falsifier in
-an isolated branch; no production source/native run. P device decode remains
-unstarted. No new confirmed BPB improvement. Safeguard timebox is satisfied;
-old queue processes are stopped, not merely starved. Keep current6ef7 base.
+K2 tiny resident-row consumer is integrated as an isolated, disabled packet
+a415d48f, not into production train.py. Implementer20stdlibcases pass; separate
+technical review7982e84a passed5211checks/20cases, rerun by Supervisor normally
+and under-O. No native legality/exactness/timing proof. Fresh input-only Astra
+session01a0da5c-e47c-76c2-997d-ab14ed900de1 began20:58:35UTC; verdict pending.
+Its disabled native binding is being prepared; no host assignment.
+
+P bounded decoder plan4059dd90 preserves all80NEFFs and original traces; no
+decoder execution or binding release. K3 static audit1bcf203c passed25checks
+normal/-O: eligible training MLP bypasses the original relu_squared path, so
+the existing --nki-relu2 flag alone is not selected as a speed experiment.
+No model imported, new kernel implemented or runtime gain demonstrated.
+
+No new confirmed BPB improvement. Safeguard timebox is satisfied; old queue
+processes remain stopped, not merely starved. Keep current6ef7 base.
 
 ## Current: both training; batch authenticated; next compile gate in preparation
 
