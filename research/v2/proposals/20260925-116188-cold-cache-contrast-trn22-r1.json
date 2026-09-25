@@ -1,0 +1,70 @@
+{
+  "proposal_id": "20260925-116188-cold-cache-contrast-trn22-r1",
+  "status": "RESEARCH_COMPLETE_DISPATCH_HOLD",
+  "owner_role": "researcher",
+  "proposal_content_complete": true,
+  "launch_authorized": false,
+  "hypothesis": "The known-good 116188 training file can complete Neuron startup from a truly isolated empty compile cache on trn22. A repeated pre-model RNG/NEFF failure would implicate shared cold-start setup more than an S0-only model defect, but one binary contrast cannot prove a root cause.",
+  "single_causal_change": "Use the previously successful 116188 bytes and exact historical dense launch flags on trn22, while deliberately isolating all compiler caches—including the AWS-documented persistent cache URL—in fresh empty job-owned directories. This tests cold-start feasibility; no science change or quality adoption is proposed.",
+  "mechanism_class": "startup_cache_diagnostic",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.002, 0.002],
+  "candidate_shortlist": [
+    {"idea": "Known-good 116188 true-cold contrast on trn22", "mechanism_class": "startup_cache_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Controls for whether the zero-step failure reproduces with proven dense source under explicit empty cache isolation."},
+    {"idea": "S0 warm diagnostic on trn21", "mechanism_class": "startup_cache_diagnostic", "predicted_bpb_delta": 0.0, "why_ranked": "Tests S0 native startup on an authenticated populated cache, but cannot establish scorer cold-start safety."}
+  ],
+  "selection_rationale": "Poojith directly requested one known-good cold-cache contrast while keeping S0 as the submission gate. The 116188 file previously completed full Trn2 training and public20M evaluation, unlike S0 r1.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.3,
+  "trainium_feasibility": "Source submissions/dense6x1024_direct_review_matrixlr015/train.py SHA256 116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d; full-chip LNC2/four ranks; seed 42, 1800 s. Use new unique /home/ubuntu/trainium_116188_cold_20260925_trn22_r1 sandbox. Before launch create and document empty dedicated NEURON_COMPILE_CACHE_URL directory plus empty TORCH_NEURONX_NEFF_CACHE_DIR/LOCAL/HLO/DEBUG, TORCHINDUCTOR_CACHE_DIR, and NEURON_COMPILE_CACHE_DIR directories. Use same native-beta environment/runtime as trn22 A0, except job-owned cache roots; NEURON_CC_FLAGS externally unset so train.py sets its exact default. Verify effective cache path and postrun cache artifacts; the legacy empty NEURON_COMPILE_CACHE_DIR alone is not a true-cold proof. Historical 116188 source completed on trn21 with cold job-owned native caches, but that previous run did not prove this trn22 setup's persistent-cache isolation.",
+  "cheapest_falsifier": "After fresh preflight, inspect the first Neuron startup and five finite optimizer boundaries; if the same RNG/NEFF failure recurs, retrieve compiler/journal evidence before attributing cause.",
+  "prior_result_refs": [
+    "fs-20260924-c595-matrixlr015-trn21-r1: 3635 steps, public20M 0.9920722144854677, source SHA 116188cf...",
+    "fs-20260924-c595-matrixlr015-confirm-trn21-r2: 3654 steps, public20M 0.9918353324459732",
+    "fs-20260925-s0-cold-replay-trn21-r1: zero-step NKI RNG/NEFF failure; cold persistent cache unproved"
+  ],
+  "evidence": [
+    "research/v2/incidents/20260925-s0-cold-trn21-r1/READONLY_COMPILER_POSTMORTEM.md",
+    "research/submission-validation/20260924-c595-matrixlr015-trn21/retrieved/fs-20260924-c595-matrixlr015-trn21-r1/evidence/training-rehearsal.json",
+    "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/EXPERIMENT_PROPOSAL.json",
+    "workflow/evidence/g2-base-116188.json",
+    "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/comparisons/116188-vs-s0.json",
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py"
+  ],
+  "duplicate_search_terms": ["116188 cold", "known-good cold-cache contrast", "trn22 116188", "fs-20260925-116188-cold-contrast-trn22-r1"],
+  "control": {
+    "git_commit": "135f9dc4",
+    "source_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "run_label": "fs-20260924-c595-matrixlr015-confirm-trn21-r2",
+    "public_val_bpb": 0.9918353324459732,
+    "steps": 3654,
+    "box_constraint": "Historical trn21 numerical reference only; trn22 contrast is a pass/fail startup diagnostic, not a same-host BPB win claim."
+  },
+  "candidate": {
+    "branch": "codex/20260925-s0-cold-cache-diagnostics",
+    "files_allowed": [],
+    "expected_diff": "No train.py edit. Copy exact 116188 bytes and trusted prepare.py to a new trn22 sandbox; host SHA256 must match pinned values.",
+    "run_label": "fs-20260925-116188-cold-contrast-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "evaluation": "After a complete checkpoint, separate fresh process of trusted prepare.py eval-public with exact 116188 train.py, context 1024 and 20971520 public tokens; archive command, output, checkpoint hash and parsed BPB. Even a startup-only failure is a failed run and must be ledgered.",
+  "required_prelaunch": [
+    "Supervisor issues one-use assignment only after trn22 A0 finishes and no other Neuron job runs",
+    "Operator verifies unique label/sandbox absent, source SHA256 116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d and prepare.py SHA256 5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb on host",
+    "Operator verifies disk >=6.5 GiB, no job/device holder or STOP, data/tokenizer present, all job-owned cache dirs created before launch and empty, documented NEURON_COMPILE_CACHE_URL points to the fresh persistent-cache dir, and NEURON_CC_FLAGS is externally unset",
+    "Operator records exact effective environment, compiler flags/source and pre/post cache directory entries with file counts and sizes; new compiler cache files must appear under the declared NEURON_COMPILE_CACHE_URL after first compile to establish effective cold-cache routing. Never delete or overwrite old runs/caches/checkpoints or add --log_level to the compiler invocation."
+  ],
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": true, "numerical_equivalence": true, "causality": false, "smoke_run": false, "human_run_approval": true},
+  "success_criteria": {
+    "quality": "Informational public20M only; no cross-host quality adoption or S0 submission decision from this contrast alone.",
+    "throughput": "Record startup duration, steps and charged training time. Cold compile must remain within competition semantics and produce a loadable checkpoint.",
+    "correctness": "Full-chip four-rank 1800 s run, finite model-only checkpoint, strict load, no NaN/crash/budget breach, verified effective cold cache path with new files under the precreated empty NEURON_COMPILE_CACHE_URL after first compile, and fresh-process public20M. If effective cache isolation is not proven, label result inconclusive as a cold-cache test."
+  },
+  "abort_conditions": [
+    "Trn22 A0 still active, any Neuron/device holder or STOP, disk free <6.5 GiB, unique label/root already exists",
+    "Any cache directory not empty before launch or effective persistent-cache path not proven; do not infer cold from NEURON_COMPILE_CACHE_DIR alone",
+    "Source/prepare hash or dense launch argv mismatch, crash, NaN, missing checkpoint, budget or eval failure"
+  ],
+  "human_approved_by": "Poojith direct known-good cold-cache contrast request, 2026-09-25 IST; this proposal alone is not launch authority",
+  "verdict": null
+}
