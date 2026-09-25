@@ -18,7 +18,7 @@ import subprocess
 
 HERE = Path(__file__).resolve().parent
 REMOTE = HERE / "stage_r4_remote.py"
-REMOTE_SHA256 = "023e578693c3fb826b81cfc645190d79e409757dba0bd8df29adad6e3f90a69d"
+REMOTE_SHA256 = "e93efd99c0a58aa32537d945ddc8fc29f9d7ce0dabb89ed93526da30421f4086"
 SOURCE = Path("/home/poojith-devan/Desktop/Trainium-source-artifacts/trainium-c5c-r4-446b-one-commit-20260925.tar.gz")
 SOURCE_BYTES = 104154875
 SOURCE_SHA256 = "767d1d0ce0526b822c680fccc5d79ed0423827d6f2ce3570b8d7d8b5c5d7c84a"
@@ -278,6 +278,19 @@ def validate_probe(probe, *, before_write):
         if (item.get("exists") is not True and item.get("exists") is not False) or (
                 item.get("exists") is True and item.get("type") not in ("directory", "regular")):
             raise RuntimeError("unsafe or unclassified old path: " + path)
+        # A Git worktree can use a regular .git file. The nested HEAD then
+        # cannot exist, but its blocking file must be separately inventoried
+        # and match the no-follow snapshot exactly. No other blocked ancestor
+        # is accepted as an absent path.
+        if path.endswith("/.git/HEAD"):
+            git_file = old["paths"].get(path[:-len("/HEAD")], {})
+            if git_file.get("type") == "regular":
+                if item != {"exists": False, "file_backed_git": git_file}:
+                    raise RuntimeError("file-backed old .git inventory mismatch: " + path)
+            elif "file_backed_git" in item:
+                raise RuntimeError("unexpected blocked old .git/HEAD path: " + path)
+        elif "file_backed_git" in item:
+            raise RuntimeError("unexpected blocked old path: " + path)
     for path, item in old["top_level_matching_sources"].items():
         if old["paths"].get(path) != item:
             raise RuntimeError("dynamic old source root differs from fixed inventory")
@@ -371,32 +384,8 @@ def _check_stop_and_process_snapshot(snapshot):
         raise RuntimeError("live prewrite STOP/process safety receipt is incomplete or busy")
 
 
-def compare_preflight_write(preflight, write):
-    """Close the preflight-to-write identity and live-safety continuity gap."""
-    validate_probe(preflight, before_write=True)
-    if write.get("schema") != SCHEMA or write.get("operation") != "write":
-        raise RuntimeError("missing exact remote write receipt")
-    _identity(write)
-    for key in STABLE_IDENTITY_KEYS:
-        if preflight["identity_after"][key] != write["identity_before"][key]:
-            raise RuntimeError("preflight-to-write host/boot/mount drift: " + key)
-    if preflight["process_identity"] == write["process_identity"]:
-        raise RuntimeError("write did not enter a distinct SSH process")
-    pre_time = datetime.datetime.fromisoformat(preflight["utc"])
-    write_time = datetime.datetime.fromisoformat(write["utc"])
-    if (pre_time.tzinfo is None or write_time.tzinfo is None or
-            write_time < pre_time or (write_time - pre_time).total_seconds() > 600):
-        raise RuntimeError("write timestamp not after its exact fresh preflight")
-    evidence = write.get("prewrite_evidence", {})
-    expected_binding = write_binding(preflight)
-    if (evidence.get("preflight_binding_sha256") !=
-            sha256(_canonical_bytes(expected_binding)) or
-            evidence.get("preflight_receipt_sha256") !=
-            expected_binding["preflight_receipt_sha256"]):
-        raise RuntimeError("remote write receipt is not bound to this preflight")
-    safety = evidence.get("live_prewrite_safety", {})
+def _check_full_live_safety(safety):
     _check_stop_and_process_snapshot(safety)
-    _check_stop_and_process_snapshot(evidence.get("last_stop_process_check", {}))
     label = safety.get("science_label_scan", {})
     checkpoint_fuser = safety.get("checkpoint_fuser", {})
     lock = safety.get("shared_lock_fuser", {})
@@ -420,6 +409,34 @@ def compare_preflight_write(preflight, write):
             label.get("matches") != [] or label.get("truncated") is not False or
             label.get("stderr_empty") is not True):
         raise RuntimeError("live prewrite lock/Neuron/label safety receipt is busy")
+
+
+def compare_preflight_write(preflight, write):
+    """Close the preflight-to-write identity and live-safety continuity gap."""
+    validate_probe(preflight, before_write=True)
+    if write.get("schema") != SCHEMA or write.get("operation") != "write":
+        raise RuntimeError("missing exact remote write receipt")
+    _identity(write)
+    for key in STABLE_IDENTITY_KEYS:
+        if preflight["identity_after"][key] != write["identity_before"][key]:
+            raise RuntimeError("preflight-to-write host/boot/mount drift: " + key)
+    if preflight["process_identity"] == write["process_identity"]:
+        raise RuntimeError("write did not enter a distinct SSH process")
+    pre_time = datetime.datetime.fromisoformat(preflight["utc"])
+    write_time = datetime.datetime.fromisoformat(write["utc"])
+    if (pre_time.tzinfo is None or write_time.tzinfo is None or
+            write_time < pre_time or (write_time - pre_time).total_seconds() > 600):
+        raise RuntimeError("write timestamp not after its exact fresh preflight")
+    evidence = write.get("prewrite_evidence", {})
+    expected_binding = write_binding(preflight)
+    if (evidence.get("preflight_binding_sha256") !=
+            sha256(_canonical_bytes(expected_binding)) or
+            evidence.get("preflight_receipt_sha256") !=
+            expected_binding["preflight_receipt_sha256"]):
+        raise RuntimeError("remote write receipt is not bound to this preflight")
+    _check_full_live_safety(evidence.get("live_prewrite_safety", {}))
+    _check_full_live_safety(evidence.get("last_live_precreate_safety", {}))
+    _check_stop_and_process_snapshot(evidence.get("last_stop_process_check", {}))
     return {"status": "PREFLIGHT_TO_WRITE_IDENTITY_AND_LIVE_SAFETY_PASS",
             "preflight_receipt_sha256": expected_binding["preflight_receipt_sha256"],
             "preflight_binding_sha256": sha256(_canonical_bytes(expected_binding)),

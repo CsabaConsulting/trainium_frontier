@@ -274,7 +274,7 @@ def _safe_path(path):
     parts = path.strip("/").split("/")
     fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
     try:
-        for part in parts[:-1]:
+        for index, part in enumerate(parts[:-1]):
             if part in ("", ".", ".."):
                 raise RuntimeError("bad inventory ancestor")
             try:
@@ -282,6 +282,28 @@ def _safe_path(path):
                                 os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd)
             except FileNotFoundError:
                 return {"exists": False}
+            except NotADirectoryError as error:
+                # An old Git worktree may have a regular .git file rather
+                # than a .git directory. Classify that one known form; never
+                # follow a symlink or silently hide another bad ancestor.
+                if not (path.endswith("/.git/HEAD") and part == ".git" and
+                        index == len(parts) - 2):
+                    raise RuntimeError("non-directory inventory ancestor") from error
+                named = os.stat(part, dir_fd=fd, follow_symlinks=False)
+                if not stat.S_ISREG(named.st_mode):
+                    raise RuntimeError("old .git ancestor is not a regular file") from error
+                blocker_fd = os.open(part, os.O_RDONLY | os.O_NONBLOCK |
+                                     os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd)
+                try:
+                    opened = os.fstat(blocker_fd)
+                    linked = os.stat(part, dir_fd=fd, follow_symlinks=False)
+                    if (not stat.S_ISREG(opened.st_mode) or
+                            _meta(opened) != _meta(named) or
+                            _meta(opened) != _meta(linked)):
+                        raise RuntimeError("old .git file changed during inventory")
+                    return {"exists": False, "file_backed_git": _meta(opened)}
+                finally:
+                    os.close(blocker_fd)
             os.close(fd)
             fd = child
         try:
@@ -339,7 +361,8 @@ def _old_paths():
         label = "fs-20260925-v2-c5c-a0-control-trn22-" + revision
         result.extend((checkout, checkout + "/out", checkout + "/out/" + label,
                        checkout + "/out/" + label + "-work",
-                       checkout + "/train.py", checkout + "/.git/HEAD",
+                       checkout + "/train.py", checkout + "/.git",
+                       checkout + "/.git/HEAD",
                        checkout + "/out/" + label + "/caches/train",
                        checkout + "/out/" + label + "/train/out/final.pt",
                        checkout + "/out/" + label + "-work/caches",
@@ -535,11 +558,13 @@ def _require_no_stops_or_processes():
 def _live_prewrite_safety():
     """Rerun live host gates after preflight, before the sole O_EXCL create."""
     safety = _require_no_stops_or_processes()
+    # The label scan can be comparatively slow. Put it before the quick
+    # holder/Neuron checks so their result is as close to O_EXCL as possible.
+    label = _label_scan()
     checkpoint_fuser = _fuser(CHECKPOINT)
     lock = _fuser(ROOT + "/.cache/trainium_freshstart/device0.lock")
     neuron0 = _fuser("/dev/neuron0")
     neuron_ls = _neuron_ls()
-    label = _label_scan()
     if (checkpoint_fuser.get("path_exists") is not True or
             checkpoint_fuser.get("rc") != 1 or
             checkpoint_fuser.get("pids") != [] or
@@ -579,11 +604,14 @@ def write(input_stream, binding):
         if (before_create["root_free_bytes"] < PRE_FREE or
                 before_create["root_free_inodes"] < MIN_INODES):
             raise RuntimeError("persistent root space/inode gate changed before archive creation")
-        # A STOP/process may appear while fuser/neuron/label checks are running.
-        # Check them again immediately before the exclusive create.
-        last_safety = _require_no_stops_or_processes()
         if _safe_path(TARGET)["exists"]:
             raise FileExistsError("one-shot target appeared before exclusive create")
+        # Identity and target checks can take time after the earlier live
+        # safety pass. Repeat *all* live gates, including lock, label and both
+        # Neuron signals, then finish with a STOP/process check immediately
+        # before the sole exclusive create.
+        final_live_safety = _live_prewrite_safety()
+        last_safety = _require_no_stops_or_processes()
         fd = os.open(TARGET_NAME, os.O_RDWR | os.O_CREAT | os.O_EXCL |
                      os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=parent_fd)
         try:
@@ -617,6 +645,7 @@ def write(input_stream, binding):
             evidence = {"preflight_binding_sha256": binding_sha,
                         "preflight_receipt_sha256": binding["preflight_receipt_sha256"],
                         "live_prewrite_safety": live_safety,
+                        "last_live_precreate_safety": final_live_safety,
                         "last_stop_process_check": last_safety}
             return _transfer_receipt("write", before, after, metadata, read_sha,
                                      streamed.hexdigest(), prewrite_evidence=evidence)
