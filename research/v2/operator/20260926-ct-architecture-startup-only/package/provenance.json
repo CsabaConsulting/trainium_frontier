@@ -1,0 +1,7 @@
+{
+  "label": "fs-20260926-ct-arch3e79-cold-trn22-r1",
+  "train_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 5 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh",
+  "source_commit": "b4d83b5db66971f3c348837f04f53cba65aa6d33",
+  "scope": "CT_STARTUP_ONLY_NO_BPB_NO_FULL_AUTOLAUNCH"
+}

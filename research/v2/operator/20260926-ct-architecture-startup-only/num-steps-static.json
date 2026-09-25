@@ -1,0 +1,52 @@
+{
+  "status": "OPERATOR_STATIC_OBSERVATION_NOT_INDEPENDENT_GATE",
+  "source_sha256": "3e79a7c1af5f72b68b7b8bd73fbbb458a04b12e5475a528ab28a49dda02d6f2c",
+  "occurrences": [
+    {
+      "line": 3887,
+      "line_text": "    print0(f'training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s')"
+    },
+    {
+      "line": 3891,
+      "line_text": "    if args.num_steps < args.max_train_seconds:"
+    },
+    {
+      "line": 3892,
+      "line_text": "        print0(f'WARNING: --num-steps {args.num_steps} is below max_train_seconds={args.max_train_seconds}s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default ({NUM_STEPS}).')"
+    },
+    {
+      "line": 4010,
+      "line_text": "    while step < args.num_steps:"
+    },
+    {
+      "line": 4114,
+      "line_text": "        step_cap_hit = step + 1 >= args.num_steps"
+    },
+    {
+      "line": 4120,
+      "line_text": "                print(f'WARNING: --num-steps {args.num_steps} step cap stopped training at step {step + 1}, elapsed={elapsed_after_step:.0f}s -- only {progress_at_exit:.1%} of max_train_seconds={args.max_train_seconds:.0f}s. The wall-clock LR cooldown (lr_multiplier) did NOT run to completion. This is the 2026-09-10 submission-gap failure mode (research/submission-gap-analysis-2026-09-10.md) -- if this is meant to be a real/scored run, raise --num-steps (default {NUM_STEPS}); if this is an intentional short/smoke run, ignore.', flush=True)"
+    },
+    {
+      "line": 4132,
+      "line_text": "            remaining_steps = args.num_steps - step - 1"
+    },
+    {
+      "line": 4138,
+      "line_text": "            time_to_step_cap = (args.num_steps - step - 1) * median_dt"
+    },
+    {
+      "line": 4141,
+      "line_text": "                print(f'WARNING: at {median_dt:.2f}s/step the --num-steps {args.num_steps} cap will stop training ~{time_left - time_to_step_cap:.0f}s BEFORE max_train_seconds={args.max_train_seconds}s; the wall-clock LR schedule will end without cooldown. Intentional for fixed-step sweeps, wrong for a scored submission.', flush=True)"
+    },
+    {
+      "line": 4185,
+      "line_text": "        print(f'target_steps:      {args.num_steps}')"
+    }
+  ],
+  "lr_multiplier_num_steps_reference": false,
+  "new_num_steps": 5,
+  "old_num_steps": 1000000,
+  "fifth_stop_control_happens_after_record_step_boundary": true,
+  "native_same_graph_proof": false,
+  "max_train_seconds_unchanged": 1800
+}
