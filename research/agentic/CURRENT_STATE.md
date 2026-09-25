@@ -1,6 +1,22 @@
 # Current state
 
-Last reconciled: 2026-09-25 03:31 UTC
+Last reconciled: 2026-09-25 03:36 UTC
+
+## Current safety correction: trn21 staged source is not the native-launch source
+
+The accepted trn21 checkout at `e65a3097` proves a clean c5c training/eval
+source, but it does **not** authorize native A0. A read-only source comparison
+against the independently reviewed trn22 r4 source `446b6576` found identical
+`train.py` and `prepare.py` blobs, but `e65a3097` predates the safety-monitor
+revision: `research/fresh_start_launch.py`, `fresh_start_guard.py`, and
+`fresh_start_host.py` differ, and `fresh_start_monitor_interlock.py` plus both
+`research/v2/disk-monitor/*guard_monitor.py` files are absent. Running the old
+launcher would bypass the reviewed paired disk/STOP interlock. The trn21
+exact-environment CPU G2 may proceed only under a separately reviewed CPU-only
+request; no native launch may use the e65 checkout. A distinct clean 446b
+source-stage/checkout and source-matched native request, review, fresh host
+preflight, live monitors/observer, and one-shot assignment are required.
+Neither host has produced a new scored control or BPB improvement.
 
 ## Current handoff: trn21 checkout assigned once; no training authorization
 

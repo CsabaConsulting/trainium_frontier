@@ -2,6 +2,15 @@
 
 Status: **both guest disks expanded; both host G1 calibrations PASS; scored training on both hosts still HOLD; no new BPB result.**
 
+At 03:36 UTC, a source audit found a native-launch blocker on trn21: its
+accepted e65/c5c checkout has the same `train.py` and `prepare.py` blobs as
+the reviewed 446b/r4 source, but lacks the r4 paired-monitor interlock and
+has older launcher, guard and host helper files. The checkout remains valid
+for its limited scope and a separately reviewed CPU-only G2; native A0 must
+use a new clean 446b source checkout and fresh exact safety/host gates. The
+trn22 r4 transfer-only final request is being prepared. No native training
+or new BPB is authorized by either source audit.
+
 At 03:30 UTC, trn21's
 [final exact checkout request](authorizations/trn21-c5c-a0-stage-r2-checkout-request/GATE_CONTRACT.FINAL_PENDING_REVIEW.json)
 [passed independent offline review](authorizations/trn21-c5c-a0-stage-r2-checkout-request/INDEPENDENT_FINAL_REQUEST_REVIEW.PASS.json).
