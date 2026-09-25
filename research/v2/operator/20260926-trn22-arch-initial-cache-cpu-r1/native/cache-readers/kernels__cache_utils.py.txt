@@ -1,0 +1,101 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/kernels/cache_utils.py:1-100
+1: """Cache configuration utilities."""
+2: 
+3: import hashlib
+4: import logging
+5: import os
+6: import secrets
+7: import shutil
+8: import tempfile
+9: from contextlib import contextmanager
+10: from datetime import datetime
+11: from pathlib import Path
+12: 
+13: logger = logging.getLogger(__name__)
+14: 
+15: 
+16: def get_artifacts_directory() -> Path:
+17:     """Get the artifacts directory from environment variable or default.
+18: 
+19:     Uses TORCH_NEURONX_DEBUG_DIR if set, otherwise /tmp/neuron_backend.
+20:     """
+21:     debug_dir = os.getenv("TORCH_NEURONX_DEBUG_DIR")
+22:     path = Path(debug_dir if debug_dir else "/tmp/neuron_backend")
+23:     return path
+24: 
+25: 
+26: def get_nfs_cache_dir() -> str:
+27:     """Get NFS cache directory from environment variable."""
+28:     return os.getenv("TORCH_NEURONX_NEFF_CACHE_DIR", "/tmp/neff_cache")
+29: 
+30: 
+31: def get_local_cache_dir() -> str:
+32:     """Get local cache directory from environment variable."""
+33:     return os.getenv("TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR", "/tmp/local_cache")
+34: 
+35: 
+36: def is_caching_disabled() -> bool:
+37:     """Check if caching is disabled via environment variable."""
+38:     return os.getenv("TORCH_NEURONX_NEFF_DISABLE_CACHE", "").lower() in ("true", "1", "yes")
+39: 
+40: 
+41: def get_lock_timeout() -> int:
+42:     """Get lock timeout from environment variable."""
+43:     return int(os.getenv("TORCH_NEURONX_NEFF_CACHE_LOCK_TIMEOUT", "1200"))
+44: 
+45: 
+46: def is_preserve_artifacts_enabled() -> bool:
+47:     """Get whether artifact preservation enabled"""
+48:     return os.getenv("TORCH_NEURONX_PRESERVE_COMPILATION_ARTIFACTS", "").lower() in (
+49:         "true",
+50:         "1",
+51:         "yes",
+52:     )
+53: 
+54: 
+55: def atomic_write_bytes(file_path: Path, data: bytes) -> None:
+56:     """Atomically write bytes to file using temp file + rename."""
+57:     file_path.parent.mkdir(parents=True, exist_ok=True)
+58: 
+59:     # Write to temporary file in same directory
+60:     with tempfile.NamedTemporaryFile(dir=file_path.parent, delete=False, suffix=".tmp") as tmp_file:
+61:         tmp_file.write(data)
+62:         tmp_path = Path(tmp_file.name)
+63: 
+64:     # Atomic rename
+65:     tmp_path.rename(file_path)
+66: 
+67: 
+68: class CompilationJob:
+69:     """Manages a single compilation job's artifact paths and lifecycle.
+70: 
+71:     Each compilation job gets a unique directory under the base artifacts directory.
+72:     Artifacts are always written; the ``preserve`` flag only controls cleanup.
+73: 
+74:     Directory hierarchy::
+75: 
+76:         {base_dir}/
+77:         ├── {job_id}/
+78:         │   ├── fx_graphs/{model}_{ts}.fx.txt
+79:         │   ├── transformed_fx/{model}_{ts}.transformed.fx.txt
+80:         │   ├── raw/{model}_{ts}.torch_raw.mlir
+81:         │   ├── stablehlo/{model}_{ts}.stablehlo.mlir
+82:         │   └── torch_mlir_error/{model}_{ts}.mlir
+83:         └── neuronx-cc/
+84:             └── {hash}/
+85:     """
+86: 
+87:     def __init__(self, op_name: str):
+88:         self.op_name = op_name
+89:         self.timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
+90:         self.job_id = self._generate_job_id()
+91:         self.preserve = is_preserve_artifacts_enabled()
+92:         self._base_dir = get_artifacts_directory()
+93:         self._job_dir = self._base_dir / self.job_id
+94:         self._pass_counter = 0
+95:         working_dir_hash = hashlib.sha256(self.job_id.encode(errors="ignore")).hexdigest()
+96:         self._neuronx_cc_directory = self._base_dir / "neuronx-cc" / working_dir_hash
+97: 
+98:     def _generate_job_id(self) -> str:
+99:         """Generate a unique kernel ID for compilation tracking.
+100: 

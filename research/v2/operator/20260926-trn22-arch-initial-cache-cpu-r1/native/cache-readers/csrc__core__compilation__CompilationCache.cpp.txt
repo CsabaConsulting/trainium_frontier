@@ -1,0 +1,96 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/compilation/CompilationCache.cpp:1-95
+1: #include "CompilationCache.h"
+2: 
+3: #include <unistd.h>
+4: 
+5: #include <algorithm>
+6: #include <chrono>
+7: #include <cstdlib>
+8: #include <optional>
+9: 
+10: #include "torch_neuronx/csrc/core/NeuronDevice.h"
+11: #include "torch_neuronx/csrc/core/NeuronLogging.h"
+12: #include "torch_neuronx/csrc/core/cache/CompilationCacheKey.h"
+13: #include "torch_neuronx/csrc/core/compilation/CompilerDebugUtils.h"
+14: #include "torch_neuronx/csrc/core/compilation/LocalCompilationBackend.h"
+15: #include "torch_neuronx/csrc/core/compilation/NeuronCompiler.h"
+16: #include "torch_neuronx/csrc/core/compilation/service/ServiceCompilationBackend.h"
+17: #include "torch_neuronx/csrc/core/metrics/NeuronMetrics.h"
+18: #include "torch_neuronx/csrc/core/utils/NeuronExceptions.h"
+19: #include "torch_neuronx/csrc/core/utils/PlatformUtils.h"
+20: 
+21: namespace at::neuron {
+22: 
+23: CompilationCache::CompilationCache() {
+24:   // Configure maximum cache size from environment variable.
+25:   const char* max_size_env = std::getenv("NEURON_COMPILATION_CACHE_MAX_SIZE_MB");
+26:   if (max_size_env != nullptr) {
+27:     try {
+28:       size_t max_size_mb = std::stoul(max_size_env);
+29:       max_cache_size_bytes_ = max_size_mb * 1024 * 1024;
+30:     } catch (const std::exception& e) {
+31:       throw std::runtime_error("Invalid NEURON_COMPILATION_CACHE_MAX_SIZE_MB value: " +
+32:                                std::string(max_size_env) + " (" + e.what() + ")");
+33:     }
+34:   }
+35: 
+36:   // Configure maximum number of cache entries from environment variable.
+37:   const char* max_entries_env = std::getenv("NEURON_COMPILATION_CACHE_MAX_ENTRIES");
+38:   if (max_entries_env != nullptr) {
+39:     try {
+40:       size_t max_entries = std::stoul(max_entries_env);
+41:       max_cache_entries_ = max_entries;
+42:     } catch (const std::exception& e) {
+43:       TORCH_NEURONX_ERROR("Invalid NEURON_COMPILATION_CACHE_MAX_ENTRIES value",
+44:                           "value=", max_entries_env, "error=", e.what());
+45:       throw std::runtime_error("Invalid NEURON_COMPILATION_CACHE_MAX_ENTRIES value: " +
+46:                                std::string(max_entries_env) + " (" + e.what() + ")");
+47:     }
+48:   }
+49: 
+50:   // Initialize local cache directory for lock files.
+51:   const char* neuron_local_cache_dir = std::getenv("TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR");
+52:   if (neuron_local_cache_dir != nullptr && neuron_local_cache_dir[0] != '\0') {
+53:     local_cache_dir_ = std::filesystem::path(neuron_local_cache_dir);
+54:     std::error_code ec;
+55:     std::filesystem::create_directories(local_cache_dir_, ec);
+56:     if (ec) {
+57:       throw std::runtime_error("Invalid TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR value: path=" +
+58:                                std::string(neuron_local_cache_dir) + ", error=" + ec.message());
+59:     }
+60:   } else {
+61:     local_cache_dir_ = std::filesystem::path("/tmp/local_cache");
+62:     std::error_code ec;
+63:     std::filesystem::create_directories(local_cache_dir_, ec);
+64:     if (ec) {
+65:       throw std::runtime_error("Failed to create local cache directory: path=" +
+66:                                local_cache_dir_.string() + ", error=" + ec.message());
+67:     }
+68:   }
+69: 
+70:   // Initialize persistent cache backend if not disabled.
+71:   if (!PersistentCacheBackend::IsCachingDisabled()) {
+72:     try {
+73:       persistent_cache_ = std::make_unique<PersistentCacheBackend>();
+74:     } catch (const std::exception& e) {
+75:       TORCH_NEURONX_WARN(
+76:           "Failed to initialize persistent cache backend, continuing without "
+77:           "persistent caching",
+78:           "error=", e.what());
+79:       persistent_cache_ = nullptr;
+80:     }
+81:   }
+82: 
+83:   // Initialize compilation backend.
+84:   // NEURON_COMPILE_SERVICE=0 disables the service (uses local compilation).
+85:   // Default: service enabled.
+86:   const char* service_env = std::getenv("NEURON_COMPILE_SERVICE");
+87:   bool service_enabled = !(service_env && std::string(service_env) == "0");
+88: 
+89:   if (service_enabled) {
+90:     std::string socket_name = "neuron_compile_service_" + std::to_string(getuid());
+91:     // When distributed is initialized, all ranks share MASTER_PORT so they
+92:     // connect to the same compilation service socket.
+93:     // When not distributed, use PID to give each process its own socket
+94:     // (uid is in the base name to separate users).
+95:     if (c10_neuron::is_distributed_initialized()) {

@@ -1,0 +1,77 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/NeuronBindings.cpp:1960-2035
+1960:   m.def(
+1961:       "get_neff_cache",
+1962:       [](const std::string& key) -> py::object {
+1963:         at::neuron::PersistentCacheBackend cache;
+1964: 
+1965:         auto result = cache.Get(key);
+1966:         if (result.has_value()) {
+1967:           return py::bytes(reinterpret_cast<const char*>(result->data()), result->size());
+1968:         }
+1969:         return py::none();
+1970:       },
+1971:       "Read NEFF from persistent cache, returns None if not found", py::arg("key"));
+1972: 
+1973:   // HLO persistent cache: write serialized HLO entry
+1974:   m.def(
+1975:       "_put_hlo_cache",
+1976:       [](const std::string& key, py::bytes data) -> bool {
+1977:         const char* cache_dir_env = std::getenv("TORCH_NEURONX_HLO_CACHE_DIR");
+1978:         std::filesystem::path cache_dir = cache_dir_env ? cache_dir_env : "/tmp/hlo_cache";
+1979:         at::neuron::PersistentCacheBackend cache(cache_dir, ".bin");
+1980: 
+1981:         // Use CompilationCacheKey to compute filesystem-safe persistent key
+1982:         auto cache_key = at::neuron::CompilationCacheKey(key, "", "");
+1983:         const std::string* pk = cache_key.GetPersistentKey();
+1984:         if (!pk) return false;
+1985: 
+1986:         if (cache.Exists(*pk)) {
+1987:           return true;
+1988:         }
+1989: 
+1990:         std::string_view data_str = data.cast<std::string_view>();
+1991:         std::vector<uint8_t> data_vec(data_str.begin(), data_str.end());
+1992:         return cache.Put(*pk, data_vec);
+1993:       },
+1994:       "Write serialized HLO cache entry to persistent cache", py::arg("key"), py::arg("data"));
+1995: 
+1996:   // HLO persistent cache: read serialized HLO entry
+1997:   m.def(
+1998:       "_get_hlo_cache",
+1999:       [](const std::string& key) -> py::object {
+2000:         const char* cache_dir_env = std::getenv("TORCH_NEURONX_HLO_CACHE_DIR");
+2001:         std::filesystem::path cache_dir = cache_dir_env ? cache_dir_env : "/tmp/hlo_cache";
+2002:         at::neuron::PersistentCacheBackend cache(cache_dir, ".bin");
+2003: 
+2004:         auto cache_key = at::neuron::CompilationCacheKey(key, "", "");
+2005:         const std::string* pk = cache_key.GetPersistentKey();
+2006:         if (!pk) return py::none();
+2007: 
+2008:         auto result = cache.Get(*pk);
+2009:         if (result.has_value()) {
+2010:           return py::bytes(reinterpret_cast<const char*>(result->data()), result->size());
+2011:         }
+2012:         return py::none();
+2013:       },
+2014:       "Read serialized HLO cache entry from persistent cache, returns None if not found",
+2015:       py::arg("key"));
+2016: 
+2017:   // HLO persistent cache: check if entry exists
+2018:   m.def(
+2019:       "_exists_hlo_cache",
+2020:       [](const std::string& key) -> bool {
+2021:         const char* cache_dir_env = std::getenv("TORCH_NEURONX_HLO_CACHE_DIR");
+2022:         std::filesystem::path cache_dir = cache_dir_env ? cache_dir_env : "/tmp/hlo_cache";
+2023:         at::neuron::PersistentCacheBackend cache(cache_dir, ".bin");
+2024: 
+2025:         auto cache_key = at::neuron::CompilationCacheKey(key, "", "");
+2026:         const std::string* pk = cache_key.GetPersistentKey();
+2027:         if (!pk) return false;
+2028: 
+2029:         return cache.Exists(*pk);
+2030:       },
+2031:       "Check if HLO cache entry exists", py::arg("key"));
+2032: 
+2033:   // torch.compile MegaCache: get NEFF info from in-memory compilation cache
+2034:   m.def(
+2035:       "get_neff_info",

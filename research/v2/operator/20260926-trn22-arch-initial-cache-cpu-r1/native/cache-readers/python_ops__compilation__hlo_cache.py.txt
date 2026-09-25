@@ -1,0 +1,91 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/compilation/hlo_cache.py:1-90
+1: """Persistent HLO cache.
+2: 
+3: Caches HLO generation results (FX tracing + StableHLO conversion) to disk,
+4: eliminating re-tracing on process restart.
+5: 
+6: Storage format: two files per entry via C++ PersistentCacheBackend:
+7:   {key}_hlo  — raw HLO bytes (StableHLO MLIR text)
+8:   {key}_meta — JSON manifest (io_spec, kept_indices, output specs, etc.)
+9: 
+10: Enable: TORCH_NEURONX_HLO_CACHE=1
+11: Cache dir: TORCH_NEURONX_HLO_CACHE_DIR (default: /tmp/hlo_cache)
+12: """
+13: 
+14: import hashlib
+15: import json
+16: import logging
+17: import os
+18: 
+19: import torch
+20: 
+21: logger = logging.getLogger(__name__)
+22: 
+23: _enabled = os.environ.get("TORCH_NEURONX_HLO_CACHE", "1") == "1"
+24: _SCHEMA_VERSION = 1
+25: CACHE_DIR = os.environ.get("TORCH_NEURONX_HLO_CACHE_DIR", "/tmp/hlo_cache")
+26: os.makedirs(CACHE_DIR, exist_ok=True)
+27: 
+28: 
+29: def _serialize_meta_tensor(t):
+30:     if t is None:
+31:         return None
+32:     if isinstance(t, torch.Tensor):
+33:         return {"shape": list(t.shape), "dtype": str(t.dtype)}
+34:     if isinstance(t, tuple | list):
+35:         return [_serialize_meta_tensor(x) for x in t]
+36:     return t
+37: 
+38: 
+39: def _deserialize_meta_tensor(d):
+40:     if d is None:
+41:         return None
+42:     if isinstance(d, dict) and "shape" in d and "dtype" in d:
+43:         dtype = getattr(torch, d["dtype"].replace("torch.", ""))
+44:         return torch.empty(d["shape"], dtype=dtype, device="meta")
+45:     if isinstance(d, list):
+46:         return tuple(_deserialize_meta_tensor(x) for x in d)
+47:     return d
+48: 
+49: 
+50: def _serialize_io_spec(io_spec):
+51:     """Serialize FunctionIO to JSON-compatible dict."""
+52:     if io_spec is None:
+53:         return None
+54:     return {
+55:         "inputs": [{"shape": list(s.shape), "dtype": str(s.dtype)} for s in io_spec.inputs],
+56:         "outputs": [{"shape": list(s.shape), "dtype": str(s.dtype)} for s in io_spec.outputs],
+57:     }
+58: 
+59: 
+60: def _deserialize_io_spec(d):
+61:     """Deserialize FunctionIO from dict."""
+62:     if d is None:
+63:         return None
+64:     from torch_neuronx.neuron_dynamo_backend.utils.stablehlo_utils import FunctionIO, TensorSpec
+65: 
+66:     inputs = tuple(
+67:         TensorSpec(
+68:             shape=tuple(s["shape"]),
+69:             dtype=getattr(torch, s["dtype"].replace("torch.", "")),
+70:         )
+71:         for s in d["inputs"]
+72:     )
+73:     outputs = tuple(
+74:         TensorSpec(
+75:             shape=tuple(s["shape"]),
+76:             dtype=getattr(torch, s["dtype"].replace("torch.", "")),
+77:         )
+78:         for s in d["outputs"]
+79:     )
+80:     return FunctionIO(inputs=inputs, outputs=outputs)
+81: 
+82: 
+83: def _get_backend():
+84:     """Get C++ PersistentCacheBackend bindings."""
+85:     import torch_neuronx._C as _C
+86: 
+87:     return _C
+88: 
+89: 
+90: def get(cache_key: str):

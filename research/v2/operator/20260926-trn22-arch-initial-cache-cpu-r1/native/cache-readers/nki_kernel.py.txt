@@ -1,0 +1,92 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py:95-185
+95: 
+96:     def _convert_input(self, x: Any, name: str) -> Any:
+97:         """Convert torch.Tensor → NkiTensor; pass through everything else."""
+98:         return _convert_torch_input(x, name)
+99: 
+100:     def _platform_target(self, opts):
+101:         """Return the Neuron hardware target (e.g. 'trn1', 'trn2')."""
+102:         return get_platform_target()
+103: 
+104:     def _get_dump_config_cache(self) -> dict | None:
+105:         """Return (or create) the dump_config cache on self.func"""
+106:         if self._get_compile_cache() is None:
+107:             return None
+108:         if not hasattr(self.func, "_dump_config_cache"):
+109:             self.func._dump_config_cache = {}
+110:         return self.func._dump_config_cache
+111: 
+112:     def dump_config(self, **kwargs: Any) -> DumpedConfig:
+113:         """Compile the kernel and return a DumpedConfig.
+114: 
+115:         This is the single entry-point used by the HOP dispatch layer
+116:         and by flex-attention lowering.  Usage::
+117: 
+118:             dconfig = kernel[grid].dump_config(**meta_args)
+119: 
+120:         where ``grid`` sets the LNC via ``__getitem__`` and
+121:         ``meta_args`` is a ``{name: value}`` dict of kernel arguments
+122:         (torch.Tensor values are converted to NkiTensor automatically).
+123: 
+124:         Caching layers (checked in order):
+125:         1. In-memory cache
+126:         2. Disk cache with file lock (cross-rank coordination)
+127:         3. Full NKI compilation (only one rank per unique key)
+128:         """
+129:         converted = {name: _convert_torch_input(v, name) for name, v in kwargs.items()}
+130: 
+131:         # Lightweight opts for cache key generation
+132:         cache_opts = CompileOptions(
+133:             lnc=self.lnc,
+134:             enable_simulation=self._enable_simulation,
+135:             enable_device_dump=self._enable_device_dump,
+136:         )
+137: 
+138:         # 1. Check in-memory cache
+139:         dc_cache = self._get_dump_config_cache()
+140:         cache_key = None
+141:         if dc_cache is not None:
+142:             cache_key = self._generate_cache_key(converted, cache_opts)
+143: 
+144:             if cache_key is not None and cache_key in dc_cache:
+145:                 return dc_cache[cache_key]
+146: 
+147:         # 2. Check persistent cache (cross-rank coordination)
+148:         #    Disabled by default until multi-file kernel source hashing is robust.
+149:         #    Enable with NKI_DUMP_PERSISTENT_CACHE=1.
+150:         if cache_key is not None and os.environ.get("NKI_DUMP_PERSISTENT_CACHE", "0") == "1":
+151:             from torch_neuronx.python_ops.compilation import hlo_cache
+152:             from torch_neuronx.python_ops.compilation.hlo_cache import CACHE_DIR
+153: 
+154:             # Build persistent key from: kernel source file hash (invalidates on any
+155:             # edit to the file, including constants outside the function body),
+156:             # kernel identity (qualname), input signature (cache_key), and
+157:             # package versions (global_version_hash).
+158:             source_path = self.func.__code__.co_filename
+159:             try:
+160:                 with open(source_path, "rb") as f:
+161:                     source_hash = hashlib.sha256(f.read()).hexdigest()[:16]
+162:             except OSError:
+163:                 source_hash = hashlib.sha256(self.func.__code__.co_code).hexdigest()[:16]
+164: 
+165:             persistent_key = hashlib.sha256(
+166:                 (
+167:                     self.func.__qualname__
+168:                     + ":"
+169:                     + source_hash
+170:                     + ":"
+171:                     + cache_key
+172:                     + ":"
+173:                     + global_version_hash()
+174:                 ).encode()
+175:             ).hexdigest()
+176: 
+177:             # Fast path: check persistent cache (no lock)
+178:             disk_entry = hlo_cache.get_dump_config(persistent_key)
+179:             if disk_entry is not None:
+180:                 if dc_cache is not None:
+181:                     dc_cache[cache_key] = disk_entry
+182:                 return disk_entry
+183: 
+184:             # Slow path: file lock so only one rank compiles per key
+185:             lock_path = os.path.join(CACHE_DIR, persistent_key + "_dump_config.lock")

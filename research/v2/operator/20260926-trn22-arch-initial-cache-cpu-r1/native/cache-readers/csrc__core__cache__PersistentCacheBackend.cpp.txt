@@ -1,0 +1,91 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/csrc/core/cache/PersistentCacheBackend.cpp:1-90
+1: #include "PersistentCacheBackend.h"
+2: 
+3: #include <unistd.h>
+4: 
+5: #include <cerrno>
+6: #include <cstdlib>
+7: #include <cstring>
+8: #include <fstream>
+9: 
+10: #include "torch_neuronx/csrc/core/NeuronLogging.h"
+11: #include "torch_neuronx/csrc/core/cache/CacheUtils.h"
+12: 
+13: namespace at::neuron {
+14: 
+15: namespace {
+16: 
+17: // Check if environment variable is set to "1".
+18: bool IsEnvEnabled(const char* value) { return value && std::string(value) == "1"; }
+19: 
+20: // Gets the cache directory from environment variable.
+21: // Uses TORCH_NEURONX_NEFF_CACHE_DIR or defaults to /tmp/neff_cache
+22: std::filesystem::path GetCacheDirFromEnv() {
+23:   const char* neuron_cache_dir = std::getenv("TORCH_NEURONX_NEFF_CACHE_DIR");
+24:   if (neuron_cache_dir && neuron_cache_dir[0] != '\0') {
+25:     return std::filesystem::path(neuron_cache_dir);
+26:   }
+27:   return std::filesystem::path("/tmp/neff_cache");
+28: }
+29: 
+30: }  // namespace
+31: 
+32: PersistentCacheBackend::PersistentCacheBackend(const std::string& extension)
+33:     : cache_dir_(GetCacheDirFromEnv()), extension_(extension) {
+34:   // Create cache directory if it doesn't exist
+35:   std::error_code ec;
+36:   std::filesystem::create_directories(cache_dir_, ec);
+37:   if (ec) {
+38:     throw std::runtime_error("Failed to create persistent cache directory: " + cache_dir_.string() +
+39:                              " (" + ec.message() + ")");
+40:   }
+41: }
+42: 
+43: PersistentCacheBackend::PersistentCacheBackend(const std::filesystem::path& cache_dir,
+44:                                                const std::string& extension)
+45:     : cache_dir_(cache_dir), extension_(extension) {
+46:   // Create cache directory if it doesn't exist
+47:   std::error_code ec;
+48:   std::filesystem::create_directories(cache_dir_, ec);
+49:   if (ec) {
+50:     throw std::runtime_error("Failed to create persistent cache directory: " + cache_dir_.string() +
+51:                              " (" + ec.message() + ")");
+52:   }
+53: }
+54: 
+55: bool PersistentCacheBackend::IsCachingDisabled() {
+56:   // Check Neuron neff cache disable
+57:   const char* neuron_disable = std::getenv("TORCH_NEURONX_NEFF_DISABLE_CACHE");
+58:   return IsEnvEnabled(neuron_disable);
+59: }
+60: 
+61: std::filesystem::path PersistentCacheBackend::GetShardedPath(const std::string& key) const {
+62:   // 2-level directory sharding for scalability
+63:   // key "abcd1234..." -> cache_dir/ab/cd/abcd1234....neff
+64:   return cache_dir_ / key.substr(0, 2) / key.substr(2, 2) / (key + extension_);
+65: }
+66: 
+67: bool PersistentCacheBackend::Exists(const std::string& key) const {
+68:   std::filesystem::path path = GetShardedPath(key);
+69:   std::error_code ec;
+70:   bool exists = std::filesystem::exists(path, ec);
+71:   if (ec) {
+72:     TORCH_NEURONX_DEBUG("Cache existence check failed", "key=", key, "path=", path.string(),
+73:                         "error=", ec.message());
+74:     return false;
+75:   }
+76:   return exists;
+77: }
+78: 
+79: std::optional<std::vector<uint8_t>> PersistentCacheBackend::Get(const std::string& key) const {
+80:   std::filesystem::path path = GetShardedPath(key);
+81: 
+82:   // Open file
+83:   std::ifstream file(path, std::ios::binary | std::ios::ate);
+84:   if (!file) {
+85:     TORCH_NEURONX_DEBUG("Cache miss", "key=", key, "path=", path.string());
+86:     return std::nullopt;
+87:   }
+88: 
+89:   // Get file size
+90:   std::streamsize size = file.tellg();

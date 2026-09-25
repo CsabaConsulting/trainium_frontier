@@ -1,0 +1,42 @@
+# /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/cache_artifact.py:180-220
+180: 
+181: def _wrapped_serialize(cls):
+182:     """Sync device and collect Neuron artifacts before serializing."""
+183:     torch.neuron.synchronize()
+184:     _collect_neuron_artifacts()
+185:     return _original_serialize(cls)
+186: 
+187: 
+188: CacheArtifactManager.serialize = classmethod(_wrapped_serialize)
+189: 
+190: 
+191: def _apply_precompile_patches():
+192:     """Apply monkey-patches and config needed for caching_precompile.
+193: 
+194:     Called once at import time if caching_precompile is enabled.
+195:     """
+196:     # Enable nonce key fallback so AOTAutograd cache saves regardless of
+197:     # whether the FX graph is hashable (e.g. DTensor fn_with_prim_types).
+198:     torch._dynamo.config.enable_aot_compile = True
+199:     torch._functorch.config.bypass_autograd_cache_key = True  # PT2.11 config
+200: 
+201:     # Per-rank cache directories — each rank's guard state may contain
+202:     # rank-specific DeviceMesh data, so caches cannot be shared.
+203:     rank = int(os.environ.get("RANK", "0"))
+204:     cache_base = torch._inductor.runtime.cache_dir_utils.cache_dir()
+205:     os.environ["TORCHINDUCTOR_CACHE_DIR"] = os.path.join(cache_base, f"rank_{rank}")
+206: 
+207:     # Fix dataclass_with_cached_hash.__reduce__ to exclude init=False fields.
+208:     # Without this, DefaultsSource (and other dataclasses with init=False
+209:     # fields) fail to unpickle because __reduce__ includes all fields but
+210:     # __init__ only accepts init=True fields.  Upstream fix pending.
+211:     def _fixed_reduce(self):
+212:         fields = dataclasses.fields(self)
+213:         field_values = tuple(getattr(self, f.name) for f in fields if f.init)
+214:         return (self.__class__, field_values)
+215: 
+216:     from torch._dynamo.source import DefaultsSource
+217: 
+218:     DefaultsSource.__reduce__ = _fixed_reduce
+219: 
+220:     # Save cache artifacts at exit.
