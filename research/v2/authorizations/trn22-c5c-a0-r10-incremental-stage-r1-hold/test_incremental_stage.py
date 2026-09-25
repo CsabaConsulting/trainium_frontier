@@ -279,6 +279,11 @@ class IncrementalStageTests(unittest.TestCase):
         self.assertEqual(hold["bundle_source"], operator.BUNDLE.name)
         self.assertEqual(hold["attempt_label"], remote.LABEL)
         self.assertEqual(hold["one_attempt_marker"], str(operator.MARKER))
+        self.assertEqual(hold["controller_state_root"], str(operator.CONTROL_ROOT))
+        self.assertEqual(hold["former_controller_stop_root"],
+                         str(operator.FORMER_CONTROL_ROOT))
+        self.assertEqual(operator.CONTROL_ROOT,
+                         Path("/home/poojith-devan/Desktop/Trainium"))
         self.assertEqual(hold["prior_one_attempt_markers"],
                          [str(path) for path in operator.PRIOR_MARKERS])
         self.assertIn("PRESERVE_EVEN_EMPTY", hold["post_open_failure_policy"])
@@ -310,6 +315,51 @@ class IncrementalStageTests(unittest.TestCase):
                                 capture_output=True, text=True, timeout=10, check=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("HOLD", result.stderr)
+
+    def test_stale_documents_state_cannot_hide_tripped_desktop_breaker(self):
+        with tempfile.TemporaryDirectory(prefix="trn22-r10-controller-root-") as temp:
+            root = Path(temp)
+            desktop = root / "Desktop" / "Trainium"
+            documents = root / "Documents" / "ChatGPT" / "Trainium"
+            fake_here = root / "isolated" / "research" / "v2" / "authorizations" / "pkg"
+            for control in (desktop, documents):
+                (control / "research" / "v2").mkdir(parents=True)
+            safe = {
+                "breakers": {"global_correctness": {"tripped": False},
+                             "trn22": {"tripped": False}},
+                "launch_authorized": False,
+                "hosts": {"trn22": {"launch_allowed": False}},
+            }
+            tripped = json.loads(json.dumps(safe))
+            tripped["breakers"]["trn22"]["tripped"] = True
+            (documents / "research/v2/state.json").write_text(
+                json.dumps(safe), encoding="utf-8")
+            (desktop / "research/v2/state.json").write_text(
+                json.dumps(tripped), encoding="utf-8")
+            remote_call = mock.Mock(side_effect=AssertionError("SSH attempted"))
+            with ExitStack() as stack:
+                stack.enter_context(mock.patch.object(operator, "CONTROL_ROOT", desktop))
+                stack.enter_context(mock.patch.object(operator, "FORMER_CONTROL_ROOT", documents))
+                stack.enter_context(mock.patch.object(operator, "HERE", fake_here))
+                stack.enter_context(mock.patch.object(operator, "_json", side_effect=[
+                    ({"dispatch_authorized": True}, "requesthash"),
+                    ({}, "reviewhash"), ({}, "assignmenthash")]))
+                stack.enter_context(mock.patch.object(operator, "_source_bytes",
+                                                     return_value=(b"bundle", b"remote")))
+                stack.enter_context(mock.patch.object(operator, "_authority"))
+                ssh_identity = stack.enter_context(mock.patch.object(
+                    operator, "_ssh_identity", side_effect=AssertionError("SSH identity attempted")))
+                marker = stack.enter_context(mock.patch.object(
+                    operator, "_marker", side_effect=AssertionError("marker attempted")))
+                with self.assertRaisesRegex(RuntimeError, "controller STOP/breaker/launch state"):
+                    operator._local_stop_and_breakers()
+                expected = ("optimized Python" if sys_flags_optimize() else
+                            "controller STOP/breaker/launch state")
+                with self.assertRaisesRegex(RuntimeError, expected):
+                    operator.stage_once(remote_call=remote_call)
+            ssh_identity.assert_not_called()
+            marker.assert_not_called()
+            remote_call.assert_not_called()
 
     def test_absolute_timeout_gate_blocks_fake_contact(self):
         fake = mock.Mock()
