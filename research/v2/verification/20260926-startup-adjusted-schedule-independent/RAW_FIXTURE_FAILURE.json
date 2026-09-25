@@ -1,0 +1,15 @@
+{
+  "error": "KeyError: 'checkpoint_check'",
+  "scope": "Own initial stdlib receipt-schema audit, before result emission",
+  "cause": "Own test assumed rank-0-only checkpoint/reload/final-digest summaries existed on every rank.",
+  "correction": "Check checkpoint/reload summaries only on rank0, compare every rank's real gradient/update/state histories, and compare cross-rank final updates via the actually present parameters_after_update records.",
+  "candidate_failure": false,
+  "no_tensors_or_hosts": true,
+  "second_attempt": {
+    "error_normal_and_optimized": "RuntimeError: original observer failure retained",
+    "cause": "Own audit incorrectly assumed the preserved observer failure had nonzero torchrun exit. The harness catches each rank error: torchrun_rc is0 while aggregate verdict and all four rank statuses are FAIL.",
+    "literal_raw_failure": "AttributeError: 'OwnedOptimizer' object has no attribute 'param_groups'",
+    "correction": "Authenticate the actual aggregate/rank FAIL and exact error, explicitly record exit0 is not acceptance, and require aggregate/rank PASS for each successful arm.",
+    "candidate_failure": false
+  }
+}
