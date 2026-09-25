@@ -1,0 +1,78 @@
+{
+  "proposal_id": "20260925-table-gather-outside-compile-a2",
+  "status": "completed_research_proposal_pending_independent_review_and_implementation",
+  "owner_role": "researcher",
+  "launch_authorized": false,
+  "hypothesis": "Passing unchanged, autograd-connected raw table rows from an uncompiled caller into the compiled GPT core reduces A2 cold startup enough to increase useful fixed-budget training while preserving exact training and evaluation arithmetic.",
+  "single_causal_change": "Default-OFF --ngram-gather-outside-compile moves the existing on-device hashes and weight[rows].to(COMPUTE_DTYPE) outside the compiled GPT region; table projections, dense gradients, AVG reduction, clipping and replicated RMSProp remain unchanged.",
+  "mechanism_class": "cold_start_throughput",
+  "predicted_bpb_delta": -0.001,
+  "predicted_bpb_interval": [-0.004, 0.002],
+  "prediction_scope": "Subjective 80% interval for a matched same-host cold full-budget ON-minus-OFF comparison, not a measured gain or a warm-to-official conversion; useful-step value is uncertain.",
+  "candidate_shortlist": [
+    {"idea": "Raw table rows outside the compiled core", "mechanism_class": "cold_start_throughput", "predicted_bpb_delta": -0.001, "why_ranked": "Explicit newest human priority; source puts large tables in model graph; an exact CPU falsifier precedes hardware."},
+    {"idea": "Reduce repeated compiled graphs after inventory", "mechanism_class": "cold_start_throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Second priority; Muon shape specializations and model graph partitions are real but no current compile-time attribution exists. Estimate is neutral until profiled."},
+    {"idea": "Compiler-flag or cache-switch change", "mechanism_class": "compiler_configuration", "predicted_bpb_delta": 0.0, "why_ranked": "Third priority only; unproven native-cache semantics and historical flag performance failures. No flag change is included."},
+    {"idea": "Sparse/touched-row table optimizer", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Excluded from this experiment; prior candidate rejected over sparse native support and exact BF16 deferred-decay semantics."}
+  ],
+  "selection_rationale": "Smallest causal intervention matching the newest compile-first directive, with a strong arithmetic invariant and a fast rejection path. This revisits a September12 proposal for cold compiler cost only: September15 four-rank reshard-hunt evidence already falsified the old steady-state dynamic-address resharding explanation. No claim that extraction automatically removes cross-core resharding.",
+  "p_improve": 0.3,
+  "p_delta_le_minus_0_001": 0.3,
+  "estimated_host_hours": 3.0,
+  "host_hour_scope": "Planning cap for a gated diagnostic plus matched cold full-budget pair and fresh evaluations, conditional on CPU success; additional replicas require a follow-up plan.",
+  "ev_bpb_per_host_hour": 0.0001,
+  "ev_definition": "Subjective p_delta_le_minus_0_001 * abs(predicted_bpb_delta) / estimated_host_hours. Not an observed score.",
+  "trainium_feasibility": "Static A2 tuple has four [32,1024,128] BF16 tensors (32 MiB total); original table Parameters, full dense backward, AVG all-reduce and BF16 RMSProp are preserved at world4/LNC2. Projection/Muon specializations remain. Backend may still reshard, compile eager primitives or duplicate backward regions; graph identity and cold fifth-boundary measurements are mandatory. SBUF policy, compiler environment and source are unchanged.",
+  "cheapest_falsifier": "Independent source review and CPU synthetic ON/OFF loss, dense-gradient, three-step parameter/RMS-state and stateless-eval identity, plus a counting-backend graph capture proving no table-sized Parameter or table-index op enters the intended core. Native proof is required after those pass; see FALSIFIER.md.",
+  "prior_result_refs": [
+    "121d715aa7d903205df9b3745ff8d2cb7a5e1424:research/v2/operator/20260925-trn21-a1-full-final/training.log",
+    "cf731b636588119661cdbc0704a6ba4da3b0290f:research/v2/operator/20260925-trn22-conditional-queue-r1/a2-startup-truncated/train.log",
+    "research/v2/operator/20260925-trn22-conditional-queue-r1/a2-startup-truncated/rehearsal.json",
+    "research/agentic/TRACK_B2_SPARSE_CANDIDATE_REJECTION_2026-09-24.md",
+    "research/run-logs/embed-gather-bench.log",
+    "research/trn2-experiment-results.md:3854",
+    "research/trn2-experiment-results.md:7095-7320",
+    "research/run-logs/reshard-a/"
+  ],
+  "evidence": [
+    "workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md",
+    "workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md",
+    "submissions/research_v2/train.py",
+    "workflow/proposals/research-v2/train.py",
+    "research/v2/lanes/table-compile/ANALYSIS.md",
+    "https://docs.pytorch.org/docs/2.14/generated/torch.compiler.disable.html"
+  ],
+  "duplicate_search_terms": ["ngram-gather-outside-compile", "external gather", "pre-gather", "gather boundary", "compile scope", "graph count", "NGRAM_VE_INDEX_GATHER", "ngram-hoist", "ngram-merge-gather", "reshard hunt", "touched-row"],
+  "duplicate_search_files": ["research/v2/ledger.jsonl", "research/experiment-log.jsonl", "research/trn2-experiment-results.md", "research/agentic/DECISION_LOG.md", "reports/2026-09-24-frontier-research-program.md", "submissions/research_v2/train.py", "workflow/proposals/research-v2/train.py"],
+  "duplicate_finding": "Exact eager-gather/compiled-inner idea was proposed September12 but no implementing experiment found. Existing prof_driver --ngram-hoist/--ngram-merge-gather keep gathers inside whole-model compile and had null results. September15 four-rank static-vs-dynamic experiment closed the steady-state reshard mechanism (0.0 +/-1.6ms), so only current cold compiler cost is reopened. Advanced indexing is already ON; sparse optimizer candidate was rejected.",
+  "control": {
+    "git_commit": "e273b97c42a2d9cc86124e1c5cbbe2a54c75bab1",
+    "train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "schedule_flag": "--no-recursive-schedule",
+    "run_label": "fs-20260925-table-gather-a2-off-trn22-r1-cold",
+    "run_status": "planned_not_launched_no_eligible_matched_cold_control_exists",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Same host/day, same final candidate bytes, exact A2 flags, same compiler environment, seed42 and equivalently empty proven cache roots; only gather flag differs. Existing A2 five-step run cannot be the control.",
+    "binding_note": "The listed hash is the implementation parent. Before any native dispatch, bind both OFF and ON requests to the same new reviewed candidate commit/hash; if adopting the separately reviewed timing patch, bind both to that shared base too. This document supplies no dispatch authority."
+  },
+  "candidate": {
+    "branch": "codex/table-gather-outside-compile-20260925",
+    "files_allowed": ["workflow/proposals/research-v2/train.py"],
+    "base_train_sha256": "f9b6a9cbb1a1760fb8db422ffd79ffb91e9280899c40aa86028d935acf355f67",
+    "expected_diff": "One default-OFF parser flag; uncompiled raw-row training caller; optional stable row-tuple input to the shared GPT forward/projection path; both compile-only and training call sites wired. No optimizer, loader, timing, evaluator or SDK edit.",
+    "run_label": "fs-20260925-table-gather-a2-on-trn22-r1-cold",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=1,-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --no-recursive-schedule --seed 42 --max-train-seconds 1800 --ngram-gather-outside-compile --out-dir out/fs-20260925-table-gather-a2-on-trn22-r1-cold",
+    "control_argv_difference": "Replace --ngram-gather-outside-compile with --no-ngram-gather-outside-compile and use the distinct OFF output/label.",
+    "launch_status": "prospective_exact_argv_not_executable_until_implementation_hash_reviews_and_operator_preflight_are_bound"
+  },
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": false, "numerical_equivalence": false, "causality": false, "smoke_run": false, "human_run_approval": false},
+  "success_criteria": {
+    "quality": "Only fresh-process public-20M/context1024 after a valid cold fixed-1800s run can support a BPB claim. Use unchanged decide.py with valid matched same-host controls and required replication. Warm research BPB cannot establish cold submission eligibility.",
+    "throughput": "Mechanism passes only with a verified compiler boundary, at least 10% lower measured cold process-to-fifth-boundary startup versus OFF and no greater than 3% regression in paired stable whole-step median. Record total distinct graph count; a graph-count decrease is not asserted in advance. Submission planning target is <=870s measured startup, actual cap900s; slower startup must still be charged in a valid full replay.",
+    "correctness": "CPU OFF equals pinned parent for >=3 steps; ON/OFF exact CPU forward, dense grads, parameters and RMS state including collisions; same parameter identities/keys; four-rank G2 and RMS trace; no NaN/crash/budget violation; loadable consolidated checkpoint; pure causal batch-independent eval. Native graphs and numerical agreement require separate verification."
+  },
+  "abort_conditions": ["Any independent correctness or identity gate fails", "Gather remains inside the compiled core or autograd is detached", "Graph/cold timing attribution is missing: do not call the mechanism proven", "New SDK flag, data/evaluator/timing edit, sparse update or stateful eval is needed: return a distinct proposal", "Machine/source/STOP/disk/device-holder checks fail", "Native compile or budget fails, or checkpoint/evaluation is missing; archive failure without relaxed gates", "Warm-only evidence is presented as cold proof"],
+  "human_approved_by": "Poojith explicitly selected gather-first investigation in workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md; development remains subject to new-code review and CPU gates. This is not submission permission.",
+  "verdict": null
+}
