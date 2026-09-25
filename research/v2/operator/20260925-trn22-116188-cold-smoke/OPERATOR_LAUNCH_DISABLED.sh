@@ -49,6 +49,9 @@ assert a['submission_authorized'] is False
 expiry = datetime.fromisoformat(a['expires_at_utc'].replace('Z', '+00:00'))
 assert expiry.tzinfo is not None and expiry.utcoffset().total_seconds() == 0
 assert datetime.now(timezone.utc) < expiry, 'one-use assignment expired'
+state = json.loads((repo / 'research/v2/state.json').read_text())
+assert state['breakers']['global_correctness']['tripped'] is False
+assert state['breakers']['trn22']['tripped'] is False
 assert a['cpu_g2_120s_argv_status'] == ('BREAK_GLASS_BASE_G2_PASS_PLUS_INDEPENDENTLY_CHECKED_SOLE_CLI_'
     '--max-train-seconds_120_DELTA; NO_EXACT_120_SECOND_G2_RECEIPT')
 proposal_sha = __import__('hashlib').sha256((repo / a['proposal']).read_bytes()).hexdigest()
@@ -69,6 +72,15 @@ PY
 [[ ! -e "$repo/research/agentic/STOP" && ! -e "$repo/research/v2/STOP" ]]
 ssh_opts=(-i "$key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10)
 
+check_controller_breakers() {
+  python3 - "$repo/research/v2/state.json" <<'PY'
+import json, pathlib, sys
+state = json.loads(pathlib.Path(sys.argv[1]).read_text())
+assert state['breakers']['global_correctness']['tripped'] is False
+assert state['breakers']['trn22']['tripped'] is False
+PY
+}
+
 # Non-destructive fresh preflight; an A0 eval or any device/lock holder is a HOLD.
 ssh "${ssh_opts[@]}" "$host" /bin/bash -s -- "$root" "$trusted" "$expected_prepare" <<'REMOTE_PREFLIGHT'
 set -euo pipefail
@@ -76,6 +88,13 @@ root=$1; trusted=$2; expected_prepare=$3
 [[ ! -e "$root" ]]
 [[ -f "$trusted/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manual-source-r1/driver.log" ]]
 grep -q '^EVALUATED_' "$trusted/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manual-source-r1/driver.log"
+eval_receipt="$trusted/out/fs-20260925-v2-c5c-a0-control-trn22-r10-manual-work/eval/rehearsal.json"
+[[ -f "$eval_receipt" && ! -L "$eval_receipt" ]]
+/home/ubuntu/workspace/native_venv/bin/python - "$eval_receipt" <<'PY'
+import json, pathlib, sys
+receipt = json.loads(pathlib.Path(sys.argv[1]).read_text())
+assert receipt['mode'] == 'eval' and receipt['returncode'] == 0
+PY
 [[ $(sha256sum "$trusted/prepare.py" | awk '{print $1}') == "$expected_prepare" ]]
 [[ ! -e "$trusted/research/agentic/STOP" && ! -e "$trusted/research/v2/STOP" ]]
 [[ -e /dev/neuron0 ]]
@@ -97,6 +116,8 @@ done
 date -u '+PREFLIGHT_%Y-%m-%dT%H:%M:%SZ'
 printf 'free_bytes=%s\n' "$free"
 REMOTE_PREFLIGHT
+
+check_controller_breakers
 
 # The root and seven cache paths are absent until this precise one-use stage.
 ssh "${ssh_opts[@]}" "$host" /bin/bash -s -- "$root" <<'REMOTE_STAGE'
@@ -121,6 +142,8 @@ date -u '+CACHE_STAGE_%Y-%m-%dT%H:%M:%SZ'
 REMOTE_STAGE
 
 scp "${ssh_opts[@]}" "$source_file" "$host:$root/train.py"
+
+check_controller_breakers
 
 # Recheck identity, imported evaluator, source, cache emptiness, device/lock,
 # then launch exact one-use smoke. No public eval occurs for this diagnostic.
