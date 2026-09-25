@@ -1,5 +1,12 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+04:22IST update: source/reduced fresh Astra7158a23b narrowlyPASS, root readfull
+report/spec and replayed851archive checks; fullCPU binding106checks accepted.
+Assignmentf9d04bb2 actual trn21firstCPUarm22:50:32.999921UTC, raw23f6bec1.
+At22:51:52 reference/default/OFF reportedPASS; ON and final comparisons pending.
+Actual fullCPU acceptance, cold/native and quality are not yet established.
+All older pendingfresh/preparation statements below are historical.
+
 Exact3e79 produces different early LR/WD progress on the two real startup
 histories; this does not establish the cause of the .006789 BPB spread.
 Pure3e79 quality pair isDISCARD and all observations remain preserved.

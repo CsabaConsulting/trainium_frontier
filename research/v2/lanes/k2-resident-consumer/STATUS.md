@@ -1,5 +1,14 @@
 # K2 supplied-metadata consumer — 26 September 02:40 IST
 
+04:22IST update: exact18b936 native attempted22:44:48UTC and failed22:45:12
+on allfour ranks: `failed to resolve name 'nl.bfloat16'` in consumer_nki.py:22;
+checker:133 is the call site. Only upstream roundtrip passed; no consumer
+exactness/autograd/timing. Raw94fb52c4 preserved, original processes/descendants
+gone, no reset/retry. Independentd5c668b2 scope proof points to local closure
+aliases unlike proven global-bound factories; frontend cause not yet proven.
+Minimal namespace-only repair is separately selected for proposal/implementation,
+not authorized on host. No source arithmetic, threshold or production change.
+
 Latest26September04:05IST: reporting-only successor18b9365a passed genuinely
 fresh independent source/CPU review632870c3. Supervisor read full report/spec
 and replayed1748archive checks normal/-O. Bindingdf48361a separately passed

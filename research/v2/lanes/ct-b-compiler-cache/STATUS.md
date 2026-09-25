@@ -1,5 +1,11 @@
 # CT-B: compiler/cache coordination, bounded research
 
+04:22IST update: stable-source S1 actually began22:47:39.841696UTC ontrn22;
+fourworkers, original lifetimeflock and freshps/neuron-ls archived7b16ffbd.
+S2 notyetlaunched: complete S1gate/receipts/quiescence required first.
+Different75b9Recursive architecture cold-five ontrn21 passed831.421556s;
+this is NOT stable-source reuse evidence. Cache benefit remains unmeasured.
+
 Latest26September04:08IST: separate stable-source S1/S2 operational diagnostic
 af4f986c now has independent90-check mechanical PASS, rootreplayed normal/-O,
 and conditional releasecdbb183e behind trn22currenteval/checkpointCPU/K2.
