@@ -1,6 +1,52 @@
 # Current state
 
-Last reconciled: 2026-09-25 17:47 UTC
+Last reconciled: 2026-09-25 18:18 UTC
+
+## Latest verified progress and next boundaries, 18:18 UTC
+
+The prior goal turn made progress: independent batch-arm review and host
+evidence were integrated; both existing jobs remained live. Latest human
+fixed-budget and post-A1 corrections still override stale MOONSHOT priorities.
+Csaba's forwarded spending encouragement is context, not a new budget or AWS
+authorization. Local L1/L2 implementation remains active; no Fable retry.
+
+trn21's matrixLR0.0175 scalar run completed at18:13:28UTC with3,669 steps,
+training1784.8s, source charged estimate1785.2s, over_budgetFalse. Its fresh20M
+process2980707 started immediately; no quality result is available yet.
+An owned PAUSE_NEXT is staged for the completed train+eval boundary, not an
+interruption. Next: one reviewed bounded FP8 diagnostic, then the clean-port
+CPU pair, then a genuine adopted6ef7 base control, followed by the five
+preserved old-base fallback jobs unless a checked higher-priority job is ready.
+
+trn22 architecture93ae is training steadily after long startup. The first five
+logged step durations are847.90,695.40,0.49,0.49,0.49seconds; step4's remaining
+budget is1,111seconds after the capped exclusion. At18:13:54UTC it had770
+steps,270,973tokens/s and736seconds remaining. The excess above900seconds is
+charged; this is not a warm-cache hit or cold-cache proof. An independent
+accounting audit is checking the final evidence requirements. Let final BPB
+decide; fewer steps alone cannot reject it. Fresh20M follows automatically.
+
+The reviewed clean submission port is source4083, independently source/tiny-CPU
+PASS, now staged for the full-parameter CPU pair on trn21. No native/cold pass
+or submission readiness is claimed. CPU-only assignment:
+`research/v2/verification/20260925-recursive116188-cpu-assignment.md`.
+
+The batch262144 arm on exact adopted6ef7 is sourcea489f7, commit4e361d15 on
+`codex/20260925-recursive-batch262144`. Independent review86597104 passed
+source and bounded CPU scope; full-size G2/native/quality remain pending.
+Its exact-size CPU packet is being prepared for trn22's next completed
+train+eval boundary; if not ready, launch the prepared6ef7 control without
+waiting. Genuine kind=control rows are required on both hosts; do not relabel
+the earlier successful schedule-arm rows. Prepared control manifests are not
+yet remotely armed. Full native arm launch requires its completed gates.
+
+Evidence: `research/v2/operator/20260925-trn21-scalar-matrixlr0175-r1/`,
+`research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/steady-progress-1814/`,
+`research/v2/verification/20260925-recursive-batch262144-independent/`.
+Confirmed research mean remains0.9901674436550496; reported official remains
+0.9901. No additional quality improvement is claimed from these pending jobs.
+
+Earlier snapshots below retain history, not current process state.
 
 ## Latest adoption and native handoff, 17:40 UTC
 

@@ -1,6 +1,33 @@
 {
+  "latest_handoff_20260925_1818z": {
+    "evidence_time_utc": "2026-09-25T18:18:11Z",
+    "previous_goal_turn": "PROGRESS: independent reviews, staged CPU packet, native training completion receipts and live process evidence; not a blocked turn",
+    "selection_policy": "GENERAL_FIXED_1800_PUBLIC20M_STEP_DIAGNOSTIC_ONLY",
+    "researcher_base": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "new_confirmed_bpb": null,
+    "clean_port": {
+      "sha256": "4083da774ca0f8e26b69309203b07daceca1b559a1418eacc8371f2ff5021409",
+      "status": "SOURCE_INDEPENDENT_PASS_FULL_PARAMETER_CPU_STAGED_NOT_RUN",
+      "assignment": "research/v2/verification/20260925-recursive116188-cpu-assignment.md",
+      "native_authorized": false
+    },
+    "batch262144": {
+      "sha256": "a489f7f9e935e4fe9ecd2ad9df5f0f327afcbe9475b71e7fbe0f4e71a48925d9",
+      "commit": "4e361d15baef94f041501f558620422c55ae8c88",
+      "branch": "codex/20260925-recursive-batch262144",
+      "status": "SOURCE_AND_BOUNDED_CPU_INDEPENDENT_PASS_EXACT_SIZE_PACKET_PREPARING",
+      "review": "research/v2/verification/20260925-recursive-batch262144-independent/REVIEW.md",
+      "native_authorized": false
+    },
+    "fp8": {
+      "status": "ORIGINAL_NATIVE_COMPONENT_HOLD_ONE_BOUNDED_DIAGNOSTIC_STAGED_NOT_RUN",
+      "assignment": "research/v2/verification/20260925-fp8-vjp-native-assignment.md"
+    },
+    "controls": "Genuine6ef7 kind=control jobs prepared not yet armed; no rewriting or relabeling historical schedule rows",
+    "bedrock_budget": "Existing150USD/day unchanged; forwarded Csaba message is not new spending authorization"
+  },
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-25T17:47:00Z",
+  "written_utc": "2026-09-25T18:18:11Z",
   "latest_handoff_20260925_1555z": {
     "trn21": {
       "label": "fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
@@ -597,11 +624,11 @@
   },
   "hosts": {
     "trn21": {
-      "training_steps": null,
-      "training_seconds": null,
+      "training_steps": 3669,
+      "training_seconds": 1784.8,
       "startup_seconds": null,
       "public_20m": null,
-      "over_budget": null,
+      "over_budget": false,
       "submission_eligible": false,
       "cold_startup_proven": false,
       "previous_completed_result": "research/v2/adoptions/20260925-recursive-schedule.json",
@@ -620,26 +647,28 @@
       "arm_id": "matrixlr0175",
       "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
       "started_utc": "2026-09-25T17:30:02.143813Z",
-      "last_process_check_utc": "2026-09-25T17:30:32.584526Z",
-      "status": "FOUR_WORKERS_STARTUP_AT_LAST_ARCHIVED_CHECK",
+      "last_process_check_utc": "2026-09-25T18:18:11Z",
+      "status": "TRAIN_COMPLETE_FRESH_PUBLIC20M_ACTIVE_NO_SCORE",
       "driver": "HOST_RESIDENT_SERIAL_QUEUE_TRAIN_THEN_FRESH_PUBLIC20M",
       "queue_pid": 2957850,
-      "torchrun_pid": 2957853,
-      "workers": [
-        2957868,
-        2957869,
-        2957870,
-        2957871
-      ],
+      "torchrun_pid": null,
+      "workers": [],
       "free_disk_bytes_at_preflight": 46720876544,
-      "receipt": "research/v2/operator/20260925-trn21-l1-fp8-native-r1/fallback-live-proof.json",
+      "receipt": "research/v2/operator/20260925-trn21-scalar-matrixlr0175-r1/completed-training/",
       "launch_scope": "Only exact armed host-manifest jobs after fresh per-job preflight; no general launch permission",
-      "next_priority": "Reviewed bounded FP8 backward diagnostic only after current train and fresh20M finish; native component failure still blocks timing/quality",
-      "owned_pause_after_eval": false,
-      "fallback_handback": "FP8 correctness failed; original queue restored, no breaker reset, five unstarted fallbacks"
+      "next_priority": "After train AND eval: exact FP8 diagnostic, clean4083/6ef7 CPU pair, proper6ef7 new-base control, then preserved5 scalar fallbacks",
+      "owned_pause_after_eval": true,
+      "fallback_handback": "Owned next-boundary pause staged; active eval not interrupted. New-base control manifest prepared but not yet armed.",
+      "startup_allowance_source_estimate_seconds": 813.5,
+      "charged_seconds_source_estimate": 1785.2,
+      "training_exit_utc": "2026-09-25T18:13:28.188309Z",
+      "training_exit_code": 0,
+      "eval_wrapper_pid": 2980707,
+      "free_disk_human_at_last_check": "42G available, 83% used",
+      "next_control_label": "fs-20260925-l3-base-repeat-trn21-r2-full"
     },
     "trn22": {
-      "training_steps": null,
+      "training_steps": 1290,
       "training_seconds": null,
       "startup_seconds": null,
       "public_20m": null,
@@ -663,8 +692,8 @@
       "arm_id": "L2-unet8x1024",
       "train_py_sha256": "93ae1f92e6222fcb31215ad1bc7983c6d013fff53b7b3337a911ee2e2b11cfd5",
       "started_utc": "2026-09-25T17:41:38.131604Z",
-      "last_process_check_utc": "2026-09-25T17:43:12Z",
-      "status": "FOUR_WORKERS_COMPILING_AT_LAST_ARCHIVED_CHECK",
+      "last_process_check_utc": "2026-09-25T18:18:11Z",
+      "status": "FOUR_WORKERS_STEADY_TRAINING_AFTER_LONG_COMPILE",
       "driver": "REVIEWED_MANUAL_DETACHED_TRAIN_THEN_FRESH_PUBLIC20M",
       "flock_pid": 3079487,
       "driver_pid": 3079488,
@@ -676,12 +705,25 @@
         3079508
       ],
       "free_disk_bytes_at_preflight": 46126444544,
-      "receipt": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/",
+      "receipt": "research/v2/operator/20260925-trn22-l2-93ae-cpu-r1/native/steady-progress-1814/",
       "source_review": "research/v2/verification/20260925-trn22-architecture-fullsize-cpu-PASS.md",
       "launch_scope": "Only exact completed architecture proposal accepted02ed1896; old queue exited; no concurrent launchers",
       "owned_pause_after_eval": true,
-      "next_priority": "Finish architecture and fresh20M, then Operator handback to checked priority or preserved fallback",
-      "fallback_handback": "Six fallbacks preserved; old queue must stay exited while manual driver runs"
+      "next_priority": "Finish architecture+fresh20M, bounded batch262144 CPU if ready, genuine6ef7 new-base control, then6 preserved scalar fallbacks",
+      "fallback_handback": "Six fallbacks preserved; old queue must stay exited while manual driver runs",
+      "tokens_per_second_at_last_log": 268698,
+      "remaining_seconds_at_last_log": 482,
+      "first_five_step_seconds": [
+        847.9,
+        695.4,
+        0.49,
+        0.49,
+        0.49
+      ],
+      "startup_allowance_cap_seconds": 900,
+      "startup_diagnostic": "First-five printed dt sum1544.77; actual complete startup timestamp unknown. Fifth remaining1111 shows excess charged, not excluded. Warm run not cold proof.",
+      "next_control_label": "fs-20260925-l3-base-control-trn22-r2-full",
+      "free_disk_human_at_last_check": "42G available, 83% used"
     }
   },
   "breakers": {
@@ -729,7 +771,7 @@
     }
   ],
   "last_event": "At 07:30 UTC, the trn22 final-r3 read-only timing diagnostic received independent HOLD. Launcher r9 received independent source-only PASS but its exact A0 profile refuses trn21, so the uncommitted trn21 e65-to-r9 stage draft is parked. A separate trn21 r10 profile is under implementation. No host contact, transfer, scored run, S0 replay, table result or new BPB occurred.",
-  "updated_utc": "2026-09-25T17:47:00Z",
+  "updated_utc": "2026-09-25T18:18:11Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
