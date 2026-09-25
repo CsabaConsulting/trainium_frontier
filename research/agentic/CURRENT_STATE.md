@@ -1,6 +1,35 @@
 # Current state
 
-Last reconciled: 2026-09-25 14:28 UTC
+Last reconciled: 2026-09-25 14:40 UTC
+
+## Newest human leaderboard/table override, 14:40 UTC
+
+Poojith reports `sub-452d2ae4` is **SCORED 0.9901 official** and passed
+review and an official clean compile. The preserved local upload file and
+review-clean package have exact SHA-256
+`116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d`;
+the recorded launch command and limits of portal-side provenance are in
+`research/v2/SUBMISSION_VEHICLE_2026-09-25.md`. Use that file as the future
+submission-port vehicle, but do not re-upload it. Three older uploads are
+reported QUEUED, not rejected. Official-to-public offset and leaderboard
+cutoffs remain human reports, not new experiment measurements.
+
+The **full S0 replay is cancelled**; its unlaunched draft assignment is
+revoked. Only the two 120-second smokes already in flight finish. The trn22
+116188 cold smoke exited zero on all ranks but logged only five completed
+rank-0 steps (below the 20-step pass bar), so it is *inconclusive*, not a
+code/cache PASS; the Operator preserved its logs and checkpoint. The trn21
+S0 warm smoke started at 14:30:30 UTC, before the later conditional skip,
+and is still compiling/training; no further S0 work is planned.
+
+Tables are now the critical path: A2 exact-size CPU G2 on the free trn22,
+then A1 on trn21 after its smoke ends, each under a separate one-use CPU-only
+assignment and fresh host preflight. The disabled exact-size packets passed
+independent **static** review; that is not launch or numeric approval. A1/A2
+native smokes and full-budget BPB runs remain separate later gates. Both
+c5c/LR0.015 A0 controls completed with same-host public-20M/context-1024
+BPB `0.9914739939934344` (trn21) and `0.991513958330512` (trn22), with
+independent result-use PASS receipts. These are controls, not adopted gains.
 
 ## Live handoff, 14:28 UTC
 
