@@ -4,6 +4,12 @@ Preparation only; no host release or queue preemption. Current final candidate
 is confirmed batch262144/LR.021/ordinary.75/momentum300. Rebind this plan to
 the actually selected best stack before launch if a new arm wins.
 
+Latest direct order puts this confirmation after the overnight cold fallback
+and before remaining scalar arms. `prepare_packet.py` binds exact clean cd0c
+to trn22 with --seed43 plus the environment seed43, preserving original
+guardians and fresh20M driver. `packet.disabled.json` has no RELEASE/live queue
+entry. Existing research caches are used; this is explicitly not cold proof.
+
 Use seed43 chosen now, not selected after looking at its BPB. Same official
 1800-second accounting and fresh public20M/context1024/B1. No data/model/eval
 change other than the chosen stack and seed. Source and argv must be frozen
@@ -23,5 +29,6 @@ For the current fallback:
 Candidate43 alone measures variation, not a new matched causal improvement.
 If matched control43 is unavailable, state that limitation rather than invent
 a delta. Existing same-host seed42 comparisons and unchanged decide.py remain.
-Perform this after prioritized warmdown/momentum/LR work and before final freeze;
+Perform this after current warmdowns/K2-or-momentum and cold candidate replay,
+before remaining scalar arms and before final freeze;
 do not stop running jobs. Final package remains due Monday evening.

@@ -1,0 +1,36 @@
+{
+  "proposal_id": "fs-20260926-final-batch262144-lr021-seed43-trn22-r1",
+  "arm_id": "final-batch-lr021-seed43",
+  "kind": "seed_confirmation",
+  "status": "PREPARED_DISABLED",
+  "authority": "Poojith: overnight cold replay, second-seed confirmation, then remaining arms",
+  "single_causal_change": "Seed42 ->43 only versus clean confirmed batch/LR; same selected shape, budget and optimizer",
+  "candidate": {
+    "source_sha256": "cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --seed 43",
+    "seed": 43,
+    "max_train_seconds": 1800,
+    "total_batch_size": 262144,
+    "matrix_lr": 0.021
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "context": 1024,
+    "batch_size": 1
+  },
+  "comparison": "Candidate43 measures variation; no matched seed43 causal gain unless actual accepted8L seed43 control exists. Do not pick best seed.",
+  "cache_policy": "Existing trn22 research caches, hit unproven; not cold submission evidence",
+  "pending": [
+    "Selected final source confirmed",
+    "Fresh original lock/machine/source admission",
+    "Full1800 and actual fresh20M"
+  ],
+  "dispatch": {
+    "host": "trn22",
+    "label": "fs-20260926-final-batch262144-lr021-seed43-trn22-r1",
+    "launch_authorized": false,
+    "stage_authorized": false
+  },
+  "submission_authorized": false
+}
