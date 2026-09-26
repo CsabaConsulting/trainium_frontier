@@ -1,5 +1,17 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 06:38 IST: new registration prototype selected and implementation active
+
+Researcher proposal8bab89e1/canonicald86e3045 is complete; Supervisor selection
+a6ebb4c2 authorizes distinct Implementer CPU-only work. One registered forward
+per dtype plus register_autograd, same automatic backward and immutable kernel
+2c8295/reference145725. No explicit wrap or second consumer op. Tiny eager/AOT
+tests must show the registered consumer is actually used, with wrong-consumer
+negative controls as well as strict bytes/changed tangent and metadata replay.
+No native/production activation; fresh independent source review still pending.
+The prior compiled-zero-gradient failure is not reversed by a proposal or CPU
+surrogate test. Both running host quality jobs remain separate and protected.
+
 ## 06:27 IST: first-fixture failure authenticated; registration design next
 
 Source-neutral FP32-first diagnostic ontrn22 ran00:33:35–00:34:04UTC.
