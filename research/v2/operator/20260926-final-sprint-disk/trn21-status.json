@@ -1,0 +1,78 @@
+{
+  "controller": {
+    "utc": "2026-09-26T06:55:37.801934+00:00",
+    "controller_state_sha256": "03881c1a4cda10609bf4f572d07d8748e62e80403d10708baf2449b95c8c7122",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": false,
+      "trn22": false
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  },
+  "payload_sha256": "4ea3a40d75518b302924df417b79fe941b023ef8b29afd5a66fa2032f6b85c85",
+  "transport_sha256": "fac4a840a43d7addb0ee3579330fbd02b5b49d759b4e7e7b90ee904e14a01647",
+  "exit_code": 0,
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T06:55:42.829533+00:00",
+    "host": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "original_lock": {
+      "device": 66305,
+      "inode": 596823,
+      "exclusive_acquired": true
+    },
+    "ps_job_rows": [],
+    "ps_sha256": "9efecd789bdfe1be9ed8125be35fbae1d45dee278e2c8107ad8e5c8f214bca4f",
+    "neuron_ls": {
+      "argv": [
+        "/opt/aws/neuron/bin/neuron-ls",
+        "--json-output"
+      ],
+      "exit_code": 0,
+      "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0329acb9a6244986b\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+      "stderr": ""
+    },
+    "devices": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0329acb9a6244986b",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": []
+      }
+    ],
+    "fuser": {
+      "argv": [
+        "/usr/bin/fuser",
+        "/dev/neuron0"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "stop_paths": [],
+    "free_bytes": 14744358912,
+    "mem_available_bytes": 131411279872,
+    "no_host_writes": true,
+    "elapsed_seconds": 0.06568552704993635
+  },
+  "stdout_if_error": null
+}
