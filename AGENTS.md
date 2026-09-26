@@ -2,6 +2,11 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+Latest score/quota correction: `workflow/SCORED_BASE_2026-09-26.md` records
+Poojith's sub-86d307b4 SCORED0.9878 on auditede1e2, five rolling-week uploads,
+planning offset-0.0006..-0.0014, targetpublic<=0.973 and next-upload>=.003
+confirmed official gain. No agent upload. Final Sprint below otherwise stays.
+
 ## CONTROLLING: Final Sprint — 26 September, 12:17 IST
 
 Read `workflow/FINAL_SPRINT_2026-09-26.txt` first. It is the newest direct human

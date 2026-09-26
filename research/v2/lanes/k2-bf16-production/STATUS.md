@@ -9,8 +9,10 @@ CPU exactness vs plain torch, OFF3step identity and short Trn2 timing/coldstartu
 are the research evidence bar. Old full-size/repeated-proof/28-route gate
 ceremonies below are overridden; original numerical counterexamples remain.
 Do not label the current supplied-metadata consumer an integrated timing-ready
-model. P0 uses the available Implementer slot first; no new K2 builder has yet
-started under this directive because the attempted spawn hit the thread limit.
+model. Fresh local Astra final_sprint_k2_impl actually started about12:31IST
+after P0 implementation completed, while the single P0 independent reviewer
+runs. It owns the complete producer/autograd/OFF candidate,45min first-code
+timebox and15min viability update. Earlier failed capacity attempt did not run.
 
 Supervisor narrowed the next deliverable to SPEC gate2's consumer-first
 falsifier after incomplete commita56e4dcc. New `consumer_nki.py` contains the

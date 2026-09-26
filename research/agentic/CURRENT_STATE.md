@@ -1,5 +1,15 @@
 # Current state
 
+## New human official score: sub-86d307b4 =0.9878
+
+Auditede1e2 now scored/revieweraccepted on official runner, per Poojith.
+FinalSprint remains; read workflow/SCORED_BASE_2026-09-26.md for rollingquota
+and planning corrections. No resubmission ofcurrentfile; nextupload needs
+confirmed>=.003 officialgain, coldreplay/fresh20M andClaudeaudit. Targetpublic
+<=.973 byfreeze; estimateoffset-.0006..-.0014, notofficialscoreguarantee.
+FirstP0ports7117d57b in ONEfreshreview; K2completeproducer/integrationbuilder
+active. Hostcleanup done safely, neither P0 launched yet. SeeSTATUStop.
+
 ## 06:47 UTC / 12:17 IST: Final Sprint controls; prior hold/gates superseded
 
 Read workflow/FINAL_SPRINT_2026-09-26.txt and top research/v2/STATUS.md.

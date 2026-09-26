@@ -1,5 +1,21 @@
 # Workflow installation and incremental launch status
 
+## Latest human score update — 26 September12:30 IST
+
+sub-86d307b4 SCORED0.9878 official on auditede1e2, reported by Poojith.
+New official baseline; publicdeadline<=0.973, offsetplanning-.0006..-.0014.
+Five rolling7day uploads used. Approx openings today13:20,Sep29 18:54,
+Sep30 13:43; the last is AFTER unchangednoon internalcutoff. Plan two earlier
+slots, nextupload only confirmed>=.003 official gain+cold20M+Claudeaudit.
+Do notresubmit currente1e2. See workflow/SCORED_BASE_2026-09-26.md.
+
+P0 source ports committed7117d57b; one freshreview running, own3step/reference
+checks passed, finishinglaunchermechanics. K2integratedbuilder actually active.
+No new P0/nativeK2 launch yet. Both hosts idle after06:59cleanup, original
+locksfree. Free15.65GB/18.03GB;3discardedscored checkpoints+private retiredcache
+removed, logs/protected/sharedcachekept.25GBtargetshortfall acknowledged.
+Historical busy lowerbound01:00–07:30IST70.65%/62.78%, not currentutilization.
+
 ## Current — Final Sprint accepted, 26 September 12:17 IST
 
 Controlling directive: workflow/FINAL_SPRINT_2026-09-26.txt, audited8layer
