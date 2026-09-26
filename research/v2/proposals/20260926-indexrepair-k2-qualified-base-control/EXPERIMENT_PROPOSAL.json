@@ -1,0 +1,155 @@
+{
+  "proposal_id": "20260926-indexrepair-k2-qualified-base-control",
+  "status": "complete_prospective_repaired_control_conditional_on_a318_native_qualification_and_operator_admission",
+  "owner_role": "researcher",
+  "arm_id": "K2-indexrepair-qualified-base-control",
+  "kind": "control",
+  "run_purpose": "quality",
+  "prepared_utc": "2026-09-26T09:20:18Z",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md and Supervisor's prospective control assignment",
+  "hypothesis": "The first qualified K2-only full run can supply an actual same-host full-budget control for the subsequent P2 table experiment, without a redundant run or a post-result change of role.",
+  "single_causal_change": "Mechanically rebind the prospective K2-only full control to guard-repaired source a3181d0d. Preserve the original K2 full argv and all scientific settings; freeze its sole actual kind=control/base=a318 row before launch or observation of BPB.",
+  "mechanism_class": "prospective_control",
+  "predicted_bpb_delta": null,
+  "prediction_note": "This measures a comparison base; it does not predict or establish a K2 BPB gain, research-best adoption or submission readiness.",
+  "supersedes": "For the first unstarted qualified repaired K2 full only, supersede 20260926-k2-qualified-base-control and the old source63925519 throughput-full role. Old proposals and failures remain historical evidence. Do not launch both old and new roles, duplicate rows, or apply this designation after BPB.",
+  "inherited_full_proposal": "research/v2/proposals/20260926-k2-final-sprint-full/EXPERIMENT_PROPOSAL.json",
+  "inherited_full_proposal_sha256": "8fc0371221408106e89d5ea8bf99627d667a7f3bac8eafc59351aa66b4a6638f",
+  "candidate": {
+    "source": "research/v2/lanes/k2-native-index-repair/train.py",
+    "source_commit": "2ad051aa365e60817859be2969e1c559a91b974e",
+    "source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "files_allowed": [
+      "train.py"
+    ],
+    "source_edit": "No edit by this proposal; execute exact separately repaired/review-bound a318 source.",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --k2-embedding",
+    "launch_command_sha256": "a0110e5a82ba201f1a157f5c9136bc42b1e0498dab51788613b51d86ae2d22ab",
+    "launch_string_sha256": "bf202d6e3034efc0260e3574fea48f35487e08d39fa73b1142102e1d5b461bb3",
+    "hash_encoding": "launch_command_sha256 hashes UTF-8 command plus one LF, matching the existing prepared command-file bytes; launch_string_sha256 hashes the exact string without a trailing newline.",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--k2-embedding"
+    ],
+    "shape": "Eight layers x width1024, batch131072, pack32, context1024, full chip LNC2/four ranks",
+    "seed": 42,
+    "max_train_seconds": 1800
+  },
+  "prospective_record": {
+    "schema": "trn-run-record-v2",
+    "arm_id": "K2-indexrepair-qualified-base-control",
+    "kind": "control",
+    "run_purpose": "quality",
+    "base_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "train_py_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "training_budget_seconds": 1800,
+    "policy": "One actual run, one actual label and one final ledger record, including failure. Fill only observed results and authenticated receipts. Freeze this role before launch, retain it regardless of BPB and never manufacture an evaluated/pass status. This object is a prospective specification, not a ledger row."
+  },
+  "host_alternatives": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-indexrepair-k2-control-trn21-r1"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-indexrepair-k2-control-trn22-r1"
+    }
+  ],
+  "dispatch": {
+    "selected_host": null,
+    "launch_authorized": false,
+    "selection": "Later select only one eligible host and its unused new indexrepair label; neither host is assigned or authorized here. Freeze the control role before launch and retain it regardless of BPB. The other alternative remains disabled.",
+    "mechanics": "Reuse only the proven held-original-guardian/harness mechanics from research/v2/operator/20260926-k2-sprint-full/PREPARED.json, not its stale639 source/label binding. Sole Operator rebinds exact a318 source, new label, this proposal and prospective record before admitted launch. Record actual qualified repaired ON cache owner/paths. No new review, queue entry, release file or second launcher.",
+    "selected_label": null
+  },
+  "gates": {
+    "inherited_source_review": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "inherited_source_review_sha256": "2ddb87ac3c38897abf306e323d06c747b0db41423e2f6126ede94e98cadcf502",
+    "cpu_exactness_off_identity": "Reuse original K2 review plus existing both-dtype guard-repair CPU receipts and the one fresh tiny-repair review b689fb6e; retain documented scope. Root's exact-source composition binding adds no review or native qualification.",
+    "k2_native_rate_ge_1_03_passed": false,
+    "native_prerequisite": "Actual retrieved valid integrated a318 K2 whole-step rate>=1.03x its preselected same-host control, matched runtime/seed/shape, finite/native correctness, exact-source evidence, trustworthy45 boundaries and measured startup/accounting. Existing repaired native proposal uses precommitted35*131072/(t44-t9) versus actual e1e2/trn22 control, with no best-window selection. Cancelled extra OFF45 is not required. Failed639 is not qualification; no timing PASS is presumed.",
+    "fresh_machine_admission_passed": false,
+    "machine": "Existing sole Operator; original exclusive lifetime device0.lock; fresh successful ps AND neuron-ls plus fuser/STOP/clean-tree/exact-source/argv/environment/runtime/resource checks under lock. Preserve active jobs and hold through training, attached evaluation and owned-child quiescence.",
+    "source_adopted_best": false,
+    "submission_authorized": false,
+    "repair_review": "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md",
+    "repair_review_sha256": "b689fb6ed0dd86b73bb945da2fb6bb31a3e8a524b15dc3c984624a5dea08c6dc",
+    "full_source_argv_environment_binding_passed": false
+  },
+  "accounting_and_resources": {
+    "environment": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "budget": "Unchanged full-run guards:1800 charged seconds,900 startup cap,2730s training outer timeout,1800s eval outer timeout,60s TERM grace, source checkpoint/exit reserve and predictor unchanged. Startup above900 is charged; an outer timeout is not an increased training allowance.",
+    "disk_initial_floor_bytes": 14495514624,
+    "disk_runtime_floor_bytes": 11274289152,
+    "resource_policy": "Retain the existing3GiB prospective full-run footprint and all existing RAM/idle/guard requirements. Use fresh measured resources and increase reservation if actual needs require it; preserve current, short-run, control and unscored artifacts. No cleanup, lowered floor or AWS action is authorized. Preserve the existing64GiB host MemAvailable floor; no requirement is reduced.",
+    "cache_and_startup": "Research-only reuse of actual qualified a318 ON private cache after owner exit; record source, owner/paths and only artifact-proven hits. Old639 cache provenance is not repaired-source qualification. Record fifth boundary, capped allowance, charged excess and estimates separately. Submission still requires genuine cold full replay/fresh20M and Claude audit.",
+    "steps": "Report steps and tokens; below60% of the applicable comparison or timing spikes/stalls prompt diagnosis, not a step-count verdict.",
+    "memory_available_minimum_bytes": 68719476736
+  },
+  "evaluation": {
+    "mode": "Fresh-process unchanged prepare.py eval-public via the existing full-run harness on this run's actual checkpoint",
+    "tokens": 20971520,
+    "context": 1024,
+    "checkpoint_required": true,
+    "private_or_external_data": false
+  },
+  "control_use": {
+    "scientific_validity": "This is a prospective research comparison base, not an adopted best model. P2 adds only its reviewed FP32 last-layer tables relative to this K2-only control, on the same host/seed/batch/schedule/LR with matching official accounting. No favorable-BPB cutoff selects the control's role.",
+    "selector_validity": "Unchanged decide.py controls_for selects kind=control, same host and same base_sha256 with invalid_reason=None. Once actually completed and valid, this one row matches P2's K2 basea3181d0d. Source63925519 or e1e2 rows do not substitute. Failure, dirty source, budget/causality failure or missing fresh20M stays ineligible; no result is inferred.",
+    "p2_binding": "Bind this actual retrieved row/label/checkpoint in 20260926-indexrepair-k2-fp32-last-layer-tables-full before table full. P2 native/resource gates remain; a different-host replicate needs its own actual same-host a318 control.",
+    "raw_e1e2_delta": "The Analyst may report the actual raw BPB difference against a genuine comparable same-host e1e2 control separately with source/cache/startup caveats. It is not a K2 selector NOMINATE/ADOPT verdict. Do not append a second throughput-arm row, change the control's base to e1e2 or relabel it after the result.",
+    "selection_rules": "workflow/tools/decide.py remains byte-identical: fa4a3d3dd3697093f93ac73b5c95335a7c1efa12534589ed3c3e2b64940ca0ac. Preserve all table thresholds, replication and audit rules; the controls-only K2 arm is not itself an adoption."
+  },
+  "success_criteria": "Actual full-budget, clean-source, finite/correct run with over_budget=false, loadable checkpoint and valid fresh public20M/context1024, complete retrieved logs and quiescence. This establishes a usable control only; no BPB win, full-table permission or submission permission follows automatically.",
+  "abort_conditions": [
+    "K2 native>=3% qualification absent or failed",
+    "Label already started or role not frozen before launch",
+    "Any inherited preflight/resource/source/idle/STOP gate fails",
+    "Crash/NaN/causality/budget/checkpoint/evaluation failure",
+    "Missing or unauthenticated artifacts/quiescence"
+  ],
+  "retry_policy": "Preserve failure under its actual control label and intended role; existing one diagnosed new-label retry then park policy applies, with no result-dependent role change.",
+  "artifacts": "Commit this proposal before launch; retrieve exact-source/argv/environment/runtime/host/cache/lock/resource receipts, train/eval logs, startup/charge/steps, checkpoint identity, actual one-row outcome and comparison. Existing full-run artifact/guardian protections remain.",
+  "local_scope": "Researcher created only new proposal/binding-note files. No scientific source, selector, queue, state or ledger edit; no host action, test run, new review, launch assignment or launch.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization; Supervisor assigned this prospective control role",
+  "verdict": null,
+  "superseded_proposal": "research/v2/proposals/20260926-k2-qualified-base-control/EXPERIMENT_PROPOSAL.json",
+  "superseded_proposal_sha256": "548bd3bcacd3e8746bce2b908021776247e6607d37b2872920feafe9c7572a28",
+  "repair_binding": {
+    "scope": "Only the two-line input guard changes: accept two-dimensional int32 or int64 token IDs, with matching error text. No cast, hash, layout, gather, backward, optimizer or FP32 precision change.",
+    "original_k2_source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "original_k2_review": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "original_k2_review_sha256": "2ddb87ac3c38897abf306e323d06c747b0db41423e2f6126ede94e98cadcf502",
+    "repaired_k2_source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "k2_repair_diff": "research/v2/lanes/k2-native-index-repair/SOURCE.diff",
+    "k2_repair_diff_sha256": "265a49010d7f9d3652ee157ebfa5581e44494637cef44fb9f0a840d2afe634c9",
+    "k2_repair_author_cpu_sha256": "d14080bf87211b0fc9dc19fa41634fc8fa34029be1c6518c27e1447fa2ba57fb",
+    "guard_review": "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md",
+    "guard_review_sha256": "b689fb6ed0dd86b73bb945da2fb6bb31a3e8a524b15dc3c984624a5dea08c6dc",
+    "guard_review_input_diff_sha256": "a2735f824e6207217533c2a098e8992cd2176043626e956147651976ca8701e5",
+    "guard_review_executed_receipt_sha256": "e57f9e57ed09d6680e01ce154ef77d59c700642527084efdd89ab6f6cb963a32",
+    "guard_review_scope": "PASS_FOR_ONE_NATIVE_RETRY for the tiny supplied diff only; independent exact tensor-value metadata/reference checks for both index dtypes. Not full-source execution, native lowering, throughput, checkpoint or scientific qualification. Root binds the reviewed diff to full source; this proposal adds no review.",
+    "existing_k2_native_retry_proposal": "research/v2/proposals/20260926-k2-native-index-repair-timing/EXPERIMENT_PROPOSAL.json",
+    "existing_k2_native_retry_proposal_sha256": "0b2f56940734765e9a85e46b250fd3d1ed8a989fa701c5ef7bfa0d908bcb7e5c",
+    "existing_k2_native_retry_label": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+    "failed_original_attempt": "fs-20260926-k2-sprint-on-parentcontrol-trn22-r1 failed before any step on the int64-only guard. Preserve it as failure; the existing diagnosed retry is not reset or duplicated by these proposals. If it fails, archive and park.",
+    "native_qualification": false
+  }
+}
