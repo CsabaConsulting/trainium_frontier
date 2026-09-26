@@ -1,0 +1,31 @@
+{
+  "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+  "label": "fs-20260926-batch262144-lr02625-trn22-r1",
+  "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.02625",
+  "command_string_sha256": "152b436e7fc3d3aa9c66d4864258539a91e2d826ee08f6d20a11eee19d6ea53d",
+  "command_file_sha256": "4097cc633b8cee9fe9869de5adc75770c61741209466730ad006d8950f2cfe04",
+  "parser_slice_pass": true,
+  "parsed_matrix_lr": 0.02625,
+  "parsed_batch": 262144,
+  "scope": "Executes only two exact AST parser declarations and exact positive-finite guard with stdlib; no model, Torch, NKI, compile or native test. Full existing argv unchanged except the LR literal.",
+  "source_line_evidence": {
+    "parser": [
+      1357,
+      1358,
+      1360,
+      1363
+    ],
+    "groups": [
+      892,
+      899
+    ],
+    "runtime_lr_tensors": [
+      1074,
+      1087
+    ],
+    "schedule_route": [
+      1461
+    ]
+  },
+  "prior_matching_lr_runs": []
+}
