@@ -31,6 +31,16 @@ Canonical state.hosts and queue.live_runs now mirror the same actual snapshot;
 their obsolete overnight top-level live summaries are replaced, not launched.
 Current official best0.9878 and earlier P0 results remain unchanged.
 
+P2 full1800/fresh20M proposal now complete at
+proposals/20260926-k2-fp32-last-layer-tables-full/EXPERIMENT_PROPOSAL.json,
+commitf8cc2a14, sameb4728d17 source, command7da998b8 (remove only num-steps45).
+K2/P2 native and actual same-host K2 full control remain pending; no fabricated
+control role or duplicate run row, no minimum table speedup requirement.
+trn21 resource risk: lastfree13.634GB below next14.496GB initial floor, before
+pending checkpoint. Checked LR.012 cache is shared/currently used and ineligible
+for cleanup. Local Analyst is checking only already-scored explicitDISCARD
+checkpoint records; remote existence/reclaimable bytes not established.
+
 ## 13:47 IST: FP32 review passed; K2 reuses actual parent control
 
 P2 sourceb4728d17 passed its ONE fresh independent reviewc41e16d6. Reviewer
