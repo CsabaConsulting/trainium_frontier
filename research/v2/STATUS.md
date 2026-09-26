@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+## Scheduler metadata mismatch — 26 September17:45IST
+
+Read-only app metadata still says controller5minutes and old04/07:45tasksACTIVE;
+TOML says25minutes/PAUSED. null last_run_at and no local controller run rows.
+Actual scheduler cadence/tick remains UNVERIFIED, not assumed failed or fixed.
+No DB mutation or second launcher. Direct session handoffs and original locks
+stay controlling. See observations/20260926-scheduler-metadata.md; normal next
+host observation12:30UTC. Audit handoff and prospective seed43 plan prepared.
+
 ## Final-package preparation — 26 September17:42IST
 
 Candidate workflow/candidates/final-batch262144-lr021/train.py SHAcd0c4aa5

@@ -50,6 +50,13 @@ TOML readback verified; scheduler/UI pickup is not yet observed. No second
 automation or host-resident launcher was installed. Even a stale scheduled
 session must obey the original remote lock and current instructions.
 
+17:45IST read-only diagnostic: app database still contains5minute controller,
+ACTIVE old04/07:45 tasks, null last_run_at and no controller run rows. Database
+and TOML disagree; actual runtime cadence is UNKNOWN, not confirmed25minutes.
+See observations/20260926-scheduler-metadata.md. Do not patch the app database;
+correct through supported Scheduled UI when available. Direct host handoffs
+remain primary and no stale task gains concurrent launch authority.
+
 Only Poojith may upload, authorize AWS spend or decide legality changes.
 No changes to prepare.py, evaluator, data/tokenizer/scoring or external weights.
 Source review/correctness, fixed1800 accounting and decide.py remain unchanged.
