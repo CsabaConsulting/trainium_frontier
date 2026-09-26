@@ -1,5 +1,28 @@
 # Current state
 
+## 01:07 UTC / 06:37 IST: confirmation launched; cache-only arm discarded
+
+bcbd full finished fresh20M at01:04:12UTC:0.9906857009017018,
+delta+0.0007328408454760904 versus genuine same-host6ef7 control.
+172 actual-archive checks pass normal/-O, unchanged selectorDISCARD;
+3635steps/1788.375545479charged seconds,267241median printedtok/s.
+Raw e6153b30, final posteval checkpoint unchanged, all16observed identities
+absent and original lockfree. Ledger/result review ef883a27; no adoption.
+
+Exact36 cross-host confirmation actually launched01:06:06.661475UTC ontrn21,
+fourworkers3127584–87,original596823 lifetime lock held and freshps/neuron-ls
+PASS. Rawd421376c/canonicale6aa8569,30root launch checks. Preceding idle
+113.817s. This is the unchanged file/command that scored0.988382 ontrn22,
+with attachedfresh20M. No Recursive, cold replay or new submission claim.
+trn22 genuine6ef7 control remains healthy:01:05:29UTC step1630,
+267970tok/s,1001s source remaining. Both top-level launch_allowed=false.
+
+Distinct K2 Implementer now builds selected registered-forward prototype
+8bab89e1/a6ebb4c2, CPU-only. Exact kernel/reference/automatic backward retained;
+fresh independent source and native gates still pending. No broken kernel is
+used by either running model. Confirmed mean0.9901674436550496 unchanged;
+earlier0.986340 failed confirmation. No upload-ready file or six-ready queue.
+
 ## 01:02 UTC / 06:32 IST: first quality evaluation finishing; second host training
 
 trn21 bcbd completed training at00:52:25.092579UTC:3635steps,

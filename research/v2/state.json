@@ -1010,19 +1010,19 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-arch36a8-startup-clock-trn21-r2-full",
-      "status": "ASSIGNED_NEXT_AFTER_PREDECESSOR_COMPLETE_QUIESCENT",
+      "status": "FULL_TRAINING_RUNNING_FRESH20M_ATTACHED",
       "original_lock_device": 66305,
       "original_lock_inode": 596823,
-      "launch_allowed": true,
+      "launch_allowed": false,
       "active_assignment": "research/v2/verification/20260926-clock36-trn21-replication-assignment.md",
       "assignment_commit": "18727a55",
       "packet_commit": "f4fe5d8e557f3d0646d1a2d6a47858768e29954d",
       "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
       "scope": "One exact36 cross-host full1800 plus attached fresh20M. Existing reviewed packet and source gates; no Recursive, new patch, stable-path mechanism, auto-next or submission.",
-      "idle_since_utc": "2026-09-26T01:04:12.724468+00:00",
-      "idle_alert_due_utc": "2026-09-26T01:19:12.724468+00:00",
-      "last_process_check_utc": "2026-09-26T01:04:52.795820+00:00",
-      "next_requires": "Sole Operator one-use prepared transport12e97372 with final predecessor commit e6153b30b9b92185ec4ee29188fd45ebfba0b06f; repeat all fresh disk/hash/STOP/old-queue/original-lock ps AND neuron-ls checks.",
+      "idle_since_utc": null,
+      "idle_alert_due_utc": null,
+      "last_process_check_utc": "2026-09-26T01:06:22.907644+00:00",
+      "next_requires": "Protect running exact36 full and attached fresh20M under original lifetime lock. No duplicate launch or automatic successor. Complete raw retrieval, all-observed PID/compiler/evaluator quiescence and checkpoint posteval hash before separate next assignment.",
       "previous_full_result": {
         "label": "fs-20260926-basebcbd-initial-cache-trn21-r1-full",
         "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
@@ -1034,10 +1034,29 @@
         "raw_commit": "e6153b30b9b92185ec4ee29188fd45ebfba0b06f",
         "postflight_utc": "2026-09-26T01:04:52.795820+00:00",
         "checkpoint_posteval_sha256": "edd9adca6f6f782f7ccb220f567ffed7177291a65f3e28ec269b38403e1a47ec",
-        "result_authentication": "172 checks; unchanged selector pending separately",
+        "result_authentication": "172 checks normal/-O identical; unchanged decide.py DISCARD, row archived ef883a27",
         "adopted": false,
-        "submission_eligible": false
-      }
+        "submission_eligible": false,
+        "selector": "DISCARD"
+      },
+      "started_utc": "2026-09-26T01:06:06.661475+00:00",
+      "dispatch_started_utc": "2026-09-26T01:06:06.548049+00:00",
+      "dispatch_pid": 3127536,
+      "flock_pid": 3127537,
+      "driver_pid": 3127538,
+      "timeout_pid": 3127554,
+      "harness_pid": 3127555,
+      "torchrun_pid": 3127569,
+      "worker_pids": [
+        3127584,
+        3127585,
+        3127586,
+        3127587
+      ],
+      "free_disk_bytes": 18192539648,
+      "preceding_idle_seconds": 113.817192,
+      "actual_launch_commit": "d421376ccd9accd4cdf292db239c6f89b6162eaa",
+      "launch_receipt": "research/v2/operator/20260926-trn21-startup-clock-replication/launch/first-native-evidence.json"
     },
     "trn22": {
       "label": "fs-20260926-recursive6ef7-control-trn22-r2",
@@ -1138,7 +1157,7 @@
         "retry_authorized": false
       },
       "started_utc": "2026-09-26T00:38:13.646155Z",
-      "last_process_check_utc": "2026-09-26T00:54:34Z",
+      "last_process_check_utc": "2026-09-26T01:05:29Z",
       "dispatch_pid": 3218053,
       "flock_pid": 3218054,
       "driver_pid": 3218055,
@@ -1151,14 +1170,14 @@
         3218104,
         3218105
       ],
-      "free_disk_bytes": 26803253248,
+      "free_disk_bytes": 25458061312,
       "preceding_idle_seconds": 249.41252,
       "launch_receipt": "research/v2/operator/20260926-trn22-recursive6ef7-control/launch/OPERATOR_LAUNCH.md",
       "actual_launch_commit": "2397f0aa",
       "actual_launch_canonical_commit": "759ee11c",
-      "last_observed_step": 290,
-      "reported_tokens_per_second": 266782,
-      "source_reported_seconds_remaining": 1660,
+      "last_observed_step": 1630,
+      "reported_tokens_per_second": 267970,
+      "source_reported_seconds_remaining": 1001,
       "known_compiler_pids": [
         3218647,
         3218649,
