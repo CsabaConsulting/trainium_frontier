@@ -1,6 +1,6 @@
 # Current state
 
-## 06:31 UTC / 12:01 IST: actual native launch, compiler-cache gate failure
+## 06:29 UTC / 11:59 IST: actual native launch, compiler-cache gate failure
 
 Clean-file native consistency launched on trn21 at06:26:19.059069UTC, before
 the06:28 tooling fallback deadline. Operator reports four workers and then
