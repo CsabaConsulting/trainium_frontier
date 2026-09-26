@@ -1,0 +1,132 @@
+===-------------------------------------------------------------------------===
+                         ... Execution time report ...
+===-------------------------------------------------------------------------===
+  Total Execution Time: 0.0895 seconds
+
+  ----Wall Time----  ----Name----
+    0.0536 ( 59.8%)  canonicalize-cse
+    0.0374 ( 41.8%)  'any' Pipeline
+    0.0108 ( 12.1%)    CSE
+    0.0000 (  0.0%)      (A) DominanceInfo
+    0.0266 ( 29.7%)    Canonicalizer
+    0.0352 ( 39.3%)  'any' Pipeline
+    0.0060 (  6.7%)    HoistAllocFromNoReorder
+    0.0058 (  6.5%)    NisaPipelineLoops
+    0.0058 (  6.5%)    NisaUnroll
+    0.0058 (  6.5%)    RotateNumbering
+    0.0017 (  2.0%)    CSE
+    0.0000 (  0.0%)      (A) DominanceInfo
+    0.0099 ( 11.0%)    NisaPostUnrollCanonicalization
+   -0.0370 (-41.3%)  Rest
+    0.0895 (100.0%)  Total
+Running MLIR pass pipeline to generate BIR...
+MLIR pass pipeline completed in 0.17s
+Kernel BIR written to: /home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790416023488678189/k2_exact_source_backend_check._k2_build_kernel.<locals>.resident_consumer_lnc0_456457cd91d28c9a.json
+Running neuronx-cc for target trn2...
+{
+  "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+  "mode": "compile-production",
+  "status": "FAIL",
+  "nki_version": "0.5.0+28631259367.ga768afa6",
+  "python": "3.12.13",
+  "target": "trn2",
+  "lnc": 2,
+  "address_space_limit_bytes": 2147483648,
+  "thread_env_limit": 1,
+  "native_execution": false,
+  "forward_framework_compile": false,
+  "start_utc": "2026-09-26T09:47:03Z",
+  "command": [
+    "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/bin/python",
+    "research/v2/analysis/20260926-k2-full-local-compile/check.py",
+    "compile-production"
+  ],
+  "compile_options": {
+    "target": "trn2",
+    "lnc": 2,
+    "verbose": true,
+    "verbose_neuronx_cc": true,
+    "artifacts_dir": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790416023488678189",
+    "neuronx_cc_args": [],
+    "neuronx_cc_backend_opts": [],
+    "neuronx_cc_path": "neuronx-cc",
+    "pass_pipeline": null,
+    "output_path": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790416023488678189/k2.neff",
+    "enable_simulation": false,
+    "run_at_begin": false,
+    "run_at_end": true,
+    "nki_opt_pipeline_options": [
+      "enable-linear-scan-allocation=false",
+      "enable-instruction-scheduling=false"
+    ],
+    "print_ir_after_all": false,
+    "dump_mlir": false,
+    "skip_verifier": false,
+    "enable_statistics": false,
+    "emit_predicted_latency": false,
+    "enable_device_dump": false,
+    "address_rotation": true,
+    "enable_barrier_checker": false,
+    "enable_nisa_func": false,
+    "emit_reg_compute_as_affine_expr": true,
+    "lower_dma_transpose": false,
+    "debug": false,
+    "sg00_dir": "sg00",
+    "kernel_json_filename": null,
+    "mode": null
+  },
+  "kernel_enable_backend_opt": false,
+  "production_default_options": true,
+  "artifacts_dir": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790416023488678189",
+  "output_shape": [
+    8192,
+    1024
+  ],
+  "output_dtype": "float32",
+  "source_unmodified": true,
+  "shapes": {
+    "gradient": {
+      "shape": [
+        32768,
+        1024
+      ],
+      "dtype": "bfloat16"
+    },
+    "counts": {
+      "shape": [
+        8192,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "starts": {
+      "shape": [
+        8192,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "positions": {
+      "shape": [
+        32768,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "group_maximums": {
+      "shape": [
+        64,
+        1
+      ],
+      "dtype": "int32"
+    }
+  },
+  "stage": "NEURONX_CC_BACKEND",
+  "bir_pass": true,
+  "error": "neuronx-cc compilation failed with exit code 70\nstderr:\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/walrus_driver: error while loading shared libraries: libxml2.so.2: cannot open shared object file: No such file or directory\n2026-09-26T09:47:07Z Non-signal exit. Backend exited with code 127 and stderr: /home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/walrus_driver: error while loading shared libraries: libxml2.so.2: cannot open shared object file: No such file or directory\n\n",
+  "exception_type": "NCCError",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/compiler/ncc_driver.py\", line 1207, in _compile_neff\n    compile_nki_ir_kernel_to_neff(\n  File \"neuronxcc/nki_standalone/kernel_tracer.py\", line 461, in neuronxcc.nki_standalone.kernel_tracer.compile_nki_ir_kernel_to_neff\n  File \"/home/poojith-devan/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/bin/python', '/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/bin/neuronx-cc', 'compile', '--framework', 'XLA', 'penguin.py', '--pipeline', 'compile', 'SaveTemps', '--target', 'trn2', '--lnc', '2', '--output=/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790416023488678189/k2.neff', '--internal-backend-options=--enable-nested-dynamic-loop', '--optlevel=1', '--auto-cast', 'matmult', '--auto-cast-type', 'bf16']' returned non-zero exit status 70.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/check.py\", line 150, in main\n    compile_backward(info)\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/check.py\", line 84, in compile_backward\n    result = compile_bir_to_neff(opts, bir, input_arrays=[],\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/compiler/ncc_driver.py\", line 1309, in compile_bir_to_neff\n    _compile_neff(compile_opts, bir, input_output_aliases)\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/compiler/ncc_driver.py\", line 1223, in _compile_neff\n    raise NCCError(\nnki.compiler._errors.NCCError: neuronx-cc compilation failed with exit code 70\nstderr:\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/walrus_driver: error while loading shared libraries: libxml2.so.2: cannot open shared object file: No such file or directory\n2026-09-26T09:47:07Z Non-signal exit. Backend exited with code 127 and stderr: /home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/walrus_driver: error while loading shared libraries: libxml2.so.2: cannot open shared object file: No such file or directory\n\n\n",
+  "elapsed_s": 4.313244214004953,
+  "max_rss_kib": 165948,
+  "end_utc": "2026-09-26T09:47:07Z"
+}

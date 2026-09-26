@@ -1,0 +1,70 @@
+{
+  "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+  "mode": "compile",
+  "status": "FAIL",
+  "nki_version": "0.5.0+28631259367.ga768afa6",
+  "python": "3.12.13",
+  "target": "trn2",
+  "lnc": 2,
+  "address_space_limit_bytes": 2147483648,
+  "thread_env_limit": 1,
+  "native_execution": false,
+  "forward_framework_compile": false,
+  "start_utc": "2026-09-26T09:44:46Z",
+  "command": [
+    "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/bin/python",
+    "research/v2/analysis/20260926-k2-full-local-compile/check.py",
+    "compile"
+  ],
+  "artifacts_dir": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790415886420869183",
+  "output_shape": [
+    8192,
+    1024
+  ],
+  "output_dtype": "float32",
+  "source_unmodified": true,
+  "shapes": {
+    "gradient": {
+      "shape": [
+        32768,
+        1024
+      ],
+      "dtype": "bfloat16"
+    },
+    "counts": {
+      "shape": [
+        8192,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "starts": {
+      "shape": [
+        8192,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "positions": {
+      "shape": [
+        32768,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "group_maximums": {
+      "shape": [
+        64,
+        1
+      ],
+      "dtype": "int32"
+    }
+  },
+  "stage": "PARSER_TO_BIR",
+  "error": "Pass pipeline failed. IR dump saved to: /home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790415886420869183/ir_dumps",
+  "exception_type": "RuntimeError",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/check.py\", line 134, in main\n    compile_backward(info)\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/check.py\", line 64, in compile_backward\n    bir = compile_to_bir(kernel_from_exact_source(), frontend=ParserFrontend(),\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/compiler/driver.py\", line 74, in compile_to_bir\n    bir = compile_mlir_to_bir(\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/compiler/ncc_driver.py\", line 1011, in compile_mlir_to_bir\n    performance_metrics, bir_result = run_minimal_compilation_pipeline(\n                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Pass pipeline failed. IR dump saved to: /home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-full-local-compile/scratch/compile-1790415886420869183/ir_dumps\n",
+  "elapsed_s": 1.2517500380054116,
+  "max_rss_kib": 73544,
+  "end_utc": "2026-09-26T09:44:47Z"
+}
