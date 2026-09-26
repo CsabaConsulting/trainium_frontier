@@ -3,9 +3,9 @@ import ast,hashlib,sys
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 # Populated mechanically only from the forthcoming exact Supervisor release.
-ASSIGNMENT_PATH=None
-ASSIGNMENT_SHA256=None
-PROPOSAL_SHA256=None
+ASSIGNMENT_PATH='research/v2/assignments/20260926-k2-native201-trn21.md'
+ASSIGNMENT_SHA256='68d319c203e0512dc9bfe02598228f743e960364112f26b17cddaa35328406a8'
+PROPOSAL_SHA256='3f0e622b0c1c7c19dbeaacd9674e4a088826b62078fde1eeee6fca482809ca70'
 if not all((ASSIGNMENT_PATH,ASSIGNMENT_SHA256,PROPOSAL_SHA256)):
  raise SystemExit('DISABLED_PENDING_EXACT_SUPERVISOR_RELEASE_PINS')
 raw=(HERE/'stage_next.py').read_bytes()
