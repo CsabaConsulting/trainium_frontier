@@ -1,0 +1,1158 @@
+{
+  "status": "CPU_DOMAIN_ANALYSIS_COMPLETE_NOT_A_NATIVE_GATE",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "source_casts": [
+    "self.transformer.wte(idx).to(COMPUTE_DTYPE)",
+    "self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE)"
+  ],
+  "torch": "2.13.0+cpu",
+  "cpu_cases": [
+    {
+      "case": "fp32_min_positive",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00000001"
+      ],
+      "output_tangent_bits": [
+        "00000000"
+      ],
+      "embedding_tangent_bits": [
+        "00000000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00000000"
+      ],
+      "final_gradient_bits": "00000000"
+    },
+    {
+      "case": "fp32_min_positive",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00000001"
+      ],
+      "output_tangent_bits": [
+        "00000001"
+      ],
+      "embedding_tangent_bits": [
+        "00000001"
+      ],
+      "ordered_fp32_intermediates": [
+        "00000001"
+      ],
+      "final_gradient_bits": "00000001"
+    },
+    {
+      "case": "fp32_min_positive",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80000001"
+      ],
+      "output_tangent_bits": [
+        "80000000"
+      ],
+      "embedding_tangent_bits": [
+        "80000000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00000000"
+      ],
+      "final_gradient_bits": "00000000"
+    },
+    {
+      "case": "fp32_min_positive",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80000001"
+      ],
+      "output_tangent_bits": [
+        "80000001"
+      ],
+      "embedding_tangent_bits": [
+        "80000001"
+      ],
+      "ordered_fp32_intermediates": [
+        "80000001"
+      ],
+      "final_gradient_bits": "80000001"
+    },
+    {
+      "case": "bf16_min_positive",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00010000"
+      ],
+      "output_tangent_bits": [
+        "00010000"
+      ],
+      "embedding_tangent_bits": [
+        "00010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "bf16_min_positive",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00010000"
+      ],
+      "output_tangent_bits": [
+        "00010000"
+      ],
+      "embedding_tangent_bits": [
+        "00010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "bf16_min_positive",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80010000"
+      ],
+      "output_tangent_bits": [
+        "80010000"
+      ],
+      "embedding_tangent_bits": [
+        "80010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    },
+    {
+      "case": "bf16_min_positive",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80010000"
+      ],
+      "output_tangent_bits": [
+        "80010000"
+      ],
+      "embedding_tangent_bits": [
+        "80010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    },
+    {
+      "case": "normal_boundary",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00800000"
+      ],
+      "final_gradient_bits": "00800000"
+    },
+    {
+      "case": "normal_boundary",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00800000"
+      ],
+      "final_gradient_bits": "00800000"
+    },
+    {
+      "case": "normal_boundary",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80800000"
+      ],
+      "final_gradient_bits": "80800000"
+    },
+    {
+      "case": "normal_boundary",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80800000"
+      ],
+      "final_gradient_bits": "80800000"
+    },
+    {
+      "case": "normal_cancel_to_fp32_min",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00800001",
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "00800000",
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "00800000",
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00800000",
+        "00000000"
+      ],
+      "final_gradient_bits": "00000000"
+    },
+    {
+      "case": "normal_cancel_to_fp32_min",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00800001",
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "00800001",
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "00800001",
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00800001",
+        "00000001"
+      ],
+      "final_gradient_bits": "00000001"
+    },
+    {
+      "case": "normal_cancel_to_fp32_min",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80800001",
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "80800000",
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "80800000",
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80800000",
+        "00000000"
+      ],
+      "final_gradient_bits": "00000000"
+    },
+    {
+      "case": "normal_cancel_to_fp32_min",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80800001",
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "80800001",
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "80800001",
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80800001",
+        "80000001"
+      ],
+      "final_gradient_bits": "80000001"
+    },
+    {
+      "case": "bf16_normal_cancel_to_bf16_min",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00810000",
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "bf16_normal_cancel_to_bf16_min",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "output_tangent_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "embedding_tangent_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00810000",
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "bf16_normal_cancel_to_bf16_min",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80810000",
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    },
+    {
+      "case": "bf16_normal_cancel_to_bf16_min",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "output_tangent_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "embedding_tangent_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80810000",
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    },
+    {
+      "case": "duplicate_signed_bf16",
+      "sign": 1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "output_tangent_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "embedding_tangent_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00010000",
+        "00000000",
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "duplicate_signed_bf16",
+      "sign": 1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "output_tangent_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "embedding_tangent_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "00010000",
+        "00000000",
+        "00010000"
+      ],
+      "final_gradient_bits": "00010000"
+    },
+    {
+      "case": "duplicate_signed_bf16",
+      "sign": -1,
+      "output_dtype": "torch.bfloat16",
+      "input_fp32_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "output_tangent_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "embedding_tangent_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80010000",
+        "00000000",
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    },
+    {
+      "case": "duplicate_signed_bf16",
+      "sign": -1,
+      "output_dtype": "torch.float32",
+      "input_fp32_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "output_tangent_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "embedding_tangent_bits": [
+        "80010000",
+        "00010000",
+        "80010000"
+      ],
+      "ordered_fp32_intermediates": [
+        "80010000",
+        "00000000",
+        "80010000"
+      ],
+      "final_gradient_bits": "80010000"
+    }
+  ],
+  "native_archive_sha256": "a210263a3f0cd67f4896cb76c55ae67198331053220432800639b4483b1d2563",
+  "native_archived_observations": [
+    {
+      "rank": 0,
+      "receipt_sha256": "57edf0d316c93a10aab213c6df167bf7dbdde5631dd1a6857c38f5751a9792c4",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            }
+          ]
+        },
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "actual_nonzero": 0,
+              "expected_nonzero": 1408
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 1,
+      "receipt_sha256": "282469a3bc501cf8e04cac6f28572bc0688daea7de0298aef4e5f9709659efc7",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            }
+          ]
+        },
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "actual_nonzero": 0,
+              "expected_nonzero": 1408
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "receipt_sha256": "d6d43fe0c9390b3a004b9b69280728c01cb0f01b94f00afcf358ee4ebeda007c",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            }
+          ]
+        },
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "actual_nonzero": 0,
+              "expected_nonzero": 1408
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "receipt_sha256": "295a36b57d61df39086aec111ea25a501f82024ae85c7c02ab280c9642f57071",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 0,
+              "expected_nonzero": 0
+            }
+          ]
+        },
+        {
+          "case": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            }
+          ]
+        },
+        {
+          "case": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "actual_nonzero": 1408,
+              "expected_nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "actual_nonzero": 0,
+              "expected_nonzero": 1408
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "production_paths_in_scope": [
+    "wte",
+    "ordinary value embeddings; no ngram/table paths"
+  ],
+  "limitations": [
+    "Static production cast placement plus tiny CPU autograd, not a whole-model native runtime trace.",
+    "No all-input or production-size scatter proof, metadata performance or speed qualification.",
+    "Original unrestricted FP32 gate remains failed. A new BF16-only production contract requires a separate proposal and fresh independent review."
+  ],
+  "source_modified": false,
+  "native_launched": false,
+  "gate_waiver": false
+}
