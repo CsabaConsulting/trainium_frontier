@@ -1,5 +1,36 @@
 # Workflow installation and incremental launch status
 
+## 13:54 IST: both successors in steady training; FP32 launch files prepared
+
+Authenticated snapshot08:20:43UTC: trn21 batch262144/LR.021 step340,
+loss3.2960,281749tok/s,1487 source-seconds remaining; trn22 exact e1e2
+control step20,loss5.9820,267276tok/s,1792 source-seconds remaining. Both
+original four workers, guardians and lifetime locks remain healthy; no fatal
+error or active compiler descendant observed. These are observed samples,
+not final timing statistics or new BPB results. Free13,633,781,760B and
+16,262,967,296B. Exact startup is pending terminal observer receipts. Cache
+namespaces are reused; neither cold start nor cache hits are proved here.
+See operator/20260926-final-sprint-successor-startup/AUTHENTICATED.json.
+
+Natural train ends estimated08:45:30/08:50:35UTC; attached20M typically takes
+another12minutes. Preserve both. K2 ON45 remains next on trn22 after its
+parent control+eval and fresh admission checks. Its comparison window was
+committed before t44 existed, not selected after observing performance.
+For cold-start comparison, use the separately proved exact-parent cold
+replay859.473523823s, not this warm-namespace control's startup mislabeled
+as cold. K2 itself receives fresh private empty caches; report both types.
+
+P2 FP32 native45 alternatives for both hosts are prepared but disabled until
+K2 qualifies: operator/20260926-k2-fp32-table-timing/PREPARED.json. Extra
+512MiB checkpoint reserve raises initial floor to15,032,385,536B; runtime
+10.5GiB and64GiB RAM unchanged. No table native/full pass, no source change,
+no extra review. Full-table proposal is being prepared off-host. Target
+fulltables20:00–22:00IST remains conditional, execute earlier if eligible.
+
+Canonical state.hosts and queue.live_runs now mirror the same actual snapshot;
+their obsolete overnight top-level live summaries are replaced, not launched.
+Current official best0.9878 and earlier P0 results remain unchanged.
+
 ## 13:47 IST: FP32 review passed; K2 reuses actual parent control
 
 P2 sourceb4728d17 passed its ONE fresh independent reviewc41e16d6. Reviewer

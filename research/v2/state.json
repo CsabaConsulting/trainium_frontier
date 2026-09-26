@@ -1,6 +1,9 @@
 {
   "controlling_goal_20260926_1326_ist": {
-    "results_notified_to_user": ["fs-20260926-sprint-clean-recursive-trn21-r1:0.9880239239389417", "fs-20260926-sprint-clean-batch-lr1-trn22-r1:0.987994054399811"],
+    "results_notified_to_user": [
+      "fs-20260926-sprint-clean-recursive-trn21-r1:0.9880239239389417",
+      "fs-20260926-sprint-clean-batch-lr1-trn22-r1:0.987994054399811"
+    ],
     "p2_source_sha256": "b4728d17d082b44018290d2f465b5956f99ecbebe61da8b81508365c7dc53190",
     "p2_review": "PASS_FOR_SHORT_NATIVE_CHECK c41e16d6; ONE fresh reviewer executed own hash/consumer-interpreter/FP32/RMS CPU reference; no native PASS",
     "k2_native_started": false,
@@ -11,12 +14,22 @@
     "k2_current_proposal": "research/v2/proposals/20260926-k2-live-parent-control-timing/EXPERIMENT_PROPOSAL.json",
     "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
     "app_goal_status": "active",
-    "app_goal_confirmed_utc": "2026-09-26T07:58:55Z",
+    "app_goal_confirmed_utc": "2026-09-26T08:21:00Z",
     "overrides_older_conflicting_missions": true,
     "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
     "official_val_bpb": 0.9878,
-    "priorities": ["K2 native timing then full", "last-layer tables with K2 and FP32 gradients", "stack schedule/batch/LR winners", "profile-selected kernels"],
-    "closed": ["K1", "bigger models", "gates", "FP8"],
+    "priorities": [
+      "K2 native timing then full",
+      "last-layer tables with K2 and FP32 gradients",
+      "stack schedule/batch/LR winners",
+      "profile-selected kernels"
+    ],
+    "closed": [
+      "K1",
+      "bigger models",
+      "gates",
+      "FP8"
+    ],
     "table_gradient_accumulation_dtype": "float32",
     "table_reference": "F.embedding(FP32_master, rows).to(bfloat16)",
     "table_master_and_rms_state_dtype": "float32",
@@ -29,7 +42,9 @@
     "upload_deadline_utc": "2026-09-30T06:30:00Z",
     "sole_operator": "/root/trn22_queue_operator",
     "k2_initial_floor_bytes_after_existing_parent_control": 14495514624,
-    "goal_turn_classification": "PROGRESS: live P0 evaluations; latest goal persisted; FP32 tables implementation delegated; exact cleanup/next dispatch assigned"
+    "goal_turn_classification": "PROGRESS: healthy successor startup authenticated; FP32 native bindings prepared, no native result claimed",
+    "p2_native_preparation": "research/v2/operator/20260926-k2-fp32-table-timing/PREPARED.json; disabled, no host calls",
+    "p2_initial_floor_bytes": 15032385536
   },
   "latest_sprint_20260926_0738z": {
     "recorded_utc": "2026-09-26T07:38:00Z",
@@ -93,15 +108,33 @@
   },
   "final_sprint_20260926": {
     "recorded_utc": "2026-09-26T06:53:14Z",
-    "directive": "workflow/FINAL_SPRINT_2026-09-26.txt",
+    "directive": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
     "source_attachment_sha256": "d22bd48e0e7643bc252255d3a5facd06a68d0d0ac07225fa2e0b9f5c73a59a91",
     "repository_copy_note": "Only a terminal newline was added; instruction text is unchanged.",
     "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
-    "priority": ["P0 schedule and batch262144 LR1.0/1.4", "K2 timing by 16:00 IST", "tables with K2", "measured profile hotspot", "final-stack LR"],
-    "closed": ["K1 duplicate batching", "larger than8x1024", "gates", "FP8"],
+    "priority": [
+      "K2 native timing then full",
+      "last-layer tables with K2 and FP32 gradients",
+      "stack schedule/batch/LR winners",
+      "profile-selected kernels"
+    ],
+    "closed": [
+      "K1 duplicate batching",
+      "larger than8x1024",
+      "gates",
+      "FP8"
+    ],
     "independent_review_limit_minutes": 30,
-    "new_patch_gates": ["CPU exactness", "flag-off bit identity3steps", "short native timing and cold startup"],
-    "submission_gates": ["cold replay", "fresh public20M", "Claude audit"],
+    "new_patch_gates": [
+      "CPU exactness",
+      "flag-off bit identity3steps",
+      "short native timing and cold startup"
+    ],
+    "submission_gates": [
+      "cold replay",
+      "fresh public20M",
+      "Claude audit"
+    ],
     "clean_e1e2_submission_evidence_complete": true,
     "human_upload_required": true,
     "cleanup_scope": "Only discarded already-scored checkpoints and run-specific compile caches; never best/candidate/submission/sharedactive artifacts; preserve logs and verdicts",
@@ -113,10 +146,10 @@
     "freeze_utc": "2026-09-29T12:30:00Z",
     "upload_deadline_utc": "2026-09-30T06:30:00Z",
     "weekly_submission_limit": 5,
-    "known_submissions_since_monday": 3,
-    "known_submissions_sep19_to_sep24": 4,
+    "known_submissions_since_monday": null,
+    "known_submissions_sep19_to_sep24": null,
     "quota_reset_and_remaining": "UNCONFIRMED per pinned FINAL SPRINT; no old reset estimates control",
-    "previous_turn_classification": "progress: directive persisted, scoped cleanup assigned, exact clean P0 ports created; no launch or score claimed"
+    "previous_turn_classification": "PROGRESS: healthy successor startup authenticated; FP32 native bindings prepared, no native result claimed"
   },
   "latest_runtime_20260926_0618z": {
     "recorded_utc": "2026-09-26T06:18:00Z",
@@ -1214,7 +1247,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "TRAINING_PHASE_RUNNING_COMPILATION_NOT_YET_TIMED",
+      "status": "STEADY_TRAINING_OBSERVED",
       "launch_allowed": false,
       "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
       "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
@@ -1232,20 +1265,27 @@
       ],
       "original_lock_device": 66305,
       "original_lock_inode": 596823,
-      "latest_process_observation_utc": "2026-09-26T08:02:33.181653Z",
+      "latest_process_observation_utc": "2026-09-26T08:20:43.438266+00:00",
       "native_launch_observed": true,
-      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successors/trn21-batch-lr14-live.json",
-      "cache_mode": "reuse prior schedule private research namespace; cache hits unproved",
-      "training_steps": null,
+      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successor-startup/AUTHENTICATED.json",
+      "cache_mode": "Retained research namespace, neither cold nor hit proven.",
+      "training_steps": 340,
       "public20m": null,
       "whole_job_terminal": false,
       "previous_completed_label": "fs-20260926-sprint-clean-recursive-trn21-r1",
       "previous_completed_public20m": 0.9880239239389417,
       "previous_completed_evidence": "research/v2/analysis/20260926-clean-p0-results/results.json",
-      "history_snapshot": "51d2dd34:research/v2/state.json"
+      "history_snapshot": "51d2dd34:research/v2/state.json",
+      "reported_tokens_per_second": 281749,
+      "latest_logged_loss": 3.296,
+      "source_remaining_seconds": 1487,
+      "free_disk_bytes": 13633781760,
+      "cold_startup_proven": false,
+      "startup_seconds": null,
+      "startup_note": "First five logged, but full observer timestamps exist only after natural terminal. Logged dt is not process-start wall time."
     },
     "trn22": {
-      "status": "TRAINING_PHASE_RUNNING_COMPILATION_NOT_YET_TIMED",
+      "status": "STEADY_TRAINING_OBSERVED",
       "launch_allowed": false,
       "label": "fs-20260926-sprint-e1e2-control-trn22-r1",
       "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
@@ -1258,11 +1298,16 @@
       "phase_started_utc": "2026-09-26T08:07:14.205443Z",
       "driver_pid": 3345115,
       "torchrun_pid": 3345147,
-      "worker_pids": [3345162, 3345163, 3345164, 3345165],
-      "latest_process_observation_utc": "2026-09-26T08:07:53.702355Z",
-      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successors/trn22-e1e2-control-live.json",
+      "worker_pids": [
+        3345162,
+        3345163,
+        3345164,
+        3345165
+      ],
+      "latest_process_observation_utc": "2026-09-26T08:20:43.540035+00:00",
+      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successor-startup/AUTHENTICATED.json",
       "operator_report": "Actual four-rank LNC2 parent-control run with original832589 held; preserve full+20M; predetermined first45window also servesK2timing",
-      "training_steps": null,
+      "training_steps": 20,
       "public20m": null,
       "whole_job_terminal": false,
       "previous_completed_label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1",
@@ -1272,7 +1317,15 @@
       "latest_prelaunch_free_bytes": 17265389568,
       "historical_extra_off_pair_disk_deficit_bytes": 451350528,
       "k2_next_admission_floor_bytes": 14495514624,
-      "old640_cleanup_assignment": "research/v2/assignments/20260926-old640-discarded-checkpoints.md"
+      "old640_cleanup_assignment": "research/v2/assignments/20260926-old640-discarded-checkpoints.md",
+      "reported_tokens_per_second": 267276,
+      "latest_logged_loss": 5.982,
+      "source_remaining_seconds": 1792,
+      "free_disk_bytes": 16262967296,
+      "cold_startup_proven": false,
+      "startup_seconds": null,
+      "startup_note": "First five logged, but full observer timestamps exist only after natural terminal. Logged dt is not process-start wall time.",
+      "cache_mode": "Retained research namespace, neither cold nor hit proven."
     }
   },
   "latest_runtime_20260925_2258z": {
@@ -1379,8 +1432,8 @@
       "scope": "No step-window exemptions needed; BPB thresholds, replication, correctness, charging and submission audit unchanged"
     }
   ],
-  "last_event": "Final Sprint applied. Auditede1e2 base, P0 schedule/batch ports preparing; scoped discarded-scored cleanup authorized. K2 native deadline16:00IST. No new launch claimed.",
-  "updated_utc": "2026-09-26T06:53:14Z",
+  "last_event": "08:20:43UTC authenticated: trn21 batch.021 step340/281749tok_s; trn22 exactparentcontrol step20/267276tok_s; original locks/workers healthy. Preserve full+20M. K2 ON45 next after parent terminal. FP32 table CPU/review PASS; no native PASS.",
+  "updated_utc": "2026-09-26T08:24:51Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",

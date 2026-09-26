@@ -6,23 +6,74 @@
     "table_implementation": "Delivered b4728d17 CPU/OFF3/ON2; ONE fresh independent review c41e16d6 PASSshortnative; proposal20260926-k2-fp32-last-layer-tables-timing; native/full conditional on K2",
     "first_full_tables_target_ist": "2026-09-26 20:00–22:00 conditional, not launch guarantee",
     "quota_status": "UNCONFIRMED; README5/week; Csaba checking",
-    "closed": ["K1", "bigger models", "gates", "FP8"],
+    "closed": [
+      "K1",
+      "bigger models",
+      "gates",
+      "FP8"
+    ],
     "base": "e1e2f686",
     "trn21": [
-      {"label": "fs-20260926-sprint-clean-recursive-trn21-r1", "change": "Recursive schedule", "status": "EVALUATED_SELECTOR_INSUFFICIENT_CONTROL", "public_20m": 0.9880239239389417, "training_steps": 3633},
-      {"label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1", "change": "batch262144 and matrixLR0.021 prescribed joint arm", "status": "TRAINING_PHASE_RUNNING", "started_utc": "2026-09-26T08:02:06.291290Z", "guardian_pid": 3231387},
-      {"label": "fs-20260926-sprint-clean-batch-lr1-trn21-r1", "change": "cross-host batch262144 replicate if qualified", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
-      {"label": "fs-20260926-sprint-e1e2-control-trn21-r1", "change": "unchanged audited e1e2 prospective same-host control", "status": "SOURCE_PREQUALIFIED_BINDING_PREPARED_FRESH_PREFLIGHT_PENDING"}
+      {
+        "label": "fs-20260926-sprint-clean-recursive-trn21-r1",
+        "change": "Recursive schedule",
+        "status": "EVALUATED_SELECTOR_INSUFFICIENT_CONTROL",
+        "public_20m": 0.9880239239389417,
+        "training_steps": 3633
+      },
+      {
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+        "change": "batch262144 and matrixLR0.021 prescribed joint arm",
+        "status": "STEADY_TRAINING_OBSERVED",
+        "started_utc": "2026-09-26T08:02:06.291290Z",
+        "guardian_pid": 3231387,
+        "observed_utc": "2026-09-26T08:20:43.438266+00:00",
+        "step": 340,
+        "tokens_per_second": 281749
+      },
+      {
+        "label": "fs-20260926-sprint-clean-batch-lr1-trn21-r1",
+        "change": "cross-host batch262144 replicate if qualified",
+        "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"
+      },
+      {
+        "label": "fs-20260926-sprint-e1e2-control-trn21-r1",
+        "change": "unchanged audited e1e2 prospective same-host control",
+        "status": "SOURCE_PREQUALIFIED_BINDING_PREPARED_FRESH_PREFLIGHT_PENDING"
+      }
     ],
     "trn22": [
-      {"label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1", "change": "batch262144 matrixLR0.015", "status": "EVALUATED_SELECTOR_INSUFFICIENT_CONTROL", "public_20m": 0.987994054399811, "training_steps": 1919},
-      {"label": "fs-20260926-sprint-clean-recursive-trn22-r1", "change": "clean Recursive cross-host replicate", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
-      {"label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1", "change": "cross-host batch262144 matrixLR0.021 replicate if qualified", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
-      {"label": "fs-20260926-sprint-e1e2-control-trn22-r1", "change": "unchanged audited e1e2 prospective same-host control; predeterminedfirst45windowalsoK2timingbaseline", "status": "TRAINING_PHASE_RUNNING", "dispatch_utc": "2026-09-26T08:07:14.084887Z", "dispatch_pid": 3345113}
+      {
+        "label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1",
+        "change": "batch262144 matrixLR0.015",
+        "status": "EVALUATED_SELECTOR_INSUFFICIENT_CONTROL",
+        "public_20m": 0.987994054399811,
+        "training_steps": 1919
+      },
+      {
+        "label": "fs-20260926-sprint-clean-recursive-trn22-r1",
+        "change": "clean Recursive cross-host replicate",
+        "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"
+      },
+      {
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+        "change": "cross-host batch262144 matrixLR0.021 replicate if qualified",
+        "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"
+      },
+      {
+        "label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+        "change": "unchanged audited e1e2 prospective same-host control; predeterminedfirst45windowalsoK2timingbaseline",
+        "status": "STEADY_TRAINING_OBSERVED",
+        "dispatch_utc": "2026-09-26T08:07:14.084887Z",
+        "dispatch_pid": 3345113,
+        "observed_utc": "2026-09-26T08:20:43.540035+00:00",
+        "step": 20,
+        "tokens_per_second": 267276
+      }
     ],
-    "k2_priority": "Source63925519 CPU/OFF and ONE review PASS; exact short native OFF/ON timing/cold test released after current P0 and fresh checks. Preempts pending replicates; full only >=3% whole-step faster.",
+    "k2_priority": "Exactparent control t9-t44 prospectively selected; extraOFF45 cancelled. Freshcold63925519 ON45 next after parent full+20M/fresh checks; >=3% measured whole-window improvement for full.",
     "k2_assignment": "research/v2/assignments/20260926-k2-use-live-parent-control.md",
-    "k2_timing_bindings": "research/v2/operator/20260926-k2-sprint-timing/PREPARED.json",
+    "k2_timing_bindings": "research/v2/operator/20260926-k2-sprint-timing/trn22-on-parentcontrol-prepared.json",
     "k2_full_proposal": "research/v2/proposals/20260926-k2-final-sprint-full/EXPERIMENT_PROPOSAL.json",
     "k2_full_status": "COMPLETE_PROPOSAL_PREPARED_BINDINGS_NATIVE_TIMING_PREREQUISITE_PENDING",
     "k2_disk_rule": "Reuse actual running exactparentcontrol with preselected35stepwindow; extraOFFjobcancelledprospectively. Parentartifacts alreadyallocated and protected. Unchangedcandidate13.5GiB initial/10.5GiB runtime freshchecks; no fakeeval/deletion/loweredfloor.",
@@ -34,7 +85,10 @@
     "controls_proposal": "research/v2/proposals/20260926-e1e2-prospective-controls/EXPERIMENT_PROPOSAL.json",
     "selection": "Unchanged decide.py; fixed1800 official seconds, fresh public20M/context1024",
     "ready_jobs_claim": false,
-    "legacy_queue_entries": "Historical where inconsistent; do not run B1/B2 or old source fallback ahead of P0/K2"
+    "legacy_queue_entries": "Historical where inconsistent; do not run B1/B2 or old source fallback ahead of P0/K2",
+    "p2_native_bindings": "research/v2/operator/20260926-k2-fp32-table-timing/PREPARED.json",
+    "p2_native_status": "PREPARED_DISABLED_K2_PREREQUISITE_PENDING",
+    "p2_initial_floor_bytes": 15032385536
   },
   "latest_runtime_20260926_0629z": {
     "recorded_utc": "2026-09-26T06:29:00Z",
@@ -2571,57 +2625,88 @@
   },
   "live_runs": {
     "trn21": {
-      "label": null,
-      "status": "IDLE_AFTER_P_READINESS_REFUSAL",
-      "last_process_check_utc": "2026-09-25T23:54:28Z",
-      "idle_since_utc": "2026-09-25T23:53:10.671097+00:00",
-      "idle_alert_due_utc": "2026-09-26T00:08:10.671097+00:00",
-      "original_lock_inode": 596823,
-      "original_lock_device": 66305,
+      "status": "STEADY_TRAINING_OBSERVED",
       "launch_allowed": false,
-      "next_requires": "Separate reviewed P-r2/K2 release and fresh original-lock checks; bcbd fallback reviewing",
-      "receipt": "research/v2/operator/20260926-trn21-p-offline-decoder/completed/explicit-process-postflight.json",
-      "last_full_result": {
-        "public20m": 0.9896621160468637,
-        "steps": 3629,
-        "startup_seconds": 795.6093858700478,
-        "charged_seconds": 1789.1628205840243,
-        "delta_vs_control": -0.0002907440093620206,
-        "selector": "DISCARD",
-        "adopted": false,
-        "submission_ready": false
-      }
+      "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+      "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+      "active_assignment": "research/v2/assignments/20260926-sprint-next-dispatch.md",
+      "dispatch_utc": "2026-09-26T08:02:06.167945Z",
+      "phase_started_utc": "2026-09-26T08:02:06.291290Z",
+      "dispatch_pid": 3231385,
+      "driver_pid": 3231387,
+      "torchrun_pid": 3231420,
+      "worker_pids": [
+        3231435,
+        3231436,
+        3231437,
+        3231438
+      ],
+      "original_lock_device": 66305,
+      "original_lock_inode": 596823,
+      "latest_process_observation_utc": "2026-09-26T08:20:43.438266+00:00",
+      "native_launch_observed": true,
+      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successor-startup/AUTHENTICATED.json",
+      "cache_mode": "Retained research namespace, neither cold nor hit proven.",
+      "training_steps": 340,
+      "public20m": null,
+      "whole_job_terminal": false,
+      "previous_completed_label": "fs-20260926-sprint-clean-recursive-trn21-r1",
+      "previous_completed_public20m": 0.9880239239389417,
+      "previous_completed_evidence": "research/v2/analysis/20260926-clean-p0-results/results.json",
+      "history_snapshot": "51d2dd34:research/v2/state.json",
+      "reported_tokens_per_second": 281749,
+      "latest_logged_loss": 3.296,
+      "source_remaining_seconds": 1487,
+      "free_disk_bytes": 13633781760,
+      "cold_startup_proven": false,
+      "startup_seconds": null,
+      "startup_note": "First five logged, but full observer timestamps exist only after natural terminal. Logged dt is not process-start wall time."
     },
     "trn22": {
-      "label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
-      "status": "FULL_RESEARCH_FOUR_WORKERS_LIVE_TRAINING",
-      "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
-      "started_utc": "2026-09-25T23:29:53.434078+00:00",
-      "last_process_check_utc": "2026-09-26T00:01:10Z",
-      "driver_pid": 3191010,
-      "torchrun_pid": 3191041,
-      "worker_pids": [
-        3191056,
-        3191057,
-        3191058,
-        3191059
-      ],
+      "status": "STEADY_TRAINING_OBSERVED",
+      "launch_allowed": false,
+      "label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+      "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+      "active_assignment": "research/v2/assignments/20260926-sprint-next-dispatch.md",
+      "dispatch_utc": "2026-09-26T08:07:14.084887Z",
+      "dispatch_pid": 3345113,
+      "original_lock_device": 66305,
       "original_lock_inode": 832589,
-      "launch_allowed": true,
-      "active_assignment": "research/v2/verification/20260926-startup-clock-full-trn22-assignment.md",
-      "scope": "Exact36a862 startup-adjusted only;1800s+attachedfresh20M,noRecursive,reused acceptedcold caches; notcoldfull",
-      "receipt": "research/v2/operator/20260926-trn22-startup-clock-full/launch/first-four-rank-evidence.json",
-      "qualified_cold_fifth_seconds": 845.6273377500474,
-      "last_observed_step": 2160,
-      "reported_tokens_per_second": 265354,
-      "source_reported_seconds_remaining": 738,
-      "free_disk_gb_decimal": 28.56,
-      "early_evidence": "research/v2/operator/20260926-trn22-startup-clock-full/early-training-compact-snapshot.json",
-      "fresh_public20m": "ATTACHED_PENDING",
-      "submission_eligible": false
+      "native_launch_observed": true,
+      "phase_started_utc": "2026-09-26T08:07:14.205443Z",
+      "driver_pid": 3345115,
+      "torchrun_pid": 3345147,
+      "worker_pids": [
+        3345162,
+        3345163,
+        3345164,
+        3345165
+      ],
+      "latest_process_observation_utc": "2026-09-26T08:20:43.540035+00:00",
+      "milestone_receipt": "research/v2/operator/20260926-final-sprint-successor-startup/AUTHENTICATED.json",
+      "operator_report": "Actual four-rank LNC2 parent-control run with original832589 held; preserve full+20M; predetermined first45window also servesK2timing",
+      "training_steps": 20,
+      "public20m": null,
+      "whole_job_terminal": false,
+      "previous_completed_label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1",
+      "previous_completed_public20m": 0.987994054399811,
+      "previous_completed_evidence": "research/v2/analysis/20260926-clean-p0-results/results.json",
+      "history_snapshot": "51d2dd34:research/v2/state.json",
+      "latest_prelaunch_free_bytes": 17265389568,
+      "historical_extra_off_pair_disk_deficit_bytes": 451350528,
+      "k2_next_admission_floor_bytes": 14495514624,
+      "old640_cleanup_assignment": "research/v2/assignments/20260926-old640-discarded-checkpoints.md",
+      "reported_tokens_per_second": 267276,
+      "latest_logged_loss": 5.982,
+      "source_remaining_seconds": 1792,
+      "free_disk_bytes": 16262967296,
+      "cold_startup_proven": false,
+      "startup_seconds": null,
+      "startup_note": "First five logged, but full observer timestamps exist only after natural terminal. Logged dt is not process-start wall time.",
+      "cache_mode": "Retained research namespace, neither cold nor hit proven."
     }
   },
-  "updated_utc": "2026-09-25T18:18:11Z",
+  "updated_utc": "2026-09-26T08:24:51Z",
   "historical_conditional_policy_before_post_a1": {
     "authority": "workflow/RESUME_AND_TABLE_CORRECTION_2026-09-25.md",
     "valid_table_delta_at_most": -0.003,

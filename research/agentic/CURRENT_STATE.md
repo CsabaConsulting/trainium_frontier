@@ -1,5 +1,18 @@
 # Current state
 
+## Latest13:54IST: live successors authenticated; K2 next, P2 prepared
+
+Use the current top of research/v2/STATUS.md and state.hosts/queue.live_runs.
+Actual08:20:43UTC: trn21 batch.021 step340/281749tok_s; trn22 exact e1e2
+control step20/267276tok_s. Original workers and locks healthy, full+20M
+preserved. Next useful boundaries08:45/08:50UTC then attached20M. K2 ON45
+after trn22 control terminal, prospectively fixed t9-t44 baseline unchanged.
+Current caches are reused, not proved cold or hits; separate historical
+e1e2 cold replay859.473524s is the cold-start reference. No K2 result yet.
+P2 sourceb4728d17 CPU/one independent review PASS; two disabled native45
+packets prepared with15,032,385,536B initial floor including512MiB table
+checkpoint growth. No table full/native gate passed by preparation alone.
+
 ## Latest13:47IST: use amended K2 plan, not obsolete extraOFF disk gate
 
 Read topresearch/v2/STATUS.md. P2 FP32 sourceb4728d17 ONE reviewPASSshortnative,
