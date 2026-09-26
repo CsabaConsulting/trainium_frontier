@@ -2,6 +2,29 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## CONTROLLING: Final Sprint — 26 September, 12:17 IST
+
+Read `workflow/FINAL_SPRINT_2026-09-26.txt` first. It is the newest direct human
+instruction and overrides ALL conflicting earlier priority/gate/approval lists
+below. Base is audited e1e2f686; P0 schedule and batch262144 LR1.0/1.4,
+P1 K2 timing by16:00IST, then tables with K2, measured profile hotspot, final LR.
+K1, >8x1024, gates and FP8 are closed (FP8 only if profile justifies reopening).
+New patch: CPU exactness, OFF3step identity, one cold-start/timing check; ONE
+independent reviewer <=30min, no repeat review absent failed test. Flag-only
+arms need no new review. Upload gates ONLY cold replay, fresh20M, Claude audit.
+Maintain three genuinely ready jobs/host; dispatch after10min idle if eligible.
+Standing stale-lock recovery after independent idle checks; automatic safe
+release on job exit/failure. Scoped discarded ALREADY-SCORED checkpoint/cache
+cleanup is authorized to maintain25GB free, never protected/sharedactive data.
+One temporary test/review directory per patch; archive durable evidence before
+removing decided scratch. No new question dialogs for reversible in-scope work.
+Uploads, AWS spend/new instances and legality remain human-only. Do not infer
+AWS-spend permission from the superseded uncapped-Bedrock directive. One sole
+Operator, original lifetime lock, official budget, README and secret protections
+remain. Six-line reports every3h; material gain/missed milestone immediately.
+The historical app-goal text and old one-use packet ceremonies do not override
+this file. Earlier facts/failures remain evidence, not launch-policy authority.
+
 ## Latest direct human amendment — 26 September approximately12:10 IST
 
 Read `workflow/CONTROLLER_AMENDMENT_2026-09-26_1210_IST.md` first for current

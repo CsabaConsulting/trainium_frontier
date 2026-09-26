@@ -1,5 +1,20 @@
 # Current state
 
+## 06:47 UTC / 12:17 IST: Final Sprint controls; prior hold/gates superseded
+
+Read workflow/FINAL_SPRINT_2026-09-26.txt and top research/v2/STATUS.md.
+Auditede1e2 is prospective base; schedule and batch262144 LR.015/.021 are P0.
+No new launch claimed: source controls are being ported, sole Operator performs
+fresh host checks/scoped discarded-scored artifact cleanup under new authority.
+trn21 guardian released06:40:19UTC, original596823 preserved. NativeB1/B2 retry
+parked; clean cold20M.988389 and ClaudeACCEPT satisfy newest upload evidence.
+Only human uploads; current remaining5/week quota/reset is unknown.
+K2 actual integrated patch/native timing missing;16:00IST deadline. One<=30min
+review, CPU exactness/OFF3step/native timing only; don't resurrect older gates.
+Confirmedmean.9883066129 remains. Old held-lock, cleanup-denial and extra-upload
+gate paragraphs below are historical, not active policy. No host run is busy
+merely because its packet/review exists. See fresh Operator receipts.
+
 ## 06:29 UTC / 11:59 IST: actual native launch, compiler-cache gate failure
 
 Clean-file native consistency launched on trn21 at06:26:19.059069UTC, before

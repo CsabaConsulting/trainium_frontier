@@ -1,0 +1,91 @@
+FINAL SPRINT DIRECTIVE, from Poojith. Execution over process. Replaces earlier directives where
+they conflict. Legality rules and the human-only list stay exactly as they are.
+
+=====================================================================
+0. WHY THIS DIRECTIVE EXISTS
+=====================================================================
+Last night produced one real gain (8-layer U-Net with the compile fix, about -0.003). Most of the
+night went to locks, guards, reviews, evidence loops and waiting for my answers. More AI does not
+fix that. Removing the drag does. From now on, speed of verified experiments is the only thing
+that matters.
+
+Targets (official):
+- Minimum: top 10. The cut is 0.9785 now and falling ~0.003/day; plan for <= 0.972.
+- Stretch: as high as the stack can go. #1 is 0.9464.
+Freeze: Sep 29 18:00 IST. Final upload by Sep 30 12:00 IST.
+
+=====================================================================
+1. AUTONOMY CHARTER (no more questions to me)
+=====================================================================
+Do NOT open a question dialog for me. Only these need me:
+  (a) any upload/submission, (b) any AWS spend or new instance, (c) any legality question.
+Everything else you decide, log in research/v2/DECISIONS.md, and continue. Standing approvals:
+- release a stale host lock once ps + neuron-ls show nothing running
+- delete checkpoints and compile caches of discarded, already-scored runs (never best, candidate
+  or submission artifacts); keep >= 25 GB free per host automatically
+- retry a failed job once; then park it and run the next ready job
+- switch reviewer model when one refuses; switch to the manual launch path when a tool fails twice
+- kill a lane that misses its time box; adopt or discard results per decide.py
+- prepare submission packages (cold replay + Claude audit request)
+If something truly needs me, write it to research/v2/QUESTIONS_FOR_POOJITH.md with your
+recommendation, act on the recommendation if it is reversible, and keep going.
+
+=====================================================================
+2. EVIDENCE BAR (hard caps)
+=====================================================================
+Research run of a new patch needs exactly three things:
+  1. CPU exactness of the changed op vs a plain-torch reference,
+  2. flag-off bit-identity over 3 steps,
+  3. one short Trn2 timing check (tok/s and cold startup).
+One independent reviewer, time-boxed to 30 minutes. No second review unless a test fails.
+No "evidence requirement" loops beyond this list.
+Submission candidates need only: cold replay + fresh public20M + Claude audit.
+Temporary review/test folders: one per patch, deleted when the patch is decided.
+
+=====================================================================
+3. HOSTS: NEVER IDLE
+=====================================================================
+- Each host always has 3 ready jobs. If a host is idle for 10 minutes, the controller launches the
+  next ready job automatically. No human needed, no new review needed for flag-only arms.
+- Launcher releases its lock on exit, including failure.
+- Report busy % per host in every update.
+
+=====================================================================
+4. WHAT RUNS (base = the audited 8-layer U-Net file, e1e2f686)
+=====================================================================
+P0 (now, both hosts):
+  - 8L base + the confirmed schedule win (-0.0013). Full run.
+  - 8L base at 262,144 tokens/step (the #3 team's batch), LR x1.0 and x1.4. Full runs.
+    Skip if the overnight batch test already settled it; tell me the result.
+P1 K2 EMBEDDING SCATTER (the critical path):
+  - NKI scatter-add for the token-embedding and value-embedding backward.
+  - Trn2 timing check by 16:00 IST today. Full run tonight if >= 3% faster step.
+  - If blocked at 16:00, one line to me: what exactly blocks it.
+P2 TABLES ON 8L + K2 (starts the moment K2 passes timing):
+  - hashed bigram/trigram value tables on the last layer (the A1 layout) with the K2 backward.
+  - The #3 team kept tables once their scatter kernel existed. Our A1 loss was mostly the slow
+    scatter, so this is the biggest remaining lever.
+P3 from the profile: flash attention NKI or fused ReLU^2, whichever is the larger measured cost.
+P4 Sunday night: LR retune (x0.8, x1.25) on the final stack.
+CLOSED: K1 (Muon batching is already in the file), models bigger than 8x1024, gates, FP8
+(unless the profile shows matmuls dominate).
+
+=====================================================================
+5. SCHEDULE TO THE FREEZE
+=====================================================================
+Sat 16:00  K2 in Trn2 timing. P0 results in.
+Sat night  K2 full run; best of P0 stacked.
+Sun        Tables on 8L + K2; stack everything that won. Submission #2 if >= 0.003 better.
+Mon        LR retune on the stack; best stack replicated with a second seed.
+Tue 18:00  Freeze. Cold replay, Claude audit, package for upload.
+Submissions: the README says 5/week, no retries. Tell me how many are used this week.
+
+=====================================================================
+6. REPORTING
+=====================================================================
+Every 3 hours, max 6 lines:
+  best public20M | delta vs base | hosts busy % | running now | next 3 jobs | blockers (real text)
+Immediately: any result better than the base by >= 0.002, any milestone missed plus the pivot.
+
+Acknowledge in 3 lines: what each host runs next, when K2 reaches Trn2 timing, what you
+removed from the process today.

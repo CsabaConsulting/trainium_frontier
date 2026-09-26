@@ -1,4 +1,31 @@
 {
+  "final_sprint_20260926": {
+    "recorded_utc": "2026-09-26T06:53:14Z",
+    "directive": "workflow/FINAL_SPRINT_2026-09-26.txt",
+    "source_attachment_sha256": "d22bd48e0e7643bc252255d3a5facd06a68d0d0ac07225fa2e0b9f5c73a59a91",
+    "repository_copy_note": "Only a terminal newline was added; instruction text is unchanged.",
+    "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "priority": ["P0 schedule and batch262144 LR1.0/1.4", "K2 timing by 16:00 IST", "tables with K2", "measured profile hotspot", "final-stack LR"],
+    "closed": ["K1 duplicate batching", "larger than8x1024", "gates", "FP8 unless profile establishes matmul priority"],
+    "independent_review_limit_minutes": 30,
+    "new_patch_gates": ["CPU exactness", "flag-off bit identity3steps", "short native timing and cold startup"],
+    "submission_gates": ["cold replay", "fresh public20M", "Claude audit"],
+    "clean_e1e2_submission_evidence_complete": true,
+    "human_upload_required": true,
+    "cleanup_scope": "Only discarded already-scored checkpoints and run-specific compile caches; never best/candidate/submission/sharedactive artifacts; preserve logs and verdicts",
+    "free_disk_target_bytes": 25000000000,
+    "ready_jobs_per_host_target": 3,
+    "idle_dispatch_minutes": 10,
+    "report_interval_hours": 3,
+    "k2_timing_deadline_utc": "2026-09-26T10:30:00Z",
+    "freeze_utc": "2026-09-29T12:30:00Z",
+    "upload_deadline_utc": "2026-09-30T06:30:00Z",
+    "weekly_submission_limit": 5,
+    "known_submissions_since_monday": 3,
+    "known_submissions_sep19_to_sep24": 4,
+    "quota_reset_and_remaining": null,
+    "previous_turn_classification": "progress: directive persisted, scoped cleanup assigned, exact clean P0 ports created; no launch or score claimed"
+  },
   "latest_runtime_20260926_0618z": {
     "recorded_utc": "2026-09-26T06:18:00Z",
     "confirmed_public20m_mean": 0.9883066128526815,
@@ -562,13 +589,13 @@
   },
   "active_standing_directive": {
     "compile_correction": "workflow/COMPILE_CONSTRAINT_CORRECTION_2026-09-25.md",
-    "latest_correction": "workflow/COMPILE_TIME_GATE_2026-09-26.md",
-    "path": "workflow/ALL_IN_FOR_FIRST_2026-09-26.txt",
-    "sha256": "75df50a9d39517d11b51f9b2ca01aaf91bd49d96de32ad1f58b2ec9ae1d36d20",
+    "latest_correction": "workflow/FINAL_SPRINT_2026-09-26.txt",
+    "path": "workflow/FINAL_SPRINT_2026-09-26.txt",
+    "sha256": "b69241778d559566505332734cfb4e79b828042a51a8276df6a0e7faa00acc32",
     "overrides": "Older missions and conflicting priorities, including the app goal's stale MOONSHOT wording; legality and human-only actions remain",
     "lane_prompts": "workflow/parallel_ai_lanes.md",
     "table_first_policy": "OVERRIDDEN; A1 DISCARD, A2 human-aborted, no table adoption",
-    "priority_correction": "workflow/COMPILE_TIME_GATE_2026-09-26.md"
+    "priority_correction": "workflow/FINAL_SPRINT_2026-09-26.txt"
   },
   "laptop_restart_recovery_20260925_1512z": {
     "local_boot_ist": "2026-09-25T20:36:27+05:30",
@@ -1096,7 +1123,7 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-clock36-anchored-warm-control-trn21-r1",
-      "status": "CLEAN_NATIVE_DIAGNOSTIC_UNRESOLVED_GUARDIAN_RETAINS_LOCK",
+      "status": "IDLE_GUARDIAN_RELEASED_064019Z_P0_AND_SCOPED_CLEANUP_PREPARATION",
       "next_authorized_label": "fs-20260926-confirmed36-clean-native-consistency-trn21-r1",
       "next_authorized_assignment": "research/v2/verification/20260926-clean-native-trn21-assignment.md",
       "result_authentication": "research/v2/analysis/20260926-anchored-control-final/result.json",
@@ -1394,7 +1421,7 @@
       "idle_alert_due_utc": "2026-09-26T06:06:11.553877+00:00",
 
       "label": "fs-20260926-confirmed36-clean-coldfull-trn22-r2",
-      "status": "CLEAN_COLD_FULL_PUBLIC20M_ACCEPTED_IDLE_NATIVE_AUDIT_PENDING",
+      "status": "IDLE_CLEAN_COLD_AND_CLAUDE_ACCEPTED_P0_AND_SCOPED_CLEANUP_PREPARATION",
       "latest_process_observed_utc": "2026-09-26T05:58:18.149622+00:00",
       "progress_authentication": "research/v2/analysis/20260926-clean-fullcold-launch/terminal-result.json",
       "completed_step_markers": 3628,
@@ -1953,8 +1980,8 @@
       "scope": "No step-window exemptions needed; BPB thresholds, replication, correctness, charging and submission audit unchanged"
     }
   ],
-  "last_event": "FP32-first diagnostics failed compiled-custom only while ordinarycompiled exact; all4raw retained, explicit9PID quiescence. Advance trn22 to checked genuine6ef7 controlcac7cfdc. trn21bcbd1770steps; new .988382 remains unconfirmed.",
-  "updated_utc": "2026-09-26T00:37:48.188086+00:00",
+  "last_event": "Final Sprint applied. Auditede1e2 base, P0 schedule/batch ports preparing; scoped discarded-scored cleanup authorized. K2 native deadline16:00IST. No new launch claimed.",
+  "updated_utc": "2026-09-26T06:53:14Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -1968,7 +1995,7 @@
     "sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
     "scope": "Read-only guest disk/partition/ext4/df, process/device/host-lock quiescence, and prior breaker/postflight snapshot; not full preflight"
   },
-  "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
+  "active_human_brief": "workflow/FINAL_SPRINT_2026-09-26.txt",
   "ready_job_counts": {
     "trn21": 0,
     "trn22": 0

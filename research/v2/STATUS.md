@@ -1,5 +1,29 @@
 # Workflow installation and incremental launch status
 
+## Current — Final Sprint accepted, 26 September 12:17 IST
+
+Controlling directive: workflow/FINAL_SPRINT_2026-09-26.txt, audited8layer
+e1e2 base. Nexttrn21 schedule port; nexttrn22 batch262144 matrixLR.015,
+then.021. Source defaults preserved, no changed submission command. Both are
+preparation, NOT launched. The old6layer batch timing result does not settle
+8layer final quality. Three genuinely ready jobs/host not achieved yet.
+
+trn21 original596823 was safely released06:40:19UTC after independent idle
+checks. No remaining human hold decision. New Operator checks both hosts and
+applies newly authorized discarded ALREADY-SCORED cache/checkpoint cleanup
+only, targeting25GB free. Old guard-held and blanket cleanup-denial prose below
+is historical. Read actual receipts before claiming current running state.
+
+Claude exact-source ACCEPT/9tests archived; clean cold20M.9883890652 has
+startup859.4735s and valid1789.7686s charge. Upload evidence gates satisfied
+under latest human rule; only human submits. Confirmed researchmean.9883066129,
+official.9901 last human report. Current weekly quota remaining UNKNOWN:
+3 known sinceMondaySep21;4 ifSep19 falls within rollingweek; reset unknown.
+
+K2 still lacks production producer/model integration/OFF identity and native
+whole-step timing. Deadline16:00IST; don't describe old component preparation
+as timing. Close duplicateK1/FP8; no new proof ceremonies. One reviewer30min.
+
 ## Current — 26 September 11:59 IST
 
 Exact clean native diagnostic actually dispatched on trn21 at06:26:19UTC,
