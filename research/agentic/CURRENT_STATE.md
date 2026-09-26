@@ -1,5 +1,15 @@
 # Current state
 
+## Storage resolved — 26 September 14:12 IST
+
+Human resized both root EBS volumes to400GiB. Operator verified exact serials,
+then expanded root partition1/ext4 online; actual free158GiB trn21/~160.5GiB
+trn22. Current experiments and original lifetime locks were preserved. No AWS
+action, reboot, deletion, instance-store change or gate reduction by agents.
+See top research/v2/STATUS.md and root400-expansion receipts in
+research/v2/operator/20260926-final-sprint-successors/ (34d869c6).
+Older disk-expansion requests below are resolved, not current blockers.
+
 ## Latest14:07IST: first K2 full prospectively becomes actual P2 control
 
 See topSTATUS and20260926-k2-qualified-base-control proposal548bd3bc. Same

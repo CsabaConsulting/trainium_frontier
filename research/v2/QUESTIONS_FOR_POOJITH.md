@@ -1,5 +1,15 @@
 # Non-blocking morning questions
 
+## RESOLVED: both400GiB expansions verified, 26 September14:12IST
+
+Human confirmed both AWS volumes set to400GiB. Fresh read-back and online
+root partition1/ext4 growth succeeded on both exact volumes. Free space
+169,648,857,088B trn21 and172,278,022,144B trn22 at08:42:24UTC. No further
+human storage action is needed now. Preserve running jobs, original locks,
+protected artifacts and ordinary fresh resource checks. Receipts imported
+34d869c6 at operator/20260926-final-sprint-successors/*root400-expansion.json.
+All earlier pending storage requests below are historical/resolved.
+
 ## Update14:07IST: human considering+100GiB on BOTH volumes
 
 Poojith asked how to extend and whether+100GiB each is sensible. Operator's

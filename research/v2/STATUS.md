@@ -1,5 +1,19 @@
 # Workflow installation and incremental launch status
 
+## Storage resolved: both roots expanded to 400 GiB, 26 September 14:12 IST
+
+Poojith completed the AWS-side resize to400GiB each. The sole Operator
+verified both exact EBS serials and expanded only root partition1/ext4
+online. Actual08:42:24UTC read-back: trn21 free169,648,857,088B (~158GiB),
+trn22 free172,278,022,144B (~160.5GiB); physical disks429,496,729,600B,
+root partitions428,421,922,304B. Every growpart/resize2fs command exited0.
+Original guardians/four workers and original held locks retained their
+identities; no job stop/restart, AWS action, cleanup or instance-store change.
+Receipts: operator/20260926-final-sprint-successors/*root400-expansion.json,
+imported34d869c6; trn21 SHA2e060a0b, trn22 SHA209bbdae. Disk request is
+resolved, do not ask again. Fresh launch resource checks remain mandatory;
+no thresholds or source/quality gates changed. K2 remains next after control.
+
 ## 14:07 IST: prospective K2 full control role fixed; human disk step pending
 
 First qualified unstarted K2 full run will be kind=control on base63925519
