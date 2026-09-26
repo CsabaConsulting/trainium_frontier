@@ -1,0 +1,254 @@
+{
+  "scope": "Local-only exact prior identity field-name reconciliation; no new host observation and raw postflight is unchanged",
+  "reason": "Older snapshots use starttime_ticks and omit exists; final snapshot retained all16 PID absence checks but its known_prior_identities detail list held only newer schema rows. This supplement authenticates every prior actual identity from immutable source receipts.",
+  "postflight_utc": "2026-09-26T03:40:10.764507+00:00",
+  "observed_pids": [
+    3152603,
+    3152604,
+    3152605,
+    3152621,
+    3152622,
+    3152637,
+    3152652,
+    3152653,
+    3152654,
+    3152655,
+    3153251,
+    3153259,
+    3153290,
+    3175131,
+    3175132,
+    3175146
+  ],
+  "identities": [
+    {
+      "pid": 3152603,
+      "starttime": 93068822,
+      "ppid": 1,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/dispatch_driver.py"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    },
+    {
+      "pid": 3152604,
+      "starttime": 93068824,
+      "ppid": 3152603,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/usr/bin/flock",
+        "-n",
+        "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/host_driver.py"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    },
+    {
+      "pid": 3152605,
+      "starttime": 93068824,
+      "ppid": 3152604,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/host_driver.py"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    },
+    {
+      "pid": 3152621,
+      "starttime": 93068834,
+      "ppid": 3152605,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": "/usr/bin/timeout --foreground --signal=TERM --kill-after=60s 2730s /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train --mode train",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152622,
+      "starttime": 93068834,
+      "ppid": 3152621,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train --mode train",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152637,
+      "starttime": 93069082,
+      "ppid": 3152622,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152652,
+      "starttime": 93069281,
+      "ppid": 3152637,
+      "pgid": 3152652,
+      "sid": 3152652,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152653,
+      "starttime": 93069281,
+      "ppid": 3152637,
+      "pgid": 3152653,
+      "sid": 3152653,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152654,
+      "starttime": 93069281,
+      "ppid": 3152637,
+      "pgid": 3152654,
+      "sid": 3152654,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3152655,
+      "starttime": 93069281,
+      "ppid": 3152637,
+      "pgid": 3152655,
+      "sid": 3152655,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "source_receipt": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
+      "source_receipt_sha256": "e2e56e1f672bf04adfde97fadb0bbe1bbaff34740296219af1bdc2c1977f8fdb"
+    },
+    {
+      "pid": 3153251,
+      "starttime": 93098811,
+      "ppid": 3152652,
+      "pgid": 3152652,
+      "sid": 3152652,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff",
+      "source_receipt": "research/v2/operator/20260926-dual-live-clock-child-0249/trn21.json",
+      "source_receipt_sha256": "704a0fbba37fffa478b08ab3be59da957f07bc01d438031e683fb6327ef44473"
+    },
+    {
+      "pid": 3153259,
+      "starttime": 93098828,
+      "ppid": 3153251,
+      "pgid": 3152652,
+      "sid": 3152652,
+      "argv": "/home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff",
+      "source_receipt": "research/v2/operator/20260926-dual-live-clock-child-0249/trn21.json",
+      "source_receipt_sha256": "704a0fbba37fffa478b08ab3be59da957f07bc01d438031e683fb6327ef44473"
+    },
+    {
+      "pid": 3153290,
+      "starttime": 93102758,
+      "ppid": 3153259,
+      "pgid": 3152652,
+      "sid": 3152652,
+      "argv": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/starfish/bin/walrus_driver --optlevel 2 --allocator coloring --verbose 60 --logfile-verbose 20 --logfile /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/40b36aaa2b4966d97c36ee63e7112cbd/log-neuron-cc.txt -o walrus_bir.out.json --enable-call-graph --enable-mt-backend --link-subgraphs nc00/sg00,nc01/sg00,nc00/sg01,nc01/sg01,nc00/sg02,nc01/sg02,nc00/sg03,nc01/sg03 --link-dir sgLnk/sg00 --vnc-nc-per-sengine 2 --execute-repetition 1 -i bir.json --min_split_size 10240 --skip_split_vns  --no_split_dram --split_huge_dram_tensor 1.0 --policy 3 --auxflag 0 --interleave none --schedule-delayed-latency 1 --postsched-mm-accum-reorder=false --max-load-lower-bound 0.14 --force-prefetch-follow-incoming-order -1 --allreduce-buffer-size -1 --dram-page-size 512 --dram-rotation-size -1 --allreduce-rotation-dis 8 --repeat-load-thres 4 --enable-mm-transpose-remat-optimization=true --save-len-thres 512 --save-dma-cnt-thres 32 --print-format json --relaxed-order=true --enable-anti-dependence-reduction=false --num-semaphores-per-queue 16 --act-root-json /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/pwp/pwp_bin_trainium/act_info.json --dve-root-json /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/dve/dve_bin_gen3/dve_info.json --enable-verifier=true --enable-birsim=false --enable-birsim-sync-only=false --enable-data-race-checker=false --enable-new-backend=true --inject-error=NONE --enable-internal-partitioner --dge-levels spill_reload,dst_reduce,transpose,io,vector_dynamic_offsets,scalar_dynamic_offset --dynamic-dma-scratch-size-per-partition=16384 --dma-qos-class-count=4 --neff-output-filename /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/caches/train/debug/neuronx-cc/40b36aaa2b4966d97c36ee63e7112cbd/module.neff --model-name module.neff",
+      "source_receipt": "research/v2/operator/20260926-dual-live-clock-child-0249/trn21.json",
+      "source_receipt_sha256": "704a0fbba37fffa478b08ab3be59da957f07bc01d438031e683fb6327ef44473"
+    },
+    {
+      "pid": 3175131,
+      "starttime": 93327987,
+      "ppid": 3152605,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "--signal=TERM",
+        "--kill-after=60s",
+        "1800s",
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py",
+        "--package",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package",
+        "--sandbox",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/eval",
+        "--mode",
+        "eval",
+        "--checkpoint",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train/out/final.pt",
+        "--eval-tokens",
+        "20971520"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    },
+    {
+      "pid": 3175132,
+      "starttime": 93327987,
+      "ppid": 3175131,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py",
+        "--package",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package",
+        "--sandbox",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/eval",
+        "--mode",
+        "eval",
+        "--checkpoint",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train/out/final.pt",
+        "--eval-tokens",
+        "20971520"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    },
+    {
+      "pid": 3175146,
+      "starttime": 93328241,
+      "ppid": 3175132,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "argv": [
+        "/home/ubuntu/workspace/native_venv/bin/python",
+        "prepare.py",
+        "eval-public",
+        "--train-py",
+        "train.py",
+        "--checkpoint",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train/out/final.pt",
+        "--device",
+        "neuron",
+        "--batch-size",
+        "1",
+        "--seq-len",
+        "1024",
+        "--eval-tokens",
+        "20971520",
+        "--timeout-seconds",
+        "1200"
+      ],
+      "source_receipt": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+      "source_receipt_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a"
+    }
+  ],
+  "all16_have_prior_starttime_ppid_pgid_sid": true,
+  "all16_absent_in_actual_final_postflight": true
+}
