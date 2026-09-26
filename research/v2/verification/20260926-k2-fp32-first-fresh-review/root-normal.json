@@ -1,0 +1,2192 @@
+{
+  "status": "PASS_BOUNDED_CPU_SOURCE_REVIEW_TESTS",
+  "optimized": false,
+  "python": "/home/poojith-devan/venv/bin/python",
+  "torch": "2.13.0+cpu",
+  "native_executed": false,
+  "substitutions": "neuron -> aot_eager; NKI -> unique identity clone; negative custom weight-gradient hook",
+  "hashes": {
+    "change.diff": "00822de594036589333e8aadad4a3ea0d26b6b1efab08c438b9c73744c5e6471",
+    "CPU-optimized.json": "a8ca77a86871c4508a2235290e172dcb7e2acfbdc1732351a4cf9ef57b931baf",
+    "CPU-normal.json": "a8ca77a86871c4508a2235290e172dcb7e2acfbdc1732351a4cf9ef57b931baf",
+    "REVIEW_SPEC.md": "94d043ef57d732c39c318e6619c50decf43032769f366e6e710df3b61ec1a3d7",
+    "reference.py": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "consumer_nki.py": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "original_check_native.py": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+    "check_native.py": "bd2bca7c29615df599094d3c618f5cdf0e4f4381e6d19213dc022691214ce788"
+  },
+  "checks": [
+    {
+      "name": "kernel pin",
+      "passed": true
+    },
+    {
+      "name": "reference pin",
+      "passed": true
+    },
+    {
+      "name": "original checker pin",
+      "passed": true
+    },
+    {
+      "name": "wrapper AST identity",
+      "passed": true
+    },
+    {
+      "name": "own tiny handwritten gradient oracle",
+      "passed": true
+    },
+    {
+      "name": "unique fixture identity ids",
+      "passed": true
+    },
+    {
+      "name": "dense unique oracle independently equals upstream rows",
+      "passed": true
+    },
+    {
+      "name": "compile configuration preserved",
+      "passed": true
+    },
+    {
+      "name": "compile configuration preserved",
+      "passed": true
+    },
+    {
+      "name": "separate compiled functions and call order",
+      "passed": true
+    },
+    {
+      "name": "all four routes retained",
+      "passed": true
+    },
+    {
+      "name": "failure maps to nonzero classification",
+      "passed": true
+    },
+    {
+      "name": "ordinary control executed and exact after custom result",
+      "passed": true
+    },
+    {
+      "name": "all routes exact CPU positive control",
+      "passed": true
+    },
+    {
+      "name": "compile configuration preserved",
+      "passed": true
+    },
+    {
+      "name": "compile configuration preserved",
+      "passed": true
+    },
+    {
+      "name": "separate compiled functions and call order",
+      "passed": true
+    },
+    {
+      "name": "all four routes retained",
+      "passed": true
+    },
+    {
+      "name": "failure maps to nonzero classification",
+      "passed": true
+    },
+    {
+      "name": "ordinary control executed and exact after custom result",
+      "passed": true
+    },
+    {
+      "name": "zero custom gradient detected",
+      "passed": true
+    },
+    {
+      "name": "negative control actually zero",
+      "passed": true
+    },
+    {
+      "name": "strict rejection missing",
+      "passed": true
+    },
+    {
+      "name": "strict rejection shape",
+      "passed": true
+    },
+    {
+      "name": "strict rejection dtype",
+      "passed": true
+    },
+    {
+      "name": "strict rejection nan",
+      "passed": true
+    },
+    {
+      "name": "strict rejection inf",
+      "passed": true
+    },
+    {
+      "name": "strict rejection bytes",
+      "passed": true
+    },
+    {
+      "name": "signed zero byte distinction",
+      "passed": true
+    },
+    {
+      "name": "metadata mutation rejected with exact output",
+      "passed": true
+    },
+    {
+      "name": "exception retained with post observations",
+      "passed": true
+    },
+    {
+      "name": "mutation or exception nonzero classification",
+      "passed": true
+    },
+    {
+      "name": "mutation or exception nonzero classification",
+      "passed": true
+    }
+  ],
+  "cases": [
+    {
+      "inject_zero": false,
+      "compile_calls": [
+        "enclosing",
+        "ordinary"
+      ],
+      "status": "FP32_FIRST_DIAGNOSTIC_OBSERVED_EXACT",
+      "returncode": 0,
+      "case": {
+        "case": "unique",
+        "dtype": "torch.float32",
+        "dense_cpu_oracle": {
+          "exact": true,
+          "actual": {
+            "shape": [
+              256,
+              128
+            ],
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 32709,
+            "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+          },
+          "expected": {
+            "shape": [
+              256,
+              128
+            ],
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 32709,
+            "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+          },
+          "max_abs": 0.0
+        },
+        "metadata_group_bounds": [
+          1,
+          1
+        ],
+        "routes": [
+          {
+            "name": "direct_consumer",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "eager_custom",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "compiled_custom",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "compiled_ordinary_embedding",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          }
+        ]
+      }
+    },
+    {
+      "inject_zero": true,
+      "compile_calls": [
+        "enclosing",
+        "ordinary"
+      ],
+      "status": "FP32_FIRST_DIAGNOSTIC_MISMATCH_OR_ERROR",
+      "returncode": 1,
+      "case": {
+        "case": "unique",
+        "dtype": "torch.float32",
+        "dense_cpu_oracle": {
+          "exact": true,
+          "actual": {
+            "shape": [
+              256,
+              128
+            ],
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 32709,
+            "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+          },
+          "expected": {
+            "shape": [
+              256,
+              128
+            ],
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 32709,
+            "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+          },
+          "max_abs": 0.0
+        },
+        "metadata_group_bounds": [
+          1,
+          1
+        ],
+        "routes": [
+          {
+            "name": "direct_consumer",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "eager_custom",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "compiled_custom",
+            "status": "MISMATCH",
+            "checks": {
+              "gradient": {
+                "exact": false,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 0,
+                  "sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 8.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          },
+          {
+            "name": "compiled_ordinary_embedding",
+            "status": "EXACT",
+            "checks": {
+              "gradient": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32709,
+                  "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+                },
+                "max_abs": 0.0
+              },
+              "output": {
+                "exact": true,
+                "actual": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "expected": {
+                  "shape": [
+                    256,
+                    128
+                  ],
+                  "dtype": "torch.float32",
+                  "finite": true,
+                  "nonzero": 32768,
+                  "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+                },
+                "max_abs": 0.0
+              }
+            },
+            "inputs_before": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_after": {
+              "upstream": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32709,
+                "sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+              },
+              "ids": {
+                "shape": [
+                  256
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "weight": {
+                "shape": [
+                  256,
+                  128
+                ],
+                "dtype": "torch.float32",
+                "finite": true,
+                "nonzero": 32768,
+                "sha256": "19d70ae4226c1e81a856d737aa7491dcf64328584d167a9389726f491413bc48"
+              },
+              "counts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 256,
+                "sha256": "26f8c588887560686c7a2169bf19e754836bc3c7fe8f553e46ff400fb5fa588b"
+              },
+              "starts": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "positions": {
+                "shape": [
+                  256,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 255,
+                "sha256": "8808405eec6fbe306fe3369f88daed79dd5613ddbb5e801f632b01d6218c5f08"
+              },
+              "maximums": {
+                "shape": [
+                  2,
+                  1
+                ],
+                "dtype": "torch.int32",
+                "finite": true,
+                "nonzero": 2,
+                "sha256": "64ed86b909d6d0502b64b28db0ea1272ffb358e20e9b1d88b63ccb07fa900cf5"
+              }
+            },
+            "inputs_unchanged": true
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": {
+    "missing": {
+      "exact": false,
+      "missing": true,
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      }
+    },
+    "shape": {
+      "exact": false,
+      "actual": {
+        "shape": [
+          1,
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      },
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      }
+    },
+    "dtype": {
+      "exact": false,
+      "actual": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float64",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "dc91ce9a50ddc828740aa26743716897fdb2bb64f1db662fe263a59be56145ae"
+      },
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      },
+      "max_abs": 0.0
+    },
+    "nan": {
+      "exact": false,
+      "actual": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": false,
+        "nonzero": 2,
+        "sha256": "ef95d59a162c96c8c954e3ee0a704462add5dfbed8035d71e11e9eac04ca1da4"
+      },
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      },
+      "max_abs": null,
+      "max_abs_nonfinite": "nan"
+    },
+    "inf": {
+      "exact": false,
+      "actual": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": false,
+        "nonzero": 2,
+        "sha256": "e6246e9adea18b0762fca384c83d308de1bf9b7198f29bc9167573c5617c8e1c"
+      },
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      },
+      "max_abs": null,
+      "max_abs_nonfinite": "inf"
+    },
+    "bytes": {
+      "exact": false,
+      "actual": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "a47077a19cd711eed33ac9521628adc95b9fbae3f98b8a29810cc96dbc1065af"
+      },
+      "expected": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+      },
+      "max_abs": 1.0
+    }
+  },
+  "mutation": {
+    "name": "mutation",
+    "status": "MISMATCH_OR_ERROR",
+    "checks": {
+      "gradient": {
+        "exact": true,
+        "actual": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 2,
+          "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+        },
+        "expected": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 2,
+          "sha256": "b9c80b5adeca450753a16950c3cc655d271f7bef7a485bc83f112b72fef21d37"
+        },
+        "max_abs": 0.0
+      }
+    },
+    "inputs_before": {
+      "upstream": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "ids": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "weight": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "counts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "starts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "positions": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "maximums": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      }
+    },
+    "inputs_after": {
+      "upstream": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "ids": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "weight": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "counts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "starts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "positions": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "cec62291c7d5e97447562503965c17a32c0c4bdb5696725f2225aa37afc61e28"
+      },
+      "maximums": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      }
+    },
+    "inputs_unchanged": false
+  },
+  "error": {
+    "name": "exception",
+    "status": "ERROR",
+    "checks": {},
+    "inputs_before": {
+      "upstream": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "ids": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "weight": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "counts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "starts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "positions": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "cec62291c7d5e97447562503965c17a32c0c4bdb5696725f2225aa37afc61e28"
+      },
+      "maximums": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      }
+    },
+    "inputs_after": {
+      "upstream": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "ids": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "weight": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "counts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "starts": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      },
+      "positions": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "cec62291c7d5e97447562503965c17a32c0c4bdb5696725f2225aa37afc61e28"
+      },
+      "maximums": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "nonzero": 2,
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d"
+      }
+    },
+    "error": "Traceback (most recent call last):\n  File \"/tmp/trainium-k2-fp32-independent-7QD8G2/check_native.py\", line 71, in observe_route\n    outputs = body()\n  File \"/tmp/trainium-k2-fp32-review-output-jcPZ9r/independent_tests.py\", line 92, in broken\n    raise RuntimeError('INDEPENDENT_INJECTED_ERROR')\nRuntimeError: INDEPENDENT_INJECTED_ERROR\n",
+    "inputs_unchanged": true
+  }
+}
+
