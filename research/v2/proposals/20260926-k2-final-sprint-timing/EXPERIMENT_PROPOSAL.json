@@ -1,0 +1,66 @@
+{
+  "proposal_id": "20260926-k2-final-sprint-timing",
+  "status": "source_cpu_pass_native_timing_conditionally_released",
+  "owner_role": "supervisor selecting human-directed K2",
+  "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
+  "hypothesis": "Stable device metadata plus ordered NKI embedding backward improves complete eight-layer optimizer-step rate by at least 3% without changing the operation.",
+  "single_causal_change": "Same exact train.py with --no-k2-embedding versus --k2-embedding; no other science change.",
+  "mechanism_class": "throughput",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown: a timing falsifier, not a BPB quality test.",
+  "selection_rationale": "Final Sprint P1; complete producer/WTE/VE7/autograd cost is included rather than a supplied-metadata component.",
+  "trainium_feasibility": "Full chip LNC2/four ranks, batch131072, pack32/context1024/width1024. Native stable argsort/searchsorted and dynamic-loop/indirect-DMA lowering remain unproved.",
+  "cheapest_falsifier": "Same-host 45-step OFF/ON runs; actual compile/runtime failure stops the test. No full quality run below 1.03x complete step rate.",
+  "evidence": [
+    "research/v2/lanes/k2-final-sprint/SPEC.md",
+    "research/v2/lanes/k2-final-sprint/cpu-result.json"
+  ],
+  "control": {
+    "git_commit": "323bd6b4",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "run_label_template": "fs-20260926-k2-sprint-off-<host>-r1",
+    "public_val_bpb": null,
+    "steps": 45,
+    "box_constraint": "Same host/runtime as ON; no component-versus-whole-step comparison"
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-final-sprint/train.py",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-k2-sprint-on-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "control_command_difference": "Replace only --k2-embedding with --no-k2-embedding",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false
+  },
+  "gates": {
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "independent_review": "PASS: research/v2/verification/20260926-k2-sprint-independent/REVIEW.md; independent25finite cases, lifetime, OFF3/ON3 and ordinary eval checks",
+    "native_timing": false,
+    "native_cold_startup": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(observed boundary time at step44 minus boundary time at step9), identical observer and statistic for OFF and ON",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "45 finite completed steps, valid native execution and accounting, ON/OFF rate>=1.03",
+    "quality_followup": "Only after timing PASS: separate fixed1800s full run, fresh20M/context1024, unchanged decide.py"
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "One diagnosed new-label repair/retry, then park; preserve real error; no review loops.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "verdict": null
+}

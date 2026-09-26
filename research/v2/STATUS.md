@@ -10,13 +10,17 @@ One fresh independent review passed both source ports and local guardian
 mechanics. Full runs retain the fixed1800s accounting and attached fresh20M.
 Current busy percentages are unknown; both hosts are occupied at observation.
 
-K2 integrated device producer, registered backward and own CPU/OFF tests
-delivered9b6f2d6c. Inlining into the train.py-only vehicle before its ONE fresh
-review; native support/speed remain unmeasured. Timing deadline16:00IST.
+K2 single-file source63925519 (commit323bd6b4) passed ONE fresh independent
+review at07:13UTC, including25 own-reference finite cases and OFF3/ON3 identity.
+It is released for the short whole-step test on the first qualified free host,
+not yet run. Native support/speed remain unmeasured. Timing deadline16:00IST.
 Pending P0 variants are source-reviewed, not three genuinely ready jobs/host:
 first native timing, qualified results and fresh resource checks still apply.
 No second launcher or automatic host-resident successor has been installed.
 The existing heartbeat/sole Operator owns next dispatch, with K2 preemption.
+Exact e1e2 prospective controls are also prepared as third pending fallbacks
+because unchanged decide.py needs actual same-host/control/base rows. Do not
+relabel historical clean replay or research36 results to manufacture controls.
 
 New official base remains0.9878, sub-86d307b4/e1e2. Five rolling-week uploads
 used; next package must target<=0.9848 official with cold20M+Claudeaudit.

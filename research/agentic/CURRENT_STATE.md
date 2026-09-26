@@ -9,7 +9,8 @@ confirmed>=.003 officialgain, coldreplay/fresh20M andClaudeaudit. Targetpublic
 <=.973 byfreeze; estimateoffset-.0006..-.0014, notofficialscoreguarantee.
 First P0 ports7117d57b passed ONE fresh review. Both launched12:35:49IST:
 trn21 Recursive, trn22 batch262144/LR.015, four workers each, cold compilation.
-K2 integrated patch delivered; single-file packaging precedes its one review.
+K2 standalone63925519 passed its one fresh review; short native timing is
+conditionally released for first qualified free host, not yet started.
 Current utilization percentages unknown; both hosts occupied at07:06:43UTC.
 See research/v2/STATUS.md and operator/20260926-final-sprint-p0/LAUNCH.md.
 

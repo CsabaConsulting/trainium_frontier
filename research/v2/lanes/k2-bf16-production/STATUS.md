@@ -1,5 +1,13 @@
 # Latest: production-shape supplied-metadata consumer implemented, native unproved
 
+## Superseded by integrated candidate — 26 September12:43IST
+
+Use ../k2-final-sprint/train.py (63925519), not this component as a native job.
+Device producer, WTE/VE7 integration, registered autograd and standalone
+packaging are complete. The single independent source/CPU/OFF3 review passed;
+native whole-step timing is next, not yet measured. See ../k2-final-sprint/STATUS.md.
+All historical counterexamples below remain evidence, not extra proof gates.
+
 ## Final Sprint override — 26 September12:17 IST
 
 Prospective production base is auditede1e2, not research36. Actual producer,

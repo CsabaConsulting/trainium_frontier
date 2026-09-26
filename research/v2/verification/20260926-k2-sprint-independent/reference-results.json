@@ -1,0 +1,174 @@
+{
+  "scope": "SOURCE_CPU_ONLY_FOR_SHORT_NATIVE_TEST",
+  "source": {
+    "source_diff": "EXACT",
+    "frozen_hashes": {
+      "base.py": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+      "train.py": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+      "SOURCE.diff": "b24a13c3a639b3946150ac3c6b14187880b36e611fdab4c83763c0f2c20e37aa",
+      "SPEC.md": "441bff0d111bf69af99915144979f56f3d12bd44acc8165e9ed7f42bdcd11448",
+      "cpu-result.json": "f2ccec824749764e8460502b9c8377a1bc7a3eb30e86c47f99d2cca0f1280b1c",
+      "test_k2.py": "d5bbd981c7b0992515350e9047088d79f3daa50fdf39a0a28c1c3cfb2e147916",
+      "cpu_instruction_model.py": "98ec82913b314bfcb2fea519540c5806109609f80422210999955bd9eb8e9024"
+    },
+    "author_receipt": {
+      "finite_bit_exact": 12,
+      "nonfinite_diagnostics": 4,
+      "source_hashes_match": true
+    }
+  },
+  "operations": {
+    "cases": [
+      {
+        "name": "mixed_order_subnormal_and_zero",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_0",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_1",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_2",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_3",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_4",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_5",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_6",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_7",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_8",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_9",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_10",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_11",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_12",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_13",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_14",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_15",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_16",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_17",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_18",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_19",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_20",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_21",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_22",
+        "status": "BIT_EXACT_FINITE"
+      },
+      {
+        "name": "random_23",
+        "status": "BIT_EXACT_FINITE"
+      }
+    ],
+    "first_witness_token_indices": [
+      0,
+      4,
+      8
+    ],
+    "coverage": [
+      "noncontiguous IDs/tangents",
+      "duplicate order",
+      "both subnormal signs",
+      "cancellation",
+      "signed zeros",
+      "unused rows",
+      "all-one-row",
+      "source storage mutation before backward",
+      "one write per owner element"
+    ]
+  },
+  "lifetime": {
+    "status": "BIT_EXACT",
+    "tables": 2,
+    "simultaneously_live_microsteps": 2,
+    "backward_after_source_overwrite": true
+  },
+  "tangent_boundary": {
+    "status": "FP32_CALLBACK_TANGENT_REJECTED",
+    "message": "K2 refuses a non-BF16 output tangent"
+  },
+  "model": {
+    "off": "THREE_STEPS_BIT_EXACT",
+    "off_losses": [
+      4.156866073608398,
+      4.15728235244751,
+      4.162270545959473
+    ],
+    "on": "THREE_STEPS_BIT_EXACT_INTERPRETED_CPU",
+    "on_losses": [
+      4.159947395324707,
+      4.159997940063477,
+      4.156461238861084
+    ],
+    "geometry": "8 layers, width64, context8, batch2",
+    "optimizer": "SGD lr=.01",
+    "on_metadata_calls": 3,
+    "eval_and_no_grad_routes": "BIT_EXACT_K2_HELPERS_UNCALLED",
+    "same_parameter_objects": true,
+    "import_placeholders": "review-local unused prepare symbols and pyarrow.parquet; no data/evaluator calls"
+  },
+  "kernel_calls": 35,
+  "torch": "2.13.0+cpu",
+  "native_compiled": false,
+  "reference_test_sha256": "afd4bcb40476ac369669c1b2ed4dac89c32ddfb6d9e358c63109fd9e39e7b079"
+}

@@ -1,0 +1,55 @@
+{
+  "proposal_id": "20260926-e1e2-prospective-controls",
+  "status": "complete_source_previously_audited_native_binding_pending",
+  "owner_role": "supervisor",
+  "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
+  "hypothesis": "Prospective same-host measurements of unchanged audited e1e2 provide valid controls for new stacks under unchanged decide.py.",
+  "single_causal_change": "No model change: seed42 repeat of the exact scored source and command.",
+  "mechanism_class": "control",
+  "predicted_bpb_delta": null,
+  "control": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "reference_public20m": 0.9883890652263234,
+    "note": "Historical clean cold replay remains original kind; not reclassified as a control"
+  },
+  "candidate": {
+    "source": "workflow/candidates/confirmed-clock36-116188/train.py",
+    "launch_command_file": "workflow/candidates/confirmed-clock36-116188/launch-command.txt",
+    "launch_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "files_allowed": [
+      "train.py"
+    ],
+    "seed": 42,
+    "max_train_seconds": 1800
+  },
+  "runs": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-sprint-e1e2-control-trn21-r1",
+      "kind": "control"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+      "kind": "control"
+    }
+  ],
+  "gates": {
+    "source_audit": "Claude SOURCE-AUDIT ACCEPT e1e2; official sub-86d307b4 SCORED per human",
+    "cold_replay": "Already measured859.4735s startup and public20M.988389; no new cold gate for unchanged source",
+    "fresh_machine_preflight": "Required for each launch",
+    "new_independent_review": "Not required: no source change"
+  },
+  "success_criteria": {
+    "measurement": "Fixed1800 official accounting, valid fresh20M/context1024, retained source/log/checkpoint provenance",
+    "quality": "Control is not itself an improvement; drift reported without selecting a favorable seed"
+  },
+  "scheduling": "Third pending fallback each host behind K2 priority and active P0; qualifies exact-base future comparisons, no invented old-control row",
+  "abort_conditions": [
+    "Failed exclusive lock/ps/neuron-ls/resource/source checks",
+    "Crash,NaN,overbudget,missing checkpoint"
+  ],
+  "human_approved_by": "Final Sprint standing development authorization",
+  "submission_authorized": false,
+  "verdict": null
+}
