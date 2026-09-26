@@ -1,0 +1,37 @@
+# Fresh independent consumer source review
+
+Verdict: SOURCE_MATH_ACCEPTED_NATIVE_COMPONENT_UNQUALIFIED. No demonstrated source arithmetic/ordering defect or documented SDK API incompatibility was found. Narrowly accept preparation of a separate immutable supplied-metadata real-shape correctness component packet. This review does not authorize launch, establish native correctness, approve production metadata, or claim gain. A complete native component harness/proposal and its independent review are the next missing gate.
+
+Scope was confined to the isolated packet and official versioned AWS SDK documentation. Manifest SHA256 authenticated exactly: 8fb86d698282a059a5e4db8c18b0d3d099a2eb1c2fd0819fad9dbb69d3e878d3. All ten members authenticated. Independently regenerated unified diff equals consumer.diff byte-for-byte. No implementer branch/notes, repository changes, host access or native module import. Packet remains immutable.
+
+## Independent evidence
+
+check.py is a new integer-only reference, not a rerun/import of the supplied tests or prototype. It decodes binary32 into exact units of 2^-149, adds integers, and explicitly rounds ties to even into binary32. It independently recomputes all 19 supplied fixture outputs from raw BF16 input bits and IDs and independently reconstructs occurrence schedules by scanning IDs. Every finite raw bit matches; nonfinite fixtures remain FAIL_NONFINITE_DIAGNOSTIC and NaN raw differences are recorded. Normal and -O runs agree byte-for-byte. No tensor is allocated.
+
+Separate witnesses give ordered 00000000 versus reassociated 3f800000 for [2^24,1,-2^24], and 00000000 versus 33800000 for [1,2^-24,-1]. Positive and negative normal cancellation yield reachable FP32 subnormals 00010000 and 80010000. Zero, finite overflow, infinity cancellation and NaN input cases remain present in the authenticated fixtures. The reference does not turn equal NaN classification into training success.
+
+Full-geometry arithmetic checks cover 131,072 tangent descriptor endpoints for all 32,768 token positions and both owners; owner channel intervals are disjoint and cover 0..1023. All 8,192 rows map exactly to 64 groups of 128. Sentinel token 32768 addresses begin beyond the valid gradient allocation. This proves logical indexing under the documented descriptor interpretation, not hardware bounds checking or descriptor lowering. Pointer/count arithmetic can reach at most 65,536 in magnitude bound, far below the exact-integer limit of FP32; explicit Vector-engine arithmetic therefore introduces no index rounding for valid metadata.
+
+Source inspection finds one dynamic occurrence loop within 64 static group bodies. Counts/pointers/maxima are reloaded per group. Token and value scratch are initialized each round before skip DMA; inactive rows select the previous accumulator. Accumulators reset to positive zero per group; fresh output is returned per call. Separate calls/microsteps are not concatenated. Direct default-OFF execution raises before native import. No source claim about production metadata follows from this.
+
+## Target SDK2.31 API assessment
+
+[DMA2.31](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.dma_copy.html) documents HBM vector indirection with a P-by-1 SBUF index, software descriptor generation, skip handling and dtype conversion through FP32. The source gradient descriptor has row stride1024, partition count128, free extent512 and owner offset0/512. It does not combine scalar and vector offsets. Its intended interpretation is consistent with that API. Exact widening/subnormal retention remains a native test.
+
+[Register allocation](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.register_alloc.html), [register load](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.register_load.html), and [dynamic range](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.language.dynamic_range.html) support an initialized virtual register, a single-element SBUF load, and on-device runtime loop bounds. The source matches these forms; cross-engine dependence/liveness is not established by documentation.
+
+[Tensor arithmetic](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.tensor_tensor.html) supports equal-extent SBUF tiles and FP32 elementwise math. [Scalar arithmetic](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.tensor_scalar.html) describes the FP32 conversions used for bounded index arithmetic. Neither page proves the required gradual-underflow behavior of this compiled recurrence.
+
+[Memset2.31](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.isa.memset.html) documents constant initialization. Its page has inconsistent default-engine wording (signature versus prose), so compiler acceptance must be tested rather than inferred from this detail. [Where2.31](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/nki/api/generated/nki.language.where.html) documents element selection with FP32 0/1 conditions and illustrates128x512 tiles; it is explicitly experimental. The source uses float conditions and explicit result dtype. Native raw-bit preservation for selected subnormals/zeros still requires evidence.
+
+This is comparison to versioned target documentation, not an assertion that an installed host's package/version was inspected. No installed-target authentication was possible or attempted under the no-host boundary.
+
+## Precise remaining boundary
+
+The next component packet must freeze source/harness/proposal hashes, unique label, target environment, real V8192/T32768/C1024 and two512 owners, memory/compile/runtime limits, and independent metadata authentication before upload plus verification of transported values and immutability. The consumer itself does not reject corrupt/stale metadata. Accepting it is restricted to authenticated supplied metadata; skipping invalid metadata is not safe production validation.
+
+Native correctness must compare both the ordered reference and ordinary native path. Retain balanced, interleaved, boundary IDs, empty groups/unused rows, all-one-row32768 iterations, changed metadata/tangents and prior-output preservation, both subnormal signs/cancellation/order witnesses, zero signs, and exceptional diagnostics on all four ranks. Prove wrong tangent dtype refuses, actual consumer results are used, and zero/stale outputs cannot pass. Retain raw outputs and cold compile, peak memory/spills, graph count, route traces and timeout evidence.
+
+Logical scratch estimate1,052,164 bytes per owner is consistent with the source but excludes allocator/descriptor/staging overhead. Native512-wide descriptors, buffer reuse and cross-engine dependencies, symmetric programs, skip behavior, actual FP32 rounding, compilation costs and worst-skew runtime remain unknown. Any mismatch, unsafe access, compilation failure, content-dependent recompile, unbounded spill, timeout or missing artifacts fails the component. No shortening fixtures or automatic retry. No production/gain/full-model inference is available from a supplied-metadata consumer.
+
+Commands: `/home/poojith-devan/venv/bin/python -B /home/poojith-devan/k2-consumer-independent-review-PJCqBe/check.py` and the same with `-O -B`. Receipts are raw-normal.json and raw-optimized.json in this directory; all packet member hashes are embedded. Original unrestricted FP32 failure remains failed and unaffected.
