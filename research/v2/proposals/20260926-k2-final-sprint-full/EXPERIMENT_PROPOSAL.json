@@ -1,0 +1,67 @@
+{
+  "proposal_id": "20260926-k2-final-sprint-full",
+  "status": "complete_conditional_on_valid_same_host_native_timing",
+  "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
+  "owner_role": "Supervisor selecting the human-directed K2 follow-up",
+  "hypothesis": "If integrated K2 raises complete-step rate by at least 3%, spending that speed inside the fixed 1800-second budget may improve fresh public20M BPB on audited eight-layer e1e2.",
+  "mechanism_class": "throughput",
+  "single_causal_change": "Enable the independently reviewed K2 embedding backward; all architecture, optimizer, data, seed and schedule settings remain the audited-base settings.",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown; faster training can worsen repeated-data quality. Timing is not a BPB win.",
+  "control": {
+    "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "proposal": "research/v2/proposals/20260926-e1e2-prospective-controls/EXPERIMENT_PROPOSAL.json",
+    "requirement": "Actual same-host kind=control, exact e1e2 base, valid fixed-budget fresh20M/context1024 for unchanged decide.py. Historical clean replay remains its original kind.",
+    "historical_public20m_for_context_only": 0.9883890652263234
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-final-sprint/train.py",
+    "source_commit": "323bd6b4",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "files_allowed": ["train.py"],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --k2-embedding",
+    "launch_command_sha256": "a0110e5a82ba201f1a157f5c9136bc42b1e0498dab51788613b51d86ae2d22ab",
+    "short_run_difference": "Remove only --num-steps 45 from the reviewed ON timing command.",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "legal_shape": "full chip, LNC2, four ranks, pack32, context1024, batch131072"
+  },
+  "host_alternatives": [
+    {"host": "trn21", "label": "fs-20260926-k2-sprint-full-trn21-r1"},
+    {"host": "trn22", "label": "fs-20260926-k2-sprint-full-trn22-r1"}
+  ],
+  "gates": {
+    "cpu_exactness_and_off_three_steps": "PASS; author receipts and one independent review archived",
+    "independent_review": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "independent_review_sha256": "2ddb87ac3c38897abf306e323d06c747b0db41423e2f6126ede94e98cadcf502",
+    "native_prerequisite": "Completed valid same-host OFF/ON45 pair under 20260926-k2-final-sprint-timing; finite steps, supported exact source execution, complete 45 boundary observations, ON/OFF whole-window rate >=1.03, cold startup and charge recorded.",
+    "native_prerequisite_passed": false,
+    "fresh_machine_checks": "Original exclusive lifetime flock, fresh ps and neuron-ls, exact source/argv, disk/RAM admission preserving both short checkpoints and protected/shared caches. No concurrent job.",
+    "no_new_source_review": "Same exact accepted source; different run length only. Do not add a second review or full-size CPU ceremony."
+  },
+  "accounting": {
+    "official_budget": "Unmodified runner/prepare accounting: capped first-five startup exclusion, all excess charged, over_budget=false.",
+    "steps": "Report only, not adoption gate; below60% of control is a sanity alarm requiring investigation.",
+    "cache_provenance": "Research-only reuse of selected host's ON45 private cache namespace; hit must be observed, not assumed.",
+    "cold_startup": "Retain ON45 genuinely cold measurement. Warm full quality result is not submission qualification and cannot conceal cold excess; a future candidate needs a genuinely cold full replay, fresh20M and Claude audit."
+  },
+  "evaluation": {
+    "mode": "fresh-process prepare.py eval-public using the actual produced checkpoint",
+    "tokens": 20971520,
+    "context": 1024,
+    "checkpoint_required": true,
+    "private_or_external_data": false
+  },
+  "success_criteria": {
+    "timing_to_full": "Only the valid precommitted >=3% whole-step gain releases this research run.",
+    "quality": "Unchanged workflow/tools/decide.py thresholds, comparable same-host control and required replication; no favorable seed selection.",
+    "submission": "Separate human-only upload after confirmed >=0.003 official improvement target, genuinely cold replay/fresh20M and Claude audit. No upload permission here."
+  },
+  "abort_conditions": ["Failed preflight", "Compile/runtime/nonfinite error", "Budget failure", "Missing checkpoint or invalid evaluation"],
+  "retry_policy": "Save actual error, one diagnosed unique-label retry, then park. Release lock only after owned descendants end and independent device/process idle checks.",
+  "artifacts": "Retain exact source, argv, environment/cache provenance, train/eval logs, startup/charge/steps/rates, checkpoint identity, results, comparison and verdict in repository ledger.",
+  "prepared_bindings": "research/v2/operator/20260926-k2-sprint-full/PREPARED.json",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "submission_authorized": false,
+  "verdict": null
+}

@@ -1,5 +1,36 @@
 # Workflow installation and incremental launch status
 
+## Latest: steady P0 training; K2 next — 26 September 13:08 IST
+
+Authenticated 07:22:13UTC snapshot: trn21 Recursive step320 at265338tok/s;
+trn22 batch262144/.015 step140 at282596tok/s. Four original workers and
+lifetime locks remain valid. The measured occupied-job window from07:05:49
+is99.998%/99.971%, including compilation, not device utilization or daily busy%.
+Both have finite training losses; no new BPB result. Free14.638GB/17.015GB.
+Printed first-five dt sums807.15s/828.40s are not the exact official startup;
+terminal observer receipts will supply uncapped startup and training charge.
+Expected training end07:49–07:51UTC, then attached fresh20M around08:00–08:06
+if normal. Next useful remote observation is the training-to-eval boundary.
+
+K2 OFF/ON45 packet is prepared and source-reviewed, deadline16:00IST.
+Local inspection proves the unchanged harness persists all boundary times;
+the precommitted35-step whole-window statistic needs no new observer/tooling.
+Full-quality follow-up proposal and both host alternatives are prepared but
+remain conditional on a valid>=3% same-host native gain. Preserve both short
+checkpoints; whole-pair disk admission is required. K2 preempts pending
+replicates on the first qualified free host, never the active P0 train/eval.
+
+P3 current-eight-layer component diagnostic3637166b passed its ONE fresh
+independent source/CPU review. No native result, kernel choice or speed claim.
+Existing old-six-layer traces cannot identify exclusive attention/ReLU costs.
+Operator prepares a bounded diagnostic fallback after higher-priority P0/K2;
+Researcher prepares the last-layer-table design conditionally on K2 timing.
+
+New official base0.9878 and all quota/cold/Claude/human-only rules unchanged.
+Evidence: operator/20260926-final-sprint-p0-milestone/MILESTONE.json and
+operator/20260926-k2-sprint-timing/TIMING_OBSERVABILITY.md. Historical status
+below must not be interpreted as current failures, source gates or host phases.
+
 ## Latest: P0 launched on both hosts — 26 September 12:35:49 IST
 
 trn21 runs the clean e1e2-derived Recursive schedule; trn22 runs batch262144

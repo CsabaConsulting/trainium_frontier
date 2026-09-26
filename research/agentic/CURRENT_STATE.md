@@ -1,5 +1,20 @@
 # Current state
 
+## 13:08 IST: P0 training after cold start; reviewed K2 timing next
+
+Latest authenticated07:22:13UTC: trn21step320/265338tok/s and
+trn22step140/282596tok/s, no fatal error or new score. Occupied-job fractions
+since simultaneous07:05:49 starts99.998%/99.971%, including compilation.
+Training end expected07:49–07:51UTC; attached fresh20M follows, no preemption.
+Current exact official base remains0.9878/e1e2. No resubmission of that file.
+
+K2 exact63925519 is independently source-reviewed with complete OFF/ON45
+prepared bindings. Existing terminal observer includes all step timestamps;
+no new timing machinery is needed. First qualified free host takes K2 pair,
+full run only after valid>=3% gain. Separate completed full proposal exists.
+P3 diagnostic3637166b passed its one review; native measurement is lower
+priority than P0/K2, not a kernel win. See research/v2/STATUS.md at top.
+
 ## New human official score: sub-86d307b4 =0.9878
 
 Auditede1e2 now scored/revieweraccepted on official runner, per Poojith.

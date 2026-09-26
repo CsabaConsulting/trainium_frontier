@@ -1,0 +1,54 @@
+{
+  "proposal_id": "20260926-p3-component-timing",
+  "status": "complete_source_review_pass_operator_binding_pending",
+  "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
+  "owner_role": "Supervisor selecting the independent Analyst's current-base measurement",
+  "hypothesis": "A small current-eight-layer native component measurement can distinguish plausible attention versus activation work worth optimizing; the old six-layer monolithic trace cannot do so.",
+  "mechanism_class": "diagnostic",
+  "predicted_bpb_delta": null,
+  "single_causal_change": "Explicit development-only component timing mode; default-OFF production source remains audited e1e2.",
+  "control": {
+    "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "reference": "Actual plain Torch SDPA and original _FusedMLP operations, not a competing model or evaluator."
+  },
+  "candidate": {
+    "source": "research/v2/lanes/p3-component-timing/train.py",
+    "source_sha256": "3637166b43a0b996e7eb7c71bb3b5d56e7f8119241b0278107a72787044dcc99",
+    "source_commit": "6203c308713efad326093fba0eb6cebae5a5b598",
+    "files_allowed": ["train.py"],
+    "label_template": "fs-20260926-p3-components-<host>-r1",
+    "launch_command_template": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --p3-component-timing --device-type neuron --seed 42 --p3-max-seconds 900 --p3-blocks 4 --p3-repeats 3 --out-dir <unique-diagnostic-output>",
+    "binding_requirement": "Operator resolves exact host label/output/cache paths and argv in prepared packet before assignment; use unchanged source and existing direct diagnostic guardian.",
+    "seed": 42,
+    "legal_shape": "Full chip, LNC2/four ranks; BF16 B32/T1024/H8/D128 attention and32768x1024 MLP with4096 hidden."
+  },
+  "gates": {
+    "cpu_exactness": "Author and independent scalar-loop BF16 MLP/splits and masked-softmax attention references PASS",
+    "flag_off_three_steps": "Author actual tiny8layer OFF3 bitidentity PASS; independent AST disabled-path identity PASS",
+    "one_independent_review": "research/v2/verification/20260926-p3-sprint-independent/REVIEW.md",
+    "review_sha256": "826268d46a4dc71ba893d4b382e5b62e56b78a7f5f095d9af53e1685320bb6da",
+    "review_scope": "PASS_FOR_NATIVE_DIAGNOSTIC only; native support and timing untested. Mandatory repository-contract reading was disclosed, no implementer branch/notes/shared P3 analysis accessed.",
+    "fresh_machine_checks": "Original lifetime flock, in-lock ps and neuron-ls, source/argv/cache/resource checks. One job per host. P0 train+attached20M must finish; K2 retains priority."
+  },
+  "protocol": {
+    "native_calls": "Exact SDPA and original full custom MLP forward/backward, followed by separately materialized activation and matrix boundaries defined in SPEC.",
+    "first_calls": "Report separately as compilation plus execution, not pure compiler duration. Use one genuinely empty private cache namespace; no unsupported warm/cold claims.",
+    "steady_measurement": "Two warmup blocks, four timed blocks, three calls/block, synchronized boundaries, all four ranks; report raw times, medians and slowest-rank contention.",
+    "duration": "900-second source watchdog plus existing Operator hard process-tree supervision and bounded cleanup; daemon timeout alone is insufficient.",
+    "inputs": "Bounded synthetic random seed42 tensors only; no training/validation/external data.",
+    "output": "Small per-rank incremental component JSON and logs; no checkpoint, training, eval, profiler, NTFF or decoder.",
+    "runner": "Direct development diagnostic under existing guardian, never a submission rehearsal expecting fake optimizer-step markers."
+  },
+  "success_criteria": {
+    "diagnostic": "All four ranks finish with finite outputs/gradients and complete requested records. Native unsupported compilation/VJP/synchronization is a failed diagnostic, not a slow-kernel result.",
+    "interpretation": "Nonadditive materialized component costs only; not exclusive in-graph percentages, no subtraction/multiplication into claimed whole-step savings, no BPB improvement or adoption.",
+    "followup": "Only measured evidence may nominate a later P3 patch under the same existing three gates; no extra gate introduced by this diagnostic."
+  },
+  "abort_conditions": ["Failed lock/source/resource/idle check", "Compile/runtime/nonfinite error", "Timeout or missing rank records"],
+  "retry_policy": "Preserve exact failure; one diagnosed unique-label retry, then park. Reap all owned descendants and verify independent idle before lock release.",
+  "artifacts": "Exact source/argv/environment/cache provenance, per-rank raw timing/finite records, wall time, failure or verdict and safe quiescence receipt.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "submission_authorized": false,
+  "native_started": false,
+  "verdict": null
+}
