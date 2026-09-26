@@ -1,5 +1,21 @@
 # Workflow installation and incremental launch status
 
+## 16:00 IST timing milestone missed; one compact diagnostic released
+
+Human notified10:30UTC: no usable K2 native rate/startup/net result yet.
+Latest authenticated10:25 observation:662c has no completed step; SDK internal
+cache-lock timeout1200s and new active compiler processes. Original device
+lock remains held. No manual reset, premature failure verdict or blind retry.
+Exact startup/charge remain unknown; no full/table continuation.
+
+Compactf804 native201 is prospectively released fortrn22 only, AFTER its
+current attached20M naturally ends and normal original-lock idle/source/resource
+checks. Assignmenta77b5904c SHA25bdacab22b4d4223900f060666df9ba0cfa1608d3ad606f4fad396022452648;
+prepared packetddb614e5 and all13 members root-authenticated73eef6070.
+One timing IS the native test; no extraOFF/smoke/review. Not yet observed launched.
+trn22 remains at1921 completed trainingsteps,1788.581310 charged seconds;
+final20M not emitted at last observation. Next conditional tablesETA alert18:00IST.
+
 ## Latest human amendment: >=3% NET tokens, parallel compile-cost lane
 
 Read workflow/NET_TOKENS_AND_MUON_COMPILE_2026-09-26.md FIRST. Net work is
