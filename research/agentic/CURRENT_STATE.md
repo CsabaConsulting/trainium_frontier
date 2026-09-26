@@ -1,5 +1,16 @@
 # Current state
 
+## Latest13:47IST: use amended K2 plan, not obsolete extraOFF disk gate
+
+Read topresearch/v2/STATUS.md. P2 FP32 sourceb4728d17 ONE reviewPASSshortnative,
+notnativequalified. K2 reuses alreadyrunning exacte1e2 trn22control's
+prospectivelyselectedt44-t9window, backed by priorOFFidentity/source review.
+Assignment20260926-k2-use-live-parent-control.md replaces unstartedextraOFF45,
+not per-runfloors: ON13.5GiBinitial/10.5GiBruntime unchanged, parentkept.
+Packet442652ee andtransport15b73f1a ready, no stage/native yet. Both current
+fulljobs/evals preserved; targetK2before16:00 andfulltables20:00–22:00conditional.
+Old640cleanup leadsabsent; exactretiredcache+2discardedLRckpts reclaimed1.157GB.
+
 ## 13:40 IST: both new scores in; next jobs live
 
 Schedule/trn21=.98802392394 and batch262144/.015/trn22=.98799405440 public20M.

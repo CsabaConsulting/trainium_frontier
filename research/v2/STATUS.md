@@ -1,5 +1,33 @@
 # Workflow installation and incremental launch status
 
+## 13:47 IST: FP32 review passed; K2 reuses actual parent control
+
+P2 sourceb4728d17 passed its ONE fresh independent reviewc41e16d6. Reviewer
+executed own actual hash, consumer interpreter, FP32 collision/microstep and
+RMS reference tests; native compile/support/speed unproved. All review files
+are in lanes/k2-last-layer-tables/review/. Conditional native45 proposal is
+complete; Operator may prepare disabled packets, not bypass K2 qualification.
+
+K2 current assignment is20260926-k2-use-live-parent-control.md, committed
+26cc4b4e and prospectively frozen by Operator08:14:39UTC before steadywindow
+observed. Use actual running exactparent e1e2/trn22's preselectedt44-t9 as
+baseline, backed by existingOFF3/source review. ExtraOFF45 cancelled, not run
+or relabelled. Candidate remains exact63925519 ON45, samehost/runtime/seed/
+shape/statistic and>=3%bar. Initial13.5GiB/runtime10.5GiB per-runfloors stay.
+Existingparent artifacts alreadyoccupydisk; do not reserve3GiB for a cancelled
+OFFjob. NewuniqueON packet/driver transport ready442652ee/15b73f1a, notstaged.
+Nextnativeopportunity~14:32–14:36 after currentcontrol+20M if freshchecks pass.
+16:00 target unchanged, no K2rate/coldstartup measured yet. Existingmonitor
+prompt updated to this same assignment, no newlauncher.
+
+Both currentjobs remain: trn21 batch262144/.021, trn22 genuinee1e2control.
+Old640 exactcheckpoint inspection foundbothrootsABSENT, no deletion there.
+Completed cleanup this turnover: two previouslyassigned discardedLRcheckpoint
+files906108928B reclaimed and six retired4bfaec cachechildren251256832B,
+total1157365760B. Everycurrent/best/submissioncheckpoint, logs and scientific
+verdicts kept. Cache recoverable byrecompile, deletedcheckpoints lackverified
+backup. No further protected/unscored cleanup authorized by those receipts.
+
 ## Results and successors — 26 September13:40 IST
 
 P0 scores retrieved: clean Recursive/trn21 public20M0.9880239239389417,
