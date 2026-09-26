@@ -1,5 +1,22 @@
 # Current state
 
+## 04:35 UTC / 10:05 IST: actual clean cold qualification accepted
+
+Clean r2 exact e1e2 finished five finite steps; uncapped fifth859.167909355s,
+wall863.638870780s, charge4.470961425s, retained checkpoint8e867c7a/453044626B.
+Supervisor180 checks normal/-O authenticate26 files, effective four-rank cache
+and argv binding, and explicit29-observed-identity/255-row ancestry/device/
+original832589 quiescence at04:30:16. Rawaa43bd8f/canonical5ace9b8c.
+trn22 idle since04:28:48.707320;15min alert due04:43:48.707320.
+Full replay remains disabled for independently reproduced timeout/lock fault;
+separate fixed-job guardian repair is active, not a science change. trn21
+anchored control remains protected; next meaningful observation near training end.
+
+K2 F0/F2 fixed native packet0ef8a56a is implemented locally, not launched;
+fresh independent reviewer has reproduced containment/provenance faults, so
+no native release. Separate Researcher is defining minimal clean native batch
+consistency from existing ordinary-checkpoint evidence. No new BPB/adoption.
+
 ## 04:29 UTC / 09:59 IST: live jobs protected; full replay safety hold
 
 Confirmed public20M mean remains0.9883066128526815. Actual04:28:39 trn21
