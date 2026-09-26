@@ -1,0 +1,28 @@
+{
+  "status": "PASS_IMPLEMENTER_CPU_ONLY",
+  "original_ast_unchanged": true,
+  "sdpa_forward_backward": "EXACT_PLAIN_TORCH",
+  "mlp_forward": "EXACT_PLAIN_TORCH",
+  "mlp_backward": "EXACT_BASE_AND_LITERAL_BOUNDARY_DECOMPOSITION",
+  "activation_and_matrix_boundaries": "BIT_EXACT",
+  "off_three_steps": {
+    "status": "BIT_IDENTICAL",
+    "losses": [
+      4.156866073608398,
+      4.15728235244751,
+      4.162270545959473
+    ],
+    "shape": "8layers/width64/context8/batch2",
+    "optimizer": "SGD .01"
+  },
+  "imports": [
+    "existing test-only prepare",
+    "unused pyarrow.parquet placeholder"
+  ],
+  "native_executed": false,
+  "torch": "2.13.0+cpu",
+  "hashes": {
+    "/home/poojith-devan/Desktop/Trainium/workflow/candidates/confirmed-clock36-116188/train.py": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "/home/poojith-devan/Desktop/Trainium-final-sprint-k2/research/v2/lanes/p3-component-timing/train.py": "3637166b43a0b996e7eb7c71bb3b5d56e7f8119241b0278107a72787044dcc99"
+  }
+}
