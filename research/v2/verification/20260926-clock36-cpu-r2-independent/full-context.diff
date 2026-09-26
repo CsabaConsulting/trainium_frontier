@@ -1,0 +1,359 @@
+diff --git a/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/compare_checkpoints.py b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/compare_checkpoints.py
+new file mode 100644
+index 00000000..b2a9f207
+--- /dev/null
++++ b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/compare_checkpoints.py
+@@ -0,0 +1,141 @@
++"""CPU-only strict retained model-state and ordinary loader-logit comparison.
++
++Future Operator child only, after both full-parameter G2 receipts pass.
++No native training, no real data and no evaluator modifications.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import sys
++import torch
++
++
++def require(ok,message):
++    if not ok:
++        raise RuntimeError(message)
++
++
++EXPECTED_SOURCES = {
++    'reference': '36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb',
++    'default': '4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea',
++    'off': '4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea',
++    'on': '4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea',
++}
++
++
++def tensor_record(t):
++    require(isinstance(t,torch.Tensor),'TENSOR_REQUIRED')
++    value=t.detach().cpu().contiguous()
++    require(bool(torch.isfinite(value).all()),'NONFINITE_TENSOR')
++    raw=value.reshape(-1).view(torch.uint8).numpy()
++    return {'shape':list(value.shape),'dtype':str(value.dtype),
++            'sha256':hashlib.sha256(memoryview(raw)).hexdigest(),
++            'requires_grad':t.requires_grad}
++
++
++def model_state(model):
++    # Includes nonpersistent registered buffers, not only checkpoint state_dict.
++    return {kind+':'+name:tensor_record(value) for kind,items in (
++        ('parameter',model.named_parameters()),('buffer',model.named_buffers())) for name,value in items}
++
++
++def verify_trained_model(model,x,vocab_size):
++    require(not model.training,'MODEL_NOT_EVAL')
++    require(x.ndim==2 and x.shape[0]==1 and x.shape[1]>=4,'SYNTHETIC_INPUT_SHAPE')
++    before=model_state(model)
++    input_before=tensor_record(x)
++    calls=[]
++    def forward(inp):
++        expected_input=tensor_record(inp)
++        with torch.no_grad():
++            out=model(inp)
++        require(isinstance(out,torch.Tensor) and list(out.shape)==[1,x.shape[1],vocab_size],'OUTPUT_SHAPE')
++        output_record=tensor_record(out)
++        require(not model.training,'MODEL_MODE_CHANGED')
++        require(model_state(model)==before,'MODEL_STATE_CHANGED')
++        require(tensor_record(inp)==expected_input and tensor_record(x)==input_before,'INPUT_CHANGED')
++        calls.append(output_record)
++        return out
++    # Own the observations: an output tensor may alias a model's scratch storage.
++    a=forward(x).detach().clone()
++    b=forward(x).detach().clone()
++    require(torch.equal(a.reshape(-1).view(torch.uint8),b.reshape(-1).view(torch.uint8)),'REPEATED_LOGITS_BYTES')
++    cut=max(2,x.shape[1]//2)
++    suffix=x.clone()
++    suffix[:,cut:]=torch.flip(suffix[:,cut:],dims=[1])
++    require(not torch.equal(x[:,cut:],suffix[:,cut:]),'DEGENERATE_SUFFIX_FIXTURE')
++    changed=forward(suffix)
++    # Pinned prepare.py:663-684 arithmetic, but synthetic input, no data loader.
++    prefix=a[:,:cut-1].float()
++    modified=changed[:,:cut-1].float()
++    error=float((prefix-modified).abs().max().item())
++    require(error<=1e-2,'SYNTHETIC_PREFIX_CAUSALITY')
++    return {'route':'ordinary_unpatched_cpu_load_for_eval','input':input_before,
++            'outputs':calls,'repeated_bytes_equal':True,'model_state_equal_after_each_call':True,
++            'named_parameters_and_all_buffers':before,'state_tensor_count':len(before),
++            'causality':{'synthetic_only':True,'cut':cut,'prefix_stop':cut-1,'max_abs_diff':error,
++                         'tolerance':1e-2,'passed':True,'prefix_exact':torch.equal(prefix,modified)},
++            'organizer_causality_check_called':False}
++
++
++def run(root):
++    torch.set_num_threads(1)
++    records=[]
++    states=[]
++    logits=[]
++    x=torch.randint(1,8192,(1,256),generator=torch.Generator().manual_seed(7))
++    for name in ('reference','default','off','on'):
++        request=json.loads((root/name/'request.json').read_text())
++        require(request['source_sha256']==EXPECTED_SOURCES[name],'EXPECTED_SOURCE')
++        checkpoint=json.loads((root/name/'checkpoint-identity.json').read_text())
++        path=Path(checkpoint['path'])
++        with path.open('rb') as stream:
++            require(hashlib.file_digest(stream,'sha256').hexdigest() == checkpoint['sha256'],'CHECKPOINT_SHA')
++        payload=torch.load(path,map_location='cpu',weights_only=True)
++        require(payload['model_config']['n_layer'] == 8 and payload['model_config']['n_embd'] == 1024,'FULL_CONFIG')
++        require(len(payload['model_state'])==65 and sum(t.numel() for t in payload['model_state'].values())==113256724,'FULL_CHECKPOINT_STATE')
++        if name!='on':
++            states.append(payload['model_state'])
++        source=root/name/'train.py'
++        require(hashlib.sha256(source.read_bytes()).hexdigest() == request['source_sha256'],'SOURCE_SHA')
++        spec=importlib.util.spec_from_file_location('checkpoint_'+name,source)
++        mod=importlib.util.module_from_spec(spec)
++        sys.modules[spec.name]=mod
++        spec.loader.exec_module(mod)
++        # New r2 qualification route has no source/dtype/global/forward override.
++        ordinary=mod.load_for_eval(str(path),torch.device('cpu'))
++        loaded=ordinary.state_dict()
++        require(loaded.keys()==payload['model_state'].keys(),'LOADED_STATE_KEYS')
++        for key,value in loaded.items():
++            require(tensor_record(value)==tensor_record(payload['model_state'][key]),'ORDINARY_LOADED_STATE:'+key)
++        qualification=verify_trained_model(ordinary,x,8192)
++        del loaded,ordinary
++        records.append({'name':name,'checkpoint_sha256':checkpoint['sha256'],
++                        'source_sha256':request['source_sha256'],'trained_model_qualification':qualification})
++        if name=='on':
++            del mod,payload
++            continue
++        # Retain the pre-existing comparison route; its BF16 CPU shim is explicit
++        # and never used by the separate ordinary-loader r2 qualification above.
++        mod.compute_dtype_for=lambda device:torch.bfloat16
++        model=mod.load_for_eval(str(path),torch.device('cpu'))
++        with torch.no_grad():
++            a,b=model(x),model(x)
++        require(torch.equal(a,b) and torch.isfinite(a).all(),'DETERMINISTIC_FINITE_LOGITS')
++        logits.append(a)
++        del model,mod,payload
++    require(all(states[0].keys() == state.keys() for state in states) and len(states[0]) == 65,'ALL65_STATE_KEYS')
++    require(sum(t.numel() for t in states[0].values()) == 113256724,'FULL_STATE_SIZE')
++    for state in states[1:]:
++        for key in states[0]:
++            a,b=states[0][key],state[key]
++            require(a.dtype == b.dtype and a.shape == b.shape and torch.equal(a.reshape(-1).view(torch.uint8),b.reshape(-1).view(torch.uint8)), 'STATE_BYTES:'+key)
++            require(torch.isfinite(a).all(),'FINITE_STATE:'+key)
++    require(all(torch.equal(logits[0],value) for value in logits[1:]),'RELOADED_B1_LOGITS_EXACT')
++    require([r['name'] for r in records]==['reference','default','off','on'],'ALL_FOUR_QUALIFIED')
++    return {'status':'FULL_PARAMETER_CPU_CHECKPOINT_AND_LOGIT_IDENTITY','states':65,'parameters':113256724,'logits_shape':list(logits[0].shape),'records':records,'torch':torch.__version__,'compute_dtype_shim':'CPU bfloat16 only for preserved three-arm comparison; new four-arm qualification unpatched','synthetic_input':[1,256],'native_correctness':False,'quality_evidence':False,'on_off_equivalence_claimed':False,'trained_model_causality_and_state_scope':'four ordinary CPU loaders,synthetic B1T256,not native or organizer data'}
++
++
++if __name__=='__main__':
++    print(json.dumps(run(Path(sys.argv[1])),indent=2,allow_nan=False))
+diff --git a/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/host_driver.py b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/host_driver.py
+new file mode 100644
+index 00000000..7aecffdb
+--- /dev/null
++++ b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/host_driver.py
+@@ -0,0 +1,154 @@
++"""Operator-only detached execution of the approved synthetic CPU G2 profile."""
++import datetime as dt
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import socket
++import subprocess
++import sys
++
++PAIR_ROOT = Path('/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2')
++ROOT = PAIR_ROOT
++REQUEST = None
++PREP = Path("/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1") / 'prepare.py'
++PINS = {"validate_receipts.py":"1de3f4730bb7b8cf71f5c70fe700a95f3d4a0738c9b4776391b0b65ef135b4ea","compare_checkpoints.py":"a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d","reference/request.json":"e477d0beb73bb912593447bab1f714ee6546ce5eef28cb70998bae225e20f268","default/request.json":"6d4254515d284ac30655f4cb050581d34bca8ba7c884baeddffa48b98d410b38","off/request.json":"e389ff5f25d3d0be87b35592e64e41cb3c3740c66143dfc69f8e98e5f54c9147","on/request.json":"28e39a93a8bea7ab43b4e0c854007f0722943fa030f42d0ba881bda99bd7d244"}
++VENV = '/home/ubuntu/workspace/native_venv'
++
++def utc():
++    return dt.datetime.now(dt.timezone.utc).isoformat()
++
++def require(value, message):
++    if not value:
++        raise RuntimeError(message)
++
++def sha(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++def record(name, value):
++    with (ROOT / name).open('x') as stream:
++        json.dump(value, stream, sort_keys=True, indent=2)
++        stream.write('\n')
++        stream.flush()
++        os.fsync(stream.fileno())
++
++def checks(authenticated_outer_pid):
++    require(os.getppid() == authenticated_outer_pid, 'AUTHENTICATED_PARENT_CHANGED')
++    require(socket.gethostname() == 'ip-172-31-32-253', 'HOSTNAME')
++    require(sha(Path(REQUEST['command'][REQUEST['command'].index('--train-py') + 1])) == REQUEST['source_sha256'], 'SOURCE_SHA')
++    require(sha(Path(REQUEST['command'][2])) == REQUEST['g2_tool_sha256'], 'G2_SHA')
++    require(sha(PREP) == REQUEST['prepare_sha256'], 'PREPARE_SHA')
++    bases = [Path('/home/ubuntu'), PREP.parent, ROOT, *[p for p in Path('/home/ubuntu').glob('trainium*') if p.is_dir()]]
++    for base in bases:
++        for name in ('STOP', 'research/agentic/STOP', 'research/v2/STOP'):
++            require(not os.path.lexists(base / name), 'STOP:' + str(base / name))
++    s = os.statvfs('/')
++    free = s.f_bavail * s.f_frsize
++    require(free >= 6.5 * 1024**3, 'DISK_FLOOR')
++    mem = int(next(line.split()[1] for line in Path('/proc/meminfo').read_text().splitlines()
++                   if line.startswith('MemAvailable:'))) * 1024
++    require(mem >= 64 * 1024**3, 'AVAILABLE_RAM_FLOOR')
++    active = []
++    for p in Path('/proc').glob('[0-9]*/cmdline'):
++        try:
++            if int(p.parent.name) in (os.getpid(), authenticated_outer_pid):
++                continue  # Only self and the exact parent authenticated by the shared guard.
++            names = [Path(t.decode(errors='replace')).name for t in p.read_bytes().split(b'\0') if t]
++            if any(x in names for x in ('train.py', 'torchrun', 'host_driver.py', 'submission_rehearsal.py',
++                                        'preflight_dryrun.py')) or ('prepare.py' in names and 'eval-public' in names):
++                active.append(int(p.parent.name))
++        except (OSError, ValueError):
++            pass
++    require(not active, 'OTHER_WORKLOAD:' + str(active))
++    devices = sorted(str(p) for p in Path('/dev').glob('neuron[0-9]*'))
++    require(devices, 'NO_NEURON_DEVICE')
++    holders = subprocess.run(['/usr/bin/fuser', *devices], capture_output=True, text=True)
++    require(holders.returncode == 1, 'NEURON_NOT_IDLE:' + holders.stdout)
++    return {'utc': utc(), 'free_disk_bytes': free, 'available_ram_bytes': mem,
++            'other_workloads': active, 'neuron_holders': [], 'source_sha256': REQUEST['source_sha256']}
++
++try:
++    require(sha(PAIR_ROOT / 'idle_guard.py') == 'adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737', 'IDLE_GUARD_SHA')
++    require(sha(PAIR_ROOT / 'dispatch_driver.py') == 'c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a', 'DISPATCH_SHA')
++    for relative, expected in PINS.items():
++        require(sha(PAIR_ROOT / relative) == expected, 'PACKET_SHA:' + relative)
++    spec = importlib.util.spec_from_file_location('bound_idle_guard', PAIR_ROOT / 'idle_guard.py')
++    guard = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(guard)
++    authenticated_outer_pid = os.getppid()
++    lock_fd = guard.require_idle_under_inherited_lock(
++        '/home/ubuntu/.cache/trainium_freshstart/device0.lock', PAIR_ROOT / 'host_driver.py', record)
++    for name in ('reference', 'default', 'off', 'on'):
++        ROOT = PAIR_ROOT / name
++        REQUEST = json.loads((ROOT / 'request.json').read_text())
++        lock_fd = guard.require_idle_under_inherited_lock(
++            '/home/ubuntu/.cache/trainium_freshstart/device0.lock', PAIR_ROOT / 'host_driver.py', record)
++        record('preflight.json', checks(authenticated_outer_pid))
++        env = {'HOME': '/home/ubuntu', 'PATH': VENV + '/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin',
++               'NKI_VENV_PATH': VENV, 'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1',
++               'OMP_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1',
++               'TMPDIR': str(ROOT / 'tmp'), 'NEURON_LOGICAL_NC_CONFIG': '2',
++               'NEURON_CC_FLAGS': '--optlevel=1 --auto-cast matmult --auto-cast-type bf16',
++               'NEURON_COMPETITION_R1_CACHE_DIR': '/home/ubuntu/.cache/neuron_competition_r1',
++               'NEURON_COMPETITION_R1_SEED': '42', 'NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS': '1800',
++               'TRN_EXP_LABEL': REQUEST['label']}
++        command = REQUEST['command']
++        record('launch.json', {'utc': utc(), 'label': REQUEST['label'], 'command': command,
++                               'environment': env, 'source_sha256': REQUEST['source_sha256'], 'cpu_only': True})
++        with (ROOT / 'g2.log').open('x') as log:
++            child = subprocess.Popen(command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
++                                     stdout=log, stderr=subprocess.STDOUT, pass_fds=(lock_fd,))
++            record('process.json', {'utc': utc(), 'pid': child.pid})
++            code = child.wait()
++        result = json.loads((ROOT / 'g2.json').read_text()) if (ROOT / 'g2.json').exists() else None
++        record('terminal.json', {'utc': utc(), 'exit_code': code, 'label': REQUEST['label'],
++                                 'cpu_only': True, 'verdict': result.get('verdict') if result else None,
++                                 'reason': result.get('reason') if result else 'MISSING_G2_RECEIPT',
++                                 'source_sha256': REQUEST['source_sha256']})
++        require(code == 0 and result and result.get('verdict') == 'PASS', 'G2_ARM_FAILED:' + name)
++        checkpoints = list((ROOT / 'tmp').glob('g2-*/out/final.pt'))
++        require(len(checkpoints) == 1, 'EXACTLY_ONE_RETAINED_CHECKPOINT')
++        checkpoint = checkpoints[0]
++        with checkpoint.open('rb') as stream:
++            checkpoint_sha = hashlib.file_digest(stream, 'sha256').hexdigest()
++        record('checkpoint-identity.json', {'path': str(checkpoint), 'bytes': checkpoint.stat().st_size,
++                                          'sha256': checkpoint_sha, 'scope': 'file bytes only; model-state comparison follows'})
++    ROOT = PAIR_ROOT
++    # Same original flock remains owned throughout all four arms and these bounded comparisons.
++    env['PYTHONPATH'] = str(PREP.parent)
++    comparisons = [
++        ('standard-compare-default', [VENV + '/bin/python', '-B', str(PAIR_ROOT / 'preflight_dryrun.py'),
++                             '--compare', str(PAIR_ROOT / 'reference/g2.json'), str(PAIR_ROOT / 'default/g2.json')]),
++        ('standard-compare-off', [VENV + '/bin/python', '-B', str(PAIR_ROOT / 'preflight_dryrun.py'),
++                             '--compare', str(PAIR_ROOT / 'reference/g2.json'), str(PAIR_ROOT / 'off/g2.json')]),
++        ('strict-receipts', ['/usr/bin/python3', '-I', '-B', str(PAIR_ROOT / 'validate_receipts.py'), str(PAIR_ROOT)]),
++        ('checkpoint-compare', ['/usr/bin/timeout', '--foreground', '--signal=TERM', '--kill-after=60s', '600s',
++                                VENV + '/bin/python', '-B', str(PAIR_ROOT / 'compare_checkpoints.py'), str(PAIR_ROOT)]),
++    ]
++    for phase, command in comparisons:
++        lock_fd = guard.require_idle_under_inherited_lock(
++            '/home/ubuntu/.cache/trainium_freshstart/device0.lock', PAIR_ROOT / 'host_driver.py',
++            lambda filename, value: record(phase + '-' + filename, value))
++        record(phase + '-preflight.json', checks(authenticated_outer_pid))
++        record(phase + '-launch.json', {'utc': utc(), 'command': command, 'environment': env, 'cpu_only': True})
++        with (ROOT / (phase + '.json')).open('x') as out, (ROOT / (phase + '.stderr')).open('x') as err:
++            code = subprocess.call(command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
++                                   stdout=out, stderr=err, pass_fds=(lock_fd,))
++        record(phase + '-exit.json', {'utc': utc(), 'exit_code': code})
++        require(code == 0, 'COMPARISON_FAILED:' + phase)
++        observed = json.loads((ROOT / (phase + '.json')).read_text())
++        if phase.startswith('standard-compare'):
++            require(observed['identical'] is True and observed['n_params_compared'] == 65, 'STANDARD_IDENTITY')
++        elif phase == 'strict-receipts':
++            require(observed['status'] == 'FULL_PARAMETER_CPU_RECEIPTS_MATCH', 'STRICT_RECEIPTS')
++        else:
++            require(observed['status'] == 'FULL_PARAMETER_CPU_CHECKPOINT_AND_LOGIT_IDENTITY', 'CHECKPOINT_IDENTITY')
++    record('terminal.json', {'utc': utc(), 'exit_code': 0, 'status': 'CPU_FOUR_ARMS_COMPLETE_PENDING_INDEPENDENT_REVIEW',
++                             'cpu_only': True, 'native_launch_authorized': False})
++except Exception as error:
++    ROOT = PAIR_ROOT
++    if not (ROOT / 'terminal.json').exists():
++        record('terminal.json', {'utc': utc(), 'exit_code': 1, 'cpu_only': True, 'error': str(error),
++                                'native_launch_authorized': False})
++    raise
+diff --git a/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/validate_receipts.py b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/validate_receipts.py
+new file mode 100644
+index 00000000..79b84b0b
+--- /dev/null
++++ b/research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/validate_receipts.py
+@@ -0,0 +1,46 @@
++"""Strict stdlib result checks, not a launcher or independent review."""
++import json
++import math
++from pathlib import Path
++import sys
++
++
++def require(ok, message):
++    if not ok:
++        raise RuntimeError(message)
++
++
++def validate(root):
++    identity = None
++    for name in ('reference', 'default', 'off', 'on'):
++        request = json.loads((root / name / 'request.json').read_text())
++        report = json.loads((root / name / 'g2.json').read_text())
++        terminal = json.loads((root / name / 'terminal.json').read_text())
++        require(terminal['exit_code'] == report['torchrun_rc'] == 0 and report['timed_out'] is False, 'EXIT_TIMEOUT')
++        require(terminal['verdict'] == report['verdict'] == 'PASS', 'VERDICT')
++        require(report['train_py_sha256'] == request['source_sha256'] and report['argv'] == request['argv'], 'SOURCE_ARGV')
++        require(report['prepare']['sha256'] == request['prepare_sha256'] and report['prepare']['stub'] is False, 'PREPARE')
++        require(report['nproc'] == 4 and report['steps'] == 3 and report['micro_batch'] == [2,256], 'SHAPE')
++        require(report['plan_sha256'] == 'df750f7f11b4b8dabc233cb476e486d0b6b997da2a1b32fe5af13142a394668a', 'FULL_PLAN')
++        ranks=sorted(report['ranks'], key=lambda r:r['rank'])
++        require([r['rank'] for r in ranks] == [0,1,2,3], 'RANKS')
++        for rank in ranks:
++            require(rank['status'] == 'PASS' and rank['n_params'] == rank['n_changed'] == 65, 'ALL65_UPDATED')
++            require(not rank['cross_rank_mismatches'] and not rank.get('unchanged_params'), 'RANK_CONSISTENCY')
++            require(sum(rank['plan_summary']['elements_by_owner']) == 113256724, 'FULL_PARAMETERS')
++            require(len(rank['losses']) == 3 and all(type(x) in (float,int) and math.isfinite(x) for x in rank['losses']), 'FINITE_LOSSES')
++        require(len(ranks[0]['final_digests']) == 65, 'ALL65_DIGESTS')
++        ck=ranks[0]['checkpoint_check']
++        require(ck['ok'] and ck['deterministic'] and ck['path_exists'] and ck['logits_shape'] == [1,256,8192], 'RELOAD')
++        current=([r['losses'] for r in ranks], ranks[0]['final_digests'], report['plan_sha256'])
++        if identity is None:
++            identity=current
++        if name != 'on':
++            require(identity == current, 'LOSSES_PARAMS_PLAN_IDENTITY')
++        saved=json.loads((root/name/'checkpoint-identity.json').read_text())
++        require(saved['bytes'] > 0 and len(saved['sha256']) == 64, 'CHECKPOINT_RECEIPT')
++    return {'status':'FULL_PARAMETER_CPU_RECEIPTS_MATCH','native_correctness':False,'all_parameter_digests':65,'all_rank_losses':12,'checkpoint_file_bytes_need_not_match':'Default/OFF add schedule toggle metadata; only reference/default/OFF tensors/logits must match. ON updates intentionally differ.'}
++
++
++if __name__ == '__main__':
++    print(json.dumps(validate(Path(sys.argv[1])), indent=2, allow_nan=False))

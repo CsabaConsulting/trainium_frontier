@@ -1,0 +1,123 @@
+{
+  "status": "IMPLEMENTER_TINY_HELPER_ONLY",
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "max_tensor_elements": 32,
+  "helper_sha256": "a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d",
+  "positive": {
+    "route": "ordinary_unpatched_cpu_load_for_eval",
+    "input": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.int64",
+      "sha256": "0524e559eaaeb1f9c8c886f84fcc15e4aa62af558bfe022341350255834a79b7",
+      "requires_grad": false
+    },
+    "outputs": [
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "5d55f5c7f1af521ed9c5df4d6c804d3e9899a07dd585138d891e6ebc7e1af5cf",
+        "requires_grad": false
+      },
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "5d55f5c7f1af521ed9c5df4d6c804d3e9899a07dd585138d891e6ebc7e1af5cf",
+        "requires_grad": false
+      },
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "e14b86ed3e985dac8c0ae792f75492aa93cbd7ac201245011948817626f9bcd1",
+        "requires_grad": false
+      }
+    ],
+    "repeated_bytes_equal": true,
+    "model_state_equal_after_each_call": true,
+    "named_parameters_and_all_buffers": {
+      "parameter:weight": {
+        "shape": [],
+        "dtype": "torch.float32",
+        "sha256": "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f",
+        "requires_grad": true
+      },
+      "buffer:counter": {
+        "shape": [],
+        "dtype": "torch.float32",
+        "sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "requires_grad": false
+      }
+    },
+    "state_tensor_count": 2,
+    "causality": {
+      "synthetic_only": true,
+      "cut": 4,
+      "prefix_stop": 3,
+      "max_abs_diff": 0.0,
+      "tolerance": 0.01,
+      "passed": true,
+      "prefix_exact": true
+    },
+    "organizer_causality_check_called": false
+  },
+  "negative_controls": [
+    {
+      "mode": "future",
+      "refused": "SYNTHETIC_PREFIX_CAUSALITY"
+    },
+    {
+      "mode": "alias_future",
+      "refused": "SYNTHETIC_PREFIX_CAUSALITY"
+    },
+    {
+      "mode": "parameter",
+      "refused": "MODEL_STATE_CHANGED"
+    },
+    {
+      "mode": "buffer",
+      "refused": "MODEL_STATE_CHANGED"
+    },
+    {
+      "mode": "input",
+      "refused": "INPUT_CHANGED"
+    },
+    {
+      "mode": "training",
+      "refused": "MODEL_MODE_CHANGED"
+    },
+    {
+      "mode": "nondeterministic",
+      "refused": "REPEATED_LOGITS_BYTES"
+    },
+    {
+      "mode": "nonfinite",
+      "refused": "NONFINITE_TENSOR"
+    },
+    {
+      "mode": "shape",
+      "refused": "OUTPUT_SHAPE"
+    },
+    {
+      "mode": "signed_zero",
+      "refused": "REPEATED_LOGITS_BYTES"
+    }
+  ],
+  "nonfinite_records_refused": 3,
+  "fullsize_or_native_executed": false,
+  "train_source_imported": false
+}

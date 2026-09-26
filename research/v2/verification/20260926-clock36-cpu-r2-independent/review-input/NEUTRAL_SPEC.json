@@ -1,0 +1,47 @@
+{
+  "scope": "Disabled CPU-only checkpoint verification extension; no source or G2 mutation; no native or launch authorization",
+  "original_packet_commit": "8f93ead3307557741e40b996eb863daf33b7089f",
+  "source_sha256": [
+    {
+      "name": "reference",
+      "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb"
+    },
+    {
+      "name": "default",
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea"
+    },
+    {
+      "name": "off",
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea"
+    },
+    {
+      "name": "on",
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea"
+    }
+  ],
+  "checkpoint_extension": {
+    "sources": [
+      "reference",
+      "default",
+      "off",
+      "on"
+    ],
+    "new_route": "Ordinary unpatched CPU load_for_eval, weights_only checkpoint; no dtype override on new checks.",
+    "input": "Deterministic synthetic B1T256 token ids, seed7, no real data.",
+    "checks": [
+      "Exact source/checkpoint pins and full113256724 parameters/65 model-state tensors",
+      "Unchanged input bytes,finite output shape",
+      "Strict byte repeated-output equality",
+      "Unchanged named parameter and all named buffer bytes after every forward",
+      "Synthetic suffix reverse from cut=max(2,T//2),prefix :cut-1,FP32maxabs<=1e-2 per pinned prepare formula; record exactness too"
+    ],
+    "existing_comparison": "Preserve reference/default/OFF model-state bytes and B1 BF16 loader-logit comparison. ON is not compared to OFF.",
+    "timeout_seconds": 600,
+    "term_grace_seconds": 60,
+    "quality_or_organizer_causality_claim": false
+  },
+  "raw_receipts": "../raw",
+  "full_cpu_results": null,
+  "causality_data": "fixed synthetic B1T256 only; unchanged prepare formula not organizer data or invocation",
+  "reviewer_must_establish": "fail-closed all-four coverage, source/checkpoint pins, ordinary unpatched loader, state/repeat/causal checks, preservation of old disclosed BF16 parity route"
+}
