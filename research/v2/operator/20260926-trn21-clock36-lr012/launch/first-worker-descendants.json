@@ -1,0 +1,105 @@
+{
+  "utc": "2026-09-26T02:39:21.111663+00:00",
+  "dispatch_pid": 3152603,
+  "processes": [
+    {
+      "line": "3152603       1 3152603 3152603 python3         /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/dispatch_driver.py",
+      "pid": 3152603,
+      "ppid": 1,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "python3",
+      "starttime_ticks": 93068822
+    },
+    {
+      "line": "3152604 3152603 3152603 3152603 flock           /usr/bin/flock -n /home/ubuntu/.cache/trainium_freshstart/device0.lock /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/host_driver.py",
+      "pid": 3152604,
+      "ppid": 3152603,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "flock",
+      "starttime_ticks": 93068824
+    },
+    {
+      "line": "3152605 3152604 3152603 3152603 python3         /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/host_driver.py",
+      "pid": 3152605,
+      "ppid": 3152604,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "python3",
+      "starttime_ticks": 93068824
+    },
+    {
+      "line": "3152621 3152605 3152603 3152603 timeout         /usr/bin/timeout --foreground --signal=TERM --kill-after=60s 2730s /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train --mode train",
+      "pid": 3152621,
+      "ppid": 3152605,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "timeout",
+      "starttime_ticks": 93068834
+    },
+    {
+      "line": "3152622 3152621 3152603 3152603 python          /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-clock36-lr012-trn21-r1-packet/train --mode train",
+      "pid": 3152622,
+      "ppid": 3152621,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "python",
+      "starttime_ticks": 93068834
+    },
+    {
+      "line": "3152637 3152622 3152603 3152603 pt_elastic      /home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "pid": 3152637,
+      "ppid": 3152622,
+      "pgid": 3152603,
+      "sid": 3152603,
+      "comm": "pt_elastic",
+      "starttime_ticks": 93069082
+    },
+    {
+      "line": "3152652 3152637 3152652 3152652 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "pid": 3152652,
+      "ppid": 3152637,
+      "pgid": 3152652,
+      "sid": 3152652,
+      "comm": "python3",
+      "starttime_ticks": 93069281
+    },
+    {
+      "line": "3152653 3152637 3152653 3152653 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "pid": 3152653,
+      "ppid": 3152637,
+      "pgid": 3152653,
+      "sid": 3152653,
+      "comm": "python3",
+      "starttime_ticks": 93069281
+    },
+    {
+      "line": "3152654 3152637 3152654 3152654 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "pid": 3152654,
+      "ppid": 3152637,
+      "pgid": 3152654,
+      "sid": 3152654,
+      "comm": "python3",
+      "starttime_ticks": 93069281
+    },
+    {
+      "line": "3152655 3152637 3152655 3152655 python3         /home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+      "pid": 3152655,
+      "ppid": 3152637,
+      "pgid": 3152655,
+      "sid": 3152655,
+      "comm": "python3",
+      "starttime_ticks": 93069281
+    }
+  ],
+  "ps_rc": 0,
+  "ps_stderr": "",
+  "neuron_ls_rc": 0,
+  "neuron_ls": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0329acb9a6244986b\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": [\n            {\n                \"pid\": 3152652,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3152653,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3152654,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3152655,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            }\n        ]\n    }\n]",
+  "neuron_ls_stderr": "",
+  "lock_device": 66305,
+  "lock_inode": 596823,
+  "lock_competitor_rc": 1,
+  "no_changes": true
+}
