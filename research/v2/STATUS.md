@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 09:47 IST
+
+Confirmed mean0.9883066129 unchanged. Recursive0.9880425233 and LR.012
+0.9880655477 are not adopted. trn21 anchored control is training (step310 at
+09:40:50); printed first step93.50s is encouraging but final startup/hit proof
+pending. trn22 corrected clean cold-five started09:44:22 with four native ranks;
+r1 folder-containment failure preserved. Actual fullCPU+ordinary helper accepted,
+cold/fullcold/fresh20M/Claude audit still pending. No upload-ready file.
+K2 portable component harness core is incomplete; smaller separately reviewed
+diagnostic proposal is in progress. One sole Operator; both launch bits consumed.
+
+
 ## Current — 26 September 09:26 IST
 
 Confirmed mean0.9883066129 unchanged. LR.012 scored0.9880655477, not enough to

@@ -1,5 +1,39 @@
 # Current state
 
+## 04:17 UTC / 09:47 IST: both hosts active; clean cold retry running
+
+Confirmed public20M/context1024 mean remains 0.9883066128526815. Completed
+Recursive-on36 scored 0.9880425232584465, only -0.000339628 versus the historical
+same-host base; not adopted (70-check audit ae2459be; selector INSUFFICIENT
+pending genuine prospective base36 controls). LR.012 also remains unadopted.
+
+trn21 actual anchored-source control launched 04:06:26.430809, source36,
+four ranks under original 66305:596823. At 04:10:50 step310, 264974 tok/s,
+finite loss3.4601. First five printed dt93.50/0.50/0.53/0.58/0.49; final
+uncapped startup still pending, no proven NEFF-hit claim. Full1800 and attached
+fresh20M remain protected. Raw94fe5ae6 boundary.
+
+Clean e1e2 CPU ordinary checkpoint helper is accepted: 188 fresh independent
+checks/root replay,65 full parameter records/30 paired outputs/causality and
+17 immutable inputs. Cold-r1 failed before torchrun on the unchanged harness
+containment assertion; all20 raw files and253-row quiescence accepted. Corrected
+r2 changed only root/label,77+45 mechanical checks normal/-O. Actual dispatch
+04:14:22.039431; four ranks3276195-3276198 observed04:14:41 under original832589,
+all six private caches initially absent and effective environment verified.
+Raw65b377e1/canonical07b7d7e2; original failure preserved. Both release bits
+consumed. Cold outcome, full cold replay/fresh20M and Claude-via-human audit
+remain pending; no upload-ready claim. Full-r2 packet preparation is local only.
+
+K2 full-shape portable oracle/fixture/artifact core3f6bf53b is incomplete and
+default REFUSE; no native invocation/speed proof. Separate Researcher is preparing
+an explicitly partial F0+F2 native diagnostic, preserving full qualification gates.
+Existing15min monitor remains active; stale inferred cleanup authorization removed
+to match latest AGENTS. No new launcher, deletion, AWS action or submission.
+Root initial inline audits assumed all captures complete and shared worker SID;
+both assumptions were rejected and corrected against raw schema. Workers have
+their own sessions and observed PPID links; raw evidence remains unchanged.
+
+
 ## 03:56 UTC / 09:26 IST: clean checkpoint test live; schedule stack scoring
 
 Confirmed public20M/context1024 mean remains0.9883066128526815. LR.012 final
