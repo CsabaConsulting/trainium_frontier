@@ -1,0 +1,76 @@
+{
+  "proposal_id": "20260926-k2-live-parent-control-timing",
+  "status": "source_cpu_pass_native_timing_conditionally_released",
+  "owner_role": "supervisor selecting human-directed K2",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "hypothesis": "Stable device metadata plus ordered NKI embedding backward improves complete eight-layer optimizer-step rate by at least 3% without changing the operation.",
+  "single_causal_change": "Exact e1e2 ordinary embedding backward versus verified default-OFF derivative63925519 with K2 explicitly ON. Same host/runtime/shape/seed; three-step OFF/source review already passed.",
+  "mechanism_class": "throughput",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown: a timing falsifier, not a BPB quality test.",
+  "selection_rationale": "Final Sprint P1; complete producer/WTE/VE7/autograd cost is included rather than a supplied-metadata component.",
+  "trainium_feasibility": "Full chip LNC2/four ranks, batch131072, pack32/context1024/width1024. Native stable argsort/searchsorted and dynamic-loop/indirect-DMA lowering remain unproved.",
+  "cheapest_falsifier": "Reuse preselected first45-boundary window of already-running true same-host e1e2 control; one freshcold K2 ON45 native test, no duplicate OFF45.",
+  "evidence": [
+    "research/v2/lanes/k2-final-sprint/SPEC.md",
+    "research/v2/lanes/k2-final-sprint/cpu-result.json"
+  ],
+  "control": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "run_label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+    "kind": "control",
+    "host": "trn22",
+    "public_val_bpb": null,
+    "training_budget_seconds": 1800,
+    "steps": "Whole full-budget run; only predetermined t9 through t44 used for timing",
+    "identity_evidence": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "must_not_relabel_quality_run_as_smoke": true
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-final-sprint/train.py",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-k2-sprint-on-parentcontrol-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "control_command_difference": "K2 ON source has audited default-OFF identity to e1e2; --num-steps45 only changes termination/remaining-steps logging. Both use1800-second LR/budget; boundary44 precedes different stop collective.",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false
+  },
+  "gates": {
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "independent_review": "PASS: research/v2/verification/20260926-k2-sprint-independent/REVIEW.md; independent25finite cases, lifetime, OFF3/ON3 and ordinary eval checks",
+    "native_timing": false,
+    "native_cold_startup": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(observed boundary t44 minus t9), current exact-parent control and ON45. Selected before either new steady timing is observed.",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "Both matching windows valid and finite; ON45 completes; actual cold startup/budget recorded; ON/parent-control rate>=1.03",
+    "quality_followup": "Only after timing PASS: separate fixed1800s full run, fresh20M/context1024, unchanged decide.py"
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "One diagnosed new-label repair/retry, then park; preserve real error; no review loops.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "verdict": null,
+  "amendment": "research/v2/assignments/20260926-k2-use-live-parent-control.md",
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "prospective_candidate_footprint_bytes": 3221225472,
+    "control_artifacts": "Already allocated and protected; accounted by actual free-space check. No hypothetical extra OFF job or deletion."
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "proposal_id": "20260926-k2-fp32-last-layer-tables-timing",
+  "status": "source_cpu_and_one_independent_review_pass_native_conditional",
+  "owner_role": "supervisor selecting human-directed K2",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "hypothesis": "Fixed last-layer bigram/trigram FP32 tables with ordered K2 backward can complete a legal full-budget eight-layer training run with useful final BPB; timing includes the full table cost.",
+  "single_causal_change": "Add only the fixed last-layer A1 table package with explicit FP32 masters/gradients/RMS and BF16 gathered activations to qualified K2 eight-layer base.",
+  "mechanism_class": "quality_and_throughput_tradeoff",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown: a timing falsifier, not a BPB quality test.",
+  "selection_rationale": "User-decided FP32 gradients on hashed rows; latest FINAL SPRINT tables next after qualified K2. No historical BF16 oracle.",
+  "trainium_feasibility": "Four ranks LNC2, batch131072/context1024/pack32. Tables524288x128 twice, layer7, extra1.5GiB state per rank and512MiB checkpoint before temporaries. Native dynamic row traversal/DMA/sort lowering unmeasured.",
+  "cheapest_falsifier": "One full-shape 45-step native table timing/cold startup check; finite/nonzero table updates, valid shape/correctness and official accounting. Tables need not themselves gain3% speed.",
+  "evidence": [
+    "research/v2/lanes/k2-last-layer-tables/SPEC.md",
+    "research/v2/lanes/k2-last-layer-tables/cpu-result.json",
+    "research/v2/lanes/k2-last-layer-tables/review/REVIEW.md",
+    "research/v2/lanes/k2-last-layer-tables/review/independent-result.json"
+  ],
+  "control": {
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "host": "Same host as table check when comparable K2 timing is available; otherwise retain limitations, not a new quality claim",
+    "run_label": null,
+    "native_qualified": false
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-last-layer-tables/train.py",
+    "source_sha256": "b4728d17d082b44018290d2f465b5956f99ecbebe61da8b81508365c7dc53190",
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-k2-fp32-tables-timing-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false
+  },
+  "gates": {
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "independent_review": "PASS_FOR_SHORT_NATIVE_CHECK c41e16d6, fresh diff/spec/receipts only, independently executed actual hash/kernel-interpreter/RMS reference",
+    "independent_review_limitations": "Not native or full-source hash execution; Supervisor verifies exact source SHA/diff binding. Crossshape diagnostic7.629e-6 retained, same-shape causality passed.",
+    "native_timing": false,
+    "native_cold_startup": false,
+    "k2_parent_valid_rate_ge_1_03": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(t44-t9), preselected before candidate run; use actual comparable K2 native control when available",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "45 finite steps, valid native execution, table gradients/updates, correct source/checkpoint and official budget; no minimum throughput gain for adding tables",
+    "quality_followup": "On K2 qualification and table native validity, separate full1800s run plus fresh20M/context1024. Judge finalBPB with unchangeddecide.py; report lost throughput/startup charge."
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "One diagnosed fresh-label repair/retry, then park; one review only unless a test fails",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "verdict": null,
+  "resource_admission": {
+    "fresh_measured_resources_required": true,
+    "existing_runtime_floor_bytes": 11274289152,
+    "minimum_initial_floor_bytes": 14495514624,
+    "additional_table_checkpoint_bytes": 536870912,
+    "note": "Operator must budget actual prospective checkpoint/cache footprint including FP32 tables, retain all current artifacts; increase reserve if needed, never lower existing floor."
+  }
+}

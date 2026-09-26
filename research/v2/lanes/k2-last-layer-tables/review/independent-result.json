@@ -1,0 +1,182 @@
+{
+  "status": "PASS_TINY_CPU_INDEPENDENT_CHECKS",
+  "input_sha256": {
+    "SPEC.md": "b5547916655fe0b5643cf51069e3e4ecd6f0c648f715ea356ad832c2761e5a3e",
+    "parent.diff": "7b5bff632a616b84ae94f3d9fe17b1b5fc88802485bfdab1728300b9d8e3afea",
+    "cpu-result.json": "4d50830392a7735298e08438542736a191f01ca0d4cc795a08f0c7432bbf11a1"
+  },
+  "python": "/home/poojith-devan/venv/bin/python",
+  "torch": "2.13.0+cpu",
+  "numpy": "2.5.1",
+  "hash_production_helper": {
+    "cases": [
+      {
+        "shape": [
+          3,
+          1
+        ],
+        "exact": true
+      },
+      {
+        "shape": [
+          3,
+          2
+        ],
+        "exact": true
+      },
+      {
+        "shape": [
+          3,
+          3
+        ],
+        "exact": true
+      },
+      {
+        "shape": [
+          3,
+          4
+        ],
+        "exact": true
+      },
+      {
+        "shape": [
+          3,
+          17
+        ],
+        "exact": true
+      },
+      {
+        "shape": [
+          3,
+          97
+        ],
+        "exact": true
+      }
+    ],
+    "int32_boundary_case_exact": true,
+    "same_shape_prefix_and_batch_independence_exact": true
+  },
+  "consumer": {
+    "geometry_ast_edits_only": [
+      {
+        "names": [
+          "vocab",
+          "tokens",
+          "channels"
+        ],
+        "values": [
+          16,
+          8,
+          4
+        ]
+      },
+      {
+        "names": [
+          "partition",
+          "features",
+          "groups"
+        ],
+        "values": [
+          4,
+          2,
+          4
+        ]
+      }
+    ],
+    "cases": [
+      {
+        "case": "historical_bf16_cancellation",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          0.0078125,
+          -0.0078125,
+          0.0078125,
+          -0.0078125
+        ]
+      },
+      {
+        "case": "fp32_order_loses_unit",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "case": "fp32_order_keeps_unit",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          2.0,
+          -2.0,
+          2.0,
+          -2.0
+        ]
+      },
+      {
+        "case": "positive_bf16_subnormal",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          1.8367099231598242e-40,
+          -1.8367099231598242e-40,
+          1.8367099231598242e-40,
+          -1.8367099231598242e-40
+        ]
+      },
+      {
+        "case": "negative_bf16_subnormal",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          -1.8367099231598242e-40,
+          1.8367099231598242e-40,
+          -1.8367099231598242e-40,
+          1.8367099231598242e-40
+        ]
+      },
+      {
+        "case": "normal_cancellation",
+        "two_microsteps_bit_exact_to_torch": true,
+        "row1_gradient": [
+          0.00390625,
+          -0.00390625,
+          0.00390625,
+          -0.00390625
+        ]
+      }
+    ],
+    "nonzero_rows_in_multiple_runtime_groups_exact": true,
+    "output_elements_written_exactly_once_per_call": [
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64,
+      64
+    ]
+  },
+  "rms_independent_recurrence": {
+    "steps": 3,
+    "max_abs_errors": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "atol": 1e-07,
+    "rtol": 1e-06
+  },
+  "limitations": [
+    "Tiny Python interpreter only: not NKI simulation, compilation, or native execution.",
+    "Interpreter assumes AP indirect row replacement and DMA BF16-to-FP32 semantics; native support unproved.",
+    "Metadata is an independent tiny Torch producer, not the unavailable unchanged K2 producer.",
+    "No full model, optimizer ownership, collective, checkpoint or throughput execution.",
+    "No full candidate source available: advertised train.py SHA cannot be independently recomputed."
+  ]
+}
