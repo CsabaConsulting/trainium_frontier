@@ -1,0 +1,58 @@
+{
+  "scope": "LOCAL_READ_ONLY_EXISTING_HARNESS_AND_TERMINAL_RECEIPTS",
+  "harness": {
+    "path": "/home/poojith-devan/clean-fullcold-review-DrcoWi/submission_rehearsal.py",
+    "sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+    "bytes": 5878,
+    "source_text": "#!/usr/bin/env python3\n\"\"\"Run a submission in a directory containing only train.py and prepare.py.\n\nThe training command is parsed from the actual launch-command.txt, never\nreconstructed through run_experiment.py. Only the output directory and step-log\npath are injected using the organizer's documented environment variables.\n\"\"\"\nimport argparse\nimport hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport shlex\nimport shutil\nimport subprocess\nimport sys\nimport time\n\n\ndef sha(path):\n    with path.open(\"rb\") as stream:\n        return hashlib.file_digest(stream, \"sha256\").hexdigest()\n\n\ndef main():\n    ap = argparse.ArgumentParser(description=__doc__)\n    ap.add_argument(\"--package\", type=Path, required=True)\n    ap.add_argument(\"--sandbox\", type=Path, required=True)\n    ap.add_argument(\"--mode\", choices=(\"train\", \"eval\", \"check\"), required=True)\n    ap.add_argument(\"--checkpoint\", type=Path)\n    ap.add_argument(\"--eval-tokens\", type=int, default=20971520)\n    ap.add_argument(\"--fresh-caches\", action=\"store_true\",\n                    help=\"Use empty, job-owned native SDK cache directories; keep shared caches intact\")\n    args = ap.parse_args()\n    root = Path(__file__).resolve().parents[2]\n    package = args.package.resolve()\n    sandbox = args.sandbox.resolve()\n    assert sandbox.is_relative_to(root / \"out\")\n    sandbox.mkdir(exist_ok=False, parents=True)\n    manifest = json.loads((package / \"provenance.json\").read_text())\n    assert sha(package / \"train.py\") == manifest[\"train_sha256\"]\n    for src in (package / \"train.py\", root / \"prepare.py\"):\n        shutil.copy2(src, sandbox / src.name)\n        assert sha(src) == sha(sandbox / src.name)\n    env = os.environ.copy()\n    env.pop(\"PYTHONPATH\", None)\n    caches = {}\n    if args.fresh_caches:\n        for key, directory in (\n            (\"TORCH_NEURONX_NEFF_CACHE_DIR\", \"neff\"),\n            (\"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\", \"local\"),\n            (\"TORCH_NEURONX_HLO_CACHE_DIR\", \"hlo\"),\n            (\"TORCHINDUCTOR_CACHE_DIR\", \"inductor\"),\n            (\"NEURON_COMPILE_CACHE_DIR\", \"compiler\"),\n            (\"TORCH_NEURONX_DEBUG_DIR\", \"debug\"),\n        ):\n            cache = sandbox / \"caches\" / directory\n            cache.mkdir(parents=True, exist_ok=False)\n            assert not list(cache.iterdir())\n            env[key] = str(cache)\n            caches[key] = str(cache)\n    launch = (package / \"launch-command.txt\").read_text().strip()\n    assert launch == manifest[\"launch_command\"]\n    print(\"ISOLATED_SUBMISSION \" + json.dumps(dict(\n        mode=args.mode, sandbox=str(sandbox), files=sorted(p.name for p in sandbox.iterdir()),\n        train_sha256=sha(sandbox / \"train.py\"), prepare_sha256=sha(sandbox / \"prepare.py\"),\n        launch_command=launch, fresh_empty_sdk_caches=caches)), flush=True)\n    subprocess.run([sys.executable, \"prepare.py\", \"check\", \"--train-py\", \"train.py\",\n                    \"--launch-command\", launch], cwd=sandbox, env=env, check=True)\n    if args.mode == \"check\":\n        return\n    if args.mode == \"eval\":\n        assert args.checkpoint is not None and args.checkpoint.is_file()\n        env[\"NEURON_CC_FLAGS\"] = \"--optlevel=1\"\n        command = [sys.executable, \"prepare.py\", \"eval-public\", \"--train-py\", \"train.py\",\n                   \"--checkpoint\", str(args.checkpoint.resolve()), \"--device\", \"neuron\",\n                   \"--batch-size\", \"1\", \"--seq-len\", \"1024\", \"--eval-tokens\", str(args.eval_tokens),\n                   \"--timeout-seconds\", \"1200\"]\n    else:\n        command = shlex.split(launch)\n        while command and \"=\" in command[0] and not command[0].startswith(\"-\"):\n            key, value = command.pop(0).split(\"=\", 1)\n            env[key] = value\n        env[\"NEURON_COMPETITION_R1_OUT_DIR\"] = str(sandbox / \"out\")\n        env[\"NEURON_COMPETITION_R1_STEP_LOG\"] = str(sandbox / \"steps.jsonl\")\n    print(\"REHEARSAL_COMMAND \" + json.dumps(command), flush=True)\n    started = time.monotonic()\n    process = subprocess.Popen(command, cwd=sandbox, env=env)\n    observed = []\n    step_log = sandbox / \"steps.jsonl\"\n    while process.poll() is None:\n        if args.mode == \"train\" and step_log.exists():\n            steps = step_log.read_text().splitlines()\n            while len(observed) < len(steps):\n                observed.append(dict(step=int(steps[len(observed)]),\n                                     observed_seconds=time.monotonic() - started))\n        time.sleep(.05)\n    result = dict(returncode=process.returncode, wall_seconds=time.monotonic() - started,\n                  step_boundaries=len(observed), mode=args.mode, fresh_empty_sdk_caches=caches)\n    if args.mode == \"train\" and process.returncode == 0:\n        assert len(observed) >= 5, \"five official startup boundaries were not observed\"\n        checkpoint = sandbox / \"out/final.pt\"\n        assert checkpoint.is_file()\n        # The final checkpoint must exist by the deadline, independently of the\n        # trainer's self-reported time. Process exit is a conservative upper bound.\n        allowance = min(observed[4][\"observed_seconds\"], 900.0)\n        result.update(startup_allowance_observed=allowance,\n                      charged_through_process_exit=result[\"wall_seconds\"] - allowance,\n                      checkpoint_bytes=checkpoint.stat().st_size,\n                      checkpoint_sha256=sha(checkpoint), observations=observed)\n        result[\"charged_through_process_exit_within_budget\"] = result[\"charged_through_process_exit\"] <= 1800\n    (sandbox / \"rehearsal.json\").write_text(json.dumps(result, indent=2) + \"\\n\")\n    print(\"SUBMISSION_REHEARSAL \" + json.dumps({k: v for k, v in result.items() if k != \"observations\"}), flush=True)\n    if process.returncode:\n        raise SystemExit(process.returncode)\n    if args.mode == \"train\":\n        assert result[\"charged_through_process_exit_within_budget\"], result\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  },
+  "historical_receipts": [
+    {
+      "path": "/home/poojith-devan/Desktop/Trainium-trn22-queue-operator/research/v2/operator/20260926-trn21-batch262144-timing/completed/train/rehearsal.json",
+      "sha256": "0fd7d8cf1176df31be69691099c7a52cf43803705e65480b58b346c69dd2e251",
+      "returncode": 0,
+      "boundary_count": 105,
+      "observation_count": 105,
+      "step9": {
+        "step": 9,
+        "observed_seconds": 799.5914532509632
+      },
+      "step44": {
+        "step": 44,
+        "observed_seconds": 832.1402450909372
+      },
+      "step44_minus_step9_seconds": 32.548791839974,
+      "last_observation": {
+        "step": 104,
+        "observed_seconds": 888.0561839649454
+      }
+    },
+    {
+      "path": "/home/poojith-devan/Desktop/Trainium-trn22-queue-operator/research/v2/operator/20260926-trn22-arch3e79-full/completed-training/train/rehearsal.json",
+      "sha256": "4c55d387c5ecddd8cc2eba88e4a63600f9ac294644151be4079c27b059d1f653",
+      "returncode": 0,
+      "boundary_count": 3629,
+      "observation_count": 3629,
+      "step9": {
+        "step": 9,
+        "observed_seconds": 817.140120371012
+      },
+      "step44": {
+        "step": 44,
+        "observed_seconds": 834.300800987985
+      },
+      "step44_minus_step9_seconds": 17.160680616972968,
+      "last_observation": {
+        "step": 3628,
+        "observed_seconds": 2599.406864439021
+      }
+    }
+  ],
+  "result": "ALL_OBSERVED_BOUNDARY_TIMES_PERSIST_ON_SUCCESSFUL_TRAIN_TERMINAL",
+  "poll_seconds": 0.05,
+  "live_steps_file_has_indices_only": true,
+  "k2_metric_supported_unchanged": "35 * 131072 / (observations[44].observed_seconds - observations[9].observed_seconds)",
+  "new_observer_needed": false,
+  "harness_modified": false,
+  "host_calls": 0
+}
