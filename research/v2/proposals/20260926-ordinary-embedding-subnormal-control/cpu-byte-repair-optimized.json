@@ -1,0 +1,89 @@
+{
+  "status": "SELF_CHECK_PASS",
+  "torch": "2.13.0+cpu",
+  "native": false,
+  "cpu_route_alias": "both receipt names use CPU eager; no compiled claim",
+  "tests": [
+    "cpu_ordinary_eight_routes",
+    "integer_original_pins",
+    "consistent_empty_weight_forward",
+    "zero_gradient",
+    "stale_positive_on_negative",
+    "wrong_route",
+    "wrong_rank",
+    "wrong_case",
+    "input_mutation",
+    "missing_gradient",
+    "missing_route",
+    "cleanup_error",
+    "false_exact",
+    "wrong_blob",
+    "boolean_exit",
+    "boolean_error_metric",
+    "missing_input_bytes",
+    "zero_bytes",
+    "truncated_bytes",
+    "overlong_bytes",
+    "truncated_int32",
+    "wrong_dtype",
+    "wrong_dtype_type",
+    "bool_dimension",
+    "float_dimension",
+    "negative_dimension",
+    "zero_dimension",
+    "string_dimension",
+    "empty_shape",
+    "signed_zero_rejected",
+    "nan_json_safe",
+    "all_nan_tags_bounded_full_bytes_retained",
+    "default_disabled"
+  ],
+  "fixture_pins": {
+    "ids": "bdc67a401900ee3bbd1e23ce38227311ef06dfd415ef25311138f1379648567e",
+    "tangent": "8e79a64b9db2dd89e7bac15c068285a6aafb12db7dcd6f208bb683e3d08cf78d",
+    "gradient": "402743e587f15111ef1d3b927df591942db4bd96038726e4edc134a622e44085"
+  },
+  "receipt_bytes": 1612156,
+  "routes": [
+    {
+      "case": "sentinel",
+      "route": "ordinary_eager",
+      "status": "EXACT"
+    },
+    {
+      "case": "sentinel",
+      "route": "ordinary_compiled",
+      "status": "EXACT"
+    },
+    {
+      "case": "subnormal",
+      "route": "ordinary_eager",
+      "status": "EXACT"
+    },
+    {
+      "case": "subnormal",
+      "route": "ordinary_compiled",
+      "status": "EXACT"
+    },
+    {
+      "case": "normal",
+      "route": "ordinary_eager",
+      "status": "EXACT"
+    },
+    {
+      "case": "normal",
+      "route": "ordinary_compiled",
+      "status": "EXACT"
+    },
+    {
+      "case": "negated",
+      "route": "ordinary_eager",
+      "status": "EXACT"
+    },
+    {
+      "case": "negated",
+      "route": "ordinary_compiled",
+      "status": "EXACT"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 """Implementer self-checks only, not independent review or native evidence."""
 import copy
+import base64
 import json
 import struct
 import subprocess
@@ -27,7 +28,19 @@ def main():
                 route, case, weight, p.fixture(case), torch.device('cpu'), lambda:None, receipt['blobs']))
     p.validate_receipt(receipt,0)
     tests = ['cpu_ordinary_eight_routes', 'integer_original_pins']
+    def empty_weight_forward(r):
+        # Reconstruct the independently reported all-consistent empty-payload forgery.
+        empty = dict(sha256=p.sha(b''), nbytes=0, dtype='torch.float32', shape=[p.V,p.C],
+                     nonzero=0, finite=True, negative_zero=0, nonfinite_count=0, nonfinite=[])
+        r['blobs'][empty['sha256']] = base64.b64encode(b'').decode()
+        r['weight'] = copy.deepcopy(empty)
+        for route in r['routes']:
+            for phase in ('expected_inputs','before_forward','before_backward','after_backward'):
+                route[phase]['weight'] = copy.deepcopy(empty)
+            route['expected_output'] = copy.deepcopy(empty)
+            route['output'] = dict(exact=True,max_abs=0.0,actual=copy.deepcopy(empty),expected=copy.deepcopy(empty))
     mutations = {
+        'consistent_empty_weight_forward': empty_weight_forward,
         'zero_gradient': lambda r:r['routes'][2]['gradient'].update(actual=p.blob(bytes(p.V*p.C*4),'torch.float32',(p.V,p.C),r['blobs'])),
         'stale_positive_on_negative': lambda r:r['routes'][6].update(gradient=r['routes'][2]['gradient']),
         'wrong_route': lambda r:r['routes'][0].update(route='invalid'),
@@ -52,6 +65,29 @@ def main():
             tests.append(name)
         else:
             raise RuntimeError('NEGATIVE_ACCEPTED:'+name)
+    invalid_blobs = [
+        ('zero_bytes',b'', 'torch.float32',(p.V,p.C)),
+        ('truncated_bytes',bytes(p.V*p.C*4-4), 'torch.float32',(p.V,p.C)),
+        ('overlong_bytes',bytes(p.V*p.C*4+4), 'torch.float32',(p.V,p.C)),
+        ('truncated_int32',bytes(4*p.T-1), 'torch.int32',(p.T,)),
+        ('wrong_dtype',bytes(4), 'torch.float64',(1,)),
+        ('wrong_dtype_type',bytes(4), None,(1,)),
+        ('bool_dimension',bytes(4), 'torch.float32',(True,)),
+        ('float_dimension',bytes(4), 'torch.float32',(1.0,)),
+        ('negative_dimension',b'', 'torch.float32',(-1,)),
+        ('zero_dimension',b'', 'torch.float32',(0,)),
+        ('string_dimension',bytes(4), 'torch.float32',('1',)),
+        ('empty_shape',bytes(4), 'torch.float32',()),
+    ]
+    for name,raw,dtype,shape in invalid_blobs:
+        untouched = {}
+        try:
+            p.blob(raw,dtype,shape,untouched)
+        except ValueError:
+            p.require(not untouched,'REJECT_BEFORE_RECORDING')
+            tests.append(name)
+        else:
+            raise RuntimeError('INVALID_BLOB_ACCEPTED:'+name)
     z = p.blob(b'\0'*4,'torch.float32',(1,),{})
     blobs = {}
     negative_zero = p.blob(struct.pack('<I',0x80000000),'torch.float32',(1,),blobs)

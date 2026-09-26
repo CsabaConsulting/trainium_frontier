@@ -71,6 +71,15 @@ def fixture(case):
 
 
 def blob(raw, dtype, shape, blobs):
+    require(type(raw) is bytes, 'RAW_BYTES_TYPE')
+    require(type(dtype) is str and dtype in ('torch.float32', 'torch.int32'), 'UNSUPPORTED_DTYPE')
+    require(isinstance(shape, (list, tuple)) and len(shape) > 0, 'SHAPE_CONTAINER')
+    elements = 1
+    for dimension in shape:
+        # Every tensor in this fixed diagnostic is nonempty; bool is not an extent.
+        require(type(dimension) is int and dimension > 0, 'POSITIVE_INTEGER_DIMENSION')
+        elements *= dimension
+    require(len(raw) == 4 * elements, 'RAW_BYTE_COUNT')
     digest = sha(raw)
     blobs.setdefault(digest, base64.b64encode(raw).decode('ascii'))
     result = dict(sha256=digest, nbytes=len(raw), dtype=dtype, shape=list(shape))
