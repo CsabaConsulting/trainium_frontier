@@ -1,0 +1,167 @@
+{
+  "schema": "completed-followup-proposal-v1",
+  "proposal_id": "20260926-clock36-recursive-full-trn22",
+  "status": "COMPLETED_PENDING_ACTUAL_CHILD_COLD_ACCEPTANCE_AND_PACKET",
+  "owner_role": "Supervisor scheduling specification derived from independently researched source-port proposal; distinct Operator; no scientific code edit",
+  "prepared_utc": "2026-09-26T02:42:00Z",
+  "label": "fs-20260926-clock36-recursive-trn22-r1-full",
+  "arm_id": "clock36-recursive",
+  "kind": "schedule_arm",
+  "host": "trn22",
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "submission_authorized": false,
+  "hypothesis": "The already independently reviewed Recursive optimizer schedule on the adopted startup-adjusted8x1024 base may improve fixed1800 fresh public20M. The combined source has no quality result yet.",
+  "single_causal_change": "Exact confirmed36 plus its separately implemented Recursive schedule package, source44926a6f/SHA4bfaec; enable --recursive-schedule. Relative to the child cold diagnostic only its existing --num-steps limit changes5 to1000000. No additional LR, architecture, timing-accounting, kernels, data or evaluation change.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "selection_rationale": "Human architecture-plus-schedule follow-up and current ALL IN lane S. Prepare the next packet while child cold compiles, do not wait until hardware is idle. This is not permission to bypass cold<=900.",
+  "candidate_shortlist": [
+    {
+      "idea": "Exact confirmed36+Recursive package",
+      "why_ranked": "Explicit approved architecture follow-up; actual independent source/fullCPU completed, child cold pending."
+    },
+    {
+      "idea": "Reuse older75b9 result as child",
+      "why_ranked": "Rejected: old source lacks startup-clock adjustment; old DISCARD retained."
+    }
+  ],
+  "source_commit": "44926a6f35b7c221bb6cb6652eda3c77e9f10efd",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+  "base_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "argv": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out",
+    "--unet-8x1024",
+    "--attention-layers",
+    "0,2,4,6,7",
+    "--initial-cache-refresh",
+    "--startup-adjusted-schedule",
+    "--recursive-schedule"
+  ],
+  "candidate": {
+    "run_label": "fs-20260926-clock36-recursive-trn22-r1-full",
+    "files_allowed": [],
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule --recursive-schedule",
+    "expected_diff": "No science source edit. Exact frozen candidate4bfaec.",
+    "scope": "Research only, inside proven detached full/attached-eval driver after separate frozen packet and assignment."
+  },
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "run_label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
+    "public_val_bpb": 0.9883821509811542,
+    "steps": 3630,
+    "host": "trn22",
+    "seed": 42,
+    "role": "Predeclared same-host scientific parent comparator; historical kind architecture_startup_clock_arm/base6ef7 preserved, NOT formal base36 control",
+    "formal_control_eligible": false
+  },
+  "exact_gate_evidence": {
+    "source_review": "84448aa2",
+    "tiny_six_step": "9e2aa295/dba67de6",
+    "full_four_arm_g2": "4b19365b/98ab77cd; original CPU-shim G2 and strict default/OFF evidence accepted; original checkpoint helper FAILED_PRESERVED",
+    "corrected_checkpoint": "0e1610ca/e07b23fd plus independent/root acceptance dc74e0eb;192 own assertions; no native claim",
+    "child_cold_label": "fs-20260926-ct-clock36-recursive-cold-trn22-r1",
+    "child_cold_status": "ACTUALLY STARTED02:40:58UTC according sole Operator; complete raw outcome NOT YET accepted",
+    "hard_full_prerequisite": "Measured uncapped fifth<=900s, target870; four clean workers, finite steps0..4, checkpoint, fresh-six-cache receipts, official accounting and explicit terminal/descendant/device/original-lock proof. Otherwise park full."
+  },
+  "environment": {
+    "policy": "Use exact proven trn22 full driver environment and existing eval cache; training may reuse this candidate's successfully qualified cold cache without deletion. Rebind only unique label/output/metrics, frozen candidate SHA, child cold cache roots and existing Recursive argv. Do not infer cache hits or cold-full equivalence.",
+    "parent_binding": "research/v2/proposals/20260926-startup-adjusted-full-trn22/NATIVE_BINDING.disabled.json",
+    "parent_driver_commit": "1d2f1e97775df2073e347b12f326b84bed9c460b",
+    "parent_driver_sha256": "27b4ac4ac93b7487a57b1a3b2d20c08152342d258cc84a276d65244fcc6c3067",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "seq_len": 1024,
+    "batch_size": 1,
+    "device": "neuron",
+    "prepare_unchanged": true,
+    "same_lifetime_lock": true,
+    "new_guard_before_eval": true
+  },
+  "budgets": {
+    "source_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "train_outer_seconds": 2730,
+    "eval_outer_seconds": 1800,
+    "kill_grace_seconds": 60,
+    "accounting": "Unchanged official observer, uncapped startup recorded, through-exit charge<=1800; over_budget false. Watchdogs are not extra training allowance."
+  },
+  "expected_host_hours_upper_bound": 1.292,
+  "gates": {
+    "rules_review": "Unchanged from source proposal",
+    "diff_review": "84448aa2",
+    "cpu_or_static_checks": "dc74e0eb accepts scoped exact113M G2+corrected trainedcheckpoint qualification; CPU shim/native distinction preserved",
+    "numerical_equivalence": "Default/OFF exact evidence; ON intentionally changes schedule",
+    "causality": "Synthetic ordinary checkpointloader CPU prefix exact; no organizer evaluator edits",
+    "cold_native": "PENDING",
+    "packet": "NOT_BUILT",
+    "human_run_approval": "Standing research authorization; separate scoped Supervisor release still required"
+  },
+  "success_criteria": {
+    "quality": "Final public20M at fixed1800. Report raw candidate minus0.9883821509811542 as declared scientific delta; unchanged decide.py remains INSUFFICIENT until genuine prospective kind=control/base36 row exists. No relabeling. Then standard BPB thresholds/replication, no step-window gate.",
+    "throughput": "Report actual startup/chargedseconds/steps/steady tok_s; below60% control steps is diagnostic alarm notqualityveto.",
+    "correctness": "Exact file/argv, finite loss/checkpoint/logits, successful four-rank training and fresh20M, checkpoint unchanged aftereval, legal accounting, fullpostflight."
+  },
+  "preflight": [
+    "Preserve current jobs. Cold diagnostic must be terminal, accepted and explicitly quiescent before full release.",
+    "Unique absent root, exact host ip-172-31-32-253, clean science pins, prepare5807c46e/harness7a55cb87/sharedguardadafb54a/dispatchc71474bc.",
+    "Sole Operator original66305:832589 common lifetimeflock, fresh ps AND neuron-ls, fuser, STOP/breaker, retiredqueueabsent, disk>=10.5GiB plus actualfootprint.",
+    "Normal bound Python (not -O), exact full driver reused without new flow; one full and attachedeval under same lock."
+  ],
+  "abort_conditions": [
+    "Unaccepted/failed/over900 cold: nofull.",
+    "Pin/host/cache/disk/idle/lock/STOP or breaker failure: donotlaunch.",
+    "Crash/nonfinite/overbudget/missingcheckpoint: preservefailure, noevaluation/adoption retry automatically.",
+    "Missingmodified/ambiguous raw/eval/postflight: HOLD, no successor."
+  ],
+  "postflight": "Archive complete source/command/env/box/log/steps/startup/charge/exit/checkpointhashes/fresh20M and explicit observedPID/starttime/PPID/PGID/SID/descendant/compiler/device/originallock absence. Posteval rehash. Independent acceptance before resultuse. No automaticnext/adoption/submission.",
+  "prior_result_refs": [
+    "research/v2/proposals/20260926-clock36-recursive-source-port/EXPERIMENT_PROPOSAL.json",
+    "research/v2/adoptions/20260926-clock36-confirmed.json",
+    "research/v2/verification/20260926-clock36-r3-result-independent/",
+    "research/v2/verification/20260926-clock36-recursive-cold-trn22-assignment.md"
+  ],
+  "duplicate_search_terms": [
+    "clock36-recursive",
+    "4bfaec",
+    "75b9"
+  ],
+  "duplicates": "Earlier75b9 is a different-clock discarded arm; current4bfaec has CPU/cold work only, no known fullquality result at proposal snapshot.",
+  "human_approved_by": "Standing development authority and explicit architecture-plus-schedule directive; no submission authority",
+  "verdict": null
+}
+
