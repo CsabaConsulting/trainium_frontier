@@ -1,0 +1,604 @@
+Source/command/ordinary-loader/scope and 420 clock cases PASS
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+{"case": "scored_reference_long_configuration", "passed": true, "model_config": {"sequence_len": 1024, "vocab_size": 8192, "n_layer": 8, "n_head": 8, "n_embd": 1024, "mlp_ratio": 4, "attn_scale": 0.0, "n_kv_heads": 0}, "seed": 42, "matrix_lr": 0.015, "budget": 1800}
+{"case": "candidate_long_configuration", "passed": true, "model_config": {"sequence_len": 1024, "vocab_size": 8192, "n_layer": 8, "n_head": 8, "n_embd": 1024, "mlp_ratio": 4, "attn_scale": 0.0, "n_kv_heads": 0}, "seed": 42, "matrix_lr": 0.015, "budget": 1800}
+{"case": "full_parameter_count_static", "passed": true, "components": {"token_embedding": 8388608, "lm_head": 8388608, "value_embedding": 8388608, "attention": 20971520, "mlp": 67108864, "local_conv": 10240, "ve_gate": 256, "residual_scalars": 16, "unet_scalars": 4}, "total": 113256724}
+muon step: COMPILED body for (1, 1, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (20, 128, 128) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (8, 128, 512) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 3]
+muon step: COMPILED body for (8, 512, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 4]
+{"case": "scored_reference_step0_memory", "passed": true, "retained_tensor_bytes": 31997272, "conservative_workspace_bytes": 20971520}
+{"case": "scored_reference_step1_memory", "passed": true, "retained_tensor_bytes": 31997272, "conservative_workspace_bytes": 20971520}
+{"case": "scored_reference_step2_memory", "passed": true, "retained_tensor_bytes": 31997272, "conservative_workspace_bytes": 20971520}
+{"case": "scored_reference_eval_float32_t1_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 1, 128], [1, 1, 128]]}
+{"case": "scored_reference_eval_float32_t1_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t1_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t7_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 7, 128], [1, 7, 128]]}
+{"case": "scored_reference_eval_float32_t7_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t7_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 3, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t16_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 16, 128], [1, 16, 128]]}
+{"case": "scored_reference_eval_float32_t16_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t16_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 8, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t31_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 31, 128], [1, 31, 128]]}
+{"case": "scored_reference_eval_float32_t31_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t31_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 15, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t32_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 32, 128], [1, 32, 128]]}
+{"case": "scored_reference_eval_float32_t32_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_float32_t32_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t1_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 1, 128], [1, 1, 128]]}
+{"case": "scored_reference_eval_bfloat16_t1_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t1_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t7_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 7, 128], [1, 7, 128]]}
+{"case": "scored_reference_eval_bfloat16_t7_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t7_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 3, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t16_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 16, 128], [1, 16, 128]]}
+{"case": "scored_reference_eval_bfloat16_t16_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t16_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 8, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t31_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 31, 128], [1, 31, 128]]}
+{"case": "scored_reference_eval_bfloat16_t31_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t31_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 15, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t32_route", "passed": true, "model_class": "_SubmissionEvalGPT", "block0_input_shapes": [[1, 32, 128], [1, 32, 128]]}
+{"case": "scored_reference_eval_bfloat16_t32_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "scored_reference_eval_bfloat16_t32_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+muon step: COMPILED body for (1, 1, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (20, 128, 128) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (8, 128, 512) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 3]
+muon step: COMPILED body for (8, 512, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 4]
+{"case": "candidate_step0_memory", "passed": true, "retained_tensor_bytes": 31989080, "conservative_workspace_bytes": 20971520}
+{"case": "candidate_step1_memory", "passed": true, "retained_tensor_bytes": 31989080, "conservative_workspace_bytes": 20971520}
+{"case": "candidate_step2_memory", "passed": true, "retained_tensor_bytes": 31989080, "conservative_workspace_bytes": 20971520}
+{"case": "candidate_eval_float32_t1_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 1, 128]]}
+{"case": "candidate_eval_float32_t1_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t1_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t7_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 7, 128]]}
+{"case": "candidate_eval_float32_t7_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t7_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 3, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t16_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 16, 128]]}
+{"case": "candidate_eval_float32_t16_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t16_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 8, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t31_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 31, 128]]}
+{"case": "candidate_eval_float32_t31_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t31_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 15, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t32_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 32, 128]]}
+{"case": "candidate_eval_float32_t32_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_float32_t32_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t1_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 1, 128]]}
+{"case": "candidate_eval_bfloat16_t1_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t1_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t7_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 7, 128]]}
+{"case": "candidate_eval_bfloat16_t7_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t7_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 3, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t16_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 16, 128]]}
+{"case": "candidate_eval_bfloat16_t16_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t16_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 8, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t31_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 31, 128]]}
+{"case": "candidate_eval_bfloat16_t31_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t31_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 15, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t32_route", "passed": true, "model_class": "GPT", "block0_input_shapes": [[2, 32, 128]]}
+{"case": "candidate_eval_bfloat16_t32_batch_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "candidate_eval_bfloat16_t32_causal_prefix", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "initial/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "initial/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "initial/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "initial/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "initial/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/loss", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_before_clip/grads/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step0_after_update/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/loss", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_before_clip/grads/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step1_after_update/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/loss", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_before_clip/grads/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.wte.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.0.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.1.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.1.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.1.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.1.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.2.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.3.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.3.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.3.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.3.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.4.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.5.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.5.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.5.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.5.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.6.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.resid_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.x0_lambda", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.attn.c_q.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.attn.c_k.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.attn.c_v.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.attn.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.attn.ve_gate.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 32], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.mlp.c_fc.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.mlp.c_proj.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/transformer.h.7.local_conv.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 1, 2], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/lm_head.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/value_embeds.7.weight", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [256, 128], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/unet_skip_gates.0", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/unet_skip_gates.1", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/unet_skip_gates.2", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "step2_after_update/unet_skip_gates.3", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/input", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 256, 128], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 256, 128], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/dx", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [1, 256, 128], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/up", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/down", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/dup", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [512, 128], "atol": 0, "rtol": 0}
+{"case": "isolated_mlp/ddown", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [128, 512], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t1/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t1/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t1/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t1/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t1/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t7/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t7/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t7/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t7/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t7/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t16/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t16/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t16/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t16/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t16/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t31/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t31/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t31/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t31/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t31/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t32/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t32/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t32/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t32/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "eval_float32_t32/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t1/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t1/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t1/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t1/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t1/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 1, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t7/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t7/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t7/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t7/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t7/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t16/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t16/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t16/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t16/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t16/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 16, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t31/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t31/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t31/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t31/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t31/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 31, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t32/tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t32/altered_tokens", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t32/batch", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t32/independent_rows", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "eval_bfloat16_t32/changed_suffix_output", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 32, 256], "atol": 0, "rtol": 0}
+{"case": "optimizer_group_and_ownership_plan", "passed": true, "equal": true, "actual_world_size": 1, "planned_world_size": 4, "collectives_executed": false}
+{"case": "schedule_0_0", "passed": true, "candidate": [1.0, 0.85], "reference": [1.0, 0.85], "max_abs": 0, "max_rel": 0}
+{"case": "schedule_300_450", "passed": true, "candidate": [1.0, 0.95], "reference": [1.0, 0.95], "max_abs": 0, "max_rel": 0}
+{"case": "schedule_600_900", "passed": true, "candidate": [0.6833333333333333, 0.95], "reference": [0.6833333333333333, 0.95], "max_abs": 0, "max_rel": 0}
+{"case": "schedule_2000_1719", "passed": true, "candidate": [0.10700000000000005, 0.95], "reference": [0.10700000000000005, 0.95], "max_abs": 0, "max_rel": 0}
+{"case": "schedule_2100_1800", "passed": true, "candidate": [0.05, 0.85], "reference": [0.05, 0.85], "max_abs": 0, "max_rel": 0}
+{"case": "negative_detached_cache_outputs", "passed": true, "expected_equal": true, "equal": true, "max_abs": 0.0, "max_rel": 0.0, "shape": [2, 7, 128], "atol": 0, "rtol": 0}
+{"case": "negative_detached_cache_gradient", "passed": true, "expected_equal": false, "equal": false, "max_abs": null, "max_rel": null, "shape": null, "atol": 0, "rtol": 0}
+{"case": "negative_detached_cache_detected", "passed": true, "good_nonzero_gradient_elements": 16384, "bad_gradient_missing": true}
+{"case": "harness_exception", "passed": false, "traceback": "Traceback (most recent call last):\n  File \"/tmp/trainium-confirmed-clock36-clean/research/v2/verification/20260926-fresh-astra-architecture-clean/session/reviewer-output/independent_test.py\", line 229, in <module>\n    except BaseException:\n    \n  File \"/tmp/trainium-confirmed-clock36-clean/research/v2/verification/20260926-fresh-astra-architecture-clean/session/reviewer-output/independent_test.py\", line 224, in main\n    watcher=MemoryWatch()\n    \n  File \"/tmp/trainium-confirmed-clock36-clean/research/v2/verification/20260926-fresh-astra-architecture-clean/session/reviewer-output/independent_test.py\", line 185, in negative_pairing\n    if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='pop':n.args=[ast.Constant(0)]\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/inspect.py\", line 1161, in getsource\n    lines, lnum = getsourcelines(object)\n                  ~~~~~~~~~~~~~~^^^^^^^^\n  File \"/usr/lib/python3.14/inspect.py\", line 1143, in getsourcelines\n    lines, lnum = findsource(object)\n                  ~~~~~~~~~~^^^^^^^^\n  File \"/usr/lib/python3.14/inspect.py\", line 978, in findsource\n    raise OSError('could not get source code')\nOSError: could not get source code\n"}
