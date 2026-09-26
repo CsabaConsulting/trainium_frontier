@@ -1,0 +1,51 @@
+{
+  "arm_id": "e1e2-batch262144-lr021",
+  "invalid_runs": {},
+  "per_host": [
+    {
+      "control_mean": 0.9880953,
+      "control_mean_steps": 3631.0,
+      "controls": [
+        "fs-20260926-sprint-e1e2-control-trn21-r1"
+      ],
+      "delta": -0.0011099,
+      "host": "trn21",
+      "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+      "pooled_controls": 1,
+      "public_20m": 0.9869854734569898,
+      "step_ratio": 0.5291,
+      "steps": 1921
+    }
+  ],
+  "replicates": 1,
+  "rules": "v2-2026-09-25-general-fixed-budget",
+  "run_diagnostics": {
+    "fs-20260926-sprint-clean-batch-lr14-trn21-r1": {
+      "affects_bpb_verdict": false,
+      "budget_declaration_error": null,
+      "budget_declarations": {
+        "env.NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+        "training_budget_seconds": 1800
+      },
+      "charged_source_estimate_seconds": null,
+      "charged_through_exit_seconds": 1788.753648138023,
+      "cold_startup_seconds": null,
+      "cold_startup_submission_gate": "HOLD_MISSING_PROVEN_COLD_STARTUP",
+      "control_mean_steps": 3631.0,
+      "diagnostic_alarms": [
+        "steps_below_60_percent_of_same_host_control",
+        "cold_startup_unproven_submission_gate"
+      ],
+      "legacy_startup_s_untyped": null,
+      "startup_allowance_seconds": 798.4203850750346,
+      "startup_allowance_source_estimate_seconds": null,
+      "startup_measured_seconds": 798.4203850750346,
+      "startup_source_estimate_seconds": null,
+      "step_ratio": 0.5291,
+      "steps": 1921,
+      "training_seconds": null
+    }
+  },
+  "verdict": "NOMINATE",
+  "why": "single-host delta <= -0.0006: replicate on the other host"
+}
