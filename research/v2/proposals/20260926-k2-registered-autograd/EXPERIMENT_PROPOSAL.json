@@ -1,0 +1,73 @@
+{
+  "proposal_id": "20260926-k2-registered-autograd",
+  "status": "PROPOSED_DESIGN_ONLY_DISABLED_API_OBSERVATION_PENDING",
+  "owner_role": "Researcher; not verifier or Operator for this design",
+  "hypothesis": "Explicit operator and autograd registration can preserve the exact K2 consumer gradient through the native compiled graph where the original custom-autograd integration returned zeros; this is unproved and does not diagnose the lowering stage.",
+  "single_causal_change": "Replace the diagnostic embedding integration boundary with explicitly registered forward/backward operators and register_autograd, preserving forward math, exact NKI kernel, routing metadata, oracle and strict byte acceptance.",
+  "mechanism_class": "correctness_integration",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "estimated_host_hours_upper_bound": 0.18333333333333332,
+  "candidate_shortlist": [
+    {"idea": "Explicit registered embedding plus registered NKI backward", "why_ranked": "AWS v2.31 documents NKI operator registration and explicit training backward; reported FP32-first ordinary compiled control succeeds while original custom route fails."},
+    {"idea": "Wrap only the existing kernel call without replacing autograd.Function", "why_ranked": "Potentially smaller localization experiment, but does not test the selected explicit-autograd-registration contract; not silently bundled."},
+    {"idea": "Change kernel arithmetic, restrict to BF16 or relax strict bytes", "why_ranked": "Rejected: direct/eager exactness and failed FP32 gradient provide no justification."}
+  ],
+  "selection_rationale": "Separate integration experiment rather than renaming or rerunning the failed wrapper. Source/API inspection must resolve installed registration and grid handling before code is designed against an assumed signature.",
+  "control": {
+    "source_commit": "9ce2e6a037212aaa76bd85b9b4ab7d311a481757",
+    "kernel_sha256": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "reference_sha256": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+    "run_label": "fs-20260926-k2-symmetric-consumer-trn21-r1",
+    "verdict": "FAILED_EXACTNESS_PRESERVED",
+    "public_val_bpb": null
+  },
+  "candidate": {
+    "branch": "Not yet selected for implementation",
+    "files_allowed": ["new disabled standalone integration module, diagnostic checker, tests and later separately reviewed binding only"],
+    "forbidden_changes": ["consumer_nki.py", "reference.py", "production train.py", "prepare.py", "evaluator", "original failed receipts"],
+    "shape": {"V": 256, "T": 256, "C": 128},
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "run_label": "UNASSIGNED; unique absent label required before any launch",
+    "launch_command": "NONE; no executable or host binding in this proposal"
+  },
+  "design": [
+    "Two named dispatcher operators: embedding forward retains F.embedding(ids, FP32 weight).to(requested output dtype); consumer backward calls the unchanged prebuilt grid[2] kernel through the installed supported NKI registration/bridge.",
+    "Attach register_autograd to the forward operator; setup_context saves exactly counts, starts, positions and maximums. Backward calls the registered consumer on gradient.contiguous() and returns FP32 dW plus None for all nondifferentiable arguments. No global tensor/metadata cache, new cast, fused BF16 boundary or hidden fallback.",
+    "The installed nki_op signature, wrap_nki contract, grid[2] preservation, forward ATen-composition support, FakeTensor handling and registration method are unresolved. Inspect exact installed source first; do not invent imports or assume torch.library.custom_op is lowerable by the Neuron backend.",
+    "First-order diagnostic only; higher-order differentiation remains unsupported/unqualified. No production embedding substitution or optimization claim."
+  ],
+  "cheapest_falsifier": "Future single-thread tiny CPU dispatcher prototype, V8/C4/T8, with independent ordered FP32 recurrence and ordinary embedding references. Run eager and aot_eager with FP32 unique first, duplicate/cancellation, signed-zero, empty metadata and changed nonzero upstream/metadata replay. Inject zero/stale output to prove strict failure reporting. Check registration/fake/alias contracts separately; CPU 2.13 cannot certify installed native 2.11.",
+  "trainium_feasibility": "Same tiny consumer and four-rank LNC2 shape; only integration graph changes. No evidence yet that installed nki_op supports this exact two-program callable or composite forward. No SDK installation or host access in this research task.",
+  "success_criteria": {
+    "correctness": "After installed-API evidence, independent fresh source review and separate binding release: every original 20 BF16/FP32 case on all four native ranks must complete with unchanged strict byte equality for all original direct/repeated/oracle/forward/backward checks. Record input pre/post identities and explicit failure on missing/nonfinite/zero-wrong gradient. FP32-first nonzero is an additional sentinel, never a substitute for all20.",
+    "throughput": "Not measured or accepted by this experiment; later production integration needs distinct equivalence and at least5% matched whole-step gain.",
+    "quality": "No BPB or adoption claim; no model training or data access."
+  },
+  "gates": {
+    "installed_api_observation": "PENDING read-only source/signature inventory; no import/tensor dispatch needed",
+    "implementation": "NOT_STARTED",
+    "independent_source_and_own_cpu_reference": "PENDING",
+    "exact_binding_review": "PENDING",
+    "full20case_native_correctness": "PENDING; original gate remains failed",
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "production_activation": false
+  },
+  "future_native_containment": "If separately selected and bound:600+60seconds, original per-host lifetime device0 flock, fresh ps and neuron-ls under lock, disk>=10.5GiB, four ranks/LNC2, private caches, no concurrent work, STOP checks, complete raw retention and explicit descendant/compiler/device/lock postflight. No automatic retry.",
+  "evidence": [
+    "d3099d0d:research/v2/analysis/20260926-k2-fp8-compiled-autograd-contrast/PRIMARY_API_FOLLOWUP.md",
+    "research/v2/operator/20260926-trn21-k2-symmetric-native/completed/results-bundle.json",
+    "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/frameworks/torch/pytorch-native-overview.html#neuron-kernel-interface-nki-integration",
+    "https://docs.pytorch.org/docs/2.11/library.html#torch.library.register_autograd",
+    "https://awslabs.github.io/accelerated-compute-tutorials/en/aws-ai-chip/education/ndd-day2-hands-on-lab/"
+  ],
+  "latest_report_limit": "Supervisor reports FP32-first all4 direct/eager exact, custom compiled forward exact/dWzero, ordinary compiled forward+dWexact and unchanged input hashes. Its raw archive was not independently authenticated in this research task. It weakens prior-history necessity, not a cause proof.",
+  "abort_conditions": ["Required installed API absent/unsupported", "Any immutable source or oracle drift", "Registration/CPU exactness failure", "Any native comparison/missing receipt/nonfinite/containment failure"],
+  "rollback": "Leave proposal and any future isolated component disabled; original failed source and gates stay unchanged.",
+  "results": null,
+  "verdict": null
+}
