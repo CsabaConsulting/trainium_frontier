@@ -39,6 +39,9 @@ def main():
         'cleanup_error': lambda r:r.update(cleanup='ERROR'),
         'false_exact': lambda r:r['routes'][0]['gradient'].update(exact=False),
         'wrong_blob': lambda r:r['blobs'].update({r['weight']['sha256']:'AAAA'}),
+        'boolean_exit': lambda r:r.update(returncode=False),
+        'boolean_error_metric': lambda r:r['routes'][0]['gradient'].update(max_abs=False),
+        'missing_input_bytes': lambda r:r['blobs'].pop(r['routes'][0]['expected_inputs']['ids']['sha256']),
     }
     for name, mutate in mutations.items():
         changed = copy.deepcopy(receipt)

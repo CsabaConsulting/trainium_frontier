@@ -29,6 +29,10 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def same(a, b):
+    return json.dumps(a, sort_keys=True, allow_nan=False) == json.dumps(b, sort_keys=True, allow_nan=False)
+
+
 def encode(n, power):
     """Exact n*2**power -> little-endian binary32, integer arithmetic only."""
     if n == 0:
@@ -89,7 +93,7 @@ def tensor_record(tensor, sync, blobs):
 
 
 def comparison(actual, expected, blobs):
-    exact = actual is not None and actual == expected and actual.get('finite', True)
+    exact = actual is not None and same(actual, expected) and actual.get('finite', True) is True
     error = None
     if actual and actual['dtype'] == expected['dtype'] == 'torch.float32' and actual['shape'] == expected['shape']:
         a = struct.unpack('<'+'f'*(actual['nbytes']//4), base64.b64decode(blobs[actual['sha256']]))
@@ -138,15 +142,15 @@ def validate_receipt(receipt, expected_rank):
     require(type(receipt.get('rank')) is int and receipt['rank'] == expected_rank, 'RANK')
     require(receipt.get('world_size') == 4 and receipt.get('label') == LABEL, 'IDENTITY')
     require(receipt.get('original_K2_gate') == 'FAILED_PRESERVED', 'OLD_GATE')
-    require(receipt.get('error') is None and receipt.get('cleanup') == 'DESTROYED' and receipt.get('returncode') == 0, 'EXIT')
-    require(receipt.get('compiled_callable_count') == 1, 'CALLABLE_COUNT')
+    require(receipt.get('error') is None and receipt.get('cleanup') == 'DESTROYED' and type(receipt.get('returncode')) is int and receipt['returncode'] == 0, 'EXIT')
+    require(type(receipt.get('compiled_callable_count')) is int and receipt['compiled_callable_count'] == 1, 'CALLABLE_COUNT')
     routes, blobs = receipt['routes'], receipt['blobs']
     require(len(routes) == 8, 'ROUTE_COUNT')
     for digest, encoded in blobs.items():
         require(sha(base64.b64decode(encoded, validate=True)) == digest, 'BLOB_HASH')
     weight_record = receipt['weight']
     weight_raw = base64.b64decode(blobs[weight_record['sha256']])
-    require(blob(weight_raw, 'torch.float32', (V,C), {}) == weight_record and weight_record['finite'], 'WEIGHT')
+    require(same(blob(weight_raw, 'torch.float32', (V,C), {}), weight_record) and weight_record['finite'] is True, 'WEIGHT')
     for entry, (case, route) in zip(routes, [(c,r) for c in CASES for r in ROUTES]):
         require((entry['case'], entry['route']) == (case,route), 'ORDER')
         require(entry['status'] == 'EXACT' and entry['error'] is None, 'ROUTE_FAILED')
@@ -156,15 +160,17 @@ def validate_receipt(receipt, expected_rank):
                         tangent=blob(data['tangent'], 'torch.float32', (T,C), {}))
         forward = blob(b''.join(weight_raw[i*C*4:(i+1)*C*4] for i in ids), 'torch.float32', (T,C), {})
         gradient = blob(data['gradient'], 'torch.float32', (V,C), {})
-        require(entry['expected_inputs'] == expected and entry['expected_output'] == forward and entry['expected_gradient'] == gradient, 'ORACLE')
+        require(same(entry['expected_inputs'], expected) and same(entry['expected_output'], forward) and same(entry['expected_gradient'], gradient), 'ORACLE')
+        for item in (*expected.values(), forward, gradient):
+            require(item['sha256'] in blobs, 'MISSING_RAW_BYTES')
         for phase in ('before_forward', 'before_backward', 'after_backward'):
-            require(entry[phase] == expected and entry['checks'].get(phase) is True, 'INPUT_MUTATION')
+            require(same(entry[phase], expected) and entry['checks'].get(phase) is True, 'INPUT_MUTATION')
         for key, target in (('output',forward), ('gradient',gradient)):
             actual = entry[key]['actual']
             require(actual is not None, 'MISSING_TENSOR')
             raw = base64.b64decode(blobs[actual['sha256']], validate=True)
-            require(blob(raw, actual['dtype'], actual['shape'], {}) == actual, 'TENSOR_METADATA')
-            require(entry[key] == comparison(actual, target, blobs) and entry[key]['exact'], 'NOT_EXACT')
+            require(same(blob(raw, actual['dtype'], actual['shape'], {}), actual), 'TENSOR_METADATA')
+            require(same(entry[key], comparison(actual, target, blobs)) and entry[key]['exact'] is True, 'NOT_EXACT')
     return True
 
 
