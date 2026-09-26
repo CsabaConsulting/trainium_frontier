@@ -19,6 +19,13 @@ would clear13.5GiB by250,748,928B, still miss16GiB by2,433,605,632B. Exact paths
 and hashes are in operator/20260926-trn21-discarded-checkpoint-extension/INVENTORY.md.
 This projection is not a measured post-cleanup floor or permission to launch.
 
+05:24UTC refresh: current free13,067,235,328B, MemAvailable131,438,366,720B;
+source/project and idle state rechecked by the sole Operator. The same three
+discarded checkpoints would project14,746,243,072B, leaving250,728,448B above
+13.5GiB, but still2,433,626,112B below16GiB. The proposed full-size batch CPU
+qualification also cannot stage under its retained12.5GiB minimum (short by
+354,537,472B). Approval is still pending; no deletion or floor reduction.
+
 Do not prompt Poojith overnight. Keep research moving under NIGHT MODE.
 
 1. **Billing/alert visibility:** Bedrock1000USD/dayalert is requested but not

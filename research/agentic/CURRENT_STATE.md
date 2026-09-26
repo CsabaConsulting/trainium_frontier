@@ -1,5 +1,35 @@
 # Current state
 
+## 05:31 UTC / 11:01 IST: live midpoint verified; source reviews advanced
+
+Actual05:24:17 trn22 clean fullcold has1855 sequential completed markers;
+printedstep1850/loss2.9475/265783tok_s/890source-seconds remaining. All four
+original workers, guardian and original832589 lock are live. Eight complete
+captures authenticated; no observed terminal/eval/error. Raw3cb0185c/canonical
+7bebe085; root53checks normal/-O in analysis/20260926-clean-fullcold-launch/
+midpoint-result.json. Exact final startup, through-exit charge and20M pending.
+
+trn21 is actually idle at05:24:17, original596823 free after read-only checks,
+source36 stable, projecte65a3097 clean and both prospective K2 paths absent.
+Free13,067,235,328B; MemAvailable131,438,366,720B. It still fails13.5GiB native
+helper/16GiB K2 floors. Cleanup approval remains unanswered; nothing deleted.
+
+Fresh clean-helper reporting repair accepted sourceCPU14 own tests normal/-O;
+K2 disabled binding/seven-route CPU mechanics accepted narrowly. Archives at
+aebf8b3a authenticate7036 file/receipt checks, not7036 numerical experiments.
+K2 actual native execution and an unconditional consumer-bypass claim are not
+proved. New clean native fixed trn21 packet0d4c9a3c reuses unchanged reviewed
+guardian/helper/17inputs and is in a genuinely fresh mechanics review; runtime,
+transport, disk and separate release remain unresolved. No host authority.
+
+Exact36 batch262144 five-line CLI port4cff1311/canonical07a7b67e is implemented
+locally, SHAeeb3c403. Fresh reviewer100 own tinyCPU checks normal/-O pass,
+including both cache-backed backwards and default identity; full113M/native
+not inferred. A separate Researcher is preparing its CPU-only resource plan.
+Initial finding: accepted12.5GiB CPU staging reserve exceeds current trn21
+free space by354,537,472B; this is not permission to lower a floor. Confirmed
+mean0.9883066129/official user-reported0.9901 unchanged. No upload-ready file.
+
 ## 05:11 UTC / 10:41 IST: clean cold replay past startup, still not upload-ready
 
 Actual05:09:22 trn22 snapshot has39 sequential completed step markers, first

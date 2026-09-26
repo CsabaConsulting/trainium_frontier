@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 11:01 IST
+
+Latest actual10:54:17IST trn22 midpoint:1855completed/printed1850,265783tok/s,
+890source-seconds remaining, four original workers/guardian/832589 held; root53
+checks normal/-O. Cold full accounting/20M pending. trn21 actually idle12.17GiB;
+cleanup unanswered, native resource floors unchanged. Neither host was restarted.
+Clean helper reporting repair and K2 worker CPU-only reviews archived; neither
+is native qualification. New disabled native packet0d4c9a3c is in fresh review.
+Batch port07a7b67e independently passes100 tinyCPU reference checks normal/-O;
+full113M CPU resource proposal being prepared, not launched. Confirmed BPB
+mean0.9883066129 unchanged; submission still HOLD. No six-ready-jobs claim.
+
 ## Latest observation — 26 September 10:39:22 IST
 
 Clean fullcold trn22 is past first five and at39 completed markers, ~266ktok/s,
