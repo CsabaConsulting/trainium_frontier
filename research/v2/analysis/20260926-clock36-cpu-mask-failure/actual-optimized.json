@@ -1,0 +1,93 @@
+{
+  "status": "FAILED_CPU_QUALIFICATION_AUTHENTICATED_NOT_PROMOTED",
+  "files": 92,
+  "raw_bytes": 234503,
+  "arms": {
+    "reference": {
+      "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "terminal_utc": "2026-09-26T02:14:21.447551+00:00",
+      "checkpoint": {
+        "bytes": 453048594,
+        "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/tmp/g2-t650_0z_/out/final.pt",
+        "scope": "file bytes only; model-state comparison follows",
+        "sha256": "623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762"
+      }
+    },
+    "default": {
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "terminal_utc": "2026-09-26T02:14:43.319238+00:00",
+      "checkpoint": {
+        "bytes": 453048658,
+        "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/tmp/g2-vi7085z9/out/final.pt",
+        "scope": "file bytes only; model-state comparison follows",
+        "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7"
+      }
+    },
+    "off": {
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "terminal_utc": "2026-09-26T02:15:04.940297+00:00",
+      "checkpoint": {
+        "bytes": 453048658,
+        "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/tmp/g2-j8pqv5eh/out/final.pt",
+        "scope": "file bytes only; model-state comparison follows",
+        "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7"
+      }
+    },
+    "on": {
+      "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "terminal_utc": "2026-09-26T02:15:26.611187+00:00",
+      "checkpoint": {
+        "bytes": 453048658,
+        "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/tmp/g2-jwnj1q6g/out/final.pt",
+        "scope": "file bytes only; model-state comparison follows",
+        "sha256": "b006932d75820d40038068335c93fd1690788c444de42f877422ef6f0bac0f17"
+      }
+    }
+  },
+  "terminal": {
+    "cpu_only": true,
+    "error": "COMPARISON_FAILED:checkpoint-compare",
+    "exit_code": 1,
+    "native_launch_authorized": false,
+    "utc": "2026-09-26T02:15:34.346222+00:00"
+  },
+  "exact_error": "[W926 02:15:29.481688543 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nTraceback (most recent call last):\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 141, in <module>\n    print(json.dumps(run(Path(sys.argv[1])),indent=2,allow_nan=False))\n                     ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 112, in run\n    qualification=verify_trained_model(ordinary,x,8192)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 46, in verify_trained_model\n    before=model_state(model)\n           ^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 39, in model_state\n    return {kind+':'+name:tensor_record(value) for kind,items in (\n                          ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 30, in tensor_record\n    require(bool(torch.isfinite(value).all()),'NONFINITE_TENSOR')\n  File \"/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/compare_checkpoints.py\", line 16, in require\n    raise RuntimeError(message)\nRuntimeError: NONFINITE_TENSOR\n",
+  "postflight_utc": "2026-09-26T02:16:55.226346+00:00",
+  "observed_pids": [
+    3245349,
+    3245350,
+    3245351,
+    3245382,
+    3245439,
+    3245440,
+    3245444,
+    3245445,
+    3245446,
+    3245447,
+    3245558,
+    3245559,
+    3245563,
+    3245564,
+    3245565,
+    3245566,
+    3245634,
+    3245635,
+    3245698,
+    3245699,
+    3245700,
+    3245701,
+    3245809,
+    3245810
+  ],
+  "quiescent": true,
+  "reference_worker_identity_gap": "Reference arm completed before first live process capture; four rank receipts exist, unseen worker IDs not fabricated. Broad final process/device checks cover readiness, not retroactive PID reconstruction.",
+  "cold_authorized": false
+}
