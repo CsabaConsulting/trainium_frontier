@@ -1,0 +1,62 @@
+[
+  {
+    "label": "normal_ordered",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute ordered",
+    "exit_code": 0,
+    "status": "OWN_CPU_CHECKS_COMPLETED",
+    "route_count": 70,
+    "registered_exact_gradients": 28,
+    "registered_mismatched_gradients": 0,
+    "ordinary_original_control_exact": 42
+  },
+  {
+    "label": "normal_zero",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute zero",
+    "exit_code": 0,
+    "status": "WRONG_CONSUMER_REFUSED",
+    "route_count": 70,
+    "registered_exact_gradients": 8,
+    "registered_mismatched_gradients": 20,
+    "ordinary_original_control_exact": 42
+  },
+  {
+    "label": "normal_stale",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute stale",
+    "exit_code": 0,
+    "status": "WRONG_CONSUMER_REFUSED",
+    "route_count": 70,
+    "registered_exact_gradients": 4,
+    "registered_mismatched_gradients": 24,
+    "ordinary_original_control_exact": 42
+  },
+  {
+    "label": "optimized_ordered",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B -O research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute ordered",
+    "exit_code": 0,
+    "status": "OWN_CPU_CHECKS_COMPLETED",
+    "route_count": 70,
+    "registered_exact_gradients": 28,
+    "registered_mismatched_gradients": 0,
+    "ordinary_original_control_exact": 42
+  },
+  {
+    "label": "optimized_zero",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B -O research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute zero",
+    "exit_code": 0,
+    "status": "WRONG_CONSUMER_REFUSED",
+    "route_count": 70,
+    "registered_exact_gradients": 8,
+    "registered_mismatched_gradients": 20,
+    "ordinary_original_control_exact": 42
+  },
+  {
+    "label": "optimized_stale",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -I -B -O research/v2/lanes/k2-registered-forward-autograd/check_cpu.py --enable-cpu-test --substitute stale",
+    "exit_code": 0,
+    "status": "WRONG_CONSUMER_REFUSED",
+    "route_count": 70,
+    "registered_exact_gradients": 4,
+    "registered_mismatched_gradients": 24,
+    "ordinary_original_control_exact": 42
+  }
+]
