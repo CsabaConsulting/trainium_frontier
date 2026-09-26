@@ -1,0 +1,45 @@
+{
+  "input_dtype": "torch.int32",
+  "reference": {
+    "status": "PASS_FP32_MASTER_REFERENCE",
+    "collision_and_microstep_gradient": [
+      0.00390625,
+      0.00390625,
+      0.00390625,
+      0.00390625
+    ]
+  },
+  "hashes_test": "production_hashes_length1_2_4_and_signed_int32_exact",
+  "op_cases": [
+    "bf16_old_witness",
+    "fp32_large_order",
+    "fp32_small_order",
+    "subnormal_pos",
+    "subnormal_neg",
+    "normal_cancellation"
+  ],
+  "rms": "FP32_RMS_3_UPDATES_EXACT_AND_REPLICATED_ROUTING_4_FAKE_RANKS",
+  "clip": "SEPARATE_MAIN_AND_JOINT_TABLE_CLIP_EXACT_FP32_AVG_ROUTING",
+  "model": {
+    "off_3_steps": "BIT_IDENTICAL",
+    "off_losses": [
+      4.161633014678955,
+      4.1532745361328125,
+      4.155467987060547
+    ],
+    "on_2_steps": "REGISTERED_VS_ORDINARY_BIT_IDENTICAL",
+    "common_init": "BIT_IDENTICAL",
+    "checkpoint": "STRICT_ON_AND_OLD_PARENT_ROUNDTRIP",
+    "causality_and_batch_independence": "SAME_SHAPE_BIT_EXACT",
+    "cross_shape_prefix_max_abs_difference_diagnostic": 7.62939453125e-06,
+    "test_geometry": "8layers,C128,T16,V64,table32x128"
+  },
+  "native_executed": false,
+  "sha256": {
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-compiler-local-constants/train.py": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-runtime-select/train.py": "414cdd76df85450659375c0928b7f0c882b963088529ca049c19be32814fec34",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-runtime-select/test_tables.py": "2d546709f456683eac22324b009201c45531fb257e103dbbc402a40a5f769c6f",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-runtime-select/test_fp32_reference.py": "35adcf7fa09be762673bae40e651d8e2b60f110b7517aafd069232d3d492a2bc",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-runtime-select/cpu_instruction_model.py": "b8e3f52bff60be9337f1e1945e98f03a6b0fb10ab6074473189fd9c509a961a3"
+  }
+}

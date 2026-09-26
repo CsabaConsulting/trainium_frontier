@@ -1,0 +1,22 @@
+--- tables-compiler-local-constants/train.py
++++ tables-runtime-select/train.py
+@@ -255,8 +255,7 @@
+         # Dynamic group offsets must be checked by the native compiler.
+         for group in nl.dynamic_range(groups):
+-            first = group * partition
+-            nisa.dma_copy(dst=remaining, src=counts[first:first + partition, :])
+-            nisa.dma_copy(dst=pointer, src=starts[first:first + partition, :])
+-            nisa.dma_copy(dst=maximum, src=group_maximums[group:group + 1, :])
++            nisa.dma_copy(dst=remaining, src=counts.reshape((groups, partition, 1)).select(0, group))
++            nisa.dma_copy(dst=pointer, src=starts.reshape((groups, partition, 1)).select(0, group))
++            nisa.dma_copy(dst=maximum, src=group_maximums.reshape((groups, 1, 1)).select(0, group))
+             nisa.register_load(limit, maximum)
+             nisa.memset(dst=accumulator, value=0.0)
+@@ -292,5 +291,5 @@
+             # A fresh dense output per call; untouched rows store positive zero.
+             # Owner0 writes c[0:64], owner1 writes c[64:128].
+-            nisa.dma_copy(dst=output[first:first + partition,
+-                                     feature_first:feature_first + features], src=accumulator)
++            nisa.dma_copy(dst=output.reshape((groups, partition, channels)).select(0, group)[
++                              :, feature_first:feature_first + features], src=accumulator)
+         return output
