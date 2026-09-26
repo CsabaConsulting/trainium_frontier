@@ -1,0 +1,73 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "payload_sha256": "562ec43ec1847e45152b594753451fc2af4bcf642d9a19f23b9e6e2be0f2a539",
+  "remote": {
+    "read_only": true,
+    "label": "fs-20260926-batch-lr021-recursive-stack-trn21-r1",
+    "utc_before": "2026-09-26T10:56:34.883174+00:00",
+    "utc_after": "2026-09-26T10:56:34.883531+00:00",
+    "monotonic_after": 960581.343374835,
+    "elapsed_seconds": 0.0003807760076597333,
+    "files": {
+      "train/steps.jsonl": {
+        "size_before": 1058,
+        "size_after": 1058,
+        "mtime_ns": 1790420193994412452,
+        "device": 66305,
+        "inode": 27789925,
+        "tail_only": false,
+        "sha256": "55a5be22b8c9f1d07d1b49121ac3b7f06baab1d97871907bf5033dfb25d52d28",
+        "text": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254\n255\n256\n257\n258\n259\n260\n261\n262\n263\n264\n265\n266\n267\n268\n269\n270\n271\n272\n273\n274\n275\n276\n277\n278\n279\n280\n281\n282\n283\n284\n285\n286\n287\n288\n289\n290\n291\n"
+      },
+      "train/rehearsal.json": {
+        "absent": true
+      },
+      "training.log": {
+        "size_before": 10585,
+        "size_after": 10585,
+        "mtime_ns": 1790420193057414211,
+        "device": 66305,
+        "inode": 27788280,
+        "tail_only": false,
+        "sha256": "9f69f50e9b74d339eb1cd8bf751bbb5c64ec0f8b8a5f9399fd5e3bf28728ca47",
+        "text": "TRAINING_START_UTC=2026-09-26T10:37:56.413036+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-batch-lr021-recursive-stack-trn21-r1-packet/train\", \"files\": [\"prepare.py\", \"train.py\"], \"train_sha256\": \"c2e27ccde59e619d74102429e340716dbec16a6ba538ea9beca9c714d0d33f87\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --recursive-schedule\", \"fresh_empty_sdk_caches\": {}}\n[W926 10:37:58.901477673 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--total-batch-size\", \"262144\", \"--matrix-lr\", \"0.021\", \"--recursive-schedule\"]\n[W926 10:38:00.389186477 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] \nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] *****************************************\nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] *****************************************\n[W926 10:38:03.685277864 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.685767613 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.687170867 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.687951311 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\ndevice=neuron dtype=torch.bfloat16 world_size=4\ntraining target=1000000 steps max_seconds=1800 official_budget=1800s\ngradient_clip=1 clip_after_reduce=True\nmodel_config={\n  \"sequence_len\": 1024,\n  \"vocab_size\": 8192,\n  \"n_layer\": 8,\n  \"n_head\": 8,\n  \"n_embd\": 1024,\n  \"mlp_ratio\": 4,\n  \"attn_scale\": 0.0,\n  \"n_kv_heads\": 0\n}\nnum_params=113,256,724 flops_per_token=6.921232e+08\ntorch.compile enabled (backend=neuron)\nmicro_tokens=131,072 grad_accum_steps=2 pack_factor=32\nmuon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]\nmuon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]\nmuon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]\nstep 00000 | loss 9.0109 | lrm 1.000 | dt 815.23s | tok/s 322 | remaining_steps 999999 | remaining_time 981s | epoch 1\nstep 00001 | loss 8.7639 | lrm 1.000 | dt 0.92s | tok/s 285,997 | remaining_steps 999998 | remaining_time 980s | epoch 1\nstep 00002 | loss 8.3233 | lrm 1.000 | dt 0.94s | tok/s 279,975 | remaining_steps 999997 | remaining_time 979s | epoch 1\nstep 00003 | loss 8.0219 | lrm 1.000 | dt 0.94s | tok/s 279,506 | remaining_steps 999996 | remaining_time 978s | epoch 1\nstep 00004 | loss 7.6356 | lrm 1.000 | dt 0.93s | tok/s 281,664 | remaining_steps 999995 | remaining_time 1800s | epoch 1\nstep 00010 | loss 6.4451 | lrm 1.000 | dt 0.93s | tok/s 281,973 | remaining_steps 999989 | remaining_time 1794s | epoch 1\nstep 00020 | loss 5.8001 | lrm 1.000 | dt 0.93s | tok/s 282,788 | remaining_steps 999979 | remaining_time 1785s | epoch 1\nstep 00030 | loss 5.5007 | lrm 1.000 | dt 0.93s | tok/s 281,665 | remaining_steps 999969 | remaining_time 1776s | epoch 1\nstep 00040 | loss 5.2604 | lrm 1.000 | dt 0.93s | tok/s 281,173 | remaining_steps 999959 | remaining_time 1766s | epoch 1\nstep 00050 | loss 5.0058 | lrm 1.000 | dt 0.93s | tok/s 282,274 | remaining_steps 999949 | remaining_time 1757s | epoch 1\nstep 00060 | loss 4.7520 | lrm 1.000 | dt 0.93s | tok/s 281,684 | remaining_steps 999939 | remaining_time 1748s | epoch 1\nstep 00070 | loss 4.5651 | lrm 1.000 | dt 0.93s | tok/s 282,498 | remaining_steps 999929 | remaining_time 1738s | epoch 1\nstep 00080 | loss 4.3333 | lrm 1.000 | dt 0.93s | tok/s 282,667 | remaining_steps 999919 | remaining_time 1729s | epoch 1\nstep 00090 | loss 4.2012 | lrm 1.000 | dt 0.93s | tok/s 282,331 | remaining_steps 999909 | remaining_time 1720s | epoch 1\nstep 00100 | loss 4.0589 | lrm 1.000 | dt 0.93s | tok/s 282,763 | remaining_steps 999899 | remaining_time 1710s | epoch 1\nstep 00110 | loss 4.0074 | lrm 0.996 | dt 0.93s | tok/s 280,758 | remaining_steps 999889 | remaining_time 1701s | epoch 1\nstep 00120 | loss 3.8795 | lrm 0.990 | dt 0.94s | tok/s 278,653 | remaining_steps 999879 | remaining_time 1692s | epoch 1\nstep 00130 | loss 3.8561 | lrm 0.985 | dt 0.93s | tok/s 282,904 | remaining_steps 999869 | remaining_time 1682s | epoch 1\nstep 00140 | loss 3.7817 | lrm 0.980 | dt 0.93s | tok/s 282,083 | remaining_steps 999859 | remaining_time 1673s | epoch 1\nstep 00150 | loss 3.7142 | lrm 0.975 | dt 0.93s | tok/s 283,253 | remaining_steps 999849 | remaining_time 1664s | epoch 1\nstep 00160 | loss 3.6068 | lrm 0.970 | dt 0.93s | tok/s 282,136 | remaining_steps 999839 | remaining_time 1655s | epoch 1\nstep 00170 | loss 3.6111 | lrm 0.965 | dt 0.93s | tok/s 280,859 | remaining_steps 999829 | remaining_time 1645s | epoch 1\nstep 00180 | loss 3.5865 | lrm 0.959 | dt 0.93s | tok/s 281,866 | remaining_steps 999819 | remaining_time 1636s | epoch 1\nstep 00190 | loss 3.5751 | lrm 0.954 | dt 0.93s | tok/s 282,025 | remaining_steps 999809 | remaining_time 1627s | epoch 1\nstep 00200 | loss 3.5169 | lrm 0.949 | dt 0.93s | tok/s 281,475 | remaining_steps 999799 | remaining_time 1617s | epoch 1\nstep 00210 | loss 3.4965 | lrm 0.944 | dt 0.93s | tok/s 282,608 | remaining_steps 999789 | remaining_time 1608s | epoch 1\nstep 00220 | loss 3.4899 | lrm 0.939 | dt 0.93s | tok/s 281,785 | remaining_steps 999779 | remaining_time 1599s | epoch 1\nstep 00230 | loss 3.4624 | lrm 0.933 | dt 0.93s | tok/s 282,165 | remaining_steps 999769 | remaining_time 1589s | epoch 1\nstep 00240 | loss 3.4600 | lrm 0.928 | dt 0.94s | tok/s 280,197 | remaining_steps 999759 | remaining_time 1580s | epoch 1\nstep 00250 | loss 3.4376 | lrm 0.923 | dt 0.93s | tok/s 282,111 | remaining_steps 999749 | remaining_time 1571s | epoch 1\nstep 00260 | loss 3.3810 | lrm 0.918 | dt 0.93s | tok/s 282,941 | remaining_steps 999739 | remaining_time 1561s | epoch 1\nstep 00270 | loss 3.3048 | lrm 0.913 | dt 0.93s | tok/s 280,638 | remaining_steps 999729 | remaining_time 1552s | epoch 1\nstep 00280 | loss 3.3096 | lrm 0.908 | dt 0.93s | tok/s 282,123 | remaining_steps 999719 | remaining_time 1543s | epoch 1\nstep 00290 | loss 3.3002 | lrm 0.902 | dt 0.93s | tok/s 282,756 | remaining_steps 999709 | remaining_time 1533s | epoch 1\n"
+      },
+      "terminal.json": {
+        "absent": true
+      },
+      "outer-flock-exit.json": {
+        "absent": true
+      },
+      "fresh-public20m-launch.json": {
+        "absent": true
+      },
+      "fresh-public20m.log": {
+        "absent": true
+      },
+      "eval/rehearsal.json": {
+        "absent": true
+      },
+      "eval-exit-code.txt": {
+        "absent": true
+      }
+    },
+    "complete_live_boundary_count": 292,
+    "fifth_complete": true,
+    "guardian": {
+      "pid": 3283774,
+      "state": "S",
+      "ppid": 3283773,
+      "pgid": 3283772,
+      "sid": 3283772,
+      "start_ticks": 95946276,
+      "original_fd3_identity": [
+        66305,
+        596823
+      ],
+      "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t596823\nlock:\t1: FLOCK  ADVISORY  WRITE 3283773 103:01:596823 0 EOF\n"
+    },
+    "exact_fifth_seconds_available_only_in_terminal_rehearsal": true
+  },
+  "stdout_if_error": null
+}
