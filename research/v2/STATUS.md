@@ -1,5 +1,35 @@
 # Workflow installation and incremental launch status
 
+## 15:02 IST: useful cross-host confirmation live; failed K2 variant parked
+
+trn22 actually dispatched batch262144/matrixLR.021 at09:30:00.148440UTC,
+271.705434s after K2 terminal, within the600s idle target. All four ranks
+3374014–17/start102906407, exact source8c6d7af and original832589 lock were
+verified09:30:17.822617. Receipt74311661; source1800/seed42/fresh20M unchanged.
+This tests the earlier trn21 public0.986985 against trn22's genuine e1e2
+control0.987904. It is not an adoption. trn21 genuine control remains protected;
+next train/eval transition approximately09:41UTC, then actual fresh20M result.
+
+K2 a318's one diagnosed retry actually failed09:25:28.443006UTC, zero steps:
+RuntimeError: failed to compile NKI kernel: unbound variable 'tokens'.
+All four ranks show train.py93 in nested resident_consumer. All28 archived
+file hashes match; full53-identity/device/original-lock quiescence09:26:13.
+Failed row is in the ledger and analysis/20260926-k2-native-parser-failure/.
+No third native retry or dependent table launch is released. CPU-only parser
+diagnosis proceeds while hardware performs qualified work; CPU interpreter
+success was not native compiler acceptance. Table source0127 remains conditional.
+
+P3 completed component-only; all4 ranks/six finite records and exit0 archived.
+The isolated SDPA forward anomaly is not a production bottleneck measurement;
+nonadditive MLP measurements support investigating BF16 backward activation/
+layout. See analysis/20260926-p3-component-results/REPORT.md. No BPB gain.
+
+Both400GiB roots independently reconfirmed09:26:53UTC; free~157/158GiB.
+No storage action needed. Officialbest0.9878 remains unchanged; no upload.
+Previous goal turn: PROGRESS (actual terminal evidence changes next action).
+Current turn: PROGRESS (failure archive, qualified dispatch, profile analysis).
+Goal remains ACTIVE/incomplete, not blocked. Next formal six-line report09:47UTC.
+
 ## 14:48 IST: P3 fallback is live, K2 retry transport ready
 
 P3 actually dispatched09:14:36UTC ontrn22; allfour3370203–06,guardian3370169
