@@ -1,0 +1,274 @@
+{
+  "verdict": "CPU_SPEC_MATH_SUPPORTED_NOT_IMPLEMENTATION_OR_NATIVE_APPROVAL",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "torch": "2.13.0+cpu",
+  "finite_BF16_integer_encodings_checked": 65280,
+  "max_tensor_elements": 1,
+  "cases": {
+    "positive_min": {
+      "inputs_bf16": [
+        "0001"
+      ],
+      "trace": [
+        {
+          "reference": "00010000",
+          "cpu": "00010000",
+          "cpu_widened_tangent": "00010000"
+        }
+      ]
+    },
+    "negative_min": {
+      "inputs_bf16": [
+        "8001"
+      ],
+      "trace": [
+        {
+          "reference": "80010000",
+          "cpu": "80010000",
+          "cpu_widened_tangent": "80010000"
+        }
+      ]
+    },
+    "positive_cancellation": {
+      "inputs_bf16": [
+        "0081",
+        "8080"
+      ],
+      "trace": [
+        {
+          "reference": "00810000",
+          "cpu": "00810000",
+          "cpu_widened_tangent": "00810000"
+        },
+        {
+          "reference": "00010000",
+          "cpu": "00010000",
+          "cpu_widened_tangent": "80800000"
+        }
+      ]
+    },
+    "negative_cancellation": {
+      "inputs_bf16": [
+        "8081",
+        "0080"
+      ],
+      "trace": [
+        {
+          "reference": "80810000",
+          "cpu": "80810000",
+          "cpu_widened_tangent": "80810000"
+        },
+        {
+          "reference": "80010000",
+          "cpu": "80010000",
+          "cpu_widened_tangent": "00800000"
+        }
+      ]
+    },
+    "cross_tile_large": {
+      "inputs_bf16": [
+        "4b80",
+        "3f80",
+        "cb80"
+      ],
+      "trace": [
+        {
+          "reference": "4b800000",
+          "cpu": "4b800000",
+          "cpu_widened_tangent": "4b800000"
+        },
+        {
+          "reference": "4b800000",
+          "cpu": "4b800000",
+          "cpu_widened_tangent": "3f800000"
+        },
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "cb800000"
+        }
+      ]
+    },
+    "cross_tile_small": {
+      "inputs_bf16": [
+        "3f80",
+        "3380",
+        "bf80"
+      ],
+      "trace": [
+        {
+          "reference": "3f800000",
+          "cpu": "3f800000",
+          "cpu_widened_tangent": "3f800000"
+        },
+        {
+          "reference": "3f800000",
+          "cpu": "3f800000",
+          "cpu_widened_tangent": "33800000"
+        },
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "bf800000"
+        }
+      ]
+    },
+    "large_then_cancel_then_subnormal": {
+      "inputs_bf16": [
+        "4b80",
+        "cb80",
+        "0001"
+      ],
+      "trace": [
+        {
+          "reference": "4b800000",
+          "cpu": "4b800000",
+          "cpu_widened_tangent": "4b800000"
+        },
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "cb800000"
+        },
+        {
+          "reference": "00010000",
+          "cpu": "00010000",
+          "cpu_widened_tangent": "00010000"
+        }
+      ]
+    },
+    "negative_zero_input": {
+      "inputs_bf16": [
+        "8000"
+      ],
+      "trace": [
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "80000000"
+        }
+      ]
+    },
+    "both_zero_signs": {
+      "inputs_bf16": [
+        "8000",
+        "0000"
+      ],
+      "trace": [
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "80000000"
+        },
+        {
+          "reference": "00000000",
+          "cpu": "00000000",
+          "cpu_widened_tangent": "00000000"
+        }
+      ]
+    },
+    "positive_overflow": {
+      "inputs_bf16": [
+        "7f7f",
+        "7f7f"
+      ],
+      "trace": [
+        {
+          "reference": "7f7f0000",
+          "cpu": "7f7f0000",
+          "cpu_widened_tangent": "7f7f0000"
+        },
+        {
+          "reference": "7f800000",
+          "cpu": "7f800000",
+          "cpu_widened_tangent": "7f7f0000"
+        }
+      ]
+    },
+    "negative_overflow": {
+      "inputs_bf16": [
+        "ff7f",
+        "ff7f"
+      ],
+      "trace": [
+        {
+          "reference": "ff7f0000",
+          "cpu": "ff7f0000",
+          "cpu_widened_tangent": "ff7f0000"
+        },
+        {
+          "reference": "ff800000",
+          "cpu": "ff800000",
+          "cpu_widened_tangent": "ff7f0000"
+        }
+      ]
+    },
+    "overflow_then_opposite_finite": {
+      "inputs_bf16": [
+        "7f7f",
+        "7f7f",
+        "ff7f"
+      ],
+      "trace": [
+        {
+          "reference": "7f7f0000",
+          "cpu": "7f7f0000",
+          "cpu_widened_tangent": "7f7f0000"
+        },
+        {
+          "reference": "7f800000",
+          "cpu": "7f800000",
+          "cpu_widened_tangent": "7f7f0000"
+        },
+        {
+          "reference": "7f800000",
+          "cpu": "7f800000",
+          "cpu_widened_tangent": "ff7f0000"
+        }
+      ]
+    },
+    "infinity_cancellation": {
+      "inputs_bf16": [
+        "7f80",
+        "ff80"
+      ],
+      "trace": [
+        {
+          "reference": "7f800000",
+          "cpu": "7f800000",
+          "cpu_widened_tangent": "7f800000"
+        },
+        {
+          "reference": "7fc00000",
+          "cpu": "ffc00000",
+          "cpu_widened_tangent": "ff800000"
+        }
+      ]
+    },
+    "nan_input": {
+      "inputs_bf16": [
+        "7fc1"
+      ],
+      "trace": [
+        {
+          "reference": "7fc00000",
+          "cpu": "7fc00000",
+          "cpu_widened_tangent": "7fc00000"
+        }
+      ]
+    }
+  },
+  "reassociation_witnesses": {
+    "cross_tile_large": {
+      "ordered": "00000000",
+      "reassociated": "3f800000"
+    },
+    "cross_tile_small": {
+      "ordered": "00000000",
+      "reassociated": "33800000"
+    }
+  },
+  "zero_note": "RN-even recurrence starts positive zero; negative zero tangent produces positive zero. Negative-zero plus negative-zero yields negative-zero only with negative initial state, outside this recurrence.",
+  "nonfinite_policy": "All nonfinite outputs are diagnostic failures, even when classification agrees. NaN payloads recorded, not declared identical."
+}
