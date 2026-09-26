@@ -1130,10 +1130,10 @@
     },
     "trn22": {
       "label": "fs-20260926-clock36-recursive-checkpoint-trn22-r3",
-      "status": "CHECKPOINT_ONLY_CPU_ASSIGNED_PENDING_FRESH_OPERATOR_PREFLIGHT",
+      "status": "CHECKPOINT_ONLY_CPU_RUNNING",
       "original_lock_device": 66305,
       "original_lock_inode": 832589,
-      "launch_allowed": true,
+      "launch_allowed": false,
       "active_assignment": "research/v2/verification/20260926-clock36-mask-r3-trn22-assignment.md",
       "packet_commit": "1ada51bd10ff06bb1d981bb3a6ad2bac1634ea94",
       "packet_path": "research/v2/proposals/20260926-clock36-checkpoint-mask-r3/",
@@ -1145,7 +1145,7 @@
       "idle_since_utc": "2026-09-26T02:15:34.346222+00:00",
       "idle_alert_due_utc": "2026-09-26T02:30:34.346222+00:00",
       "scope": "One600+60s CPU-only retained-checkpoint recheck. NoG2rerun,newweights,source/evaluator edit,native,cold,full,evaluation,adoption or automatic successor.",
-      "next_requires": "SoleOperator exact frozen bytes,fresh originalflock/ps/neuron-ls,disk>=10.5GiB,RAM>=64GiB,all16readonlypins pre/post. Explicit allobservedPID/starttime/descendant/compiler/device/originallock postflight on EVERY outcome. Missing/ambiguous/alive=>HOLD. Originalr2FAILpreserved; nosecondretry.",
+      "next_requires": "Await actual checkpoint result and explicit every-outcome process/device/original-lock postflight before acceptance or any child-cold release. No otherhostjob.",
       "previous_failed_cpu_qualification": {
         "label": "fs-20260926-clock36-recursive-trn22-g2-r2",
         "status": "CPU_QUALIFICATION_FAILED_CHECKPOINT_HELPER_IDLE",
@@ -1376,7 +1376,20 @@
         "full_cpu_qualification": false,
         "cold_authorized": false,
         "mask_helper_diagnosis": "Immutable attention masks intentionally contain -infinity; old universal finite-only helper deterministically rejects them before forward. This is not proof of nonfinite weights. Verification-only helper repair d8683fff/b7650cfca in fresh independent review; no model/evaluator change."
-      }
+      },
+      "started_utc": "2026-09-26T02:31:01.469640+00:00",
+      "dispatch_started_utc": "2026-09-26T02:31:00.049030+00:00",
+      "last_process_check_utc": "2026-09-26T02:31:29.760220+00:00",
+      "observed_pids": [
+        3246118,
+        3246119,
+        3246120,
+        3246151,
+        3246152
+      ],
+      "raw_launch_commit": "82533566c60137eb386c21d2ee4406882e8d2bf5",
+      "idle_alert_reported_utc": "2026-09-26T02:30:40Z",
+      "preceding_idle_seconds": 927.123418
     }
   },
   "latest_runtime_20260925_2258z": {
