@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+## Verified momentum run near training end — 26 September18:53IST
+
+Actual13:23:32UTC trn22 momentum150 step1790/loss2.7021/281790tok_s,
+~136trainingseconds left, epoch2; four workers/original lock intact and
+152.53GiB free. No terminal or public20M score yet; attached eval remains
+protected. Next combined normal check~13:43UTC (trn21 last13:17, trn22 13:23).
+Estimated momentum20M~19:08IST; exact cold candidate score stillpending.
+This turn=VERIFIED WAIT on actual live workers/advancing log, no host changes.
+
 ## Verified cold replay training — 26 September18:48IST
 
 Actual13:17:23UTC trn21 cd0c cold replay step380/loss3.2293/281961tok_s,
