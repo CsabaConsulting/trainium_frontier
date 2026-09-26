@@ -1,0 +1,91 @@
+{
+  "proposal_id": "20260926-k2-registered-forward-autograd",
+  "status": "COMPLETED_PROPOSAL_DISABLED_PENDING_SUPERVISOR_SELECTION",
+  "owner_role": "Researcher only; implementation and independent verification must be separate",
+  "hypothesis": "Explicitly registering the unchanged embedding forward and its unchanged NKI backward formula can preserve the native compiled gradient where the previous autograd.Function route produced zeros.",
+  "single_causal_change": "Replace only the diagnostic custom Function integration with ONE nki_op forward operator plus register_autograd. Retain the exact existing automatic backward kernel callable; no explicit wrap_nki and no second consumer operator.",
+  "mechanism_class": "correctness_integration",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "estimated_host_hours_upper_bound": 0.18333333333333332,
+  "candidate_shortlist": [
+    {"idea": "One registered forward plus registered derivative", "why_ranked": "Full installed source establishes custom-op/fake/functionalization support and an existing automatic HOP preservingLNC2. It changes the autograd integration without rebundling the kernel bridge."},
+    {"idea": "Explicit wrap_nki around the unchanged backward callable", "why_ranked": "Not selected: the observed automatic bridge already builds the HOP with kernel.lnc; an extra wrapper is not a justified distinct repair and plain explicit wrap starts with an empty grid."},
+    {"idea": "Two registered operators or arithmetic/dtype changes", "why_ranked": "Not selected: expands the causal change beyond the smallest supported integration test. Earlier two-op design is preserved separately."}
+  ],
+  "selection_rationale": "The FP32-first diagnostic independently reproduced all-zero custom-compiled dW while direct/eager and ordinary-compiled results were exact; earlier dtype history is unnecessary. Installed source supports a distinct minimal registration experiment, not a proven cause or fix.",
+  "control": {
+    "source_commit": "9ce2e6a037212aaa76bd85b9b4ab7d311a481757",
+    "kernel_sha256": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "reference_sha256": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "original_checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+    "fp32_first_checker_sha256": "bd2bca7c29615df599094d3c618f5cdf0e4f4381e6d19213dc022691214ce788",
+    "run_label": "fs-20260926-k2-fp32-first-trn22-d1",
+    "raw_bundle_sha256": "db4fd0b148fd29930bc4925ba898a8f80108d1bd84c6ad3efc33e8694e15e2c6",
+    "independent_outcome_commit": "696730ff",
+    "verdict": "FAILED_DIAGNOSTIC_UNCHANGED",
+    "public_val_bpb": null
+  },
+  "candidate": {
+    "branch": "Separate Implementer branch pending selection",
+    "files_allowed": ["new disabled standalone registration adapter", "new diagnostic checker and CPU/static tests", "raw CPU receipts and later separately reviewed disabled host binding"],
+    "files_immutable": ["consumer_nki.py", "reference.py", "original failed checker and receipts", "production train.py", "prepare.py", "evaluator"],
+    "shape": {"V": 256, "T": 256, "C": 128},
+    "dtype_cases": ["BF16 output/upstream with FP32 master/dW", "FP32 output/upstream/master/dW"],
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "run_label": "UNASSIGNED; new absent label required by any later frozen binding",
+    "launch_command": "NONE; source proposal only, no host or native authority"
+  },
+  "design_contract": [
+    "Create one typed six-Tensor forward op per output dtype with a distinct stable diagnostic namespace/name. Register with installed torch_neuronx.nki_op(mutates_args=()). Its body is exactly F.embedding(ids,weight).to(the same requested dtype). No additional tensor result, clone, alias, cast policy or cache.",
+    "Call register_autograd on that returned custom-op object. setup_context saves exactly counts, starts, positions and maximums. Backward calls the unchanged prebuilt build_kernel(enabled=True) result on gradient.contiguous() and those four saved tensors, returning FP32 dW plus five None values. No explicit wrap_nki, second registered consumer, decorator change to protected kernel or global tensor cache.",
+    "Kernel factory still returns resident_consumer[2]. Installed Kernel.__getitem__ replaces lnc, automatic wrap_nki_to_torch_hop constructs NKIHOPCaller with [kernel.lnc], and CompileKernel inherits Kernel. These are static contracts, not runtime-branch or exactness proof.",
+    "Keep original custom Function route intact as a separately named failure control. Candidate acceptance is reported separately; an expected old-control mismatch is retained rather than relabeled, concealed or used as candidate PASS.",
+    "No production import/monkeypatch or activation. Default disabled must exit without importing Torch/NKI. Higher-order gradients, full-model routing and throughput remain unqualified."
+  ],
+  "installed_source_evidence": {
+    "commits": ["7ff42226 / canonical3f897610", "9284abc8 / canonicalfb4924e4"],
+    "nki_hop.py": "a8b7bffbf461378b54e6f5b4ad3406b80e069a3d89122712c40df79ebef08914",
+    "nki_kernel.py": "37b9c6f56388695fd5dd44a4638576461d8d075f9508cb80b0df9b04dfbd10a2",
+    "nki/framework/kernel.py": "efef333640db8aae6805119ebed619f7f7114f8b7d6974114d0dc12a6c61f83a",
+    "nki/framework/compiled.py": "c416d73c01fd8810509c4496758a122df941e109221fd0ee9a47d30f710b378e",
+    "path": "research/v2/operator/20260926-nki-api-readonly-proposal/results/sources/",
+    "limits": "Exact installed source only; no source/API runtime was executed during research. Native runtimeTorch2.11/NKI0.5 differs from localCPU Torch2.13."
+  },
+  "cheapest_falsifier": "Single-thread CPU/static prototype using the actual AST-extracted installed nki_op decorator with real local torch.library helpers, no TorchNeuron/NKI import. Supply an independently checked tiny CPU consumer substitute only for tests; prove eager/aot_eager forward and dW strict bytes, saved runtime metadata and changed upstream replay, registration/fake behavior, and zero/stale-gradient negative controls. Record exact localTorch version and do not treat CPU substitution as NKI execution.",
+  "cpu_test_contract": [
+    "V8/C4/T8 and at most64MiB tensor allocation; one thread, no model. Also reconstruct full fixed fixture in stdlib where useful, not full-model allocation.",
+    "Use actual extracted nki_op definition from hash-pinned SDK, unchanged AST; record dependency namespace/local PyTorch versions. Verify it registers fake and FunctionalTensorMode decomposition, returns a custom-op object with registered derivative, and obeys immutable six-input/no-mutation contract.",
+    "Compare registered and original/ordinary references for FP32 unique first, BF16 and FP32 duplicates/cancellation, empty metadata, unused rows and signed zero. Use ordered FP32 recurrence, not grouped sums, with strict byte/error records.",
+    "Replay two distinct nonzero upstreams and changed valid metadata through the same compiled registration; preserve all input pre/post hashes. Inject zero or stale dW, nonfinite values and missing outputs into result validation and require refusal.",
+    "Statically prove protected kernel/reference hashes, unchanged original wrapper AST and no explicit wrap/second consumer op/source activation. API opcheck may complement but never replace strict byte oracle; any unsupported test or import failure is retained explicitly."
+  ],
+  "future_native_contract": {
+    "localization": "Fresh process: FP32 unique nonzero first, candidate registered eager/compiled versus unchanged direct/dense/ordinary controls; record original failed wrapper separately, same input/metadata hashes. Report all routes even on mismatch, then nonzero candidate failure.",
+    "qualification": "After sentinel success, execute every original20 fixture/dtype combination on all4 ranks with all original direct/repeated/oracle/forward/backward checks, candidate registration replacing only the candidate integration route. Missing cases, nonfinite values or any byte mismatch refuse qualification. Sentinel alone is not component PASS.",
+    "tolerance": "unchanged strict byte equality; no tolerance relaxation or FP32 omission",
+    "containment": "Later independently reviewed binding only:600+60seconds, four ranks/LNC2, seed42, disk>=10.5GiB, private caches, original shared lifetime hostflock and fresh ps+neuron-ls, STOP checks, complete raw retrieval and explicit descendant/compiler/device/original-lock postflight; no automatic retry or subsequent run."
+  },
+  "success_criteria": {
+    "correctness": "Own CPU reference and fresh independent source review before any native assignment; then sentinel plus all20/all4 strict native results. Original failed gates stay historical failures.",
+    "throughput": "Not measured; later production integration requires a distinct matched whole-step >=5% gate.",
+    "quality": "No BPB, training, evaluator or adoption claim."
+  },
+  "gates": {
+    "supervisor_cpu_implementation_selection": "PENDING",
+    "implementation_and_own_cpu_tests": "PENDING",
+    "fresh_independent_source_review": "PENDING",
+    "exact_native_binding_review": "PENDING",
+    "full20case_native_correctness": "PENDING",
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "production_activation": false
+  },
+  "prior_result_refs": ["research/v2/verification/20260926-k2-fp32-first-result-independent/REVIEW.md", "research/v2/proposals/20260926-k2-registered-autograd/ (historical two-op and conditional bridge designs preserved)"],
+  "abort_conditions": ["Any protected-byte or causal-scope drift", "Any CPU reference/registration failure", "Missing/malformed/native mismatch or containment failure", "Unavailable installed API contract at actual staging"],
+  "rollback": "Keep new component disabled; do not change original source, failed evidence, production paths or running jobs.",
+  "results": null,
+  "verdict": null
+}
