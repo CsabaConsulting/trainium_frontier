@@ -1,0 +1,125 @@
+{
+  "proposal_id": "20260926-clock36-recursive-source-port",
+  "status": "CPU_IMPLEMENTATION_ONLY",
+  "owner_role": "Researcher; distinct Implementer and independent fresh Verifier required",
+  "hypothesis": "Applying the existing Recursive optimizer schedule package to the startup-adjusted architecture timebase may improve fixed1800-second fresh public20M BPB over the exact36a862 clock-only architecture; this is an untested stack, not an equivalent implementation or a proven explanation of historical BPB spread.",
+  "single_causal_change": "Add the exact existing Recursive schedule package as one explicit default-OFF flag to exact36a862. With the flag ON, use its separate optimizer LR warmdowns, Muon momentum and beta2 semantics on the already-selected schedule_elapsed timebase. Do not change the startup clock, architecture, LR peaks, model math, budget or other toggles.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "Minimal Recursive package port onto exact36a862",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Supervisor selected this CPU-only implementation of the human-requested architecture-plus-schedule branch after genuine same-host formal control nominated36. It preserves the new clock, unlike substituting75b9. No LR retune or second candidate is included."
+    }
+  ],
+  "selection_rationale": "This NEW-source proposal supersedes no history: blocked flag-only2dd6b317 remains true. The qualifying parent signal is clock-only36 on trn22, not a result for this child. Prior75b9 without the clock was discarded; transfer is uncertain. CPU implementation and independent tests are the next authorized scope, not native work.",
+  "p_improve": null,
+  "estimated_host_hours": 0.0,
+  "trainium_feasibility": "Prospective model shape remains113256724 parameters,8x1024, existing attention0,2,4,6,7, four ranks/LNC2 and batch131072. No new matrix shapes are intended. Recursive beta2 uses the donor's device-tensor scalar path and may alter optimizer graph capture/specializations. Parent cold tests do not qualify the child; exact-byte cold-five<=900s is required before full training.",
+  "cheapest_falsifier": "Independent source scope/AST and fake-clock reference checks, followed by bounded tiny actual-gradient/update/state identity checks for default/OFF and independent ON schedule integration. Reject any changed budget clock, non-equivalent OFF arithmetic, wrong timebase, scalar beta2 specialization path, serialization or numerical failure before full-size CPU/native work.",
+  "prior_result_refs": [
+    "research/v2/proposals/20260926-clock36-recursive-conditional/DISPOSITION.md at2dd6b3171ddc9195a5dd5b5f5dd3e97de341cfa4",
+    "research/v2/verification/20260926-startup-clock-full-result/FINAL_REVIEW.md",
+    "research/v2/analysis/20260926-recursive6ef7-control-final-audit/actual-audit-normal.json",
+    "research/v2/verification/20260926-75b9-formal-control-crosscheck/REVIEW.md",
+    "research/v2/proposals/20260926-startup-adjusted-full-trn21-replication/EXPERIMENT_PROPOSAL.json"
+  ],
+  "evidence": [
+    "7419927c7417b5666a984ec9c2b849feadabaaa9:workflow/proposals/research-v2/train.py",
+    "fe0969fd311d654e143dc6113614416c8970a424:workflow/proposals/research-v2/train.py",
+    "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b:workflow/proposals/research-v2/train.py",
+    "workflow/NEXT_12_HOURS_2026-09-26.md architecture decision tree; workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md; workflow/COMPILE_TIME_GATE_2026-09-26.md",
+    "Supervisor task: completed trn22 genuine control0.9912010195941572 versus clock-only36 0.9883821509811542, delta-0.002818868613003, unchanged selectorNOMINATE; exact36 trn21 replication still live. This proposal does not independently approve that result or adoption."
+  ],
+  "duplicate_search_terms": ["RECURSIVE_SCHEDULE", "--recursive-schedule", "startup_adjusted_schedule_elapsed", "75b944", "36a862"],
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "run_label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
+    "public_val_bpb": 0.9883821509811542,
+    "steps": 3630,
+    "box_constraint": "Prospective same-host scientific clock-only parent contrast. Existing candidate row is not relabelled kind=control; exact matched full-run command/environment binding is a separate later decision."
+  },
+  "candidate": {
+    "branch": "codex/20260926-clock36-recursive-source-port",
+    "files_allowed": ["workflow/proposals/research-v2/train.py"],
+    "expected_diff": "Port only donor Recursive flag/global/save-toggle, three schedule branches, device beta2 routing and per-group LR routing. Retain exact36 schedule_elapsed and route both Muon and non-Muon LR calculations through it. Small, default-OFF scientific source patch; no launch/submission changes.",
+    "run_label": "fs-20260926-clock36-recursive-source-port-r1",
+    "launch_command": null,
+    "source_commit": null,
+    "source_sha256": null,
+    "host": null,
+    "label_scope": "Prospective identity only. No native packet or host reservation exists."
+  },
+  "source_inputs": {
+    "path": "workflow/proposals/research-v2/train.py",
+    "base_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "base_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "donor_architecture_commit": "fe0969fd311d654e143dc6113614416c8970a424",
+    "donor_architecture_sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+    "donor_adopted_commit": "a4aa4351789115a2d0aa947d9ca00ff689f9bd0b",
+    "donor_adopted_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "research_static_observation": "ast.dump(include_attributes=False) of lr_multiplier, muon_momentum and muon_beta2 is identical between the two donors; this is source provenance, not a child test or independent review.",
+    "donor_function_ast_sha256": {
+      "lr_multiplier": "108e2beea704c4c2ff5705e7248836e1621cadf3328998dd2fb5e1c44cc58b7f",
+      "muon_momentum": "ed98fc7965d4187260c2edf7f8a5a3940562cf08097f310d128bdd500b903a33",
+      "muon_beta2": "6583e4229a44ba32cd0ff0c97a75310e28d509f079fa1cf137ce19bb6ddeb0cc"
+    }
+  },
+  "timebase_contract": {
+    "helper": "Keep exact36 startup_adjusted_schedule_elapsed byte-identical; no new clock reads.",
+    "steps_0_through_4": "When startup-adjusted flag is ON: process_age=elapsed+(budget_started-_PROCESS_STARTED); schedule_elapsed=max(0,process_age+30-900). Preserve charge for excess above the allowance rather than blindly freezing optimizer progress.",
+    "steps_5_onward": "Return existing elapsed after the unchanged fifth-boundary budget reset. Startup-adjusted OFF uses original elapsed at every step.",
+    "all_progress_consumers": "Pass the SAME schedule_elapsed to Muon and non-Muon LR helpers and use existing wd_progress for momentum/beta2/WD and existing optional Demon schedule. Step-based momentum warmup and flat-LR precedence stay donor-exact.",
+    "budget": "No modification to actual elapsed, budget_started reset, cap900, launch margin30, process-start timer, recent-step predictor, stop condition, record_step_boundary, checkpoint reserve/save, source budget logging or external official through-exit accounting. MAX1800 remains fixed."
+  },
+  "implementation_scope": {
+    "permitted": ["Default-False RECURSIVE_SCHEDULE and BooleanOptionalAction --recursive-schedule/--no-recursive-schedule; no environment override", "Donor-exact schedule helpers including all OFF fallbacks, operation ordering, clamping, floor and step warmup precedence", "Donor device one_beta2 selection when Recursive ON; retain existing non-Recursive branches", "Donor per-group LR selection, applied on exact36 schedule_elapsed, with no_lr_decay taking precedence", "Save/restore RECURSIVE_SCHEDULE via existing toggle mechanism; no loader/model routing change", "Separate lane-local CPU tests, raw receipts and neutral review input; no production checker/launcher modifications"],
+    "forbidden": ["prepare.py, scoring, evaluator, tokenizer, data, model forward/backward or architecture changes", "Peak LR/WD defaults or retuning, batch/seed changes, new kernel/FP8/table changes", "Startup helper or budget/logging/stop/checkpoint implementation edits", "Submission train.py or launch-command changes", "Source adoption, merging into active base, native/host work or automatic successor"]
+  },
+  "independent_cpu_test_plan": [
+    "See IMPLEMENTATION_SPEC.md for four toggle combinations, boundary cases, exactness scopes and deliberately wrong mutants.",
+    "Fresh no-context Astra must receive ONLY exact full-context diff, neutral lane spec and raw gate receipts; write/run its own bounded single-thread reference and preserve failures. Implementer tests alone do not satisfy it.",
+    "Tiny tests use fixed clocks and identical seeded inputs; full113256724-parameter standardG2 runs only in a separately reviewed CPU packet on the authorized idle host, never full-size laptop allocations.",
+    "Three-step standardG2 does not cross the real fifth boundary. Preserve separate >=6-step tiny evidence with real startup exclusion5 explicitly recorded; never mistake its stub value2 for production5."
+  ],
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "No quality acceptance in this CPU stage. If separately qualified/released, require fresh-process public20M20971520 tokens/context1024/B1 at official1800, report incremental delta versus same-host clock-only36 and formal delta versus genuine same-host6ef7 control. The scientific target is lower BPB than36; unchanged decide.py, stricter two-host mean delta<=-0.0010 and required human adoption acknowledgement govern adoption, not this proposal or parentNOMINATE.",
+    "throughput": "No throughput win or minimum inferred from CPU or five steps. Report actual startup and adequate steady observations if available; final fixed-budget BPB is decisive.",
+    "correctness": "Strict default/explicitOFF numerical identity to36 under identical clocks; Recursive ON matches donor formulas and independently computed update reference on the selected clock. Finite gradients/updates, correct checkpoint toggles/reload and causal/state-invariant eval; all source/fullCPU/native gates remain unpassed for the child."
+  },
+  "native_boundary": {
+    "authorized": false,
+    "required_before_cold": "Freeze new exact-byte source and neutral diff/spec/raw receipts; independent fresh source/own CPU exactness PASS plus exact-size standardG2 and separately reviewed mechanical cold packet; explicit Supervisor release and sole Operator idle/lock checks.",
+    "required_before_full": "Child exact-stack genuine cold startup-only five-step measurement<=900s uncapped launch-to-fifth, target870s; MAX1800/model/optimizer flags unchanged, finite steps/zero exit/checkpoint/official accounting and complete retrieval/quiescence. Independent acceptance and separate full release. Parent36/75b9 cold results are NOT substitutes.",
+    "host_safety": "No host assigned/reserved now. Any later run uses same original per-host exclusive device0.lock for complete train+eval lifetime, fresh ps AND neuron-ls under lock, exact pins, no concurrent job, no launcher replacement, explicit descendants/compiler/device postflight.",
+    "submission": "No submission vehicle or command changed. Native research success would not replace clean-port compliance, cold replay or Poojith's submission authority."
+  },
+  "result_context": {
+    "new_formal_trn22_control": {"label":"fs-20260926-recursive6ef7-control-trn22-r2","kind":"control","base_sha256":"6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3","bpb":0.9912010195941572,"raw_commit":"0e518f9b5c074d89df8019fa2a6231083bbbefd3","raw_bundle_sha256":"dac4c53f02404168a1fb96d6d23d95ede8aa5f2c2962cc18396eca42a1356592"},
+    "clock36_trn22": {"bpb":0.9883821509811542,"delta_vs_new_formal_control":-0.002818868613003,"selector_reported_by_supervisor":"NOMINATE","adopted":false},
+    "clock36_trn21": {"label":"fs-20260926-arch36a8-startup-clock-trn21-r2-full","status_at_proposal":"LIVE; final score not invented"},
+    "prior75b9": {"bpb":0.9896621160468637,"formal_trn21_control":0.9899528600562257,"delta":-0.0002907440093620206,"selector":"DISCARD","clock_adjusted":false},
+    "historical_roles": "Earlier trn21/trn22 schedule_arm0.9900560897366009/0.9902787975734985 remain schedule arms, not formal controls. Parent36 is not a retroactive kind=control row. No ledger writes in this task."
+  },
+  "abort_conditions": ["Any unexpected source scope or default/OFF mismatch", "ON reference mismatch, nonfinite update, wrong step5 transition, wrong beta2 scalar route or checkpoint/load/causality failure", "Missing independent new-byte review/fullCPU or exact child cold gate; cold>900s parks full", "Wrong pins, busy/error idle check, lock/disk/STOP/preflight or official1800 failure", "No automatic host/native/full/submission action from this CPU-only proposal"],
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "host_reserved": false,
+  "source_adoption": false,
+  "submission_authorized": false,
+  "human_approved_by": null,
+  "verdict": null,
+  "results": null
+}
