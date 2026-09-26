@@ -1,0 +1,171 @@
+{
+  "schema": "completed-researcher-flag-only-proposal-v1",
+  "status": "complete_existing_source_flag_only_pending_actual_control_binding_and_operator_admission",
+  "owner_role": "researcher",
+  "prepared_utc": "2026-09-26T09:38:11Z",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "proposal_template": "research/agentic/EXPERIMENT_PROPOSAL.json",
+  "kind": "lr_arm",
+  "run_purpose": "quality",
+  "mechanism_class": "optimizer_hyperparameter",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "prediction_note": "No measured or fitted gain is available; this is an information-seeking single-factor research arm, not a predicted win.",
+  "estimated_host_hours": 1.25,
+  "source": "research/v2/proposals/20260926-sprint-p0-clean-batch/train.py",
+  "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+  "source_commit": "7117d57b92e19e8437158164dbce94495389d7b6",
+  "base_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+  "source_contract": "Exact already-reviewed clean P0 source exposes only total batch/matrix LR and defaults to accepted e1e2 behavior. Literal e1e2 submission source does NOT parse --matrix-lr; do not run the proposed argv on e1e2 bytes. No source edit, K2, tables or Recursive schedule.",
+  "code_evidence": {
+    "flag_lines": "train.py:1357-1363: --total-batch-size/--matrix-lr positive finite parsing and assignment.",
+    "optimizer_effect": "train.py:892,899: MATRIX_LR scales existing local-convolution AdamW and matrix Muon groups, not only Muon; other group LRs remain fixed.",
+    "default_parity_diff_sha256": "fb861080ba70ad3ecd04e0a638ea7e826899353c0508b477f0b4d7524eb020d5",
+    "default_author_cpu_sha256": "22b2abc5ea1817d7c2bc71a09a04bd385e924a29becc36fe6a10437f4c5f2b5d",
+    "review": "research/v2/verification/20260926-p0-sprint-fresh-independent/REVIEW.md",
+    "review_sha256": "c501228eb9a7f6b073005b88fe1d3041ddf90e61c569c1055b3aa723e5a7f7a9",
+    "review_scope": "Exact8c6d source and all supplied frozen bindings; actual tiny-model/optimizer default3step parity with e1e2. Not a fresh review of this flag value or native-proof substitute; no new source review requested.",
+    "native_evidence": "Same8c6d completed trn22 batch262144/LR.015 and trn21 batch262144/LR.021 full runs. Baseline e1e2 shape completed natively. This new LR-only configuration still needs its own actual full result."
+  },
+  "control": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "kind": "control",
+    "selected_host": null,
+    "run_label": null,
+    "ledger_row": null,
+    "public_val_bpb": null,
+    "bound": false,
+    "alternatives": [
+      {
+        "host": "trn21",
+        "run_label": "fs-20260926-sprint-e1e2-control-trn21-r1",
+        "public_val_bpb": null,
+        "status": "CURRENT_RUN; actual full+fresh20M and valid row pending"
+      },
+      {
+        "host": "trn22",
+        "run_label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+        "public_val_bpb": 0.9879041000701606,
+        "status": "ACTUAL_EVALUATED_CONTROL",
+        "evidence": "research/v2/analysis/20260926-e1e2-control-trn22/result.json",
+        "raw_archive_sha256": "f17ea4ebbbef720cee5d02f810fcb103fc887a5d56fa7c906910f28346dae6c7"
+      }
+    ],
+    "requirement": "Bind genuine valid same-host kind=control/base=e1e2 before dispatch; seed42, batch131072, LR.015, same model/context/runtime/accounting. Unchanged selector pools last up-to-three eligible controls. Never use other-host score, old36/6-layer row, historical replay or relabel an arm as control."
+  },
+  "candidate": {
+    "files_allowed": [],
+    "source_edit": "none",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "shape": "eight layers/width1024; batch131072, accumulation1, context1024, pack32, world4/LNC2",
+    "submission_authorized": false,
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 131072 --matrix-lr 0.01875",
+    "launch_command_sha256": "d264c27e066ef157fa5c5fc083bd9d12dda8606b9f2410104c43a0fd33473f6f",
+    "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline"
+  },
+  "dispatch": {
+    "selected_host": null,
+    "selected_label": null,
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "operator": "Existing sole Operator only",
+    "policy": "No host assignment or release here. Wait for existing job plus attached20M natural completion/retrieval/quiescence; qualified higher-priority K2 work and actual selector-mandated confirmation take precedence. Otherwise select eligible host by availability, not favorable score; only one first-run alternative. Another host is replication only under unchanged selector.",
+    "priority": "Second fallback, preferably trn22 after live batch.021+20M (~10:25UTC estimate), only if no admitted higher-priority K2/full or actual selector-required replication. Does not presume batch.021 wins and does not alter its source/base."
+  },
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NUM_STEPS": "No short-step override; existing1000000 ceiling, official charged budget controls.",
+    "binding": "Preserve authenticated same-host runtime/effective nonsecret environment. Unique output/metrics paths, exact command and SHA receipts."
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "context": 1024,
+    "batch_size": 1,
+    "expected_public_bytes": 83462186,
+    "unchanged_prepare_and_evaluator": true,
+    "checkpoint_required": true,
+    "public2m_selection": false
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "source_checkpoint_reserve_seconds": 15,
+    "source_startup_margin_seconds": 30,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "term_grace_seconds": 60,
+    "policy": "All startup above900 is charged; retain existing predictor/checkpoint/through-exit accounting. Outer timeout is not extra budget. Steps/rate are diagnostics, no throughput or60%-steps quality gate."
+  },
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "prospective_new_footprint_bytes": 3221225472,
+    "memory_available_minimum_bytes": 68719476736,
+    "policy": "Fresh measured free space>=max(initial floor,runtime floor+actual projected footprint), retain all current/control/candidate artifacts; increase reserve as necessary. No cleanup/AWS action or reduced floor."
+  },
+  "machinery": {
+    "reuse": "Existing verified full1800/fresh20M held-original-guardian mechanics only; sole Operator mechanically rebinds unused label/source/proposal/argv. No new launcher, review loop or separate native timing ceremony.",
+    "lock": "Same original exclusive device0.lock held through train/eval/owned children; fresh successful ps AND neuron-ls plus fuser/STOP/source/runtime/resources under lock, otherwise no launch.",
+    "guardian_sha256": "5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e",
+    "cache": "Research may reuse authenticated selected-host existing namespace after its owner exits; retain exact owner/source/path evidence. No presumed hits/cold status, deletion, or running cache mutation. A future submission needs genuine cold full replay/fresh20M and Claude audit."
+  },
+  "success_criteria": {
+    "quality": "Unchanged decide.py: <=-0.0006 nominates; >=+0.0005 discards; ambiguous low-prior lr_arm discards. Confirmation requires both host deltas negative, mean<=-0.0010 and disagreement<=0.0015; retain HOLD at delta<=-0.010 or public<0.975 and all existing rules.",
+    "correctness": "Finite correct full1800 run, clean exact science/source/argv, valid accounting/over_budget=false, loadable actual checkpoint, fresh20M and complete retrieved artifacts/quiescence before result use.",
+    "submission": "No automatic adoption/upload or official gain claim; controlling confirmed>=.003 official gain target, genuine cold full/fresh20M/Claude and human-only upload remain."
+  },
+  "gates": {
+    "existing_source_evidence_cited": true,
+    "new_independent_review_required": false,
+    "fresh_machine_admission": false,
+    "exact_source_argv_binding": false,
+    "actual_same_host_control_bound": false,
+    "full_result": false,
+    "submission_authorized": false
+  },
+  "abort_conditions": [
+    "Any source/argv/runtime/label/idle/STOP/resource/original-lock gate fails",
+    "Crash/nonfinite/causality/checkpoint/budget/eval failure",
+    "Missing actual control or unauthenticated results",
+    "Scientific flags drift or a duplicate consumed label is found"
+  ],
+  "required_artifacts": "Committed proposal/source/command identities; actual control binding; preflight/lock/environment/cache receipts; complete train/eval logs; startup/charge/steps; checkpoint identity/load status; fresh20M; actual one-row outcome and unchanged selector verdict, including failure.",
+  "local_scope": "Researcher writes proposal only; no scientific code/selector/queue/state/ledger edit, model execution, review, host action or launch.",
+  "human_approved_by": "Poojith Final Sprint standing development authority; Supervisor assigned bounded existing-flag research preparation, not a launch release.",
+  "verdict": null,
+  "proposal_id": "20260926-e1e2-lr01875-only",
+  "arm_id": "e1e2-batch131072-lr01875",
+  "hypothesis": "A smaller matrixLR increase from.015 to.01875 at fixed accepted-eight-layer batch131072 may improve fixed-budget BPB and identify whether the .021-only endpoint overshoots.",
+  "single_causal_change": "Only MATRIX_LR .015 -> .01875 (1.25x) on exact8c6d, explicit unchanged total batch131072. All other settings fixed. Not old6layer retuning, not the doubled-batch or Recursive package.",
+  "selection_rationale": "Second flag-only information arm: a prespecified intermediate LR point between accepted.015 and new.021, never tested on this accepted eight-layer configuration in the inspected history. It can run independently against actual same-host e1e2 control while the .021-only cell completes, but ranks below its required replication or qualified K2.",
+  "cheapest_falsifier": "One full1800 and fresh20M on genuine same-host control. Existing-code flag-only admission and initial full-run steps supply native observations; no extra source review/CPU/native-smoke gate.",
+  "host_alternatives": [
+    {
+      "host": "trn22",
+      "label": "fs-20260926-e1e2-lr01875-only-trn22-r1"
+    },
+    {
+      "host": "trn21",
+      "label": "fs-20260926-e1e2-lr01875-only-trn21-r1"
+    }
+  ],
+  "prior_result_refs": [
+    "research/v2/analysis/20260926-clean-batch-lr021-results/result.json",
+    "research/v2/analysis/20260926-e1e2-control-trn22/result.json",
+    "research/v2/analysis/20260926-clean-p0-results/REPORT.md"
+  ],
+  "duplicate_search": {
+    "paths": [
+      "research/v2/ledger.jsonl",
+      "research/agentic/DECISION_LOG.md",
+      "research/experiment-log.jsonl",
+      "research/trn2-experiment-results.md"
+    ],
+    "finding": "No .01875 full result found on accepted eight-layer/e1e2 or its reviewed8c6d derivative. The old clock36 LR.012 proposal listed .01875 as a future idea only; this is not rerunning that old completed LR.012 experiment. Old6layer .0175 evidence is retained but is a different configuration."
+  }
+}

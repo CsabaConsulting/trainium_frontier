@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260926-k2-compiler-local-constants-timing",
-  "status": "complete_research_design_source_cpu_review_and_native_binding_pending_not_ready",
+  "status": "complete_source_and_author_cpu_parser_bound_fresh_review_native_admission_pending",
   "owner_role": "researcher",
   "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
   "hypothesis": "Putting the six unchanged fixed geometry constants inside the jitted resident_consumer resolves the independently reproduced NKI closure-name tracing failure without changing the K2 operation; any useful whole-step speedup still requires one actual native45 comparison at >=1.03x.",
@@ -21,7 +21,12 @@
     "research/v2/lanes/k2-native-index-repair/cpu-result.json",
     "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
     "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md",
-    "research/v2/ledger.jsonl: fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1"
+    "research/v2/ledger.jsonl: fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+    "research/v2/analysis/20260926-k2-parser-failure/REPORT.md",
+    "research/v2/lanes/k2-compiler-local-constants/SPEC.md",
+    "research/v2/lanes/k2-compiler-local-constants/SOURCE.diff",
+    "research/v2/lanes/k2-compiler-local-constants/cpu-result.json",
+    "research/v2/lanes/k2-compiler-local-constants/parser-result.json"
   ],
   "control": {
     "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
@@ -52,7 +57,7 @@
   },
   "candidate": {
     "source": "research/v2/lanes/k2-compiler-local-constants/train.py",
-    "source_sha256": null,
+    "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
     "files_allowed": [
       "train.py"
     ],
@@ -62,8 +67,8 @@
     "seed": 42,
     "max_train_seconds": 1800,
     "submission_authorized": false,
-    "source_commit": null,
-    "source_status": "INTENDED_NEW_PATH_NOT_IMPLEMENTED_OR_FROZEN; Implementer supplies exact bytes/commit/SHA/diff and single CPU bundle, then the single fresh reviewer. No candidate source is created by Researcher.",
+    "source_commit": "da34c88e90c0f7f281188315a3e63734a8d55521",
+    "source_status": "Actual source and author CPU/parser bundle archived at da34c88e; exact SHA bound. Independent fresh review and native/machine/source release remain pending.",
     "parent_source": "research/v2/lanes/k2-native-index-repair/train.py",
     "parent_source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
     "expected_diff": "In a NEW train.py derivative of frozen a318 only, move/bind vocab=8192, tokens=32768, channels=1024, partition=128, features=512, groups=64 as local constants in resident_consumer instead of outer Python closure variables. No numeric value, operation, traversal, accumulation, metadata, guard, registration, optimizer, model, data or clock change.",
@@ -71,12 +76,12 @@
     "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline"
   },
   "gates": {
-    "source_frozen": false,
+    "source_frozen": true,
     "actual_full_source_diff_identity_passed": false,
-    "cpu_exactness_author": false,
-    "flag_off_three_step_identity_author": false,
-    "matching_version_offline_parser_on_final_source_passed": false,
-    "independent_repair_review": "PENDING: exactly one fresh bounded <=30min repair review with its own CPU reference, frozen diff/spec/raw receipts and actual source identity. No repeated review absent an actual failed test; no extra full-size CPU ceremony.",
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "matching_version_offline_parser_on_final_source_passed": true,
+    "independent_repair_review": "PENDING: one fresh isolated bounded repair review is active per Supervisor, supplied frozen diff/spec/raw receipts only (manifest prefix06f77b50). No review PASS presumed or further review layer added. Retain actual full-source composition/identity binding before native release.",
     "independent_review_passed": false,
     "same_host_control_timing_bound": false,
     "native_timing": false,
@@ -149,7 +154,7 @@
     "nki_install_report_sha256": "b446090c16b004f8c66f863bb2ddc7914b701bc83ad62c537005a149098a60c9",
     "dependency_install_report_sha256": "17ca5dbc78461604ecfe6c8e29a6a89eed9104ffb7dc4d4a2416e2003cf85ac8",
     "nki_version": "0.5.0+28631259367.ga768afa6",
-    "diagnostic_python": "3.12.13, CPU only; matching NKI wheel, not an assertion that every host Python/package byte is identical",
+    "diagnostic_python": "3.12.13 CPU only. NKI version matches archived host metadata; no separately authenticated host-wheel binary hash or complete host environment reproduction. Local dependencies are not asserted host-matched.",
     "production_geometry": {
       "vocab": 8192,
       "tokens": 32768,
@@ -163,7 +168,9 @@
     "failed_cases": "Original full-source extracted kernel and minimal closure fail unbound tokens. Production local1..5 fail on channels, vocab, groups, features, partition respectively.",
     "successful_case": "Standalone production_local_6 has closure={} and PARSER_MLIR_PASS with verified1062965-byte MLIR.",
     "successful_mlir_sha256": "4e3e0f1c579e624ca11f184a24cbfe81297e01ebb590368b904c417f72e24310",
-    "scope": "The diagnostic's source_sha256 identifies unchanged a318 extraction origin, not a new repaired candidate hash. Virtual local-constant source is diagnostic only. Actual final train.py implementation, CPU/source binding and fresh review remain pending. No hardware ran."
+    "scope": "Historical a318-based virtual diagnostic establishes closure-name cause only; its source_sha256 is extraction origin, not the new candidate. Actual_candidate_evidence below binds implemented662c968a and its direct parser result. Neither ran hardware.",
+    "report": "research/v2/analysis/20260926-k2-parser-failure/REPORT.md",
+    "report_sha256": "be0cca3707d0acf7daed17688c4b1886a46e7dca39de239c68219466f2203a2a"
   },
   "implementation_contract": {
     "permitted_scope": "Only train.py, narrow _k2_build_kernel/resident_consumer fixed-constant lexical binding. Preserve int32/int64 guard and every original shape/value.",
@@ -232,5 +239,26 @@
     "Complete candidate log, all45 sequential boundaries, native correctness/checkpoint evidence, uncapped startup and charged-time metrics",
     "Failure or completion/quiescence record and unchanged exact ratio verdict; no invented future quality row"
   ],
-  "role_separation": "Researcher writes this proposal only. Implementer owns new source/author CPU receipts; one independent Reviewer checks repair; Supervisor binds evidence and selects later release; existing sole Operator alone admits/runs; Analyst compares observed results. No source/selector/queue/state/ledger/host action by this task."
+  "role_separation": "Researcher writes this proposal only. Implementer owns new source/author CPU receipts; one independent Reviewer checks repair; Supervisor binds evidence and selects later release; existing sole Operator alone admits/runs; Analyst compares observed results. No source/selector/queue/state/ledger/host action by this task.",
+  "source_binding_updated_utc": "2026-09-26T09:39:39Z",
+  "actual_candidate_evidence": {
+    "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "source_commit": "da34c88e90c0f7f281188315a3e63734a8d55521",
+    "spec": "research/v2/lanes/k2-compiler-local-constants/SPEC.md",
+    "spec_sha256": "1814d1d383cff95f0bada9e21b992f52b274da30b3c60ccb9bc0c1a196887a30",
+    "diff": "research/v2/lanes/k2-compiler-local-constants/SOURCE.diff",
+    "diff_sha256": "eebfcf22142724dc377d50297f2b7341e46440ed2e1dc67ad096446e071d463d",
+    "cpu_receipt": "research/v2/lanes/k2-compiler-local-constants/cpu-result.json",
+    "cpu_receipt_sha256": "62b23ca644d1b2d94d4a55b9d2d8c15f0a03ef7e9aabb42ade9885dbbd3106be",
+    "cpu_scope": "Both int32/int64:12 EXACT_FINITE operation fixtures,21 total input-contract rejections, OFF3/ON3 loss/gradient/update identity vs e1e2. Reduced8layer/width64/context8/batch2 uses SGD.01; ON actual consumer is CPU-interpreted. Not production optimizer/full-loop/full-size/native proof. Four nonfinite fixtures per dtype remain FAIL_NONFINITE_DIAGNOSTIC.",
+    "parser_receipt": "research/v2/lanes/k2-compiler-local-constants/parser-result.json",
+    "parser_receipt_sha256": "813558f05acd81d93cc6039ff5650e6b4ce726a63a7bb430e0eaff14bb69468b",
+    "parser_script_sha256": "30fa3ef3f206b3538a7f1205863d761c812e556c19e487d385a243d140b1d16b",
+    "parser_result": "Actual unmodified662c factory AST, production metadata shapes, closure={}, PARSER_MLIR_PASS/verified, exit0/empty stderr. NKI0.5.0+28631259367.ga768afa6, local Python3.12.13.",
+    "mlir_bytes": 1062963,
+    "mlir_sha256": "404acb968b16f1bb922b57b8ee2422eab3aedb7de57a54a59512597889dbc76b",
+    "backend_executed": false,
+    "native_executed": false,
+    "scope": "Name-resolution/MLIR only, before BIR/backend/allocation/executable/framework/device execution. Author tests and recorded diff do not self-approve the active fresh independent review."
+  }
 }
