@@ -1,5 +1,34 @@
 # Workflow installation and incremental launch status
 
+## Results and successors — 26 September13:40 IST
+
+P0 scores retrieved: clean Recursive/trn21 public20M0.9880239239389417,
+batch262144/.015/trn22 public20M0.9879940543998110. Raw changes vs historical
+clean replay are-.0003651413/-.0003950108 only, not confirmed wins. Unchanged
+decide.py returnsINSUFFICIENT for missing genuine same-host e1e2 controls.
+See analysis/20260926-clean-p0-results/REPORT.md and ledger; both checkpoints
+protected. Officialbest remains0.9878, no new submission-sized gain.
+
+Actual successors: trn21 batch262144/.021 began08:02:06UTC, fourworkers
+3231435–38, guardian3231387/original596823 held. trn22 exacte1e2 prospective
+control dispatched08:07:14UTC PID3345113; live capture pending import.
+Turnover gaps~62s/~333s respectively, eachunder10min. Previous complete
+P0 occupied window was>99.9% each includingcompile/eval, notdailydeviceutil.
+
+K2 native not yet started: trn22 after exact cleanup free17,265,389,568B,
+still451,350,528B short of17,716,740,096B wholepair admission. Two independent
+old640 DISCARD checkpoint leads (1.298GBeach) are scoped for metadata check
+now and verified cleanup only at natural control completion. Presence unknown.
+If resolved, next host opportunity about14:32–14:36IST;16:00 timing target
+retained, no measuredK2rate/coldstartup yet. Never lowerfloor to claim readiness.
+
+FP32 tables sourceb4728d17 deliveredCPU/OFF3/ON2/checkpoint checks; fresh
+isolated reviewer /root/p2_fp32_independent_reviewer has only diff/SPEC/receipts
+and own tinyCPU tests,30min cap. FrozenK2/P3 unchanged. No native permission
+inferred. Fulltables target tonight20:00–22:00, conditional; execute earlier
+if ready rather than wait for that clock. Existing5minute monitor now uses
+latestpinnedgoal, quotaUNCONFIRMED and explicitFP32 contract.
+
 ## Controlling FINAL SPRINT goal — confirmed13:26 IST, 26 September
 
 Active app goal matches workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md.

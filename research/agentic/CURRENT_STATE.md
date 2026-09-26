@@ -1,5 +1,16 @@
 # Current state
 
+## 13:40 IST: both new scores in; next jobs live
+
+Schedule/trn21=.98802392394 and batch262144/.015/trn22=.98799405440 public20M.
+Small raw deltas vs cleanreplay, no samehoste1e2control yet; selectorsINSUFFICIENT.
+Officialbest.9878 unchanged. Both resultarchives and ledgerrows retained.
+trn21 batch/.021 actuallystarted13:32:06; trn22 genuinee1e2control dispatched
+13:37:14. K2next after currentjobs and exactdiskcleanup;451MBreservegap remains.
+Two old640 discarded checkpoints are identified but remote presenceunknown.
+FP32 tablepatchb4728d17 CPUdone, one freshreviewrunning; target fulltonight
+20:00–22:00 conditional, executeearlierifready. See latestresearch/v2/STATUS.md.
+
 ## Controlling goal after restart — FINAL SPRINT, 26 September13:26 IST
 
 Actual pinned app goal is ACTIVE FINAL SPRINT. Read
