@@ -128,5 +128,32 @@
     "source_review": "PARENT_LOGIC_UNCHANGED_HUMAN_SCALAR_CPU_PASS",
     "machine_admission": "PENDING",
     "status": "READY_NOT_LAUNCHED"
+  },
+  "trn21-finalcold": {
+    "host": "trn21",
+    "order": 6,
+    "predecessor": "trn21-k2rescue",
+    "label": "fs-20260926-final-batch262144-lr021-cold-trn21-r1",
+    "packet": "trn21-finalcold/packet.json",
+    "packet_sha256": "4b3d10ab80e498497b5ad1878a5d5df03b695311d2d726068a687f16e01398fc",
+    "source_sha256": "cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+    "status": "READY_PENDING_PREDECESSOR_AND_FRESH_MACHINE",
+    "source_review": "HUMAN_SCALAR_SCOPE_NOT_FRESH_AUDIT",
+    "machine_admission": "PENDING"
+  },
+  "trn22-finalseed43": {
+    "host": "trn22",
+    "order": 6,
+    "predecessor": "trn22-muon150",
+    "label": "fs-20260926-final-batch262144-lr021-seed43-trn22-r1",
+    "packet": "trn22-finalseed43/packet.json",
+    "packet_sha256": "8d670ce1070c8fc3c6a9cd796ae610da4e29af68148df6c80b21c77adb144439",
+    "source_sha256": "cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --seed 43",
+    "status": "READY_PENDING_PREDECESSOR_AND_FRESH_MACHINE",
+    "source_review": "HUMAN_SCALAR_SCOPE_NOT_FRESH_AUDIT",
+    "machine_admission": "PENDING",
+    "requires_cold_bundle": "research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json"
   }
 }

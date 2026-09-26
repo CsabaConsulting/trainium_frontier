@@ -40,7 +40,8 @@ def checked_packet(key):
     assert p['binding']['source_sha256'] == entry['source_sha256']
     assert entry['source_sha256'] in (
         '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d',
-        '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020')
+        '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020',
+        'cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d')
     assert p['files']['package/train.py']['sha256'] == entry['source_sha256']
     provenance = json.loads(base64.b64decode(p['files']['package/provenance.json']['b64'], validate=True))
     assert provenance['train_sha256'] == entry['source_sha256'], 'PROVENANCE_SOURCE_MISMATCH'
@@ -100,6 +101,21 @@ def stage(key, execute=False, previous=None):
                           'remote_lifetime_guard_unchanged': True, 'cold_cache': bool(b['fresh_cache_directories'])}))
         return 0
     assert previous, 'RETRIEVED_PREDECESSOR_REQUIRED'
+    if entry.get('requires_cold_bundle'):
+        cold_path = REPO / entry['requires_cold_bundle']
+        cold_raw = cold_path.read_bytes()
+        cold_bundle = json.loads(cold_raw)
+        for name, item in cold_bundle['files'].items():
+            assert sha(item['text'].encode()) == item['sha256'], 'COLD_FILE_DRIFT:'+name
+        cold_binding = json.loads(cold_bundle['files']['NATIVE_BINDING.json']['text'])
+        cold_terminal = json.loads(cold_bundle['files']['terminal.json']['text'])
+        assert cold_binding['source_sha256'] == b['source_sha256'] and cold_binding['fresh_cache_directories'], 'WRONG_FINAL_COLD_SOURCE'
+        assert cold_terminal['status'] == 'COMPLETE_PENDING_INDEPENDENT_REVIEW' and cold_terminal['eval_exit_code'] == 0, 'COLD_RUN_NOT_COMPLETE'
+        assert json.loads(cold_bundle['files']['train/rehearsal.json']['text'])['charged_through_process_exit_within_budget'] is True
+        cold_row = json.loads((cold_path.parent / 'ledger-candidate.json').read_bytes())
+        assert cold_row['raw_archive_sha256'] == sha(cold_raw) and cold_row['train_py_sha256'] == b['source_sha256'], 'COLD_AUTHENTICATION_STALE'
+        assert cold_row['cold_startup_proven'] is True and cold_row['over_budget'] is False, 'COLD_NOT_QUALIFIED'
+        assert cold_row['eval_tokens'] == 20971520 and cold_row['eval_seq_len'] == 1024, 'COLD_EVAL_WRONG_SCOPE'
     prior_raw = Path(previous).read_bytes()
     prior = json.loads(prior_raw)
     expected_key = (b['host'] + ('-warmdown060' if b['host'] == 'trn21' else '-warmdown085')) if entry['order'] == 2 else (b['host'] + ('-warmdown085' if b['host'] == 'trn21' else '-warmdown060'))

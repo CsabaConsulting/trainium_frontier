@@ -6,8 +6,39 @@ control command chain below. trn22 momentum150 remains next; its old LR/control
 successor blocks below are also superseded and will be refused by the queue.
 Overnight cold
 clean batch/LR replay and seed43 confirmation precede remaining scalar arms.
-Exact new timing/cold/seed command blocks will replace these after packaging;
-these are not yet launch-ready. No stale scheduler may bypass this reservation.
+K2 remains review-pending. Cold/seed packets are now registered, but cold
+cannot dispatch until its explicit K2 predecessor is collected; seed cannot
+dispatch until the cold bundle exists and passes source/budget/terminal checks.
+No stale scheduler may bypass this reservation.
+
+## Latest overnight commands — supersede old LR/control successors
+
+After K2 timing and final-source choice, sole Operator authenticates its result
+and only then supplies its retrieved predecessor bundle to:
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-finalcold research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
+```
+
+This cold command is intentionally blocked until the K2 predecessor is
+registered/reviewed/completed. If K2 qualifies, tables timing preempts this
+slot; amend its predecessor before dispatch, never bypass the guard.
+
+After the cold final run AND trn22 momentum finish, collect both once, then:
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
+```
+
+Seed43 retains same clean source; warm research only, no favorable-seed choice.
+Only after actual cold result, create a uniquely named Downloads audit folder
+with exact train.py, accepted launch command, Claude brief and cold receipts.
+No upload or audit ACCEPT may be assumed from local packaging.
 
 Running: trn21 warmdown0.60, launched17:05:44IST; trn22 warmdown0.85,
 launched17:13:51IST on26 September. Do NOT rerun either label.

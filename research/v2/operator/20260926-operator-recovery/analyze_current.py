@@ -55,7 +55,11 @@ assert tr['returncode'] == ev['returncode'] == 0
 assert tr['charged_through_process_exit_within_budget'] is True
 assert 0 < tr['charged_through_process_exit'] <= 1800
 assert b['train_environment']['NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS'] == '1800'
-assert b['train_environment']['NEURON_COMPETITION_R1_SEED'] == '42'
+expected_seed = '43' if manual_key == 'trn22-finalseed43' else '42'
+assert b['train_environment']['NEURON_COMPETITION_R1_SEED'] == expected_seed
+if expected_seed == '43':
+    source_argv = shlex.split(b['launch_command'])
+    assert source_argv[source_argv.index('--seed') + 1] == '43'
 assert b['train_environment']['NEURON_LOGICAL_NC_CONFIG'] == '2'
 assert tr['step_boundaries'] == len(tr['observations']) > 5
 startup = tr['observations'][4]['observed_seconds']
@@ -109,6 +113,12 @@ row = dict(schema='trn-run-record-v2', label=b['label'], arm_id=arm_id, kind=b['
            same_host_comparator_public_20m=control, scientific_delta=score['val_bpb']-control,
            notes='Actual fixed1800/fresh20M result. Existing comparator ledger roles retained; raw scientific delta is not a fabricated formal-control adoption.')
 if manual_key:
+    row['seed'] = int(expected_seed)
+    if expected_seed == '43':
+        row['same_host_seed42_public_20m'] = row.pop('same_host_comparator_public_20m')
+        row['seed_variation_vs42'] = row['scientific_delta']
+        row['scientific_delta'] = None
+        row['notes'] = 'Actual seed43 variation diagnostic, not a matched seed43 causal gain or submission-seed selection.'
     row['cold_startup_evidence'] = str(path.relative_to(repo)) + '#operator-preflight.json/fresh_cache_absent_then_created_empty;train/rehearsal.json/observations[4]' if cold else None
     row['cold_startup_scope'] = 'Actual private-cache empty-before-start proof' if cold else 'Warm research run; not submission-cold evidence'
     row['manual_job_key'] = manual_key

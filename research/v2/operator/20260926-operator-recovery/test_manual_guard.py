@@ -21,6 +21,25 @@ body = next(ast.literal_eval(n.value) for n in ast.parse(template.read_bytes()).
 
 
 class GuardRefusal(unittest.TestCase):
+    def test_final_seed_missing_cold_receipt_never_dispatches(self):
+        spec = importlib.util.spec_from_file_location('manual_final_seed_under_test', HERE / 'manual_job.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        fake = types.SimpleNamespace(local_state=lambda: {'utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                                          'local_stops_present': [], 'breaker_tripped': {}})
+        cold_path = HERE / 'manual-jobs/trn21-finalcold/results-bundle.json'
+        real_read = Path.read_bytes
+
+        def read(path):
+            if path == cold_path: raise FileNotFoundError('TEST_MISSING_COLD')
+            return real_read(path)
+
+        with patch.object(module, 'connector', return_value=fake), patch.object(Path, 'read_bytes', read), \
+             patch.object(module, 'remote', side_effect=AssertionError('MUST_NOT_DISPATCH')):
+            with self.assertRaisesRegex(FileNotFoundError, 'TEST_MISSING_COLD'):
+                module.stage('trn22-finalseed43', execute=True, previous='test-unused-predecessor')
+        self.assertFalse((HERE / 'manual-jobs/trn22-finalseed43/attempt.json').exists())
+
     def test_rehashed_wrong_provenance_refused(self):
         spec = importlib.util.spec_from_file_location('manual_job_under_test', HERE / 'manual_job.py')
         module = importlib.util.module_from_spec(spec)
