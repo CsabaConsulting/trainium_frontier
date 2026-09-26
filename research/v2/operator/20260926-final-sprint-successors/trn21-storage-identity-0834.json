@@ -1,0 +1,51 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "payload_sha256": "2944ecfd41e213f038136707f4f9d1ba2e098ef6b7aafdcb57527264c53c933c",
+  "remote": {
+    "utc": "2026-09-26T08:35:01.402842+00:00",
+    "host": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "read_only": true,
+    "job_processes_not_polled": true,
+    "commands": [
+      {
+        "argv": [
+          "/usr/bin/findmnt",
+          "-J",
+          "-b",
+          "-o",
+          "SOURCE,FSTYPE,SIZE,USED,AVAIL,TARGET",
+          "/"
+        ],
+        "returncode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"size\": 258906374144,\n         \"used\": 245255843840,\n         \"avail\": 13633753088,\n         \"target\": \"/\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "/usr/bin/lsblk",
+          "-b",
+          "-J",
+          "-o",
+          "NAME,SIZE,FSTYPE,MOUNTPOINTS,SERIAL"
+        ],
+        "returncode": 0,
+        "stdout": "{\n   \"blockdevices\": [\n      {\n         \"name\": \"loop0\",\n         \"size\": 29777920,\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/amazon-ssm-agent/13349\"\n         ],\n         \"serial\": null\n      },{\n         \"name\": \"loop1\",\n         \"size\": 77574144,\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/core22/2411\"\n         ],\n         \"serial\": null\n      },{\n         \"name\": \"loop2\",\n         \"size\": 77574144,\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/core22/2955\"\n         ],\n         \"serial\": null\n      },{\n         \"name\": \"loop3\",\n         \"size\": 52535296,\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snapd/27710\"\n         ],\n         \"serial\": null\n      },{\n         \"name\": \"loop4\",\n         \"size\": 52711424,\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snapd/27738\"\n         ],\n         \"serial\": null\n      },{\n         \"name\": \"nvme0n1\",\n         \"size\": 268435456000,\n         \"fstype\": null,\n         \"mountpoints\": [\n             null\n         ],\n         \"serial\": \"vol09b9c7946aeaa8c57\",\n         \"children\": [\n            {\n               \"name\": \"nvme0n1p1\",\n               \"size\": 267360648704,\n               \"fstype\": \"ext4\",\n               \"mountpoints\": [\n                   \"/\"\n               ],\n               \"serial\": null\n            },{\n               \"name\": \"nvme0n1p14\",\n               \"size\": 4194304,\n               \"fstype\": null,\n               \"mountpoints\": [\n                   null\n               ],\n               \"serial\": null\n            },{\n               \"name\": \"nvme0n1p15\",\n               \"size\": 111149056,\n               \"fstype\": \"vfat\",\n               \"mountpoints\": [\n                   \"/boot/efi\"\n               ],\n               \"serial\": null\n            },{\n               \"name\": \"nvme0n1p16\",\n               \"size\": 957350400,\n               \"fstype\": \"ext4\",\n               \"mountpoints\": [\n                   \"/boot\"\n               ],\n               \"serial\": null\n            }\n         ]\n      },{\n         \"name\": \"nvme1n1\",\n         \"size\": 470000000000,\n         \"fstype\": null,\n         \"mountpoints\": [\n             null\n         ],\n         \"serial\": \"AWS667CAAEB7B0FA4E36\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "/usr/bin/df",
+          "-hT",
+          "/"
+        ],
+        "returncode": 0,
+        "stdout": "Filesystem     Type  Size  Used Avail Use% Mounted on\n/dev/root      ext4  242G  229G   13G  95% /\n",
+        "stderr": ""
+      }
+    ],
+    "elapsed_seconds": 0.009060682961717248
+  },
+  "stdout_if_error": null
+}
