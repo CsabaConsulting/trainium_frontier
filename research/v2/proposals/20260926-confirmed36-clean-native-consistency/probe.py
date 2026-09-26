@@ -13,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import sys
+import tempfile
 import time
 
 HELPER_SHA = '65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8'
@@ -20,6 +21,83 @@ INPUTS_SHA = '0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e'
 LABEL = 'fs-20260926-confirmed36-clean-native-consistency-trn21-r1'
 CAP = 16 * 1024**2
 SHAPES = ((1,256),(2,256),(3,256),(1,257),(2,257),(3,257))
+
+
+class RankReceipt:
+    """Durable latest progress; a final receipt is published once, exclusively.
+
+    A killed writer can leave its private temporary file beside the last intact
+    partial receipt. Final publication briefly adds a third name. Bounding each
+    file to CAP//3 bounds all three names together, including the trailing LF.
+    Nothing depends on a signal handler or Python finally running on timeout.
+    """
+    def __init__(self, h, directory, report, start):
+        self.report, self.start, self.revision = report, start, 0
+        self.directory = directory.absolute()
+        h.require('..' not in self.directory.parts and
+                  all(not part.is_symlink() for part in (self.directory,*self.directory.parents)), 'RECEIPT_DIRECTORY_SYMLINK')
+        self.directory.mkdir(exist_ok=True)
+        stem = 'rank'+str(report['rank'])
+        self.partial = self.directory/(stem+'.partial.json')
+        self.final = self.directory/(stem+'.json')
+        self.prefix = '.'+stem+'.'
+        self.finished = False
+        h.require(not os.path.lexists(self.partial) and not os.path.lexists(self.final)
+                  and not list(self.directory.glob(self.prefix+'*.tmp')), 'RECEIPT_ALREADY_EXISTS')
+        self.checkpoint('starting')
+
+    def sync_directory(self):
+        fd = os.open(self.directory, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+
+    def publish(self, final=False):
+        if self.finished:
+            raise RuntimeError('RECEIPT_ALREADY_FINAL')
+        self.report['receipt_state'] = 'FINAL' if final else 'PARTIAL'
+        self.report['receipt_revision'] = self.revision+1
+        self.report['elapsed_seconds'] = time.monotonic()-self.start
+        fd, name = tempfile.mkstemp(prefix=self.prefix, suffix='.tmp', dir=self.directory)
+        temporary = Path(name)
+        try:
+            with os.fdopen(fd, 'wb') as stream:
+                size = 0
+                chunks = json.JSONEncoder(allow_nan=False).iterencode(self.report)
+                for chunk in chunks:
+                    data = chunk.encode('utf-8')
+                    size += len(data)
+                    if size+1 > CAP//3:
+                        raise RuntimeError('RECEIPT_CAP')
+                    stream.write(data)
+                stream.write(b'\n')
+                stream.flush()
+                os.fsync(stream.fileno())
+            if final:
+                os.link(temporary, self.final)  # Exclusive: never replace a final receipt.
+            elif self.revision == 0:
+                os.link(temporary, self.partial)  # Reserve this rank exclusively.
+            else:
+                os.replace(temporary, self.partial)
+            self.sync_directory()
+            self.revision += 1
+        finally:
+            temporary.unlink(missing_ok=True)
+        if final:
+            # The final link is already durable. Keep the partial until every
+            # publication operation above succeeds, so a failed final write
+            # cannot look complete to the offline validator. Crash-resurrected
+            # cleanup names only cause conservative refusal; no evidence loss.
+            self.partial.unlink()
+            self.finished = True
+
+    def checkpoint(self, stage, **location):
+        self.report['progress'] = {'stage':stage, **location}
+        self.publish()
+
+    def finish(self):
+        self.publish(final=True)
 
 
 def foundation():
@@ -77,54 +155,93 @@ def exact(h, a, b, label):
     return result
 
 
-def verify_shape(h, model, x, vocab, device, sync, baseline, masks=None):
+def verify_shape(h, model, x, vocab, device, sync, baseline, masks=None, *, case=None, progress=None):
     torch = h.torch
     h.require(x.dtype == torch.int64 and x.device.type == 'cpu' and x.ndim == 2, 'INPUT_TYPE')
     b, t = x.shape
     h.require((b,t) in SHAPES and bool(((x >= 1) & (x < vocab)).all()), 'INPUT_RANGE_SHAPE')
     initial = h.tensor_record(x)
-    calls = []
+    case = {} if case is None else case
+    progress = progress if progress is not None else lambda *args, **kwargs: None
+    case.update(shape=[b,t], tokens=x.tolist(), input=initial, calls=[], status='IN_PROGRESS')
+    calls = case['calls']
+    progress('case_started')
     def call(inp, label):
-        h.require_state_equal(snapshot(h,model,sync,masks,baseline), baseline)
-        host_before = h.tensor_record(inp)
-        actual = inp.to(device).clone()
-        sync()
-        device_before = h.tensor_record(actual.detach().cpu())
-        with torch.no_grad():
-            out = model(actual)
-        sync()
-        h.require(isinstance(out,torch.Tensor) and list(out.shape) == [len(inp),t,vocab], 'OUTPUT_SHAPE')
-        # Clone before the next forward, even if cpu() returned the same storage.
-        copied = out.detach().cpu().clone()
-        output = h.tensor_record(copied)
-        h.require(h.tensor_record(actual.detach().cpu()) == device_before, 'DEVICE_INPUT_CHANGED')
-        h.require(h.tensor_record(inp) == host_before and h.tensor_record(x) == initial, 'CPU_INPUT_CHANGED')
-        h.require_state_equal(snapshot(h,model,sync,masks,baseline), baseline)
-        calls.append({'call':label,'input':host_before,'device_input':device_before,'output':output})
-        return copied
-    original = call(x,'original')
-    repeated = exact(h,call(x,'repeat'),original,'REPEAT_BYTES')
-    rows = torch.cat([call(x[i:i+1].clone(),'row'+str(i)) for i in range(b)])
-    rowwise = exact(h,rows,original,'ROWWISE_BYTES')
-    cut = max(2,t//2)
-    suffix = x.clone()
-    suffix[:,cut:] = suffix[:,cut:].flip(1)
-    h.require(all(not torch.equal(x[i,cut:],suffix[i,cut:]) for i in range(b)), 'DEGENERATE_SUFFIX_FIXTURE')
-    altered = call(suffix,'reversed_suffix')
-    left, right = original[:,:cut-1].float(), altered[:,:cut-1].float()
-    error = float((left-right).abs().max())
-    h.require(math.isfinite(error) and error <= .01, 'CAUSAL_PREFIX')
-    return original, {'shape':[b,t], 'tokens':x.tolist(), 'input':initial, 'calls':calls,
-        'repeat':repeated,'rowwise':rowwise,'causality':{'max_abs_diff':error,'tolerance':.01,
-        'cut':cut,'prefix_stop':cut-1,'prefix_exact':h.raw_record(left)==h.raw_record(right)}}
+        case['current_call'] = label
+        record = {'call':label,'status':'IN_PROGRESS'}
+        calls.append(record)
+        progress('call_started', call=label)
+        try:
+            h.require_state_equal(snapshot(h,model,sync,masks,baseline), baseline)
+            host_before = h.tensor_record(inp)
+            actual = inp.to(device).clone()
+            sync()
+            device_before = h.tensor_record(actual.detach().cpu())
+            record.update(input=host_before, device_input=device_before)
+            progress('call_ready', call=label)
+            with torch.no_grad():
+                out = model(actual)
+            sync()
+            h.require(isinstance(out,torch.Tensor) and list(out.shape) == [len(inp),t,vocab], 'OUTPUT_SHAPE')
+            # Clone before the next forward, even if cpu() returned the same storage.
+            copied = out.detach().cpu().clone()
+            record['output'] = h.tensor_record(copied)
+            progress('call_output', call=label)
+            h.require(h.tensor_record(actual.detach().cpu()) == device_before, 'DEVICE_INPUT_CHANGED')
+            h.require(h.tensor_record(inp) == host_before and h.tensor_record(x) == initial, 'CPU_INPUT_CHANGED')
+            h.require_state_equal(snapshot(h,model,sync,masks,baseline), baseline)
+            record['status'] = 'COMPLETE'
+            progress('call_complete', call=label)
+            return copied
+        except Exception as error:
+            record.update(status='REFUSE',error=str(error),details=getattr(error,'details',None))
+            raise
+    try:
+        original = call(x,'original')
+        case['repeat'] = exact(h,call(x,'repeat'),original,'REPEAT_BYTES')
+        rows = torch.cat([call(x[i:i+1].clone(),'row'+str(i)) for i in range(b)])
+        case['rowwise'] = exact(h,rows,original,'ROWWISE_BYTES')
+        cut = max(2,t//2)
+        suffix = x.clone()
+        suffix[:,cut:] = suffix[:,cut:].flip(1)
+        h.require(all(not torch.equal(x[i,cut:],suffix[i,cut:]) for i in range(b)), 'DEGENERATE_SUFFIX_FIXTURE')
+        altered = call(suffix,'reversed_suffix')
+        left, right = original[:,:cut-1].float(), altered[:,:cut-1].float()
+        delta = (left-right).abs()
+        error = float(delta.max())
+        finite = math.isfinite(error)
+        # Keep the original FP32 subtraction/max and threshold as the causal gate.
+        # Extra CPU-only diagnostics do not turn this into a byte-equality gate.
+        maximum = int(delta.reshape(-1).argmax())
+        metrics = h.comparison(right,left) if bool(torch.isfinite(left).all() and torch.isfinite(right).all()) else None
+        causal = {'shape':[b,t], 'max_abs_diff':error if finite else str(error),
+            'finite':finite, 'tolerance':.01, 'cut':cut, 'prefix_start':0, 'prefix_stop':cut-1,
+            'prefix_exact':h.raw_record(left)==h.raw_record(right),
+            'expected':h.raw_record(left), 'actual':h.raw_record(right),
+            'relative_rms':metrics['relative_rms'] if metrics else 'UNDEFINED_NONFINITE_PREFIX',
+            'max_abs_index':[maximum//((cut-1)*vocab),(maximum//vocab)%(cut-1),maximum%vocab],
+            'original_input':initial, 'altered_input':calls[-1]['input']}
+        case['causality'] = causal
+        progress('causality_measured', call='reversed_suffix')
+        if not (finite and error <= .01):
+            raise h.CheckFailure('CAUSAL_PREFIX',causal)
+        case['status'] = 'COMPLETE'
+        progress('case_complete', call='reversed_suffix')
+        return original, case
+    except Exception as error:
+        case.update(status='REFUSE',error=str(error),details=getattr(error,'details',None))
+        progress('case_refused', call=case.get('current_call'))
+        raise
 
 
 def validate_cases(h, cases):
     h.require([c['shape'] for c in cases] == [list(s) for s in SHAPES], 'EXACT_SIX_SHAPES')
     for case in cases:
         b,t = case['shape']
+        h.require(case.get('status')=='COMPLETE', 'CASE_COMPLETE')
         h.require([c['call'] for c in case['calls']] == ['original','repeat'] + ['row'+str(i) for i in range(b)] + ['reversed_suffix'], 'EXACT_CALL_SET')
         for c in case['calls']:
+            h.require(c.get('status')=='COMPLETE', 'CALL_COMPLETE')
             expected_b = 1 if c['call'].startswith('row') else b
             h.require(c['output']['shape'] == [expected_b,t,8192], 'CALL_OUTPUT_SHAPE')
 
@@ -180,7 +297,7 @@ def restored_route(h, name, model, module, payload, device):
         'coverage_limit':'Pinned source predicates and actual restored native configuration; not instrumented kernel execution proof.'}
 
 
-def run(h, args, report):
+def run(h, args, report, progress):
     torch = h.torch
     import torch.distributed as dist
     h.require(args.inputs_sha256 == INPUTS_SHA, 'FIXED_INPUTS_PIN')
@@ -199,6 +316,7 @@ def run(h, args, report):
             del payload
         h.require(saved['reference']==saved['candidate'], 'SAVED_STATE_BYTES')
         report['saved_parameters'] = saved['reference']
+        progress('saved_states_qualified')
         import prepare
         h.require(Path(prepare.__file__).absolute()==h.PREPARE and h.file_record(h.PREPARE)['sha256']==h.PREPARE_SHA, 'ACTUAL_PREPARE')
         h.require(os.environ.get('WORLD_SIZE')=='4' and os.environ.get('NEURON_LOGICAL_NC_CONFIG')=='2', 'FOUR_RANK_LNC2')
@@ -211,6 +329,9 @@ def run(h, args, report):
         device = torch.device('neuron')
         originals = {}
         for name in h.SOURCES:
+            arm = {'status':'LOADING','shapes':[]}
+            report['arms'][name] = arm
+            progress('arm_loading', arm=name)
             checkpoint = inputs['arms'][name]['checkpoint_path']
             payload = torch.load(checkpoint,map_location='cpu',weights_only=True)
             module = h.load_module(name)
@@ -223,23 +344,29 @@ def run(h, args, report):
             del actual, tensor
             masks, route = restored_route(h,name,model,module,payload,device)
             baseline = snapshot(h,model,sync,masks)
-            arm = {'route':route,'state':baseline,'shapes':[]}
-            report['arms'][name] = arm
+            arm.update(route=route,state=baseline,status='IN_PROGRESS')
+            progress('arm_ready', arm=name)
             for b,t in SHAPES:
                 x = torch.randint(1,8192,(b,t),generator=torch.Generator().manual_seed(42))
-                output, case = verify_shape(h,model,x,8192,device,sync,baseline,masks)
+                case = {'shape':[b,t],'status':'IN_PROGRESS','calls':[]}
                 arm['shapes'].append(case)
+                progress('case_preparing', arm=name, shape=[b,t])
+                output, case = verify_shape(h,model,x,8192,device,sync,baseline,masks,case=case,
+                    progress=lambda stage, **location: progress(stage,arm=name,shape=[b,t],**location))
                 if name=='reference':
                     originals[b,t] = output
                 else:
                     exact(h,output,originals.pop((b,t)), 'CROSS_SOURCE_ORIGINAL')
+                progress('case_checked', arm=name, shape=[b,t])
             validate_cases(h,arm['shapes'])
+            arm['status'] = 'COMPLETE'
+            progress('arm_teardown', arm=name)
             del model, module, payload, output, baseline, x
             gc.collect()
             sync()
+            progress('arm_released', arm=name)
         h.require(not originals, 'ALL_ORIGINALS_COMPARED')
         h.require(signatures(report['arms']['reference']['shapes'])==signatures(report['arms']['candidate']['shapes']), 'CROSS_SOURCE_CALL_HASHES')
-        report['status'] = 'LOCAL_COMPLETE'
     finally:
         # Attempt each immutable pin even when another one fails.
         failures = []
@@ -253,6 +380,7 @@ def run(h, args, report):
         except Exception as error:
             failures.append(str(error))
         report['post_input_failures'] = failures
+        progress('immutable_inputs_rechecked',last_progress=report.get('progress'))
         h.require(not failures, 'IMMUTABLE_INPUT_RECHECK_FAILED')
 
 
@@ -276,7 +404,7 @@ def main():
             h.require(path.stat().st_size<=CAP, 'RECEIPT_CAP')
             rows.append(json.loads(path.read_text()))
         p = {r['rank']:r for r in rows}
-        h.require(len(p)==4 and all(p[i]['label']==LABEL and p[i].get('post_input_failures')==[] and 'cleanup_error' not in p[i] for i in range(4)), 'TERMINAL_RECEIPTS')
+        h.require(len(p)==4 and all(p[i]['label']==LABEL and p[i].get('receipt_state')=='FINAL' and p[i].get('post_input_failures')==[] and 'cleanup_error' not in p[i] for i in range(4)), 'TERMINAL_RECEIPTS')
         validate_ranks(h,rows)
         print('{"status":"FOUR_RANK_SYNTHETIC_RECORDS_COMPLETE_PENDING_INDEPENDENT_ACCEPTANCE","quality_evidence":false}')
         return 0
@@ -290,27 +418,35 @@ def main():
     report = {'rank':rank,'label':LABEL,'status':'UNRESOLVED','arms':{},'launch_authorized':False,
         'quality_evidence':False,'native_result_independently_accepted':False}
     start = time.monotonic()
-    h.torch.set_num_threads(1)
-    h.torch.set_num_interop_threads(1)
+    receipt = RankReceipt(h,args.out_dir,report,start)
+    completed = False
     try:
-        run(h,args,report)
+        h.torch.set_num_threads(1)
+        h.torch.set_num_interop_threads(1)
+        run(h,args,report,receipt.checkpoint)
+        completed = True
     except Exception as error:
         report.update(status='REFUSE',error=str(error),details=getattr(error,'details',None))
     finally:
+        # Persist failures before potentially blocking process-group teardown.
+        try:
+            receipt.checkpoint('process_group_cleanup', last_progress=report.get('progress'))
+        except Exception as error:
+            report.update(status='UNRESOLVED',receipt_error=str(error))
         try:
             import torch.distributed as dist
             if dist.is_initialized():
                 dist.destroy_process_group()
         except Exception as error:
             report.update(status='UNRESOLVED',cleanup_error=str(error))
-        report['elapsed_seconds'] = time.monotonic()-start
-        data = json.dumps(report,allow_nan=False)
-        if len(data.encode())>CAP:
-            data = json.dumps({'rank':rank,'status':'UNRESOLVED','error':'RECEIPT_CAP'})
+        if completed and 'cleanup_error' not in report and 'receipt_error' not in report:
+            report['status'] = 'LOCAL_COMPLETE'
+        try:
+            receipt.finish()
+        except Exception as error:
+            # Keep the last intact partial if the new record cannot be published.
             report['status'] = 'UNRESOLVED'
-        args.out_dir.mkdir(exist_ok=True)
-        with (args.out_dir/('rank'+str(rank)+'.json')).open('x') as stream:
-            stream.write(data+'\n')
+            print('RECEIPT_FINAL_WRITE_FAILED:'+str(error)[:1024],file=sys.stderr)
     # A separate offline validator must check all four complete rank receipts.
     return 0 if report['status']=='LOCAL_COMPLETE' else 2
 
