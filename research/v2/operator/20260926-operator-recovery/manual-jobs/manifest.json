@@ -154,9 +154,10 @@
     "status": "READY_PENDING_PREDECESSOR_AND_FRESH_MACHINE",
     "source_review": "HUMAN_SCALAR_SCOPE_NOT_FRESH_AUDIT",
     "machine_admission": "PENDING",
-    "parallel_cold_replay_allowed": true,
+    "parallel_cold_replay_allowed": false,
+    "requires_cold_bundle": "research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json",
     "cold_replay_required_for_submission": true,
-    "scheduling_reason": "Same frozen cd0c source: seed43 may follow same-host momentum while the already-started cold replay runs independently; neither result alone permits upload."
+    "scheduling_reason": "Latest direct user order: cold replay -> seed43 -> audit export. Both authentic results are required; preserve same-host predecessor and all original guards."
   },
   "trn21-k2rescue": {
     "host": "trn21",
@@ -169,5 +170,31 @@
     "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --num-steps 201 --k2-embedding",
     "status": "HUMAN_RESEARCH_TIMING_ONLY_REVIEW_DEFERRED",
     "no_eval": true
+  },
+  "trn22-compilerdefault5": {
+    "host": "trn22",
+    "order": 8,
+    "predecessor": "trn22-muon150",
+    "label": "fs-20260926-batch-lr021-compilerdefault5-trn22-r1",
+    "packet": "trn22-compilerdefault5/packet.json",
+    "packet_sha256": "94964956ccc747e4da55384f20fdfefa81331e9b09ccb5db0c629b85a5384516",
+    "source_sha256": "cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5",
+    "source_review": "UNCHANGED_FUNCTIONS_HUMAN_FLAG_VARIANT_NOT_FRESH_REVIEW",
+    "machine_admission": "PENDING",
+    "status": "READY_PENDING_PREDECESSOR_AND_FRESH_MACHINE"
+  },
+  "trn21-a1framework": {
+    "host": "trn21",
+    "order": 8,
+    "predecessor": "trn21-finalcold",
+    "label": "fs-20260926-batch-lr021-a1framework-trn21-r1",
+    "packet": "trn21-a1framework/packet.json",
+    "packet_sha256": "f59cdf63fef519fa02ee84e1991b17557dd5109e12ae09c71a91ccd553b3b6c9",
+    "source_sha256": "b11c9fc54b61e003a2bfee00c829d642e75a0803da2af445c0ad73ce9b0dfe72",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --no-k2-embedding",
+    "source_review": "UNCHANGED_FUNCTIONS_HUMAN_FLAG_VARIANT_NOT_FRESH_REVIEW",
+    "machine_admission": "PENDING",
+    "status": "READY_PENDING_PREDECESSOR_AND_FRESH_MACHINE"
   }
 }

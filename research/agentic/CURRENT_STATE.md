@@ -1,5 +1,15 @@
 # Current state
 
+## Latest19:12IST — use two-arm queue, K2 closed
+
+Use top research/v2/STATUS.md, LOW_USAGE_CONTROLLER.md and MANUAL_NEXT_JOBS.md.
+trn21 cold training completed1919steps, startup846.252s/charge0, fresh20M active.
+trn22 momentum lastobserved nearend;25min check13:48UTC. Next: compiler-default
+cold5/trn22, ordinary-framework A1/trn21. Both local packets ready, neither
+launched. No new kernel/lane/agent. Then cold->seed43->Downloads audit export;
+only batch/LR stays confirmed final candidate until a matched winner. Older
+blanket all-tables-closed means custom-kernel tables only under latest exception.
+
 ## Latest18:28IST: K2 exhausted; final cold and momentum live
 
 Use current top research/v2/STATUS.md and LOW_USAGE_CONTROLLER.md.

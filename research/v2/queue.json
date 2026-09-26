@@ -7,11 +7,13 @@
     "prepared_manifest": "research/v2/operator/20260926-operator-recovery/manual-jobs/manifest.json",
     "trn21": [
       "trn21-finalcold",
+      "trn21-a1framework",
       "trn21-lr0168",
       "trn21-control"
     ],
     "trn22": [
       "trn22-muon150",
+      "trn22-compilerdefault5",
       "trn22-finalseed43",
       "trn22-lr0168",
       "trn22-control"
@@ -19,18 +21,20 @@
     "predecessors": {
       "trn21-muon150": "trn21-warmdown060",
       "trn22-muon150": "trn22-warmdown085",
-      "trn21-lr0168": "trn21-finalcold",
+      "trn21-a1framework": "trn21-finalcold",
+      "trn22-compilerdefault5": "trn22-muon150",
+      "trn21-lr0168": "trn21-a1framework",
       "trn22-lr0168": "trn22-finalseed43",
       "trn21-control": "trn21-lr0168",
       "trn22-control": "trn22-lr0168",
       "trn21-finalcold": "trn21-k2rescue",
-      "trn22-finalseed43": "trn22-muon150",
+      "trn22-finalseed43": "trn22-compilerdefault5",
       "trn21-k2rescue": "trn21-warmdown060"
     },
-    "next_arm_authority": "Latest Poojith: one host K2 rescue native timing before momentum; other momentum150. Overnight cold final batch/LR replay, seed43 confirmation, remaining arms.",
+    "next_arm_authority": "Latest Poojith: A compiler default cold5 on next free host; B standard-framework A1 other host. Preserve cold/momentum. Then seed43 and audit export, remaining LR.0168. No K2 or new lanes.",
     "priority_reservation": {
-      "trn21": "Final cold live; K2 rescue exhausted and tables closed for Phase1",
-      "trn22": "momentum150 live; seed43 after momentum, allowed alongside already-started cold replay"
+      "trn21": "Final cold live; standard-framework A1 lottery next",
+      "trn22": "momentum150 live; compiler default cold5 next, seed43 after actual cold completion. Compiler full is conditional on measured screen, never automatic."
     },
     "pending_overnight": [
       "clean batch/LR cold replay",

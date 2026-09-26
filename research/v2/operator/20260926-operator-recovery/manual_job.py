@@ -42,7 +42,14 @@ def checked_packet(key):
         '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d',
         '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020',
         'cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d',
+        'b11c9fc54b61e003a2bfee00c829d642e75a0803da2af445c0ad73ce9b0dfe72',
         '949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa')
+    if entry['source_sha256'].startswith('b11c9fc5'):
+        cpu=json.loads(base64.b64decode(p['files']['CPU_RECEIPT.json']['b64'],validate=True))
+        assert cpu['status']=='PASS_REDUCED_CPU' and cpu['source_sha256']==entry['source_sha256']
+        assert cpu['fp32_table_master_grad_rms'] is True and cpu['custom_embedding_calls']==0
+        assert '--no-k2-embedding' in entry['command'].split() and '--ngram-ve' in entry['command'].split()
+        assert '--k2-embedding' not in entry['command'].split()
     if entry['source_sha256'].startswith('949f262c'):
         receipt_item = p['files']['INDEPENDENT_REVIEW_RECEIPT.json']
         receipt = json.loads(base64.b64decode(receipt_item['b64'], validate=True))

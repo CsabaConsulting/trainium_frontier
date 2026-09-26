@@ -1,5 +1,27 @@
 # Current controller contract — 26 September 2026 takeover
 
+## CONTROLLING19:00IST — final candidate and one framework-table lottery
+
+LATEST follow-up: compiler-default cold5 goes on next free host (trn22 expected),
+standard A1 on the other after its cold replay. Then seed43 and audit export;
+conditional compiler full only after measured startup/net-work eligibility.
+Do not run an already-effective model-type=transformer flag as a new experiment.
+Exact prepared jobs: trn22-compilerdefault5 and trn21-a1framework. No new agents.
+
+Newest direct user plan supersedes every conflicting paragraph below:
+K2/custom-kernel tables CLOSED. Cold replay -> seed43 -> Downloads audit export.
+One overnight A1-layout last-layer table arm, standard framework backward,
+FP32 table gradients, on8L batch262144/LR.021/ordinary.75/momentum300.
+Final fixed1800s public20M is the metric; record cold startup, startup charge,
+steady tok/s and BPB, no K2/speed prerequisite. No new lanes or agents.
+Preserve current cold/momentum jobs. Seed43 waits for authenticated cold result;
+the one table arm may use the other free host while seed43 runs. LR.0168 follows.
+Source review is scoped to actual bytes/changes, never inherited as a new PASS.
+Checks every25minutes; original lifetime locks and all scientific/legal checks stay.
+
+Earlier parallel-before-cold seed scheduling and after-cold-only export are
+overridden by the user's explicit sequence. Existing attempted labels stay consumed.
+
 LATEST scheduling interpretation: cold replay started first as requested;
 seed43 may start after its same-host momentum predecessor while that cold run
 continues. Both use frozen cd0c and are computationally independent. Remove

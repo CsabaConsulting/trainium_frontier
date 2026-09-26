@@ -31,7 +31,8 @@ class AuditExport(unittest.TestCase):
         row={'public_20m':1.234567,'steps':123,'cold_startup_seconds':901.0,
              'startup_excess_seconds':1.0,'charged_through_exit_seconds':1790.0,
              'raw_archive_sha256':'synthetic-test-only'}
-        return source,parent,cmd,bundle,row
+        seed_row={'public_20m':1.234890,'steps':124,'raw_archive_sha256':'synthetic-seed-only'}
+        return source,parent,cmd,bundle,row,bundle,seed_row
 
     def test_five_attachments_exact_source_and_truthful_scope(self):
         values=self.fixture()
@@ -45,6 +46,8 @@ class AuditExport(unittest.TestCase):
         evidence=json.loads(files['cold-evidence.json'])
         self.assertIsNone(evidence['new_official_score'])
         self.assertEqual(evidence['status'],'AUDIT_HANDOFF_NOT_UPLOAD_APPROVAL')
+        self.assertEqual(evidence['seed43_result']['public_20m'],1.234890)
+        self.assertNotIn('selected-stack second-seed confirmation',evidence['pending'])
 
     def test_mismatched_source_refuses_render(self):
         values=list(self.fixture());values[0]+=b'\n'

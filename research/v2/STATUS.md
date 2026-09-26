@@ -1,5 +1,23 @@
 # Workflow installation and incremental launch status
 
+## Latest19:12IST — cold training complete, attached20M active; two flag arms prepared
+
+Actual13:42:16UTC trn21 snapshot: clean cd0c cold training ended13:41:14,
+1919steps; measured fifth-boundary startup846.251978887s, startup charge0,
+charged through exit1789.602240600s, withinbudget. Fresh20M is RUNNING under
+original lock; final BPB pending. This is training/accounting evidence, not
+full replay/submission PASS. Next routine trn21 check14:07UTC.
+trn22 last13:23 momentum150 nearingeval; next25min check13:48UTC.
+Latest human two-arm order: compiler default cold5 on next free host(trn22
+expected), standard A1 ontrn21 after cold eval. Both exact packets pass local
+guard checks; neither newarm launched. Framework b11c OFF3 loss/grad/model
+identity, FP32 collisions INT32/64, ON3/reference, causal/checkpoint tests PASS;
+no custom embedding execution/native/BPB claim. K2 stays CLOSED.
+Current compiler archived argv already has model-type transformer; verify
+current effective argv before a duplicate arm. Final candidate stays batch/LR.
+Seed43 after actual cold and its compiler predecessor; audit export requires
+both authenticated results. Manual guide/queue updated; no new agents/lanes.
+
 ## Verified momentum run near training end — 26 September18:53IST
 
 Actual13:23:32UTC trn22 momentum150 step1790/loss2.7021/281790tok_s,

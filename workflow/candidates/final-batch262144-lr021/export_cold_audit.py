@@ -46,10 +46,21 @@ def verified_inputs():
     require(row['eval_tokens']==20971520 and row['eval_seq_len']==1024, 'WRONG_EVAL_SCOPE')
     require(bundle['files']['package/train.py']['text'].encode()==source, 'TRAINED_SOURCE_DIFFERS')
     require(bundle['files']['package/launch-command.txt']['text'].encode()==command, 'TRAINED_COMMAND_DIFFERS')
-    return source,parent,command,bundle,row
+    seed_path = OP/'manual-jobs/trn22-finalseed43/results-bundle.json'
+    require(seed_path.is_file(), 'ACTUAL_SEED43_BUNDLE_MISSING_NO_EXPORT')
+    subprocess.run([sys.executable,str(OP/'analyze_current.py'),'trn22-finalseed43'],check=True)
+    seed_raw = seed_path.read_bytes()
+    seed_bundle = json.loads(seed_raw)
+    seed_row = json.loads((seed_path.parent/'ledger-candidate.json').read_bytes())
+    require(seed_row['raw_archive_sha256']==sha(seed_raw), 'SEED_LEDGER_BINDING_DRIFT')
+    require(seed_row['train_py_sha256']==SOURCE_SHA and seed_row['seed']==43, 'WRONG_SEED_CANDIDATE')
+    require(seed_row['over_budget'] is False and seed_row['eval_tokens']==20971520
+            and seed_row['eval_seq_len']==1024, 'SEED_BUDGET_OR_EVAL_INVALID')
+    require(seed_bundle['files']['package/train.py']['text'].encode()==source, 'SEED_SOURCE_DIFFERS')
+    return source,parent,command,bundle,row,seed_bundle,seed_row
 
 
-def build_files(source,parent,command,bundle,row):
+def build_files(source,parent,command,bundle,row,seed_bundle,seed_row):
     cpu = json.loads((HERE/'CPU_RECEIPT.json').read_bytes())
     require(cpu['status']=='PASS' and cpu['candidate_sha256']==sha(source)
             and cpu['vehicle_sha256']==sha(parent)
@@ -61,8 +72,10 @@ def build_files(source,parent,command,bundle,row):
                 'candidate_sha256':sha(source),'accepted_parent_sha256':sha(parent),
                 'launch_command_sha256':sha(command),'cpu_scope_receipt':cpu,
                 'cold_raw_files':{k:bundle['files'][k] for k in selected},
-                'postflight':bundle['postflight'],
-                'pending':['Claude source/compliance audit','selected-stack second-seed confirmation','Poojith upload decision'],
+                'postflight':bundle['postflight'], 'seed43_result':seed_row,
+                'seed43_raw_files':{k:seed_bundle['files'][k] for k in selected},
+                'seed43_postflight':seed_bundle['postflight'],
+                'pending':['Claude source/compliance audit','Poojith upload decision'],
                 'official_best_human_report':0.9878,'new_official_score':None}
     request = (HERE/'CLAUDE_REVIEW_REQUEST.md').read_text()
     # Historical request stays verbatim, explicitly superseded by measured block.
@@ -92,7 +105,12 @@ The cold result must be used as measured, not replaced with that mean.
 Only upload train.py if Poojith approves after audit and final result checks.
 Do NOT upload accepted_parent.py or cold-evidence.json. No automatic submission.
 The ordinary batch/LR stack is included; no Recursive, momentum150, K2 or tables.
-Second-seed confirmation and Claude audit remain pending at this handoff.
+Seed43 public20M: {seed_row['public_20m']:.12f}; {seed_row['steps']} steps.
+Seed43 archive SHA256: {seed_row['raw_archive_sha256']}
+Seed difference vs cold seed42: {seed_row['public_20m']-row['public_20m']:+.12f}.
+This is seed variation, not a causal gain or a license to choose the lucky seed.
+Seed43 is warm-cache research evidence, not proof of cold compilation.
+Both runs are completed; Claude audit remains pending. Submission keeps seed42.
 
 ## Original scoped source-review request
 

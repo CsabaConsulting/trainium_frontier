@@ -1,5 +1,21 @@
 # Controlling FINAL SPRINT goal — updated26 September2026,16:04IST report
 
+## Latest19:00IST: remaining plan (overrides conflicting older sections)
+
+User follow-up: compiler default cold5 next free host, standard A1 other host;
+preserve live final cold. Full compiler run conditional on actual startup<=950s
+or measured compensating steady gain, then net work/final fixed-budget BPB.
+model-type=transformer arm only if not already effective in current argv.
+These newly authorized flags precede pending seed43/LR, not the running cold.
+
+K2/custom-kernel tables closed. Finish frozen final batch/LR candidate:
+cold replay -> seed43 -> Downloads audit export. Exactly one overnight A1
+last-layer table lottery uses STANDARD framework backward and FP32 table
+gradients on8L batch/LR; fixed1800s public20M, with startup/charge/tok_s recorded.
+Then momentum150/LR.0168 results as available; no new lanes/agents.25min checks.
+Best official.9878; confirmed publicmean.986879270651192 remains unchanged.
+No upload before actual cold evidence, seed confirmation, Claude audit and human.
+
 ## Current pinned goal and conservation amendment
 
 The user has now replaced the actual app goal with FINAL SPRINT. Read

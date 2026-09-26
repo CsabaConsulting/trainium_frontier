@@ -1,30 +1,22 @@
-# Manual next jobs — verified 26 September 18:28 IST
+# Manual next jobs —26 September latest two-arm order
 
-Run commands from /home/poojith-devan/Desktop/Trainium. Root is sole Operator.
-Current consumed jobs: trn21-finalcold (18:27:15 IST), trn22-muon150 (18:12:10).
-Both have four verified workers and their original lifetime locks held.
-NEVER rerun either label. Warmdown .60 and .85 are complete and archived.
-K2 native rescue FAILED with0steps; failure already collected and authenticated.
-K2 and tables are CLOSED forPhase1; no further retry or table release.
+Work in /home/poojith-devan/Desktop/Trainium. Root is sole Operator.
+Preserve live trn21-finalcold and trn22-muon150 plus attached evaluations.
+K2/custom-kernel tables CLOSED. No new agents/lanes. Checks25minutes.
 
-## Current ordered work
+| Host | Running | Next3 unstarted |
+|---|---|---|
+| trn21 | finalcold | a1framework; lr0168; control |
+| trn22 | muon150 | compilerdefault5; finalseed43; lr0168 |
 
-| Host | Running | Next | Following |
-|---|---|---|---|
-| trn21 | trn21-finalcold | trn21-lr0168 after archiving cold/audit handoff | trn21-control |
-| trn22 | momentum150 | trn22-finalseed43 | trn22-lr0168, then trn22-control |
+Compiler full is CONDITIONAL: cold5 startup<=950s or measured compensating
+steady gain. Five steps alone cannot prove steady speed. Prepare a distinct
+full packet before release. model-type=transformer already appears in archived
+effective argv; verify current before a duplicate no-op test.
+Cold -> seed43 -> five-file Downloads audit export remains the package order.
+Confirmed base remains batch262144/LR.021/.75/momentum300; no Recursive.
 
-Tables' K2 prerequisite failed. All table packets remain disabled.
-Remaining LR/control packets are now in the active queue with explicit updated
-predecessors. Seed43 may overlap the already-started cold replay: both use exact
-cd0c bytes, and neither result depends on the other computationally. Actual
-cold and second-seed results remain required before upload, as does Claude audit.
-If momentum becomes a qualifying winner, revise unstarted confirmation work
-deliberately instead of silently changing frozen packets.
-No schedule stack: it lost. Final candidate is batch262144/LR.021/.75/momentum300
-until a measured confirmed winner supersedes it.
-
-## Read-only observation
+## Observe
 
 ```bash
 cd /home/poojith-devan/Desktop/Trainium
@@ -32,51 +24,52 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py status trn
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py status trn22
 ```
 
-Preserve active train AND attached eval. Routine checks every20–30minutes.
-An observation timeout is not a failed run. Never unlink/replace a lock.
+Collect ONCE only after terminal/outer exit and original lock/device idle.
+Stop each sequence on error. Never overwrite an archive or rerun consumed labels.
 
-## Final cold completion
-
-Collect ONCE only after terminal, all descendants absent, idle device and free
-original lock. Existing bundles must be authenticated, never overwritten.
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
-```
-
-The failed-K2 handoff is already consumed. Do not dispatch finalcold again.
-Its immutable attempt records FAILED_K2_ARCHIVED_COLD_FALLBACK_ONLY.
-Actual cold result and fresh20M must be authenticated before Downloads packaging.
-
-## Momentum terminal and seed43 successor
+## trn22 compiler cold5 after momentum
 
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150
 python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-muon150
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-compilerdefault5
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-compilerdefault5 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
 ```
 
-Seed43 requires completed same-host momentum and fresh original-lock/machine
-checks; it does NOT wait for the other host's cold result:
+Same cd0c source; removes only TRAIN_ENV optlevel1, retains BF16 autocast.
+Five steps, private cold caches, no evaluation/BPB. Verify effective compiler argv.
+
+## trn21 standard-framework A1 after cold final replay
 
 ```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-a1framework
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-a1framework research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json
+```
+
+One full1800s b7/t7 last-layer lottery, ordinary F.embedding backward, FP32
+masters/gradients/RMS. K2 flag rejected. Report startup, charge, tok/s, final20M.
+No speed/step-count gate. No automatic adoption or submission.
+
+## Seed43 after completed compiler smoke AND authenticated final cold
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-compilerdefault5
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-compilerdefault5/results-bundle.json
 ```
 
-Seed43 uses identical clean cd0c source, warm research only. It measures seed
-variation, not a matched causal gain versus seed42. Submission retains seed42.
-If momentum wins, confirm/rebind deliberately rather than silently change packets.
+Completed smoke need not be a speed win. A failed/unknown terminal needs diagnosis,
+not false PASS. Same cd0c seed43 is warm research, not cold proof or seed shopping.
 
-## Remaining LR bracket and genuine controls
-
-After cold replay is collected/authenticated and the audit handoff prepared:
+## Remaining scalar arms
 
 ```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-a1framework
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-a1framework
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-a1framework/results-bundle.json
 ```
-
-After seed43 completes and is collected/authenticated:
 
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-finalseed43
@@ -84,44 +77,30 @@ python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-finalseed43/results-bundle.json
 ```
 
-After the corresponding LR arm finishes (one block per free host):
-
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-lr0168
 python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-lr0168
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-lr0168/results-bundle.json
 ```
 
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-lr0168
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-lr0168
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-lr0168/results-bundle.json
-```
+A measured lottery winner requires deliberate rebind of unstarted follow-ups,
+not blind continuation of old-base LR arms or a fabricated confirmation.
 
-LR.0168 is standalone on batch262144/.75/momentum300, not a guessed stack with
-momentum150. Controls useLR.021. All1800/fresh20M/seed42; cached research runs
-are not submission qualification. Stop command chains on any error; no retries.
+## Automatic guards inside every launch above
 
-## Guards and handoff
+Exact source/argv/proposal/packet hashes, remote copies, prepare/harness identity,
+STOP, disk/RAM, unused label, ps AND neuron-ls and fuser. Acquire SAME exclusive
+host flock, repeat checks inside it, retain through train/eval/all descendants.
+Busy/unknown/mismatch refuses launch. Never unlink or replace the lock:
+/home/ubuntu/.cache/trainium_freshstart/device0.lock
+trn21=66305:596823; trn22=66305:832589.
 
-The launch command authenticates frozen source, argv, proposal and packet; hashes
-the staged host files; checks ps AND neuron-ls, fuser, STOP, disk/RAM, original
-lock identity, prepare/harness and unused label. It repeats checks inside the
-original exclusive flock at dispatch and retains that lock through all train,
-eval and owned descendants. Detached host jobs survive laptop shutdown.
-Lock: /home/ubuntu/.cache/trainium_freshstart/device0.lock
-Identities: trn21=66305:596823; trn22=66305:832589.
-Busy/unknown/mismatch means refuse, never force or duplicate.
-
-After actual cold full run/fresh20M, prepare a unique Downloads audit folder:
-exact train.py, unchanged accepted launch, Claude brief and measured receipts.
-The tested exporter creates exactly five attachments; the exact launch command
-is in AUDIT_BRIEF.md rather than a sixth attachment:
+After cold AND seed43 are authenticated, export five audit attachments:
 
 ```bash
 python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py --check
 python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py
 ```
 
-Do not overwrite old Downloads or claim upload-ready before Claude audit.
-Poojith alone uploads. Warm startup never qualifies a submission.
+Unique Downloads folder, accepted launch in AUDIT_BRIEF.md. No overwrite or
+automatic upload. Claude audit and Poojith alone authorize submission.

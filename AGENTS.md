@@ -2,6 +2,27 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## CONTROLLING — 26 September19:00IST remaining plan
+
+Latest follow-up adds compiler-default cold5 on NEXT free host, standard A1 on
+the other. Preserve live cold/momentum. Full compiler run only after measured
+startup<=~950s or proven compensating steady gain; final BPB/net work decide.
+Separate model-type=transformer only if not already effective (archived compiler
+argv already supplies it; verify current before wasting a duplicate slot).
+These two user-selected flag arms precede queued seed43/LR; cold->seed->export
+still holds for the final package. No new lane, agent or custom kernel.
+
+K2 and custom-kernel tables are CLOSED; no rescue or new lanes/agents.
+Finish frozen batch/LR candidate in order: cold replay, seed43, then five-file
+Downloads audit export. One separately labelled overnight A1 last-layer table
+arm is authorized on the eight-layer batch/LR base, STANDARD framework
+embedding backward only and FP32 table accumulation. Judge final public20M
+at the fixed official1800s budget; report startup, charged seconds, tok/s, BPB.
+This single lottery is NOT gated on K2 or a speed gain. Preserve live momentum150;
+remaining LR.0168 follows. Checks25minutes, reports<=6lines. Original locks,
+source/correctness/budget/legal protections and human-only upload stay.
+Every conflicting older K2/table priority below is historical and overridden.
+
 ## CONTROLLING: usage-conserving FINAL SPRINT takeover
 
 Read `research/v2/LOW_USAGE_CONTROLLER.md` FIRST, then current STATUS and

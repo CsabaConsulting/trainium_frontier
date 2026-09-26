@@ -21,7 +21,7 @@ body = next(ast.literal_eval(n.value) for n in ast.parse(template.read_bytes()).
 
 
 class GuardRefusal(unittest.TestCase):
-    def test_final_seed_parallel_cold_still_requires_own_predecessor(self):
+    def test_final_seed_requires_completed_cold_and_own_predecessor(self):
         spec = importlib.util.spec_from_file_location('manual_final_seed_under_test', HERE / 'manual_job.py')
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -29,15 +29,15 @@ class GuardRefusal(unittest.TestCase):
                                                           'local_stops_present': [], 'breaker_tripped': {}})
         entry, packet = module.checked_packet('trn22-finalseed43')
         _, cold = module.checked_packet('trn21-finalcold')
-        self.assertTrue(entry['parallel_cold_replay_allowed'])
+        self.assertFalse(entry['parallel_cold_replay_allowed'])
         self.assertTrue(entry['cold_replay_required_for_submission'])
-        self.assertNotIn('requires_cold_bundle',entry)
+        self.assertIn('requires_cold_bundle',entry)
         self.assertEqual(packet['binding']['source_sha256'],cold['binding']['source_sha256'])
         self.assertEqual(packet['binding']['launch_command'].removesuffix(' --seed 43'),cold['binding']['launch_command'])
         self.assertEqual(packet['binding']['train_environment']['NEURON_COMPETITION_R1_SEED'],'43')
         with patch.object(module, 'connector', return_value=fake), \
              patch.object(module, 'remote', side_effect=AssertionError('MUST_NOT_DISPATCH')):
-            with self.assertRaisesRegex(FileNotFoundError, 'test-unused-predecessor'):
+            with self.assertRaisesRegex(FileNotFoundError, 'results-bundle.json|test-unused-predecessor'):
                 module.stage('trn22-finalseed43', execute=True, previous='test-unused-predecessor')
         self.assertFalse((HERE / 'manual-jobs/trn22-finalseed43/attempt.json').exists())
 
