@@ -1,5 +1,32 @@
 # Current state
 
+## 01:24 UTC / 06:54 IST: independent K2 CPU pass; control evaluation live
+
+trn21 exact36 confirmation is training: actual01:20:48UTC step170,
+266359tok/s,1718s source remaining. First five completed before900s;
+exact uncapped fifth awaits final harness. Raw a2069c9f/canonicala6ec43e4.
+Original596823 lock and all4 workers remain; fresh20M stays attached.
+
+trn22 genuine6ef7 control finished training01:22:00UTC:3633steps,
+833.530617725s measured fifth,1790.252498678s charged through exit,
+returncode0. Fresh20M started01:22:00.445658UTC under original832589 lock.
+Raw665a8c3e/canonical3f763019 has22authenticated training artifacts;
+no finalBPB, posteval hash or terminal quiescence yet. Both launch flagsfalse.
+
+Two local Astra registration prototypes exist, not a different-family race.
+AdapterA d761a727 earned fresh independent limited source/CPU PASS:
+28 registered gradients exact, zero/stale consumer negatives each reject20,
+42 controls stay exact,12 unchanged-original-Function checks exact.
+Archive40452e44 preserves own test failure/correction and historical native
+zero-gradient failure. Native Torch2.11/NKI0.5 and speed remain unproved.
+
+Next exact54fd9a10 native packet is disabled and undergoing separate input-
+only checker/mechanics review. It requires FP32 sentinel, all20/all4 cases,
+strict bytes and runtime replays; no timing/training or automatic successor.
+Current host jobs are protected. Confirmedmean0.9901674436550496 unchanged;
+raw architecture0.988382 awaits formal control/replication. Earlier0.986340
+failed confirmation. No upload-ready file or six-ready queue claim.
+
 ## 01:07 UTC / 06:37 IST: confirmation launched; cache-only arm discarded
 
 bcbd full finished fresh20M at01:04:12UTC:0.9906857009017018,

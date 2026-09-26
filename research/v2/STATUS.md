@@ -1,5 +1,20 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 06:54 IST
+
+This supersedes the older current snapshots below. Confirmed mean remains
+0.9901674436550496; architecture3e79's0.986340 failed confirmation and its
+provisional adoption was withdrawn. Exact36 raw0.9883821509811542 is pending
+formal control and cross-host replication, not upload-ready.
+
+trn21 exact36 confirmation is training; trn22 genuine6ef7 control finished
+3633steps within1790.252499charged seconds and is now in fresh20M evaluation.
+Both original lifetime locks and sole Operator remain, both launch flagsfalse.
+Registered K2 adapter passed fresh independent source/CPU review40452e44;
+exact54fd9a10 disabled native packet is in separate independent review.
+No native/speed/BPB win follows from CPU tests. Latest detail is in
+CURRENT_STATE.md and the authoritative top-level state.hosts.
+
 ## Current — 26 September 03:42 IST
 
 The installation/staging snapshots below are historical, not current gates.

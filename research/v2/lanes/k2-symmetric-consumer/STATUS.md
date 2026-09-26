@@ -1,5 +1,22 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 06:54 IST: independent registered-adapter CPU pass, native packet in review
+
+AdapterA frozenaa3d4762/d761a727 retains exact2c8295 kernel and145725 reference.
+Fresh input-only reviewer independently executed28 registered exact gradients,
+42 exact controls and12 unchanged-original-Function routes; actual zero/stale
+consumers each cause20 registered mismatches. Report9d6df875, archive40452e44.
+Own failed empty-fixture test and correction retained; no candidate edits.
+Only source/CPU suitability passes, not native Torch2.11/NKI0.5 or speed.
+Second independent local Astra prototypefa353703 also exists, own CPU only;
+no performance winner or two-family-race claim.
+
+New exact54fd9a10 packet, label fs-20260926-k2-registered-forward-trn22-r1,
+is disabled while independent checker/mechanics review runs. Sentinel first,
+all20/all4 strict cases plus replays; original driver/lock/600+60 unchanged.
+No current quality job contains this code; no host release or production edit.
+All historical native zero-gradient failures below stay failed.
+
 ## 06:38 IST: new registration prototype selected and implementation active
 
 Researcher proposal8bab89e1/canonicald86e3045 is complete; Supervisor selection
