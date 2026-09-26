@@ -1,13 +1,15 @@
 # Manual next jobs —26 September latest two-arm order
 
 Work in /home/poojith-devan/Desktop/Trainium. Root is sole Operator.
-Preserve live trn21-finalcold and trn22-muon150 plus attached evaluations.
+Preserve live trn21-finalcold plus attached evaluation and trn22-compilerdefault5
+(launched19:18:58IST, verified fourworkers/original lock). Momentum completed;
+its collect/analyze/launch block below is already CONSUMED, never repeat it.
 K2/custom-kernel tables CLOSED. No new agents/lanes. Checks25minutes.
 
 | Host | Running | Next3 unstarted |
 |---|---|---|
 | trn21 | finalcold | a1framework; lr0168; control |
-| trn22 | muon150 | compilerdefault5; finalseed43; lr0168 |
+| trn22 | compilerdefault5 | finalseed43; lr0168; control |
 
 Compiler full is CONDITIONAL: cold5 startup<=950s or measured compensating
 steady gain. Five steps alone cannot prove steady speed. Prepare a distinct
@@ -28,6 +30,8 @@ Collect ONCE only after terminal/outer exit and original lock/device idle.
 Stop each sequence on error. Never overwrite an archive or rerun consumed labels.
 
 ## trn22 compiler cold5 after momentum
+
+ALREADY EXECUTED. The following block is historical; do not run it again.
 
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150
@@ -85,6 +89,14 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn
 
 A measured lottery winner requires deliberate rebind of unstarted follow-ups,
 not blind continuation of old-base LR arms or a fabricated confirmation.
+
+trn22 third unstarted fallback, after its LR arm finishes:
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-lr0168
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-lr0168
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-lr0168/results-bundle.json
+```
 
 ## Automatic guards inside every launch above
 

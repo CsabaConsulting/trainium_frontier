@@ -1,5 +1,22 @@
 # Workflow installation and incremental launch status
 
+## Latest19:20IST — momentum lost; compiler-default cold5 actually launched
+
+Momentum150/trn22 fresh20M=.9874515627238409, delta+.0006784948784467 vs
+same-host batch/LR.1921steps,warm startup813.632876712s,charge0,charged total
+1789.668299848s.39rawfiles authenticated, one ledger append; unchanged decide
+returns INSUFFICIENT because old batch controls keep original roles. Raw loss
+is real; do not adopt/relabel controls. Eval ended13:37:03UTC.
+After fresh ps/neuron-ls/fuser/original-lock/resource checks, compiler default
+cold5 dispatched13:48:58.255UTC (19:18:58IST), PID3477962. Four workers
+3478011–14 and original832589 held verified13:49:41UTC,151.94GiB free.
+Only training optlevel1 override removed; source cd0c unchanged, six private
+empty caches. Zero steps at launch verification, startup/steady/BPB unknown.
+Next routine checks: trn21 14:07UTC, trn22 14:14UTC. trn21 finalcold20M
+preserved; A1 framework ready next. K2 closed, no new agents. No upload.
+Current cold-cache log-prefix lookup found no log-neuron-cc.txt: archived
+transformer flag evidence is not falsely promoted to current-runtime proof.
+
 ## Latest19:12IST — cold training complete, attached20M active; two flag arms prepared
 
 Actual13:42:16UTC trn21 snapshot: clean cd0c cold training ended13:41:14,
