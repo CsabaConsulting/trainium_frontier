@@ -1,0 +1,62 @@
+{
+  "parent_commit": "1ada51bd10ff06bb1d981bb3a6ad2bac1634ea94",
+  "parent_driver_path": "research/v2/proposals/20260926-clock36-checkpoint-mask-r3/host_driver.py",
+  "parent_driver_sha256": "f15220ab890b4219c6eaa26b13f3e73fe6b6de1f169a413b77a420e873ba8f2a",
+  "literal_replacements": [
+    [
+      "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3",
+      "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1"
+    ],
+    [
+      "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2",
+      "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1"
+    ],
+    [
+      "fs-20260926-clock36-recursive-checkpoint-trn22-r3",
+      "fs-20260926-confirmed36-clean-checkpoint-trn21-r1"
+    ],
+    [
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+      "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2"
+    ],
+    [
+      "ip-172-31-32-253",
+      "ip-172-31-34-85"
+    ],
+    [
+      "(66305,832589)",
+      "(66305,596823)"
+    ],
+    [
+      "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c",
+      "65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8"
+    ],
+    [
+      "'INPUTS.json':'b1654bcc207cce36324f7f4e4ad8ca6594445c2bd0cc68414e399d6dde1494de'",
+      "'INPUTS.json':None"
+    ],
+    [
+      "str(ROOT/'compare_checkpoints.py'),str(OLD_ROOT)]",
+      "str(ROOT/'compare_checkpoints.py'),'--inputs',str(ROOT/'INPUTS.json'),'--inputs-sha256',PINS['INPUTS.json']]"
+    ],
+    [
+      "before=input_identities(inputs);record('inputs-before.json',before)",
+      "before=input_identities(inputs['files']);record('inputs-before.json',before)"
+    ],
+    [
+      "after=input_identities(inputs);record('inputs-after.json',after)",
+      "after=input_identities(inputs['files']);record('inputs-after.json',after)"
+    ],
+    [
+      "for name,pin in PINS.items():require(sha(ROOT/name)==pin,'PACKET_SHA:'+name)",
+      "require(isinstance(PINS['INPUTS.json'],str) and len(PINS['INPUTS.json'])==64,'REAL_INPUTS_PENDING')\n        for name,pin in PINS.items():require(sha(ROOT/name)==pin,'PACKET_SHA:'+name)"
+    ],
+    [
+      "'original_r2_qualification':'FAILED_PRESERVED'",
+      "'original_failures_preserved':True"
+    ]
+  ],
+  "removed_old_four_arm_result_parser": "def validate_result(result):\n    require(result['status']=='FULL_PARAMETER_CPU_CHECKPOINT_AND_LOGIT_IDENTITY','RESULT_STATUS')\n    require(result['states']==65 and result['parameters']==113256724,'FULL_PARAMETER_COUNT')\n    require(result['native_correctness'] is False and result['quality_evidence'] is False and result['on_off_equivalence_claimed'] is False,'RESULT_SCOPE')\n    require(result['original_r2_qualification']=='FAILED_PRESERVED' and result['checkpoint_only_retry'] is True,'ORIGINAL_FAILURE_SCOPE')\n    require([r['name'] for r in result['records']]==['reference','default','off','on'],'FOUR_ARM_COMPLETION')\n    for arm in result['records']:\n        q=arm['trained_model_qualification']\n        require(q['route']=='ordinary_unpatched_cpu_load_for_eval','ORDINARY_LOADER')\n        require(q['repeated_bytes_equal'] is True and q['model_state_equal_after_each_call'] is True,'STATE_REPEAT')\n        require(len(q['outputs'])==3 and q['outputs'][0]==q['outputs'][1],'THREE_OUTPUTS_REPEATED_BYTES')\n        c=q['causality'];error=c['max_abs_diff']\n        require(c['passed'] is True and c['tolerance']==1e-2 and math.isfinite(error) and error<=1e-2,'PREFIX_CAUSALITY')\n        state=q['named_parameters_and_all_buffers']\n        require(sum(k.startswith('parameter:') for k in state)==65,'ORDINARY_PARAMETER_COUNT')\n        for name in ('mask_full','mask_short'):\n            mask=state['buffer:'+name]\n            require(mask['mask_semantics_validated'] is True and mask['dtype']=='torch.float32','MASK_PROOF')\n            require(mask['nan_count']==mask['positive_infinity_count']==0,'MASK_NONFINITE')\n            length=q['mask_configuration']['sequence_len']\n            require(mask['shape']==[1,1,length,length] and mask['zero_count']+mask['negative_infinity_count']==length*length,'MASK_COUNTS')\n",
+  "replacement_status_scope_parser": "def validate_result(result):\n    # Existing reviewed helper owns all scientific checks; this is status/scope only.\n    require(result['status']=='CPU_CHECKPOINT_SYNTHETIC_QUALIFICATION_COMPLETE','RESULT_STATUS')\n    require(result['native_correctness'] is False and result['quality_or_submission_claim'] is False,'RESULT_SCOPE')\n",
+  "scope": "Transport host/source/CLI/input-files schema rebind only. Shared locks/identity/resource/timeout flow preserved; scientific helper bytes untouched. Actual input SHA remains null and refuses all execution."
+}

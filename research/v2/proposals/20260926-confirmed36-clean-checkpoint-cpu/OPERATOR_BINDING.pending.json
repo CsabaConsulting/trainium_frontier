@@ -1,0 +1,85 @@
+{
+  "schema": "confirmed36-clean-checkpoint-binding-inputs-pending-v1",
+  "status": "DISABLED_NO_REAL_G2_INPUTS_OR_ASSIGNMENT",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "source_adoption": false,
+  "host_reserved": false,
+  "label": "fs-20260926-confirmed36-clean-checkpoint-trn21-r1",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "root": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+  "old_readonly_root": "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1",
+  "original_lock": {
+    "device": 66305,
+    "inode": 596823,
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock"
+  },
+  "helper_commit": "6ff4986283b93549462c1f61fdc3073beaa8777f",
+  "helper_git_path": "research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/compare_checkpoints.py",
+  "helper_sha256": "65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8",
+  "proposal_sha256": "fbf8af9f962e01f480f7fd723330b63cf30f0b6b9ead97d9f0593207b0094f7c",
+  "pending_inputs_sha256": "621fd12bacf08f5f9be615a7afe6ddb2cdc8c03e543f418243b22e11b147e702",
+  "actual_inputs_path": null,
+  "actual_inputs_sha256": null,
+  "checkpoint_paths": {
+    "reference": null,
+    "candidate": null
+  },
+  "checkpoint_sha256": {
+    "reference": null,
+    "candidate": null
+  },
+  "checkpoint_bytes": {
+    "reference": null,
+    "candidate": null
+  },
+  "driver_sha256": "7e637203ba776fcfefea8fb72105a32ffc26f1c624a6fdca6900f8b8186256dd",
+  "driver_name": "host_driver.disabled.py",
+  "prepare_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/prepare.py",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+  "command_template": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-B",
+    "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/compare_checkpoints.py",
+    "--inputs",
+    "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json",
+    "--inputs-sha256",
+    null
+  ],
+  "outer_command_template": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/host_driver.py"
+  ],
+  "detached_command_template": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/dispatch_driver.py"
+  ],
+  "resources": {
+    "minimum_available_ram_bytes": 68719476736,
+    "minimum_free_disk_bytes": 11274289152,
+    "additional_footprint_bytes": 1073741824,
+    "threads": 1,
+    "timeout_seconds": 600,
+    "kill_grace_seconds": 60
+  },
+  "source_gate": "Fresh independent helper SOURCE/TINY acceptance reported by Supervisor; no actual fullG2, trained checkpoint or native proof exists. Exact acceptance receipt must accompany release.",
+  "input_requirements": "Actual fullG2 pair must pass and be independently accepted; freeze exact17-file manifest demanded by unchanged helper, including sources/requests/G2/standardcompare/checkpointidentity/actual checkpoint full paths, sizes and SHAs, then mechanically bind only real INPUTS pin. Never invent, scan newest or rerun training.",
+  "postflight": "Every outcome retain all actual PID/starttime/PPID/PGID/SID descendants/compiler/device/fuser/ps/neuron-ls and original66305:596823 lock evidence; no inference from timeout parent exit. Unknown or alive -> HOLD. No retry/cleanup/successor.",
+  "result_scope": "Helper exit0 and exact own completion status/scope are execution completion only; independent raw numeric acceptance required. Old four-arm parser removed because it described a different diagnostic, not replaced with a new numerical test."
+}
