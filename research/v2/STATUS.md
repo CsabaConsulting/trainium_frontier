@@ -1,5 +1,29 @@
 # Workflow installation and incremental launch status
 
+## 14:07 IST: prospective K2 full control role fixed; human disk step pending
+
+First qualified unstarted K2 full run will be kind=control on base63925519
+under proposals/20260926-k2-qualified-base-control/EXPERIMENT_PROPOSAL.json
+(306cf4ba, SHA548bd3bc). Exact source, argv, full1800/fresh20M and guards are
+unchanged. This supplies P2's same-host control without running an identical
+full job again merely for its label. One actual run/row, role fixed before
+launch regardless of BPB. Raw comparison to genuinee1e2 can be reported,
+but it is not a K2 selector adoption or a second fabricated arm row.
+K2 native>=3% qualification remains pending; no full launch yet. Operator
+may prepare disabled bindings now using actual qualified ON cache owner.
+
+The comparison helper analysis/20260926-k2-final-sprint-timing/compare.py
+is ready; six synthetic tests pass. It uses only precommitted t9/t44, records
+input hashes/accounting and labels all external/native/cold checks unproved.
+
+Human asked whether to add100GiB to BOTH disks. Actual08:35:01 read-only
+storage identities confirm250GiB each, so350GiB is the correct target:
+trn21 vol-09b9c7946aeaa8c57; trn22 vol-0d64a9cafbb4912e8. Both root ext4
+on nvme0n1p1; separate unmounted instance storage must remain untouched.
+AWS official instructions supplied; awaiting human completion. No AWS or
+guest filesystem changes performed. Native jobs remain preserved; next
+useful training/eval boundaries08:45:30/08:50:35UTC, not more healthy polls.
+
 ## 13:54 IST: both successors in steady training; FP32 launch files prepared
 
 Authenticated snapshot08:20:43UTC: trn21 batch262144/LR.021 step340,

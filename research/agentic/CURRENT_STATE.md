@@ -1,5 +1,16 @@
 # Current state
 
+## Latest14:07IST: first K2 full prospectively becomes actual P2 control
+
+See topSTATUS and20260926-k2-qualified-base-control proposal548bd3bc. Same
+63925519 source/full1800+20M, first selected unstartedfull role fixed now as
+kind=control/base63925519. No duplicate row/relabel afterBPB, no adoption
+claim; raw e1e2comparison separate. Native>=3% and freshpreflight stillpending.
+This removes need for a duplicatefull merely to establish the table control.
+Human considering+100GiB onbothEBSdisks; verified250GiB each08:35 and supplied
+350GiB instructions plus exactvolumeIDs. Awaithumancompletion; noAWS/guest
+mutation. Currentjobs preserved; Operator waits to08:45/08:50 boundaries.
+
 ## Latest13:54IST: live successors authenticated; K2 next, P2 prepared
 
 Use the current top of research/v2/STATUS.md and state.hosts/queue.live_runs.

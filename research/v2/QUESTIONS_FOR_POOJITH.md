@@ -1,5 +1,18 @@
 # Non-blocking morning questions
 
+## Update14:07IST: human considering+100GiB on BOTH volumes
+
+Poojith asked how to extend and whether+100GiB each is sensible. Operator's
+requested read-only check08:35:01UTC confirms bothphysicalEBSdisks250GiB:
+trn21 vol-09b9c7946aeaa8c57; trn22 vol-0d64a9cafbb4912e8. User was told
+to set350GiB total, leave gp3/IOPS/throughput unchanged, no stop/detach/format,
+and report Optimizing/Completed. AWS documentation/snapshot recommendation
+provided. This supersedes the earlier50GiB sizing recommendation, but is not
+confirmation that modification was done or agent AWS-spend authority.
+Both root partitions are /dev/nvme0n1p1 ext4. Guest expansion can be handled
+after human completion and a fresh exact-device/geometry check. Do not touch
+the separate unmounted470GB instance-storage device.
+
 ## Current human-only action — 26 September 14:00 IST
 
 Asked in this task: can Poojith expand trn21's EXISTING EBS volume by50GiB?
