@@ -1,0 +1,331 @@
+{
+  "diff": {
+    "all_added_files_match_snapshots": [
+      "IMPLEMENTATION_SPEC.md",
+      "SOURCE_PINS.json",
+      "artifacts.py",
+      "binding.py",
+      "common.py",
+      "consumer_nki.py",
+      "coordinator.py",
+      "evidence.py",
+      "fault_child.py",
+      "fixtures.py",
+      "generate.py",
+      "host_driver.py",
+      "idle_guard.py",
+      "monitor.py",
+      "oracle.py",
+      "raw-oracle-normal.json",
+      "raw-oracle-optimized.json",
+      "raw-packet-normal.json",
+      "raw-packet-optimized.json",
+      "test_oracle_core.py",
+      "test_packet.py",
+      "worker.py"
+    ],
+    "sha256sums_sha256": "7481b87b2d6f8b1ee8842734058444fda3790b5bf21d931286b78aac503e4a8b"
+  },
+  "fullsize_allocations": false,
+  "guards": {
+    "threshold_rejections": {
+      "artifacts": "ARTIFACT_CAP",
+      "at": "MISSING_SAMPLE_OR_GAP",
+      "cache": "CACHE_TMP_CAP",
+      "free": "DISK_FLOOR",
+      "logs": "LOG_METRIC_CAP",
+      "memavailable": "MEMAVAILABLE_FLOOR",
+      "rss": "SUMMED_RSS_CAP"
+    },
+    "unknown_precision": {
+      "compiler_separate_peak_rss_bytes": null,
+      "complete_graph_count": null,
+      "hardware_owner_execution_trace": null,
+      "hbm_exact_peak_bytes": null,
+      "reason": "No evidenced frozen-SDK binding; sampled guards and full-byte behavior are not precision traces.",
+      "sbuf_allocated_peak_bytes": null,
+      "sbuf_spill_bytes": null,
+      "worker_separate_peak_rss_bytes": null
+    }
+  },
+  "independent": true,
+  "math": {
+    "f0_channels": 1024,
+    "f0_word_hash": "0f191235106a337de9386a4a8d7f0a4d1e46c9513d7449899b6e04df7670b169",
+    "f2_boundary_rows": {
+      "0": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "127": [
+        "00000000",
+        "00000000",
+        "00010000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "128": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "80010000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "4095": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "4096": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "8191": [
+        "00000000",
+        "00000000",
+        "00000000",
+        "00000000",
+        "00010000",
+        "80010000",
+        "00000000",
+        "00000000"
+      ]
+    },
+    "fullsize_tensor_allocated": false,
+    "pairs": 1386,
+    "reference": "exact Fraction plus ordered float-lattice binary search"
+  },
+  "native_executed": false,
+  "outputs": {
+    "equal_nan": {
+      "compared_elements": 1,
+      "mismatches": 0,
+      "nan_payload_differences": 0,
+      "nonfinite_coordinates": 1,
+      "verdict": "FAIL_NONFINITE_DIAGNOSTIC",
+      "witnesses": []
+    },
+    "input_after_corruption": "FULL_BYTE_MISMATCH",
+    "input_before_corruption": "FULL_BYTE_MISMATCH",
+    "last_word_one_bit": {
+      "compared_elements": 8,
+      "mismatches": 1,
+      "nan_payload_differences": 0,
+      "nonfinite_coordinates": 0,
+      "verdict": "FAIL_MISMATCH",
+      "witnesses": [
+        {
+          "actual": "00000001",
+          "expected": "00000000",
+          "index": 7
+        }
+      ]
+    },
+    "missing_second_owner": {
+      "compared_elements": 8,
+      "mismatches": 1,
+      "nan_payload_differences": 0,
+      "nonfinite_coordinates": 0,
+      "verdict": "FAIL_MISMATCH",
+      "witnesses": [
+        {
+          "actual": "00000000",
+          "expected": "40000000",
+          "index": 4
+        }
+      ]
+    },
+    "nonfinite": {
+      "compared_elements": 8,
+      "mismatches": 1,
+      "nan_payload_differences": 0,
+      "nonfinite_coordinates": 1,
+      "verdict": "FAIL_MISMATCH",
+      "witnesses": [
+        {
+          "actual": "7f800000",
+          "expected": "00010000",
+          "index": 2
+        }
+      ]
+    },
+    "retained_corruption": "OUTPUT_NOT_EXACT_FINITE",
+    "signed_zero": {
+      "compared_elements": 8,
+      "mismatches": 1,
+      "nan_payload_differences": 0,
+      "nonfinite_coordinates": 0,
+      "verdict": "FAIL_MISMATCH",
+      "witnesses": [
+        {
+          "actual": "80000000",
+          "expected": "00000000",
+          "index": 0
+        }
+      ]
+    }
+  },
+  "postflight_orphan": {
+    "helper_returncode": 0,
+    "live_descendant_after_successful_postflight_helper": [
+      {
+        "pgid": 1502785,
+        "pid": 1502844,
+        "ppid": 1502785,
+        "rss_bytes": 5804032,
+        "sid": 1502785,
+        "start": 4844883,
+        "state": "S"
+      }
+    ],
+    "reviewer_cleanup": {
+      "events": [
+        {
+          "at": 48448.859876942,
+          "identities": [
+            1502844
+          ],
+          "signal": 15
+        }
+      ],
+      "survivors": []
+    },
+    "stop_before_postflight": {
+      "events": [
+        {
+          "at": 48448.808767645,
+          "identities": [],
+          "signal": 15
+        }
+      ],
+      "survivors": []
+    }
+  },
+  "preflight_orphan": {
+    "child_probe_stdout": "{\"bounded_run_error\": \"RuntimeError: DEADLINE\", \"probe_pid\": 1502793}\n",
+    "escaped_preflight_descendants": [
+      {
+        "pgid": 1502785,
+        "pid": 1502796,
+        "ppid": 1502785,
+        "rss_bytes": 7061504,
+        "sid": 1502785,
+        "start": 4844827,
+        "state": "S"
+      }
+    ],
+    "fault": "bounded_run timeout leaves grandchild alive; real driver subreaper starts after preflight",
+    "reviewer_cleanup": {
+      "events": [
+        {
+          "at": 48448.512059209,
+          "identities": [
+            1502796
+          ],
+          "signal": 15
+        },
+        {
+          "at": 48448.613012178,
+          "identities": [
+            1502796
+          ],
+          "signal": 9
+        }
+      ],
+      "survivors": []
+    },
+    "stderr": ""
+  },
+  "rank_association": {
+    "accepted_hello_pids": [
+      1502845,
+      1502845,
+      1502845,
+      1502845
+    ],
+    "accepted_hello_ranks": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "scheduled_routes": [
+      {
+        "peer": {
+          "pgid": 1502785,
+          "pid": 1502845,
+          "ppid": 1502785,
+          "sid": 1502785,
+          "start": 4844887,
+          "state": "R"
+        },
+        "rank": 0
+      },
+      {
+        "peer": {
+          "pgid": 1502785,
+          "pid": 1502845,
+          "ppid": 1502785,
+          "sid": 1502785,
+          "start": 4844887,
+          "state": "S"
+        },
+        "rank": 1
+      },
+      {
+        "peer": {
+          "pgid": 1502785,
+          "pid": 1502845,
+          "ppid": 1502785,
+          "sid": 1502785,
+          "start": 4844887,
+          "state": "S"
+        },
+        "rank": 2
+      },
+      {
+        "peer": {
+          "pgid": 1502785,
+          "pid": 1502845,
+          "ppid": 1502785,
+          "sid": 1502785,
+          "start": 4844887,
+          "state": "S"
+        },
+        "rank": 3
+      }
+    ],
+    "scope": "real Unix peer/ancestry acceptance; generation and torchrun launcher mocked; no native execution",
+    "status": 1
+  },
+  "terminal_hold": {
+    "exit_code": 0,
+    "lock_acquirable_after_failed_containment": true,
+    "protection_hold_entered": false,
+    "stderr": "",
+    "stdout": "{\"main_escaped\": \"OSError: [Errno 28] synthetic disk full during terminal write\", \"original_lock_fd\": 4}\n"
+  }
+}
