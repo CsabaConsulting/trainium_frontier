@@ -41,6 +41,13 @@ pending checkpoint. Checked LR.012 cache is shared/currently used and ineligible
 for cleanup. Local Analyst is checking only already-scored explicitDISCARD
 checkpoint records; remote existence/reclaimable bytes not established.
 
+At14:00IST local inventory concluded no additional eligible trn21 checkpoint:
+all8 legacy DISCARD entries have pruning receipts; later named discarded
+checkpoints are removed/absent too. Human-only request now logged in
+QUESTIONS_FOR_POOJITH.md: expand existing trn21 EBS by50GiB. No AWS action,
+instance change, deletion or gate reduction. Current run remains healthy;
+trn22 K2 queue unaffected. Re-check real resources at natural turnover.
+
 ## 13:47 IST: FP32 review passed; K2 reuses actual parent control
 
 P2 sourceb4728d17 passed its ONE fresh independent reviewc41e16d6. Reviewer

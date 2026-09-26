@@ -1,5 +1,30 @@
 # Non-blocking morning questions
 
+## Current human-only action — 26 September 14:00 IST
+
+Asked in this task: can Poojith expand trn21's EXISTING EBS volume by50GiB?
+No AWS modification/spend has been performed or authorized by this request.
+Recommendation: expand the existing trn21 volume, not a new instance; identify
+the volume attached to trn21 in AWS before changing it. Exact volume ID is not
+yet independently verified here. Current training/evaluation must continue.
+
+Evidence: authenticated08:20:43UTC free13,633,781,760B, below next unchanged
+14,495,514,624B admission floor by861,732,864B even before pending checkpoint
+growth. Runtime floor11,274,289,152B still satisfied at that snapshot.
+Independent local inventory found all8 explicit legacy trn21 DISCARD
+checkpoints already pruned; later A1/.0175/bcbd/3e79/75b9/.012 also already
+removed or absent. LR.012 caches are shared; its eval cache is still active.
+No additional safe reclaim is established. Do not delete candidate/unscored
+checkpoints or shared active caches, lower disk floors, or claim host is idle.
+
+K2 remains queued on trn22 after its full control+20M. This question does not
+pause the overall goal or authorize any AWS action. Re-check actual disk at
+natural turnover; blocked future trn21 admission is not a failed current run.
+
+Older entries below are historical. The12:04 safety hold request is superseded
+by Poojith's standing independently-verified stale-lock release authorization;
+do not ask it again. Earlier exact cleanup requests have their own receipts.
+
 ## Active narrow safety-hold decision — 26 September 12:04 IST
 
 Asked through the current async approval question: may the Operator release
