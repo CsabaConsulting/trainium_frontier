@@ -1,0 +1,109 @@
+{
+  "proposal_id": "20260926-clock36-checkpoint-mask-r3",
+  "status": "COMPLETED_CHECKPOINT_ONLY_DIAGNOSTIC_PROPOSAL_DISABLED",
+  "owner_role": "Supervisor selects proposal; distinct Implementer, independent input-only Verifier and sole Operator required",
+  "hypothesis": "The r2 checkpoint helper incorrectly applies a universal finite-only predicate to intentional negative-infinite attention masks. Exact mask-semantic validation plus unchanged raw-byte state invariance can test saved trained checkpoints without modifying model/evaluator.",
+  "single_causal_change": "Verification helper only: allow exact mathematically valid negative-infinite positions in root mask_full/mask_short buffers; retain strict finiteness for parameters/other buffers/outputs and exact state/input/repeat checks. No train.py or prepare/evaluator change.",
+  "mechanism_class": "verification_bug_diagnosed_checkpoint_only_retry",
+  "predicted_bpb_delta": null,
+  "selection_rationale": "r2 G2 all4/strictOFF succeeded; mandatory checkpoint helper failed before firstforward. Source function485-492 explicitly creates0/-inf masks registered2003-2004. Tiny frozen-function reproduction matches independent causal formula and reproducesNONFINITE_TENSOR. Oldfailure remainsfailed, not relabelled; complete corrected check remainsrequired beforecold.",
+  "prior_result_refs": [
+    "4b19365bd6b27ff0aa4f8fbd86eaf373abb4e58c",
+    "research/v2/analysis/20260926-clock36-cpu-mask-failure/audit_failed_cpu.py",
+    "research/v2/analysis/20260926-clock36-cpu-mask-failure/actual-normal.json",
+    "research/v2/analysis/20260926-clock36-cpu-mask-failure/diagnose_mask.py"
+  ],
+  "candidate": {
+    "files_allowed": [
+      "new proposal-local corrected checkpoint helper",
+      "minimal disabled guarded one-child CPU binding",
+      "own small tests and immutable raw receipts"
+    ],
+    "source_sha256_unchanged": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+    "reference_source_unchanged": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "new_label": "fs-20260926-clock36-recursive-checkpoint-trn22-r3",
+    "source_commit": null,
+    "launch_command": null
+  },
+  "specification": {
+    "keep": [
+      "Four ordinary unpatchedCPUload_for_eval routes",
+      "weights_only=True/source+checkpointpins/full113256724and65tensorproof",
+      "finiteparameters/finitecos-sin/finiteoutputs",
+      "input/repeated-logit/rawparameter+allbufferstateidentity",
+      "syntheticB1T256suffix/prefixerror<=1e-2 unchanged",
+      "separate pre-existingBF16reference/default/OFFcomparison",
+      "ON not compared toOFF",
+      "600+60s checkpointbound"
+    ],
+    "fix": [
+      "Use separate buffer-name-aware snapshot: only exact root mask_full and mask_short can contain -inf, never NaN or +inf.",
+      "Before firstforward independently validate both mask shapes/dtypes/configured length and every allowed0/-inf location using causal rule j<=i and j>i-window. Fullwindow=config.sequence_len; short=max(1,int(config.sequence_len*exact restored SHORT_WINDOW_FRAC)). Derive actual saved/restored configuration rather than guessing.",
+      "Mask counts/shape/dtype/rawSHA must be recorded; validate before accepting exemption, and compare rawbytes of ALLbuffers aftereveryforward.",
+      "All other model-state tensors retain finite-only rule; parameters never exempt by matching a mask name. Named failure text required so any new issue is localized.",
+      "Avoid overwriting oldhelper/checkpoints/receipts; one newpath/label, no modelpatch/cleanup/warmup mutation/NaN tolerance."
+    ],
+    "negative_tests": [
+      "legitimatecausal0/-inf masks pass and hashstable",
+      "NaN/+inf inmask reject",
+      "-inf incorrect visibleposition reject",
+      "zero incorrect hiddenposition reject",
+      "wrongshape/dtype/window reject",
+      "parameter NaN/inf reject even namedmask_full",
+      "otherbuffer -inf reject",
+      "mask orparameter mutation afterforward reject",
+      "originalcausal/futureleak/repeat/signedzero/inputnegatives remain"
+    ],
+    "scope": "No fullmodel onlaptop; smalltests only. Onhost only read preservedr2model/checkpoint artifacts, execute corrected helper once underguard. NoG2rerun because authenticated completedr2raw already exists."
+  },
+  "checkpoints": [
+    {
+      "arm": "reference",
+      "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/tmp/g2-t650_0z_/out/final.pt",
+      "sha256": "623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762"
+    },
+    {
+      "arm": "default",
+      "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/tmp/g2-vi7085z9/out/final.pt",
+      "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7"
+    },
+    {
+      "arm": "off",
+      "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/tmp/g2-j8pqv5eh/out/final.pt",
+      "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7"
+    },
+    {
+      "arm": "on",
+      "path": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/tmp/g2-jwnj1q6g/out/final.pt",
+      "sha256": "b006932d75820d40038068335c93fd1690788c444de42f877422ef6f0bac0f17"
+    }
+  ],
+  "host": {
+    "proposed": "trn22",
+    "old_readonly_root": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2",
+    "unique_new_root": "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3",
+    "lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "lock_device": 66305,
+    "lock_inode": 832589,
+    "scope": "CPU-only one600+60 child, one thread,>=10.5GiBfree and64GiBRAM, exactcopiedsupport/source/read-onlycheckpoint hashes,freshps+neuron-lsunderoriginallifetimeflock, allactualPID/starttime/PPID/PGID/SID/descendant/compiler/device/quiescencepostflight. No oldrootwrite or newcheckpoint. FailureHOLD/park; no secondautomaticretry."
+  },
+  "gates": {
+    "source_unchanged": true,
+    "independent_helper_review": false,
+    "own_cpu_tests": false,
+    "packet_review": false,
+    "source_hashes_onhost": false,
+    "machine_preflight": false,
+    "operator_release": false
+  },
+  "success_criteria": {
+    "qualification": "Complete correctedordinarycheckpointchecks all4arms AND unchangedstrictOFFparity; meaningful failure cannot beignored. Combine only authenticatedr2passedG2 with separatelyauthenticatedr3PASS, preserve r2overallFAIL.",
+    "quality": "NoBPB, noqualityadoption, noofficialbudgetclaim.",
+    "next": "Childcold-five requiresseparaterelease; no automatictrain/eval/upload."
+  },
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "host_reserved": false,
+  "native_launch_authorized": false,
+  "submission_authorized": false
+}
