@@ -1010,18 +1010,18 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-basebcbd-initial-cache-trn21-r1-full",
-      "status": "FULL_RESEARCH_TRAINING_LIVE",
+      "status": "TRAIN_COMPLETE_FRESH20M_RUNNING",
       "started_utc": "2026-09-26T00:15:00.993796+00:00",
       "dispatch_pid": 3102316,
-      "last_process_check_utc": "2026-09-26T00:37:06Z",
+      "last_process_check_utc": "2026-09-26T00:52:25Z",
       "idle_since_utc": null,
       "idle_alert_due_utc": null,
       "original_lock_inode": 596823,
       "original_lock_device": 66305,
-      "launch_allowed": true,
+      "launch_allowed": false,
       "active_assignment": "research/v2/verification/20260926-basebcbd-full-trn21-assignment.md",
       "launch_scope": "Only exact7da2559f bcbd full packet: seed42/6x1024 Recursive plus initial-cache-refresh, official1800 and attachedfresh20M; no general launcher",
-      "next_requires": "Preserve exact running train and attached eval. No new launch until terminal/retrieval/explicit quiescence and separate successor assignment.",
+      "next_requires": "Preserve attached eval; final raw retrieval and explicit all-observed PID/descendant/compiler/device/lock quiescence before advancing to already conditionally assigned exact36 replica. No launch alongside evaluator.",
       "receipt": "research/v2/operator/20260926-trn21-basebcbd-full/launch/first-native-evidence.json",
       "free_disk_gb_decimal": 18.664,
       "last_full_result": {
@@ -1055,10 +1055,21 @@
         3102371
       ],
       "preceding_idle_seconds": 342.422143,
-      "fresh_public20m": "ATTACHED_PENDING",
-      "last_observed_step": 1770,
+      "fresh_public20m": "RUNNING",
+      "last_observed_step": 3635,
       "reported_tokens_per_second": 266965,
-      "source_reported_seconds_remaining": 931
+      "source_reported_seconds_remaining": 0,
+      "training_end_utc": "2026-09-26T00:52:25Z",
+      "observed_fifth_seconds": 452.9191227350384,
+      "charged_through_exit_seconds": 1788.375545479008,
+      "training_process_wall_seconds": 2241.2946682140464,
+      "training_raw_commit": "ecef640c",
+      "training_checkpoint_sha256": "edd9adca6f6f782f7ccb220f567ffed7177291a65f3e28ec269b38403e1a47ec",
+      "evaluation_timeout_pid": 3125115,
+      "evaluation_harness_pid": 3125116,
+      "evaluator_pid": 3125130,
+      "conditional_successor_assignment": "research/v2/verification/20260926-clock36-trn21-replication-assignment.md",
+      "conditional_successor_packet": "f4fe5d8e557f3d0646d1a2d6a47858768e29954d"
     },
     "trn22": {
       "label": "fs-20260926-recursive6ef7-control-trn22-r2",
@@ -1159,7 +1170,7 @@
         "retry_authorized": false
       },
       "started_utc": "2026-09-26T00:38:13.646155Z",
-      "last_process_check_utc": "2026-09-26T00:38:31.343591Z",
+      "last_process_check_utc": "2026-09-26T00:54:34Z",
       "dispatch_pid": 3218053,
       "flock_pid": 3218054,
       "driver_pid": 3218055,
@@ -1176,7 +1187,17 @@
       "preceding_idle_seconds": 249.41252,
       "launch_receipt": "research/v2/operator/20260926-trn22-recursive6ef7-control/launch/OPERATOR_LAUNCH.md",
       "actual_launch_commit": "2397f0aa",
-      "actual_launch_canonical_commit": "759ee11c"
+      "actual_launch_canonical_commit": "759ee11c",
+      "last_observed_step": 290,
+      "reported_tokens_per_second": 266782,
+      "source_reported_seconds_remaining": 1660,
+      "known_compiler_pids": [
+        3218647,
+        3218649,
+        3218671
+      ],
+      "startup_measured_seconds": "PENDING_FINAL_HARNESS",
+      "cache_hit_proven": false
     }
   },
   "latest_runtime_20260925_2258z": {
