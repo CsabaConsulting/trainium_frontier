@@ -1,0 +1,2793 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T09:24:15.567339+00:00",
+    "host": "trn22",
+    "label": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+    "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+    "processes": [
+      {
+        "identity_before": {
+          "pid": 3372831,
+          "state": "S",
+          "ppid": 1,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869335
+        },
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/dispatch_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3372831,
+          "state": "S",
+          "ppid": 1,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869335
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3372832,
+          "state": "S",
+          "ppid": 3372831,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869337
+        },
+        "argv": [
+          "/usr/bin/flock",
+          "-n",
+          "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/host_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3372832,
+          "state": "S",
+          "ppid": 3372831,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869337
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3372832 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3372833,
+          "state": "S",
+          "ppid": 3372832,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869337
+        },
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/host_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3372833,
+          "state": "S",
+          "ppid": 3372832,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869337
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3372832 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3372851,
+          "state": "S",
+          "ppid": 3372833,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869347
+        },
+        "argv": [
+          "/usr/bin/timeout",
+          "--foreground",
+          "--signal=TERM",
+          "--kill-after=60s",
+          "2730s",
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+          "--mode",
+          "train"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3372851,
+          "state": "S",
+          "ppid": 3372833,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869347
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3372832 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3372852,
+          "state": "S",
+          "ppid": 3372851,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869347
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+          "--mode",
+          "train"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3372852,
+          "state": "S",
+          "ppid": 3372851,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869347
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3372832 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3372866,
+          "state": "S",
+          "ppid": 3372852,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869603
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "/home/ubuntu/workspace/native_venv/bin/torchrun",
+          "--standalone",
+          "--nproc_per_node=4",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "45",
+          "--k2-embedding"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3372866,
+          "state": "S",
+          "ppid": 3372852,
+          "pgid": 3372831,
+          "sid": 3372831,
+          "start_ticks": 102869603
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3372881,
+          "state": "R",
+          "ppid": 3372866,
+          "pgid": 3372881,
+          "sid": 3372881,
+          "start_ticks": 102869808
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "45",
+          "--k2-embedding"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "0",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "0"
+        },
+        "identity_after": {
+          "pid": 3372881,
+          "state": "R",
+          "ppid": 3372866,
+          "pgid": 3372881,
+          "sid": 3372881,
+          "start_ticks": 102869808
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3372882,
+          "state": "R",
+          "ppid": 3372866,
+          "pgid": 3372882,
+          "sid": 3372882,
+          "start_ticks": 102869808
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "45",
+          "--k2-embedding"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "1",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "1"
+        },
+        "identity_after": {
+          "pid": 3372882,
+          "state": "R",
+          "ppid": 3372866,
+          "pgid": 3372882,
+          "sid": 3372882,
+          "start_ticks": 102869808
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3372883,
+          "state": "S",
+          "ppid": 3372866,
+          "pgid": 3372883,
+          "sid": 3372883,
+          "start_ticks": 102869808
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "45",
+          "--k2-embedding"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "2",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "2"
+        },
+        "identity_after": {
+          "pid": 3372883,
+          "state": "S",
+          "ppid": 3372866,
+          "pgid": 3372883,
+          "sid": 3372883,
+          "start_ticks": 102869808
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3372884,
+          "state": "S",
+          "ppid": 3372866,
+          "pgid": 3372884,
+          "sid": 3372884,
+          "start_ticks": 102869808
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "45",
+          "--k2-embedding"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "3",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "3"
+        },
+        "identity_after": {
+          "pid": 3372884,
+          "state": "S",
+          "ppid": 3372866,
+          "pgid": 3372884,
+          "sid": 3372884,
+          "start_ticks": 102869808
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      }
+    ],
+    "census": [
+      {
+        "pid": 1,
+        "state": "S",
+        "ppid": 0,
+        "pgid": 1,
+        "sid": 1,
+        "start_ticks": 58
+      },
+      {
+        "pid": 2,
+        "state": "S",
+        "ppid": 0,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 3,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 4,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 5,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 6,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 7,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 8,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 10,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 13,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 14,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 15,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 16,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 17,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 18,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 19,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 20,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 21,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 22,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 23,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 24,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 26,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 27,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 28,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 29,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 30,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 32,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 33,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 34,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 35,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 36,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 38,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 39,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 40,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 41,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 42,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 44,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 45,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 46,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 47,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 48,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 50,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 51,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 52,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 53,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 54,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 56,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 57,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 58,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 59,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 60,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 62,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 63,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 64,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 65,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 66,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 68,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 69,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 70,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 71,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 72,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 74,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 75,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 76,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 77,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 78,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 80,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 81,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 82,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 83,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 84,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 86,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 87,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 60
+      },
+      {
+        "pid": 88,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 89,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 90,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 91,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 62
+      },
+      {
+        "pid": 92,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 93,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 96,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 97,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 98,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 99,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 100,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 101,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 102,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 103,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 64
+      },
+      {
+        "pid": 106,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 109
+      },
+      {
+        "pid": 107,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 108,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 109,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 110,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 111,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 112,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 113
+      },
+      {
+        "pid": 114,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 113
+      },
+      {
+        "pid": 115,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 116
+      },
+      {
+        "pid": 116,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 147
+      },
+      {
+        "pid": 117,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 147
+      },
+      {
+        "pid": 118,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 148
+      },
+      {
+        "pid": 119,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 149
+      },
+      {
+        "pid": 120,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 149
+      },
+      {
+        "pid": 121,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 122,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 123,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 124,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 125,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 126,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 127,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 128,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 129,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 130,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 131,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 132,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 133,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 134,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 135,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 136,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 137,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 138,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 139,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 140,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 141,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 142,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 143,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 144,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 145,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 146,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 147,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 148,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 149,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 150,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 151,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 152,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 153,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 154,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 155,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 156,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 157,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 158,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 159,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 160,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 161,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 162,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 163,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 164,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 165,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 166,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 167,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 169,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 164
+      },
+      {
+        "pid": 170,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 171,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 172,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 173,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 175,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 183,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 184,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 185,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 186,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 173
+      },
+      {
+        "pid": 194,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 177
+      },
+      {
+        "pid": 205,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 179
+      },
+      {
+        "pid": 206,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 180
+      },
+      {
+        "pid": 208,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 228
+      },
+      {
+        "pid": 209,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 228
+      },
+      {
+        "pid": 212,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 510
+      },
+      {
+        "pid": 213,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 515
+      },
+      {
+        "pid": 214,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 523
+      },
+      {
+        "pid": 237,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 544
+      },
+      {
+        "pid": 254,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 741
+      },
+      {
+        "pid": 256,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 749
+      },
+      {
+        "pid": 258,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 749
+      },
+      {
+        "pid": 262,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 757
+      },
+      {
+        "pid": 302,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 768
+      },
+      {
+        "pid": 312,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 313,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 314,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 315,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 334,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 790
+      },
+      {
+        "pid": 335,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 790
+      },
+      {
+        "pid": 339,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 801
+      },
+      {
+        "pid": 344,
+        "state": "D",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 805
+      },
+      {
+        "pid": 500,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 864
+      },
+      {
+        "pid": 501,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 864
+      },
+      {
+        "pid": 667,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 1335
+      },
+      {
+        "pid": 668,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 1335
+      },
+      {
+        "pid": 815,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 815,
+        "sid": 815,
+        "start_ticks": 2128
+      },
+      {
+        "pid": 823,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 823,
+        "sid": 823,
+        "start_ticks": 2130
+      },
+      {
+        "pid": 827,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 827,
+        "sid": 827,
+        "start_ticks": 2130
+      },
+      {
+        "pid": 838,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 838,
+        "sid": 838,
+        "start_ticks": 2132
+      },
+      {
+        "pid": 850,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 850,
+        "sid": 850,
+        "start_ticks": 2134
+      },
+      {
+        "pid": 887,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 887,
+        "sid": 887,
+        "start_ticks": 2137
+      },
+      {
+        "pid": 900,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 900,
+        "sid": 900,
+        "start_ticks": 2139
+      },
+      {
+        "pid": 1580,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 1580,
+        "sid": 1580,
+        "start_ticks": 2384
+      },
+      {
+        "pid": 2222,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 7685
+      },
+      {
+        "pid": 321874,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 321874,
+        "sid": 321874,
+        "start_ticks": 6772743
+      },
+      {
+        "pid": 321877,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 321877,
+        "sid": 321877,
+        "start_ticks": 6772744
+      },
+      {
+        "pid": 322321,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 6772786
+      },
+      {
+        "pid": 322323,
+        "state": "S",
+        "ppid": 322321,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 6772786
+      },
+      {
+        "pid": 322520,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322519,
+        "sid": 322519,
+        "start_ticks": 6773047
+      },
+      {
+        "pid": 322521,
+        "state": "S",
+        "ppid": 322520,
+        "pgid": 322519,
+        "sid": 322519,
+        "start_ticks": 6773047
+      },
+      {
+        "pid": 322867,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322867,
+        "sid": 322867,
+        "start_ticks": 6773472
+      },
+      {
+        "pid": 322878,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 6773477
+      },
+      {
+        "pid": 324262,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 324262,
+        "sid": 324262,
+        "start_ticks": 6775168
+      },
+      {
+        "pid": 326011,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326011,
+        "sid": 326011,
+        "start_ticks": 6777526
+      },
+      {
+        "pid": 326030,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326030,
+        "sid": 326030,
+        "start_ticks": 6777529
+      },
+      {
+        "pid": 326036,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326036,
+        "sid": 326036,
+        "start_ticks": 6777530
+      },
+      {
+        "pid": 326053,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326053,
+        "sid": 326053,
+        "start_ticks": 6777531
+      },
+      {
+        "pid": 326057,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326057,
+        "sid": 326057,
+        "start_ticks": 6777533
+      },
+      {
+        "pid": 327715,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 327715,
+        "sid": 327715,
+        "start_ticks": 6788768
+      },
+      {
+        "pid": 562195,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 562195,
+        "sid": 562195,
+        "start_ticks": 9520285
+      },
+      {
+        "pid": 562196,
+        "state": "S",
+        "ppid": 562195,
+        "pgid": 562195,
+        "sid": 562195,
+        "start_ticks": 9520286
+      },
+      {
+        "pid": 562271,
+        "state": "S",
+        "ppid": 562195,
+        "pgid": 562271,
+        "sid": 562271,
+        "start_ticks": 9520352
+      },
+      {
+        "pid": 814705,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 814705,
+        "sid": 814705,
+        "start_ticks": 15102610
+      },
+      {
+        "pid": 814706,
+        "state": "S",
+        "ppid": 814705,
+        "pgid": 814706,
+        "sid": 814706,
+        "start_ticks": 15102610
+      },
+      {
+        "pid": 831449,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 831449,
+        "sid": 831449,
+        "start_ticks": 16743671
+      },
+      {
+        "pid": 2602007,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602007,
+        "sid": 2602007,
+        "start_ticks": 75730002
+      },
+      {
+        "pid": 2602016,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602016,
+        "sid": 2602016,
+        "start_ticks": 75730006
+      },
+      {
+        "pid": 2602339,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 75730311
+      },
+      {
+        "pid": 2602359,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602359,
+        "sid": 2602359,
+        "start_ticks": 75730323
+      },
+      {
+        "pid": 3193504,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99390283
+      },
+      {
+        "pid": 3212003,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99548823
+      },
+      {
+        "pid": 3216856,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99667238
+      },
+      {
+        "pid": 3276068,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 100988824
+      },
+      {
+        "pid": 3277370,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 101047726
+      },
+      {
+        "pid": 3314477,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3314477,
+        "sid": 3314477,
+        "start_ticks": 101674894
+      },
+      {
+        "pid": 3314478,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 101674895
+      },
+      {
+        "pid": 3314492,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3314492,
+        "sid": 3314492,
+        "start_ticks": 101674898
+      },
+      {
+        "pid": 3321721,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102128821
+      },
+      {
+        "pid": 3336233,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102248821
+      },
+      {
+        "pid": 3343471,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102308822
+      },
+      {
+        "pid": 3344038,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102344850
+      },
+      {
+        "pid": 3344924,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102402053
+      },
+      {
+        "pid": 3344959,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102407827
+      },
+      {
+        "pid": 3345624,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102428822
+      },
+      {
+        "pid": 3345805,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102440747
+      },
+      {
+        "pid": 3346614,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102487901
+      },
+      {
+        "pid": 3347171,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102490444
+      },
+      {
+        "pid": 3350453,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102519094
+      },
+      {
+        "pid": 3353885,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102548821
+      },
+      {
+        "pid": 3360744,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102608820
+      },
+      {
+        "pid": 3362192,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102620459
+      },
+      {
+        "pid": 3367634,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102667878
+      },
+      {
+        "pid": 3367954,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102670740
+      },
+      {
+        "pid": 3368544,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102714986
+      },
+      {
+        "pid": 3368736,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102728821
+      },
+      {
+        "pid": 3370085,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102788822
+      },
+      {
+        "pid": 3370087,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102791888
+      },
+      {
+        "pid": 3370531,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102817993
+      },
+      {
+        "pid": 3371172,
+        "state": "S",
+        "ppid": 322321,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 102838470
+      },
+      {
+        "pid": 3372577,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102846347
+      },
+      {
+        "pid": 3372690,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102865017
+      },
+      {
+        "pid": 3372691,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102865309
+      },
+      {
+        "pid": 3372831,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869335
+      },
+      {
+        "pid": 3372832,
+        "state": "S",
+        "ppid": 3372831,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869337
+      },
+      {
+        "pid": 3372833,
+        "state": "S",
+        "ppid": 3372832,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869337
+      },
+      {
+        "pid": 3372851,
+        "state": "S",
+        "ppid": 3372833,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869347
+      },
+      {
+        "pid": 3372852,
+        "state": "S",
+        "ppid": 3372851,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869347
+      },
+      {
+        "pid": 3372866,
+        "state": "S",
+        "ppid": 3372852,
+        "pgid": 3372831,
+        "sid": 3372831,
+        "start_ticks": 102869603
+      },
+      {
+        "pid": 3372881,
+        "state": "R",
+        "ppid": 3372866,
+        "pgid": 3372881,
+        "sid": 3372881,
+        "start_ticks": 102869808
+      },
+      {
+        "pid": 3372882,
+        "state": "R",
+        "ppid": 3372866,
+        "pgid": 3372882,
+        "sid": 3372882,
+        "start_ticks": 102869808
+      },
+      {
+        "pid": 3372883,
+        "state": "S",
+        "ppid": 3372866,
+        "pgid": 3372883,
+        "sid": 3372883,
+        "start_ticks": 102869808
+      },
+      {
+        "pid": 3372884,
+        "state": "S",
+        "ppid": 3372866,
+        "pgid": 3372884,
+        "sid": 3372884,
+        "start_ticks": 102869808
+      },
+      {
+        "pid": 3372996,
+        "state": "S",
+        "ppid": 327715,
+        "pgid": 3372996,
+        "sid": 3372996,
+        "start_ticks": 102871012
+      },
+      {
+        "pid": 3373056,
+        "state": "S",
+        "ppid": 3372996,
+        "pgid": 3372996,
+        "sid": 3372996,
+        "start_ticks": 102871289
+      },
+      {
+        "pid": 3373057,
+        "state": "R",
+        "ppid": 3373056,
+        "pgid": 3373057,
+        "sid": 3373057,
+        "start_ticks": 102871389
+      }
+    ],
+    "files": {
+      "operator-preflight.json": {
+        "bytes_on_host": 5192,
+        "captured_bytes": 5192,
+        "tail_only": false,
+        "sha256": "ca005f265a5217cc992d1d573a1bc3d80d37f3c7b9cdf589aecfa8be07b0e2a4",
+        "text": "{\n  \"started_utc\": \"2026-09-26T09:23:54.067353+00:00\",\n  \"utc\": \"2026-09-26T09:23:54.139306+00:00\",\n  \"host\": \"trn22\",\n  \"label\": \"fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1\",\n  \"original_lock\": {\n    \"device\": 66305,\n    \"inode\": 832589,\n    \"held_during_preflight\": true\n  },\n  \"free_bytes\": 170913808384,\n  \"mem_available_bytes\": 129095569408,\n  \"resource_reserve\": {\n    \"runtime_floor_bytes\": 11274289152,\n    \"projected_new_footprint_bytes\": 3221225472,\n    \"initial_floor_bytes\": 14495514624,\n    \"basis\": \"Unchanged per-job13.5GiB initial/10.5GiB runtime floor; allocated parent retained, no extra OFF45.\"\n  },\n  \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"files\": {\n    \"dispatch_driver.py\": \"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a\",\n    \"idle_guard.py\": \"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737\",\n    \"lifetime_guard.py\": \"5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e\",\n    \"host_driver.py\": \"77be68e6d4167180385063d7e3df10e5ceb868b15d6b0bedba61a938b38a31fa\",\n    \"package/train.py\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\",\n    \"package/launch-command.txt\": \"4ff26106b3395227af66da9cae1d6f2d542c5d796ee5862132fc546e9f7e1613\",\n    \"package/provenance.json\": \"f93aabec1b3385f1b093b3b5c18640aa5a5f596c9ec7bea1b1332941c32c72d6\",\n    \"EXPERIMENT_PROPOSAL.json\": \"0b2f56940734765e9a85e46b250fd3d1ed8a989fa701c5ef7bfa0d908bcb7e5c\",\n    \"NATIVE_BINDING.json\": \"c4f2607d7bccac2a34cfc542e271978c0e67eb21c11e58f64d19b2d228b19df3\",\n    \"PROPOSAL_AMENDMENT.md\": \"59884a599bb56792b19ee8386b17c47697c2b00b8ddd2a825ae3b30aae08b49b\",\n    \"PARENT_CONTROL_PRECOMMIT.md\": \"131a1b7158c4fed43f44bcb0445b2fe73af39d8a30399d3316532f66316d2ebf\",\n    \"PRIOR_EXPERIMENT_PROPOSAL.json\": \"3a0b2e511872ec79bc7ffd684916cc52dced4bae3f0e89ddc772863d97c7d4c3\",\n    \"INDEX_REPAIR_REVIEW.md\": \"b689fb6ed0dd86b73bb945da2fb6bb31a3e8a524b15dc3c984624a5dea08c6dc\",\n    \"CURRENT_EXPERIMENT_PROPOSAL.json\": \"0b2f56940734765e9a85e46b250fd3d1ed8a989fa701c5ef7bfa0d908bcb7e5c\",\n    \"RELEASE.json\": \"6586cc341e6fb34412250c8c2983299351d931f59425cb3e6d9a8318bba3e200\"\n  },\n  \"fresh_cache_absent_then_created_empty\": [\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler\",\n      \"device\": 66305,\n      \"inode\": 28312207,\n      \"created_empty\": true\n    },\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug\",\n      \"device\": 66305,\n      \"inode\": 28312208,\n      \"created_empty\": true\n    },\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo\",\n      \"device\": 66305,\n      \"inode\": 28312209,\n      \"created_empty\": true\n    },\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor\",\n      \"device\": 66305,\n      \"inode\": 28312210,\n      \"created_empty\": true\n    },\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local\",\n      \"device\": 66305,\n      \"inode\": 28312211,\n      \"created_empty\": true\n    },\n    {\n      \"path\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff\",\n      \"device\": 66305,\n      \"inode\": 28312212,\n      \"created_empty\": true\n    }\n  ],\n  \"ps_job_rows\": [],\n  \"ps_sha256\": \"9674b85707373d0c08cb2240e55c688b74afc3649d7341e216d231710515f30e\",\n  \"neuron_ls\": [\n    {\n      \"instance_type\": \"trn2.3xlarge\",\n      \"instance_id\": \"i-0673e54d9d66e6a1e\",\n      \"neuron_device\": 0,\n      \"bdf\": \"0000:33:00.0\",\n      \"cpu_affinity\": \"0-11\",\n      \"numa_node\": \"0\",\n      \"connected_to\": null,\n      \"nc_count\": 4,\n      \"logical_neuroncore_config\": 2,\n      \"memory_size\": 103079215104,\n      \"neuroncore_ids\": [\n        0,\n        1,\n        2,\n        3\n      ],\n      \"neuron_processes\": []\n    }\n  ],\n  \"fuser\": {\n    \"returncode\": 1,\n    \"stdout\": \"\",\n    \"stderr\": \"\"\n  },\n  \"controller\": {\n    \"utc\": \"2026-09-26T09:23:47.503378+00:00\",\n    \"controller_state_sha256\": \"cc3ee8d8de77574d85b1baf21e39589a1fc89a213d3d74de2ff5404b6bfa36b5\",\n    \"launch_authorized\": false,\n    \"host_launch_allowed\": {\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"breaker_tripped\": {\n      \"global_correctness\": false,\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"local_stops_present\": []\n  },\n  \"old_queue_pids_absent\": [\n    3050509,\n    3053905\n  ],\n  \"eval_cache_mode\": \"NO_EVAL_TIMING_ONLY\"\n}\n"
+      },
+      "operator-launch.json": {
+        "bytes_on_host": 470,
+        "captured_bytes": 470,
+        "tail_only": false,
+        "sha256": "b8dc6b16568652f9798aa8d59be60258bfd52f597c5728c792a20b2ef6c7883e",
+        "text": "{\n  \"utc\": \"2026-09-26T09:23:54.139816+00:00\",\n  \"host\": \"trn22\",\n  \"label\": \"fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1\",\n  \"root\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet\",\n  \"dispatch_pid\": 3372831,\n  \"status\": \"DETACHED_DISPATCH_STARTED\",\n  \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\",\n  \"automatic_next_job\": false\n}\n"
+      },
+      "training-launch.json": {
+        "bytes_on_host": 3350,
+        "captured_bytes": 3350,
+        "tail_only": false,
+        "sha256": "6e90462f52249127bea42bffb99766d50a6edd9f77043737ce86459d5c971fe8",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"2730s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train\",\n    \"--mode\",\n    \"train\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/inductor\",\n    \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/debug\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/hlo\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/metrics-training\",\n    \"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/neff\",\n    \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/cold-training-caches/local\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\",\n  \"utc\": \"2026-09-26T09:23:54.265375+00:00\"\n}\n"
+      },
+      "under-lock-idle.json": {
+        "bytes_on_host": 1418,
+        "captured_bytes": 1418,
+        "tail_only": false,
+        "sha256": "a5fe3eeb59259087d7c6c32abd39ed94031f8ea365e61fe08e7573bc04d5ae9c",
+        "text": "{\n  \"ended_utc\": \"2026-09-26T09:23:54.256870+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3372833,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3372832,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3372833,\n      3372832\n    ],\n    \"returncode\": 0,\n    \"row_count\": 257,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"23f2a9673a2d9ed3ddfe2e43f5951932246532e83944414093698e1395a43f73\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T09:23:54.193975+00:00\",\n  \"status\": \"PASS\"\n}\n"
+      },
+      "training-preflight-fuser.json": {
+        "bytes_on_host": 54,
+        "captured_bytes": 54,
+        "tail_only": false,
+        "sha256": "e9be039e4c2a3716d8b4bf87a504ed87a289fb1542232733d1f4e11120076d0f",
+        "text": "{\n  \"returncode\": 1,\n  \"stderr\": \"\",\n  \"stdout\": \"\"\n}\n"
+      },
+      "terminal.json": {
+        "absent": true
+      },
+      "outer-flock-exit.json": {
+        "absent": true
+      },
+      "lifetime-events.jsonl": {
+        "bytes_on_host": 5242,
+        "captured_bytes": 5242,
+        "tail_only": false,
+        "sha256": "84238ca8022d55b8c929a302676a66d3f38dd9f2355e0916b6dc3e5efee77e6c",
+        "text": "{\"event\": \"guardian_started\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372833, \"ppid\": 3372832, \"sid\": 3372831, \"start_ticks\": 102869337, \"state\": \"R\"}, \"lock_device\": 66305, \"lock_held\": true, \"lock_inode\": 832589, \"monotonic\": 1028693.406124671, \"subreaper\": true}\n{\"command\": [\"/usr/bin/timeout\", \"--foreground\", \"--signal=TERM\", \"--kill-after=60s\", \"2730s\", \"/home/ubuntu/workspace/native_venv/bin/python\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\", \"--package\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/package\", \"--sandbox\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train\", \"--mode\", \"train\"], \"event\": \"phase_spawned\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372851, \"ppid\": 3372833, \"sid\": 3372831, \"start_ticks\": 102869347, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028693.478469362, \"pid\": 3372851}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372851, \"ppid\": 3372833, \"sid\": 3372831, \"start_ticks\": 102869347, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1028693.478650924}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372852, \"ppid\": 3372851, \"sid\": 3372831, \"start_ticks\": 102869347, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028693.478852196}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372853, \"ppid\": 3372852, \"sid\": 3372831, \"start_ticks\": 102869350, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028693.529495215}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372853, \"ppid\": 3372852, \"sid\": 3372831, \"start_ticks\": 102869350, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028696.068707394}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372831, \"pid\": 3372866, \"ppid\": 3372852, \"sid\": 3372831, \"start_ticks\": 102869603, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028696.069107985}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372881, \"pid\": 3372881, \"ppid\": 3372866, \"sid\": 3372881, \"start_ticks\": 102869808, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028698.09993505}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372882, \"pid\": 3372882, \"ppid\": 3372866, \"sid\": 3372882, \"start_ticks\": 102869808, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028698.100069328}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372883, \"pid\": 3372883, \"ppid\": 3372866, \"sid\": 3372883, \"start_ticks\": 102869808, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028698.100139571}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372884, \"ppid\": 3372866, \"sid\": 3372884, \"start_ticks\": 102869808, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028698.100203095}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372947, \"pid\": 3372947, \"ppid\": 3372884, \"sid\": 3372947, \"start_ticks\": 102870669, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.721400383}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372941, \"ppid\": 3372884, \"sid\": 3372884, \"start_ticks\": 102870668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.721503802}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372935, \"pid\": 3372935, \"ppid\": 3372883, \"sid\": 3372935, \"start_ticks\": 102870668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.722176316}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372947, \"pid\": 3372947, \"ppid\": 3372884, \"sid\": 3372947, \"start_ticks\": 102870669, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.772777303}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372935, \"pid\": 3372935, \"ppid\": 3372883, \"sid\": 3372935, \"start_ticks\": 102870668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.772867057}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372961, \"ppid\": 3372941, \"sid\": 3372884, \"start_ticks\": 102870681, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028706.825747625}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372962, \"ppid\": 3372961, \"sid\": 3372884, \"start_ticks\": 102870702, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.033233576}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372962, \"ppid\": 3372961, \"sid\": 3372884, \"start_ticks\": 102870702, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.084082814}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372963, \"ppid\": 3372961, \"sid\": 3372884, \"start_ticks\": 102870762, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.656409625}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372963, \"ppid\": 3372961, \"sid\": 3372884, \"start_ticks\": 102870762, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.707951223}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372941, \"ppid\": 3372884, \"sid\": 3372884, \"start_ticks\": 102870668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.759892328}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3372884, \"pid\": 3372961, \"ppid\": 3372941, \"sid\": 3372884, \"start_ticks\": 102870681, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1028707.760032216}\n"
+      },
+      "training.log": {
+        "bytes_on_host": 5305,
+        "captured_bytes": 5305,
+        "tail_only": false,
+        "sha256": "39c8b98d9ef6cc7039912af2196a3799ea5364e9f41384735bcb768ca55015f6",
+        "text": "TRAINING_START_UTC=2026-09-26T09:23:54.265495+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1-packet/train\", \"files\": [\"prepare.py\", \"train.py\"], \"train_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding\", \"fresh_empty_sdk_caches\": {}}\n[W926 09:23:56.488390104 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--num-steps\", \"45\", \"--k2-embedding\"]\n[W926 09:23:58.003452114 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 09:23:58.812000 3372866 torch/distributed/run.py:851] \nW0926 09:23:58.812000 3372866 torch/distributed/run.py:851] *****************************************\nW0926 09:23:58.812000 3372866 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 09:23:58.812000 3372866 torch/distributed/run.py:851] *****************************************\n[W926 09:24:00.066221588 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:24:00.067520133 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:24:00.067962132 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:24:00.070954547 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n"
+      },
+      "dispatch.log": {
+        "bytes_on_host": 0,
+        "captured_bytes": 0,
+        "tail_only": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "outer-flock.log": {
+        "bytes_on_host": 0,
+        "captured_bytes": 0,
+        "tail_only": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "train/rehearsal.json": {
+        "absent": true
+      },
+      "fresh-public20m-launch.json": {
+        "absent": true
+      },
+      "fresh-public20m.log": {
+        "absent": true
+      },
+      "eval/rehearsal.json": {
+        "absent": true
+      },
+      "eval-exit-code.txt": {
+        "absent": true
+      },
+      "checkpoint-after-postflight.json": {
+        "absent": true
+      }
+    },
+    "actual_train_source": {
+      "exists": true,
+      "sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+      "bytes": 96780
+    },
+    "original_lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held": true
+    },
+    "neuron_ls": {
+      "returncode": 0,
+      "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": [\n            {\n                \"pid\": 3372881,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3372882,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3372883,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3372884,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            }\n        ]\n    }\n]",
+      "stderr": ""
+    },
+    "free_bytes": 170913243136,
+    "elapsed_seconds": 0.06440524302888662,
+    "read_only": true,
+    "runtime_version_observation": {
+      "scope": "static metadata and interpreter version only; not installed SDK byte-identity or native import attestation",
+      "packages": [
+        {
+          "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch-2.11.0+cpu.dist-info/METADATA",
+          "bytes": 29297,
+          "sha256": "b194361876402328c2bd744f4341369f687290e2c8e26a7079e6c2aeb676a473",
+          "stable": true,
+          "device": 66305,
+          "inode": 552005,
+          "name": "torch",
+          "version": "2.11.0+cpu"
+        },
+        {
+          "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/METADATA",
+          "bytes": 1275,
+          "sha256": "40e9e465efbd5864e5db69bde93b75bae2df910cb830ba55dc43a99ce3d7a0c7",
+          "stable": true,
+          "device": 66305,
+          "inode": 537583,
+          "name": "torch-neuronx",
+          "version": "2.11.3.0.0+unknown.dev"
+        },
+        {
+          "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronx_cc-2.26.6360.0+6f180f47.dist-info/METADATA",
+          "bytes": 855,
+          "sha256": "a4f3979dfd1ced5a1b7536d7be7dc5c259a723cb835bcd219bfe6a3c54aa7848",
+          "stable": true,
+          "device": 66305,
+          "inode": 528542,
+          "name": "neuronx-cc",
+          "version": "2.26.6360.0+6f180f47"
+        },
+        {
+          "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki-0.5.0+28631259367.ga768afa6.dist-info/METADATA",
+          "bytes": 8324,
+          "sha256": "4aca327e9a04d94d9fd617f6ea04096e5897085cbdace9abd6700a86a685709b",
+          "stable": true,
+          "device": 66305,
+          "inode": 525592,
+          "name": "nki",
+          "version": "0.5.0+28631259367.ga768afa6"
+        },
+        {
+          "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuron_agentic_development-1.0.dist-info/METADATA",
+          "bytes": 16891,
+          "sha256": "52e6ee811c52f91fbd4daad35d0f1ba5f18b528d0cad5eee75041dc7b41d73cd",
+          "stable": true,
+          "device": 66305,
+          "inode": 559204,
+          "name": "neuron-agentic-development",
+          "version": "1.0"
+        }
+      ],
+      "interpreter": {
+        "path": "/home/ubuntu/workspace/native_venv/bin/python",
+        "resolved": "/usr/bin/python3.12",
+        "returncode": 0,
+        "stdout": "Python 3.12.3\n",
+        "stderr": ""
+      }
+    }
+  },
+  "stdout_if_error": null,
+  "payload_sha256": "957dd4cf7fc2617a0d90714fcd8b69ec788bbb88cc29e74a0a6abc261f95b2ee"
+}
