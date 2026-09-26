@@ -1,0 +1,715 @@
+{
+  "normal": {
+    "exit_code": 0,
+    "receipt": {
+      "verdict": "PASS_HELPER_ONLY",
+      "cases": [
+        {
+          "case": "scalar_reference_1_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_3",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_4",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_6",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_7",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_9",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_65",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_67",
+          "passed": true
+        },
+        {
+          "case": "nan",
+          "rejected": "MASK_NAN:buffer:mask_short"
+        },
+        {
+          "case": "posinf",
+          "rejected": "MASK_POSINF:buffer:mask_short"
+        },
+        {
+          "case": "negative_zero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "future_zero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "diagonal_inf",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "nonzero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "dtype",
+          "rejected": "MASK_DTYPE_DEVICE_GRAD:m"
+        },
+        {
+          "case": "shape",
+          "rejected": "MASK_SHAPE:m"
+        },
+        {
+          "case": "grad",
+          "rejected": "MASK_DTYPE_DEVICE_GRAD:m"
+        },
+        {
+          "case": "wrong_window",
+          "rejected": "MASK_VALUES:m:rows0:4"
+        },
+        {
+          "case": "positive_inference",
+          "passed": true
+        },
+        {
+          "case": "param_mutation",
+          "rejected": "MODEL_STATE_CHANGED:parameter:p"
+        },
+        {
+          "case": "buffer_mutation",
+          "rejected": "MODEL_STATE_CHANGED:buffer:ordinary"
+        },
+        {
+          "case": "mask_mutation",
+          "rejected": "MASK_VALUES:buffer:mask_full:rows0:6"
+        },
+        {
+          "case": "input_mutation",
+          "rejected": "INPUT_CHANGED"
+        },
+        {
+          "case": "repeat",
+          "rejected": "REPEATED_LOGITS_BYTES"
+        },
+        {
+          "case": "leak",
+          "rejected": "SYNTHETIC_PREFIX_CAUSALITY"
+        },
+        {
+          "case": "nonfinite",
+          "rejected": "NONFINITE_TENSOR:output"
+        },
+        {
+          "case": "shape",
+          "rejected": "OUTPUT_SHAPE"
+        },
+        {
+          "case": "mode",
+          "rejected": "MODEL_MODE_CHANGED"
+        },
+        {
+          "case": "finite_only_parameter",
+          "rejected": "NONFINITE_TENSOR:parameter:mask_full"
+        },
+        {
+          "case": "finite_only_nested",
+          "rejected": "NONFINITE_TENSOR:buffer:child.mask_full"
+        },
+        {
+          "case": "finite_only_ordinary",
+          "rejected": "NONFINITE_TENSOR:buffer:ordinary"
+        },
+        {
+          "case": "no_exception_without_spec",
+          "rejected": "NONFINITE_TENSOR:buffer:mask_full"
+        },
+        {
+          "case": "missing_mask",
+          "rejected": "MISSING_ROOT_MASK_BUFFERS"
+        },
+        {
+          "case": "bad_input_shape",
+          "rejected": "SYNTHETIC_INPUT_SHAPE"
+        },
+        {
+          "case": "degenerate_suffix",
+          "rejected": "DEGENERATE_SUFFIX_FIXTURE"
+        },
+        {
+          "case": "restore_{}",
+          "passed": true
+        },
+        {
+          "case": "restore_{'saved': 8, 'actual': 8}",
+          "passed": true
+        },
+        {
+          "case": "restore_{'toggles': {'SHORT_WINDOW_FRAC': 0.25}, 'live': 0.25}",
+          "passed": true
+        },
+        {
+          "case": "bad_restore_{'actual': 4}",
+          "rejected": "RESTORED_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'live': 0.25}",
+          "rejected": "RESTORED_SHORT_WINDOW_FRAC"
+        },
+        {
+          "case": "bad_restore_{'saved': True}",
+          "rejected": "SAVED_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'minimum': 0}",
+          "rejected": "EVAL_MIN_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'toggles': []}",
+          "rejected": "SAVED_TOGGLES"
+        },
+        {
+          "case": "bad_restore_{'toggles': {'SHORT_WINDOW_FRAC': nan}}",
+          "rejected": "SAVED_SHORT_WINDOW_FRAC"
+        },
+        {
+          "case": "root_pin_before_io",
+          "rejected": "EXACT_READONLY_R2_ROOT"
+        },
+        {
+          "case": "all_four_original_bundle_pins",
+          "passed": true
+        }
+      ],
+      "count": 54,
+      "input_sha256": {
+        "results-bundle.json": "d2298e9cafa63d98e9aa54c8b324e42a5ac345f20f4144b811112900ba2b2a08",
+        "tiny-optimized.json": "e8bd713b78ae3dba1434695284e244fb4bf3b04dc5c1edd5491d0e54bb31a6f5",
+        "tiny-normal.json": "e8bd713b78ae3dba1434695284e244fb4bf3b04dc5c1edd5491d0e54bb31a6f5",
+        "helper-full-context.diff": "d41e0c3362eac4d623bee2c5e306c6616e2d57bb355c0ed0553d025fd7191cb6",
+        "NEUTRAL_SPEC.json": "b1b5ea599dfad96f066011a98ccd81339d38913ab8ffb31214657b0549b24bd7",
+        "old_helper.py": "a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d",
+        "new_helper.py": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c"
+      },
+      "test_sha256": "0f0bc50afbf399acddc544b4107aa3a5b9890f8c9521137b4edf39e9cb4ffd9b",
+      "threads": 1,
+      "interop_threads": 1,
+      "torch": "2.13.0+cpu",
+      "optimized": 0,
+      "positive": {
+        "route": "ordinary_unpatched_cpu_load_for_eval",
+        "input": {
+          "shape": [
+            1,
+            6
+          ],
+          "dtype": "torch.int64",
+          "sha256": "5f544d51f4618ae3c5c6bcc2bbb9a8f64f63585665c1440d3075790d5e00ccbd",
+          "requires_grad": false
+        },
+        "outputs": [
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "605b13eb5ddd3a03849d066a97302784a3b145149830aa6d62299e8f440242fd",
+            "requires_grad": false
+          },
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "605b13eb5ddd3a03849d066a97302784a3b145149830aa6d62299e8f440242fd",
+            "requires_grad": false
+          },
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "bad5b897a7d92806f6673c2b752b622783d3be5e917810302f1b2fa951e48a01",
+            "requires_grad": false
+          }
+        ],
+        "repeated_bytes_equal": true,
+        "model_state_equal_after_each_call": true,
+        "mask_configuration": {
+          "sequence_len": 6,
+          "full_window": 6,
+          "short_window": 3
+        },
+        "named_parameters_and_all_buffers": {
+          "parameter:p": {
+            "shape": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+            "requires_grad": true
+          },
+          "buffer:mask_full": {
+            "shape": [
+              1,
+              1,
+              6,
+              6
+            ],
+            "dtype": "torch.float32",
+            "sha256": "81820365b23b421ccffc7fabdbb11e575efe86e75cef3191795ac32fd6c46cfd",
+            "requires_grad": false,
+            "mask_semantics_validated": true,
+            "window": 6,
+            "zero_count": 21,
+            "negative_infinity_count": 15,
+            "nan_count": 0,
+            "positive_infinity_count": 0
+          },
+          "buffer:mask_short": {
+            "shape": [
+              1,
+              1,
+              6,
+              6
+            ],
+            "dtype": "torch.float32",
+            "sha256": "77cc8e5392b7a20fe84192f9c02406f59e95e9d02e890e5c0151667cfe719d34",
+            "requires_grad": false,
+            "mask_semantics_validated": true,
+            "window": 3,
+            "zero_count": 15,
+            "negative_infinity_count": 21,
+            "nan_count": 0,
+            "positive_infinity_count": 0
+          },
+          "buffer:ordinary": {
+            "shape": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+            "requires_grad": false
+          }
+        },
+        "state_tensor_count": 4,
+        "causality": {
+          "synthetic_only": true,
+          "cut": 3,
+          "prefix_stop": 2,
+          "max_abs_diff": 0,
+          "tolerance": 0.01,
+          "passed": true,
+          "prefix_exact": true
+        },
+        "organizer_causality_check_called": false
+      },
+      "full_checkpoint_executed": false,
+      "native_executed": false,
+      "original_r2": "FAILED_PRESERVED"
+    }
+  },
+  "optimized": {
+    "exit_code": 0,
+    "receipt": {
+      "verdict": "PASS_HELPER_ONLY",
+      "cases": [
+        {
+          "case": "scalar_reference_1_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_1_3",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_4",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_4_6",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_7",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_7_9",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_1",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_2",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_65",
+          "passed": true
+        },
+        {
+          "case": "scalar_reference_65_67",
+          "passed": true
+        },
+        {
+          "case": "nan",
+          "rejected": "MASK_NAN:buffer:mask_short"
+        },
+        {
+          "case": "posinf",
+          "rejected": "MASK_POSINF:buffer:mask_short"
+        },
+        {
+          "case": "negative_zero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "future_zero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "diagonal_inf",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "nonzero",
+          "rejected": "MASK_VALUES:buffer:mask_short:rows0:4"
+        },
+        {
+          "case": "dtype",
+          "rejected": "MASK_DTYPE_DEVICE_GRAD:m"
+        },
+        {
+          "case": "shape",
+          "rejected": "MASK_SHAPE:m"
+        },
+        {
+          "case": "grad",
+          "rejected": "MASK_DTYPE_DEVICE_GRAD:m"
+        },
+        {
+          "case": "wrong_window",
+          "rejected": "MASK_VALUES:m:rows0:4"
+        },
+        {
+          "case": "positive_inference",
+          "passed": true
+        },
+        {
+          "case": "param_mutation",
+          "rejected": "MODEL_STATE_CHANGED:parameter:p"
+        },
+        {
+          "case": "buffer_mutation",
+          "rejected": "MODEL_STATE_CHANGED:buffer:ordinary"
+        },
+        {
+          "case": "mask_mutation",
+          "rejected": "MASK_VALUES:buffer:mask_full:rows0:6"
+        },
+        {
+          "case": "input_mutation",
+          "rejected": "INPUT_CHANGED"
+        },
+        {
+          "case": "repeat",
+          "rejected": "REPEATED_LOGITS_BYTES"
+        },
+        {
+          "case": "leak",
+          "rejected": "SYNTHETIC_PREFIX_CAUSALITY"
+        },
+        {
+          "case": "nonfinite",
+          "rejected": "NONFINITE_TENSOR:output"
+        },
+        {
+          "case": "shape",
+          "rejected": "OUTPUT_SHAPE"
+        },
+        {
+          "case": "mode",
+          "rejected": "MODEL_MODE_CHANGED"
+        },
+        {
+          "case": "finite_only_parameter",
+          "rejected": "NONFINITE_TENSOR:parameter:mask_full"
+        },
+        {
+          "case": "finite_only_nested",
+          "rejected": "NONFINITE_TENSOR:buffer:child.mask_full"
+        },
+        {
+          "case": "finite_only_ordinary",
+          "rejected": "NONFINITE_TENSOR:buffer:ordinary"
+        },
+        {
+          "case": "no_exception_without_spec",
+          "rejected": "NONFINITE_TENSOR:buffer:mask_full"
+        },
+        {
+          "case": "missing_mask",
+          "rejected": "MISSING_ROOT_MASK_BUFFERS"
+        },
+        {
+          "case": "bad_input_shape",
+          "rejected": "SYNTHETIC_INPUT_SHAPE"
+        },
+        {
+          "case": "degenerate_suffix",
+          "rejected": "DEGENERATE_SUFFIX_FIXTURE"
+        },
+        {
+          "case": "restore_{}",
+          "passed": true
+        },
+        {
+          "case": "restore_{'saved': 8, 'actual': 8}",
+          "passed": true
+        },
+        {
+          "case": "restore_{'toggles': {'SHORT_WINDOW_FRAC': 0.25}, 'live': 0.25}",
+          "passed": true
+        },
+        {
+          "case": "bad_restore_{'actual': 4}",
+          "rejected": "RESTORED_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'live': 0.25}",
+          "rejected": "RESTORED_SHORT_WINDOW_FRAC"
+        },
+        {
+          "case": "bad_restore_{'saved': True}",
+          "rejected": "SAVED_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'minimum': 0}",
+          "rejected": "EVAL_MIN_SEQUENCE_LENGTH"
+        },
+        {
+          "case": "bad_restore_{'toggles': []}",
+          "rejected": "SAVED_TOGGLES"
+        },
+        {
+          "case": "bad_restore_{'toggles': {'SHORT_WINDOW_FRAC': nan}}",
+          "rejected": "SAVED_SHORT_WINDOW_FRAC"
+        },
+        {
+          "case": "root_pin_before_io",
+          "rejected": "EXACT_READONLY_R2_ROOT"
+        },
+        {
+          "case": "all_four_original_bundle_pins",
+          "passed": true
+        }
+      ],
+      "count": 54,
+      "input_sha256": {
+        "results-bundle.json": "d2298e9cafa63d98e9aa54c8b324e42a5ac345f20f4144b811112900ba2b2a08",
+        "tiny-optimized.json": "e8bd713b78ae3dba1434695284e244fb4bf3b04dc5c1edd5491d0e54bb31a6f5",
+        "tiny-normal.json": "e8bd713b78ae3dba1434695284e244fb4bf3b04dc5c1edd5491d0e54bb31a6f5",
+        "helper-full-context.diff": "d41e0c3362eac4d623bee2c5e306c6616e2d57bb355c0ed0553d025fd7191cb6",
+        "NEUTRAL_SPEC.json": "b1b5ea599dfad96f066011a98ccd81339d38913ab8ffb31214657b0549b24bd7",
+        "old_helper.py": "a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d",
+        "new_helper.py": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c"
+      },
+      "test_sha256": "0f0bc50afbf399acddc544b4107aa3a5b9890f8c9521137b4edf39e9cb4ffd9b",
+      "threads": 1,
+      "interop_threads": 1,
+      "torch": "2.13.0+cpu",
+      "optimized": 1,
+      "positive": {
+        "route": "ordinary_unpatched_cpu_load_for_eval",
+        "input": {
+          "shape": [
+            1,
+            6
+          ],
+          "dtype": "torch.int64",
+          "sha256": "5f544d51f4618ae3c5c6bcc2bbb9a8f64f63585665c1440d3075790d5e00ccbd",
+          "requires_grad": false
+        },
+        "outputs": [
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "605b13eb5ddd3a03849d066a97302784a3b145149830aa6d62299e8f440242fd",
+            "requires_grad": false
+          },
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "605b13eb5ddd3a03849d066a97302784a3b145149830aa6d62299e8f440242fd",
+            "requires_grad": false
+          },
+          {
+            "shape": [
+              1,
+              6,
+              3
+            ],
+            "dtype": "torch.float32",
+            "sha256": "bad5b897a7d92806f6673c2b752b622783d3be5e917810302f1b2fa951e48a01",
+            "requires_grad": false
+          }
+        ],
+        "repeated_bytes_equal": true,
+        "model_state_equal_after_each_call": true,
+        "mask_configuration": {
+          "sequence_len": 6,
+          "full_window": 6,
+          "short_window": 3
+        },
+        "named_parameters_and_all_buffers": {
+          "parameter:p": {
+            "shape": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c",
+            "requires_grad": true
+          },
+          "buffer:mask_full": {
+            "shape": [
+              1,
+              1,
+              6,
+              6
+            ],
+            "dtype": "torch.float32",
+            "sha256": "81820365b23b421ccffc7fabdbb11e575efe86e75cef3191795ac32fd6c46cfd",
+            "requires_grad": false,
+            "mask_semantics_validated": true,
+            "window": 6,
+            "zero_count": 21,
+            "negative_infinity_count": 15,
+            "nan_count": 0,
+            "positive_infinity_count": 0
+          },
+          "buffer:mask_short": {
+            "shape": [
+              1,
+              1,
+              6,
+              6
+            ],
+            "dtype": "torch.float32",
+            "sha256": "77cc8e5392b7a20fe84192f9c02406f59e95e9d02e890e5c0151667cfe719d34",
+            "requires_grad": false,
+            "mask_semantics_validated": true,
+            "window": 3,
+            "zero_count": 15,
+            "negative_infinity_count": 21,
+            "nan_count": 0,
+            "positive_infinity_count": 0
+          },
+          "buffer:ordinary": {
+            "shape": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+            "requires_grad": false
+          }
+        },
+        "state_tensor_count": 4,
+        "causality": {
+          "synthetic_only": true,
+          "cut": 3,
+          "prefix_stop": 2,
+          "max_abs_diff": 0,
+          "tolerance": 0.01,
+          "passed": true,
+          "prefix_exact": true
+        },
+        "organizer_causality_check_called": false
+      },
+      "full_checkpoint_executed": false,
+      "native_executed": false,
+      "original_r2": "FAILED_PRESERVED"
+    }
+  },
+  "scope": "Root replay of own tests written/executed by fresh fork-none Astra reviewer; helper only, no checkpoint/native/model source execution. Original failure preserved."
+}
