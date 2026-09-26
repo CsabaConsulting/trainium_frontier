@@ -18,10 +18,8 @@ prior=json.loads(prior_raw)
 assert prior['all_observed_pids_absent'] and prior['neuron_device_idle'] and prior['related_rows']==[] and prior['lock_competitor_rc']==0,'K2_POSTFLIGHT_NOT_QUIESCENT'
 assert prior['lock_identity']=={'inode':832589,'device':66305},'K2_LOCK_IDENTITY'
 
-w1_path=own/'research/v2/operator/20260926-trn22-stablepath-warm/completed/explicit-postflight.json'
+w1_path=own/'research/v2/operator/20260926-trn22-stablepath-warm/completed/explicit-process-postflight.json'
 # Completed W1 predecessor has its own immutable archived explicit postflight.
-if not w1_path.exists():
- w1_path=own/'research/v2/operator/20260926-trn22-stablepath-warm/completed/postflight-explicit-pids.json'
 assert w1_path.is_file(),'W1_POSTFLIGHT_MISSING'
 w1_raw=w1_path.read_bytes()
 assert w1_raw==subprocess.check_output(['git','show','fae79d5f:'+str(w1_path.relative_to(own))],cwd=own)
