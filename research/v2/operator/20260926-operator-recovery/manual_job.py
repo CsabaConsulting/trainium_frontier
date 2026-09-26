@@ -41,7 +41,21 @@ def checked_packet(key):
     assert entry['source_sha256'] in (
         '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d',
         '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020',
-        'cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d')
+        'cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d',
+        '949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa')
+    if entry['source_sha256'].startswith('949f262c'):
+        receipt_item = p['files']['INDEPENDENT_REVIEW_RECEIPT.json']
+        receipt = json.loads(base64.b64decode(receipt_item['b64'], validate=True))
+        assert receipt['source_sha256'] == entry['source_sha256']
+        if p['binding'].get('human_timing_only_authority'):
+            assert receipt['status'] == 'DEFERRED_BY_HUMAN_RESEARCH_TIMING_ONLY' and receipt['human_timing_only_authority'] is True
+            assert p['binding']['no_eval'] is True and p['binding']['steps'] == 201 and p['binding']['submission_authorized'] is False
+            assert p['binding']['review_required_before_submission'] is True and p['binding']['independent_review_sha256'] is None
+        else:
+            assert receipt['status'] == 'PASS_NATIVE_TIMING_SCOPE', 'K2_REVIEW_NOT_PASSED'
+            assert receipt['fresh_context'] is True and receipt['reviewer_id'] != '/root', 'K2_REVIEW_NOT_INDEPENDENT'
+            assert receipt['independent_cpu_test_exit_code'] == 0, 'K2_INDEPENDENT_CPU_TEST_FAILED'
+            assert p['binding']['independent_review_sha256'] == p['files']['EXACT_SOURCE_REVIEW.md']['sha256'], 'K2_REVIEW_BINDING_DRIFT'
     assert p['files']['package/train.py']['sha256'] == entry['source_sha256']
     provenance = json.loads(base64.b64decode(p['files']['package/provenance.json']['b64'], validate=True))
     assert provenance['train_sha256'] == entry['source_sha256'], 'PROVENANCE_SOURCE_MISMATCH'
@@ -127,7 +141,12 @@ def stage(key, execute=False, previous=None):
     for name, item in prior['files'].items():
         assert sha(item['text'].encode()) == item['sha256'], 'PRIOR_FILE_DRIFT:' + name
     term = json.loads(prior['files']['terminal.json']['text'])
-    assert term['label'] == prior_entry['label'] and term['status'] == 'COMPLETE_PENDING_INDEPENDENT_REVIEW' and term['eval_exit_code'] == 0
+    assert term['label'] == prior_entry['label']
+    if prior_packet['binding'].get('no_eval'):
+        assert term['status'] == 'TIMING_TRAINING_COMPLETE_PENDING_ANALYSIS' and term['train_exit_code'] == 0, 'TIMING_PREDECESSOR_FAILED'
+        assert json.loads(prior['files']['train/rehearsal.json']['text'])['charged_through_process_exit_within_budget'] is True
+    else:
+        assert term['status'] == 'COMPLETE_PENDING_INDEPENDENT_REVIEW' and term['eval_exit_code'] == 0
     post = prior['postflight']
     assert post['all_observed_pids_absent'] and not post['related_rows'] and not post['busy_job_rows']
     assert post['neuron_device_idle'] and post['fuser_rc'] == 1 and post['lock_competitor_rc'] == 0

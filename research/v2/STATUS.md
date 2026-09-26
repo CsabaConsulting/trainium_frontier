@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## K2 research timing actually live —26 September18:07IST
+
+Direct human waiver removes prelaunch independent review ONLY for this timing;
+review still required before K2 enters any submission source. Exact949f cold
+native201 launched12:36:47.789868UTC after fresh original lock/ps/device/hash/
+resources checks. All4workers3343658–61 and held596823 verified12:37:02;
+neuronx-cc live, no completed step/startup/speed/net yet. Preserve this job.
+Receipt status is DEFERRED, never reviewPASS. Immutable staged RELEASE contains
+the waiver-note hash in its legacy independent_review_sha256 field; binding
+is correctlynull, receipt explicitlyDEFERRED. That hash is NOT an independent
+review. Future packaging fixed; no consumed host evidence rewritten.
+
 ## Actual warmdown.60 completion / K2 handoff —26 September18:04IST
 
 trn21 public20M=.9871495484948534, raw delta+.0001640750378635 vs batch/LR.

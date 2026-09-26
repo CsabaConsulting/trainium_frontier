@@ -1,5 +1,13 @@
 # K2 rescue status
 
+26 September18:07IST: actual cold native201 launchedtrn21 at12:36:47.789868UTC,
+label fs-20260926-k2-outside-compile-native201-trn21-r1, source949f. Four
+workers3343658–61/original596823 held/device/compiler verified12:37:02UTC.
+Human explicitly removes source review as this research-only timing gate;
+review staysPENDING and must pass before any submission source use. No new
+reviewer agent started or reviewPASS claimed. No native rate/startup/net yet.
+Preserve actual job; deadlineSunday12IST/net>=3% and FP32 tables remain.
+
 26 September17:42IST: matched batch262144 native comparator fixed in
 NATIVE_TIMING_REFERENCE.json before any candidate native result. Boundary9..200
 aggregate281291.27/trn21 and281392.04/trn22 tok/s. Conservative zero-charge

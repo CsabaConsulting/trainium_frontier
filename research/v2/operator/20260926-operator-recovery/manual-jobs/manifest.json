@@ -155,5 +155,17 @@
     "source_review": "HUMAN_SCALAR_SCOPE_NOT_FRESH_AUDIT",
     "machine_admission": "PENDING",
     "requires_cold_bundle": "research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json"
+  },
+  "trn21-k2rescue": {
+    "host": "trn21",
+    "order": 7,
+    "predecessor": "trn21-warmdown060",
+    "label": "fs-20260926-k2-outside-compile-native201-trn21-r1",
+    "packet": "trn21-k2rescue/packet.json",
+    "packet_sha256": "cbc68d5d8b002577513dbeef7f45341d8d9e6ea7132c28be827b9cc02d6d4d87",
+    "source_sha256": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --num-steps 201 --k2-embedding",
+    "status": "HUMAN_RESEARCH_TIMING_ONLY_REVIEW_DEFERRED",
+    "no_eval": true
   }
 }

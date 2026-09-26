@@ -1,0 +1,155 @@
+{
+  "proposal_id": "fs-20260926-k2-outside-compile-native201-trn21-r1",
+  "arm_id": "k2-outside-compile-native201",
+  "kind": "kernel_timing",
+  "status": "HUMAN_RESEARCH_TIMING_ONLY_REVIEW_DEFERRED",
+  "authority": "Poojith latest: K2 native timing on one host before momentum150, cold net>=3%, loss through200",
+  "single_causal_change": "Exact K2 backward moved outside captured transformer; unchanged batch262144/LR.021/ordinary.75/momentum300/seed42",
+  "candidate": {
+    "source_sha256": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --num-steps 201 --k2-embedding",
+    "launch_command_sha256": "8eee9825bc8b1cb2e548fd40e178e538f7c1577dd508dcecd8f69d4215928f9d",
+    "steps": 201
+  },
+  "local_evidence": {
+    "cpu_receipt_sha256": "f87fcf409d2d0e1f9f8a627a285685ae185cde279e320ff2ebf9d1c80ae91c3b",
+    "reference_sha256": "6d10265c1539a98bd8472f8d5d7aa67a4bc01b34edfa0623e541f322beac2311",
+    "independent_review": "DEFERRED_BY_PO\u041eJITH_TIMING_ONLY"
+  },
+  "control": {
+    "host": "trn21",
+    "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+    "archive": "research/v2/operator/20260926-final-sprint-successors/trn21-batch-lr14-completed/results-bundle.json",
+    "archive_sha256": "30826ff24d91bf6fac6747b6dac618ceee543993e87575ad0effce1617bdc962",
+    "window_boundaries": [
+      9,
+      200
+    ],
+    "measured_window_seconds": 177.998784772004,
+    "measured_window_tokens": 50069504,
+    "steady_aggregate_tok_s": 281291.26872485835,
+    "zero_charge_base_upper_net_tokens": 506324283.70474505,
+    "required_candidate_net_tokens": 521514012.2158874,
+    "matched_launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021",
+    "cold_base_startup_measured": false,
+    "assumed_base_charge_for_conservative_screen": 0,
+    "smoothed_loss_samples": [
+      {
+        "step": 0,
+        "smoothed_logged_loss": 9.0109
+      },
+      {
+        "step": 1,
+        "smoothed_logged_loss": 8.7639
+      },
+      {
+        "step": 2,
+        "smoothed_logged_loss": 8.3233
+      },
+      {
+        "step": 3,
+        "smoothed_logged_loss": 8.0217
+      },
+      {
+        "step": 4,
+        "smoothed_logged_loss": 7.6355
+      },
+      {
+        "step": 10,
+        "smoothed_logged_loss": 6.4451
+      },
+      {
+        "step": 20,
+        "smoothed_logged_loss": 5.8002
+      },
+      {
+        "step": 30,
+        "smoothed_logged_loss": 5.5009
+      },
+      {
+        "step": 40,
+        "smoothed_logged_loss": 5.2615
+      },
+      {
+        "step": 50,
+        "smoothed_logged_loss": 5.0059
+      },
+      {
+        "step": 60,
+        "smoothed_logged_loss": 4.7581
+      },
+      {
+        "step": 70,
+        "smoothed_logged_loss": 4.5653
+      },
+      {
+        "step": 80,
+        "smoothed_logged_loss": 4.3372
+      },
+      {
+        "step": 90,
+        "smoothed_logged_loss": 4.2009
+      },
+      {
+        "step": 100,
+        "smoothed_logged_loss": 4.0533
+      },
+      {
+        "step": 110,
+        "smoothed_logged_loss": 3.9991
+      },
+      {
+        "step": 120,
+        "smoothed_logged_loss": 3.8681
+      },
+      {
+        "step": 130,
+        "smoothed_logged_loss": 3.8429
+      },
+      {
+        "step": 140,
+        "smoothed_logged_loss": 3.775
+      },
+      {
+        "step": 150,
+        "smoothed_logged_loss": 3.7114
+      },
+      {
+        "step": 160,
+        "smoothed_logged_loss": 3.6136
+      },
+      {
+        "step": 170,
+        "smoothed_logged_loss": 3.6183
+      },
+      {
+        "step": 180,
+        "smoothed_logged_loss": 3.5955
+      },
+      {
+        "step": 190,
+        "smoothed_logged_loss": 3.5878
+      },
+      {
+        "step": 200,
+        "smoothed_logged_loss": 3.5287
+      }
+    ]
+  },
+  "qualification": "max(0,1800-max(0,cold_startup-900))*boundary9..200 aggregate_tok_s >= 521514012.2158874; finite loss through200 versus frozen samples, correct checkpoint/budget",
+  "loss_comparison_scope": "Wall-time LR may differ; report every matched sample and first-step difference, do not assert bit identity from CPU test.",
+  "accounting": {
+    "budget": 1800,
+    "startup_cap": 900,
+    "cold": true
+  },
+  "native_scope": "One201step diagnostic, not full BPB, no automatic table/full launch and no evaluation",
+  "dispatch": {
+    "host": "trn21",
+    "label": "fs-20260926-k2-outside-compile-native201-trn21-r1",
+    "launch_authorized": true,
+    "stage_authorized": true
+  },
+  "submission_authorized": false,
+  "human_timing_only_authority": true
+}

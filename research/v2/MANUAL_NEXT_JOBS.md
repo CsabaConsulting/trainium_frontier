@@ -6,10 +6,14 @@ control command chain below. trn22 momentum150 remains next; its old LR/control
 successor blocks below are also superseded and will be refused by the queue.
 Overnight cold
 clean batch/LR replay and seed43 confirmation precede remaining scalar arms.
-K2 remains review-pending. Cold/seed packets are now registered, but cold
+K2 launched18:06:47IST under explicit human research-only review waiver;
+source review remains pending before submission use. Do NOT rerun its label.
+Cold/seed packets are now registered, but cold
 cannot dispatch until its explicit K2 predecessor is collected; seed cannot
 dispatch until the cold bundle exists and passes source/budget/terminal checks.
-No stale scheduler may bypass this reservation.
+No stale scheduler may launch a duplicate job. Current trn21 job is K2, not
+the completed warmdown. Its known201step timing terminal can be collected by
+the same guarded collector after descendants/device/lock are quiescent.
 
 ## Latest overnight commands — supersede old LR/control successors
 

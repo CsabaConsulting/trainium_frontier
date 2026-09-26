@@ -20,6 +20,13 @@ This is the latest direct human instruction. Conflicting older agent counts,
 
 ## Each scheduled wake
 
+LATEST direct human waiver: launch research-only K2 native201 NOW; its source
+review must not block this timing. Review stays PENDING and must pass before
+K2 reaches any submission candidate. This overrides earlier prelaunch review
+prose ONLY for this research-only timing. CPU/OFF evidence, exact hashes,
+original lifetime lock, fresh idle/device/resources and budget checks remain.
+No new agents, implied review PASS, upload or table qualification follows.
+
 Latest18:00IST preparation amendment: after current warmdowns, one host gets
 K2 rescue native201 timing ahead of momentum150; the other gets momentum150.
 Prefer trn21 for K2, trn22 for momentum, while preserving attached evaluations.
