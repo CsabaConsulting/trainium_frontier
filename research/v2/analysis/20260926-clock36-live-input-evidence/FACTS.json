@@ -1,0 +1,693 @@
+{
+  "scope": "READ_ONLY_ARCHIVE_FACTS_NO_PRINCIPAL_GRAPH_OR_CACHE_HIT_VERDICT",
+  "checks": 38,
+  "artifact_sha256": {
+    "research/v2/operator/20260926-trn22-clock-full-live-compiler/observation-1.json": "2028695a0c2873a6fb5228ed7108b562604f491b13c82aebad4740680ed63e43",
+    "research/v2/operator/20260926-trn22-clock-full-live-compiler/observation-2.json": "070aefbb08133233c56ff64830d7a84f69911027f887be4b8545e63764dbc12d",
+    "research/v2/operator/20260926-trn22-startup-clock-cold-five/completed/results-bundle.json": "6c45190b3c1db2242073fdb04a1a5ca997ec2eb51c7abf655e70488b0b0f7e18",
+    "research/v2/operator/20260926-trn22-startup-clock-full/early-training-compact-snapshot.json": "e0d702df2ee68509d949717d88501b919b1135ca7febb2007a422fc2ef7ae1ad",
+    "research/v2/operator/20260926-architecture-cache-readonly-2148/EVIDENCE.md": "7d1d19dcc56a729414922ac2f137a0655eaa1441f25d163fa88c457216d27d97",
+    "research/v2/operator/20260925-trn21-live-cache-diagnosis/compile-key-and-bounded-artifact-headers.txt": "a2f0e9be2fcee8af439072c71b97aa20bc1365140b6db91cbf30222c08c43632",
+    "research/v2/operator/20260925-trn21-live-cache-diagnosis/cache-key-composition.txt": "52c1c28b8940693ec294d4802e6119eaa124dd804369d813526dd42db6ef0f6d",
+    "research/v2/lanes/table-compile/CACHE_SOURCE_ADDENDUM_2026-09-25.txt": "26f004b072657dfdc0b1d067785dc1e1abfafa5feeb83d9ad816405402a2b6d5",
+    "research/v2/analysis/20260926-stable-s1-capture-miss/DIAGNOSIS.md": "fb9200bcb4310807014d2468975fb276cb17277ee1446f64b72cc3ccda517177"
+  },
+  "source_git": "7419927c:workflow/proposals/research-v2/train.py",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "observations": [
+    {
+      "receipt": "research/v2/operator/20260926-trn22-clock-full-live-compiler/observation-1.json",
+      "commit": "bdde21c9",
+      "utc": "2026-09-25T23:33:55.772514+00:00",
+      "directory": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/5818832ea9b1141bb19fe350b46c050b",
+      "compiler_processes": [
+        {
+          "pid": 3191465,
+          "worker_ancestor": 3191056,
+          "ppid": 3191056,
+          "pgid": 3191056,
+          "sid": 3191056,
+          "argv": [
+            "/home/ubuntu/workspace/native_venv/bin/python3",
+            "/home/ubuntu/workspace/native_venv/bin/neuronx-cc",
+            "compile",
+            "module.mlir",
+            "--framework",
+            "XLA",
+            "--target",
+            "trn2",
+            "--lnc",
+            "2",
+            "-O2",
+            "--model-type",
+            "transformer",
+            "--auto-cast=none",
+            "--optlevel=1",
+            "--auto-cast",
+            "matmult",
+            "--auto-cast-type",
+            "bf16",
+            "--output",
+            "module.neff"
+          ],
+          "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/5818832ea9b1141bb19fe350b46c050b"
+        }
+      ],
+      "module_sha256": "5a0c39fda4d4962afd222db766c1b2eda6ad6ed7d0b0fd1889afc42edc9a4e3c",
+      "module_bytes": 17463,
+      "magic_hex": "4d4cef520d4d4c495232322e302e3067",
+      "source_paths": [
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train/train.py"
+      ],
+      "kernel_metadata": [
+        {
+          "func_name": "__main__._rope_norm_fwd",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/47951f2f5349b91e/__main__._rope_norm_fwd_47951f2f5349b91e.json",
+            "input_names": [
+              "x",
+              "cos",
+              "sin"
+            ],
+            "output_names": [
+              "output_0"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 1,
+          "has_collectives": false,
+          "mac_count": 0
+        },
+        {
+          "func_name": "__main__._conv2_forward",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/62d690632d8571f9/__main__._conv2_forward_lnc0_62d690632d8571f9.json",
+            "input_names": [
+              "x",
+              "wt"
+            ],
+            "output_names": [
+              "output_0"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 0
+        },
+        {
+          "func_name": "nkilib.core.attention.attention_cte.attention_cte",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/905114e6659d8a9b/nkilib.core.attention.attention_cte.attention_cte_lnc0_905114e6659d8a9b.json",
+            "input_names": [
+              "q",
+              "k",
+              "v"
+            ],
+            "output_names": [
+              "output_0",
+              "output_1",
+              "output_2"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 45097156608
+        },
+        {
+          "func_name": "__main__.build_kernels.<locals>.forward",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/7422fcc569900284/__main__.build_kernels.<locals>.forward_lnc0_7422fcc569900284.json",
+            "input_names": [
+              "z",
+              "tgt"
+            ],
+            "output_names": [
+              "output_0",
+              "output_1"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 0
+        }
+      ],
+      "log_prefix_sha256": "191cee67738f88a94cb82351f9d0262e78205782ef831c111e121e36c37ba627",
+      "log_full_size_at_read": 3569926,
+      "log_bytes_retained": 65536,
+      "log_selected_lines": [
+        {
+          "line": 1,
+          "text": "2026-09-25T23:31:23Z INFO 3191465 [root]: /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff"
+        },
+        {
+          "line": 2,
+          "text": "2026-09-25T23:31:23Z INFO 3191465 [root]: NeuronX Compiler version 2.26.6360.0+6f180f47 Python version 3.12.3 HWM version 2.26.0.6360++6f180f47 NumPy version 2.5.1"
+        },
+        {
+          "line": 4,
+          "text": "2026-09-25T23:31:23Z INFO 3191466 [root]: Pipeline: HLOToTensorizer Frontend StaticIOTranspose WalrusDriver NeffWrapper"
+        },
+        {
+          "line": 13,
+          "text": "2026-09-25 23:31:23.595062: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 3386590101504 threshold 200000000000 num non-trivial Ops 303"
+        },
+        {
+          "line": 15,
+          "text": "Pre-Partition Histogram before graph level optimizations - Total HLO instructions: 702"
+        },
+        {
+          "line": 84,
+          "text": "Pre-Partition Histogram after graph level optimizations - Total HLO instructions: 687"
+        },
+        {
+          "line": 110,
+          "text": "2026-09-25 23:31:23.599812: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 3386590101504 threshold 200000000000 num non-trivial Ops 303"
+        },
+        {
+          "line": 443,
+          "text": "I0000 00:00:1790379083.593871 3191467 main.cc:735] IR signature: 61720c5b1acb495628a6deea84ac5ec511d36e7584a6c33990d64f477e72b92a for module.mlir"
+        },
+        {
+          "line": 474,
+          "text": "2026-09-25T23:31:23Z INFO 3191466 [job.HLOToTensorizer.0]: IR signature: 6def092758767c999d7bb073ed909da0e7299878dea994f6c63760ace534f447 for sg0000/HLOToTensorizer"
+        },
+        {
+          "line": 475,
+          "text": "2026-09-25T23:31:23Z INFO 3191466 [job.HLOToTensorizer.0]: IR signature: 4fa9e0c3eab5e7a610778e16f403b54b75f5d5673e298a9eda0fdb8f5e4b2734 for sg0001/HLOToTensorizer"
+        },
+        {
+          "line": 476,
+          "text": "2026-09-25T23:31:23Z INFO 3191466 [job.HLOToTensorizer.0]: IR signature: 3c9e7179c8329f5e7d8e55fedbcd251b81b7dba58e6a77602a76689ab709af6c for sg0002/HLOToTensorizer"
+        },
+        {
+          "line": 477,
+          "text": "2026-09-25T23:31:23Z INFO 3191466 [job.HLOToTensorizer.0]: IR signature: 14f6d73f994e814929669de7d5f0bdfaeee00e283a971024c03aad914822d25d for sg0003/HLOToTensorizer"
+        },
+        {
+          "line": 492,
+          "text": "2026-09-25T23:31:24Z INFO 3191481 [Tensorizer]: Tensorizer options: --run-pg-layout-and-tiling --disable-concat-delinearizer --internal-disable-fma-on-ios --num-neuroncores-per-sengine=2 --num-neuroncores-per-sengine=2 --internal_dynamic_dma_scratch_size_per_partition=16384 --disable-bitcasted-transpose --dont-verify-after-all --fp32-cast=matmult-bf16 --mm-transpose-type=fp32 --disable-expensive-checks --disable-max-stride-tiling --hbm-scratchpad-page-size-in-bytes=536870912 --enable-replication --max-local-tensor-tile-size-in-bytes=32768 --tensor-layout-p-order=0 --tensor-layout-b-order=1 --enable-advanced-delinearization --weight-coalescing-threshold=512 --enable-bir-converter=enable --accumulate-on-alu-dtype --enable-tritium-loopfusion --enable-softmax-kernel --model-type-transformer --enable-isl-in-injective-check --enable-dge-on-io-dma --enable-dge-on-spill-reload-dma --enable-dge-on-indirect-dma --enable-dge-on-vector-indirect-dma --enable-dge-on-dst-reduce --keep-rng-tensor-op"
+        }
+      ],
+      "explicit_persistent_messages": [],
+      "module_hash_present_in_any_cold_graph_key_prefix": false
+    },
+    {
+      "receipt": "research/v2/operator/20260926-trn22-clock-full-live-compiler/observation-2.json",
+      "commit": "9b525f5f",
+      "utc": "2026-09-25T23:36:17.904247+00:00",
+      "directory": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/9cb2b39af637430f69a725b239ac9490",
+      "compiler_processes": [
+        {
+          "pid": 3191631,
+          "worker_ancestor": 3191056,
+          "ppid": 3191056,
+          "pgid": 3191056,
+          "sid": 3191056,
+          "argv": [
+            "/home/ubuntu/workspace/native_venv/bin/python3",
+            "/home/ubuntu/workspace/native_venv/bin/neuronx-cc",
+            "compile",
+            "module.mlir",
+            "--framework",
+            "XLA",
+            "--target",
+            "trn2",
+            "--lnc",
+            "2",
+            "-O2",
+            "--model-type",
+            "transformer",
+            "--auto-cast=none",
+            "--optlevel=1",
+            "--auto-cast",
+            "matmult",
+            "--auto-cast-type",
+            "bf16",
+            "--output",
+            "module.neff"
+          ],
+          "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug/neuronx-cc/9cb2b39af637430f69a725b239ac9490"
+        }
+      ],
+      "module_sha256": "f21636e78487960b13e9682fbfd8cc987854ffc2da4d7df7ad314474ec467848",
+      "module_bytes": 20784,
+      "magic_hex": "4d4cef520d4d4c495232322e302e3067",
+      "source_paths": [
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/train/train.py"
+      ],
+      "kernel_metadata": [
+        {
+          "func_name": "__main__._rope_norm_bwd",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/f4a292ec5828016e/__main__._rope_norm_bwd_f4a292ec5828016e.json",
+            "input_names": [
+              "x",
+              "g",
+              "cos",
+              "sin"
+            ],
+            "output_names": [
+              "output_0"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 1,
+          "has_collectives": false,
+          "mac_count": 0
+        },
+        {
+          "func_name": "nkilib.core.attention.attention_bwd.attention_bwd",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/d6a7b29b872f8685/nkilib.core.attention.attention_bwd.attention_bwd_lnc0_d6a7b29b872f8685.json",
+            "input_names": [
+              "q_ref",
+              "k_ref",
+              "v_ref",
+              "o_ref",
+              "dy_ref",
+              "lse_ref"
+            ],
+            "output_names": [
+              "output_0",
+              "output_1",
+              "output_2"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 173946175488
+        },
+        {
+          "func_name": "__main__._conv2_backward",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/cbd5aa401b085ca1/__main__._conv2_backward_lnc0_cbd5aa401b085ca1.json",
+            "input_names": [
+              "x",
+              "grad",
+              "wt"
+            ],
+            "output_names": [
+              "output_0",
+              "output_1"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 67108864
+        },
+        {
+          "func_name": "__main__.build_kernels.<locals>.backward",
+          "platform_target": 3,
+          "kernel_format": "bir",
+          "kernel_version": 1,
+          "klir_binary": {
+            "binary": "/var/tmp/nki-intermediate-cache/nki_0.5.0+28631259367.ga768afa6/609b29dc729c5562/__main__.build_kernels.<locals>.backward_lnc0_609b29dc729c5562.json",
+            "input_names": [
+              "z",
+              "tgt",
+              "lse",
+              "g"
+            ],
+            "output_names": [
+              "output_0"
+            ],
+            "version_identifier": "",
+            "aliases": []
+          },
+          "grid": 2,
+          "has_collectives": false,
+          "mac_count": 0
+        }
+      ],
+      "log_prefix_sha256": "5f64ac665dc6548e6351ef45b8e8e169fd3be3b2c7ddfb7f0c55dae1b89e8a2c",
+      "log_full_size_at_read": 715045,
+      "log_bytes_retained": 65536,
+      "log_selected_lines": [
+        {
+          "line": 1,
+          "text": "2026-09-25T23:34:57Z INFO 3191631 [root]: /home/ubuntu/workspace/native_venv/bin/neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O2 --model-type transformer --auto-cast=none --optlevel=1 --auto-cast matmult --auto-cast-type bf16 --output module.neff"
+        },
+        {
+          "line": 2,
+          "text": "2026-09-25T23:34:57Z INFO 3191631 [root]: NeuronX Compiler version 2.26.6360.0+6f180f47 Python version 3.12.3 HWM version 2.26.0.6360++6f180f47 NumPy version 2.5.1"
+        },
+        {
+          "line": 4,
+          "text": "2026-09-25T23:34:57Z INFO 3191633 [root]: Pipeline: HLOToTensorizer Frontend StaticIOTranspose WalrusDriver NeffWrapper"
+        },
+        {
+          "line": 13,
+          "text": "2026-09-25 23:34:57.628816: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 7742030872576 threshold 200000000000 num non-trivial Ops 543"
+        },
+        {
+          "line": 15,
+          "text": "Pre-Partition Histogram before graph level optimizations - Total HLO instructions: 1303"
+        },
+        {
+          "line": 74,
+          "text": "Pre-Partition Histogram after graph level optimizations - Total HLO instructions: 1179"
+        },
+        {
+          "line": 95,
+          "text": "2026-09-25 23:34:57.636773: I hilo/partition/Partition.cc:88] [INFO] needsModular_PreSplit? Yes. macCnt 7742030872576 threshold 200000000000 num non-trivial Ops 543"
+        },
+        {
+          "line": 322,
+          "text": "I0000 00:00:1790379297.627103 3191634 main.cc:735] IR signature: e59fc5a218c4d2215eb92907b3d17f10a3ee5a2f69e0ff443fb746a1efd0092a for module.mlir"
+        },
+        {
+          "line": 345,
+          "text": "2026-09-25T23:34:57Z INFO 3191633 [job.HLOToTensorizer.0]: IR signature: bc0f6418453105f5f90490ef1d84310f316bd5b72bcd9dfe1af7e9bfebc5f073 for sg0000/HLOToTensorizer"
+        },
+        {
+          "line": 346,
+          "text": "2026-09-25T23:34:57Z INFO 3191633 [job.HLOToTensorizer.0]: IR signature: b92eb4a87a890ec93e059fbb498ea7c7cda7d335eb6bc2eaac541b40cbc95f3a for sg0001/HLOToTensorizer"
+        },
+        {
+          "line": 347,
+          "text": "2026-09-25T23:34:57Z INFO 3191633 [job.HLOToTensorizer.0]: IR signature: ac936203d4a58ce592a1db89e38d0b36de317abdec908ef784d0942c5db0d3bd for sg0002/HLOToTensorizer"
+        },
+        {
+          "line": 348,
+          "text": "2026-09-25T23:34:57Z INFO 3191633 [job.HLOToTensorizer.0]: IR signature: 3ad3745093d483b09fd89bb2524504bd8af6805946fa9f6637975ebf8ed315d1 for sg0003/HLOToTensorizer"
+        },
+        {
+          "line": 363,
+          "text": "2026-09-25T23:34:58Z INFO 3191649 [Tensorizer]: Tensorizer options: --run-pg-layout-and-tiling --disable-concat-delinearizer --internal-disable-fma-on-ios --num-neuroncores-per-sengine=2 --num-neuroncores-per-sengine=2 --internal_dynamic_dma_scratch_size_per_partition=16384 --disable-bitcasted-transpose --dont-verify-after-all --fp32-cast=matmult-bf16 --mm-transpose-type=fp32 --disable-expensive-checks --disable-max-stride-tiling --hbm-scratchpad-page-size-in-bytes=536870912 --enable-replication --max-local-tensor-tile-size-in-bytes=32768 --tensor-layout-p-order=0 --tensor-layout-b-order=1 --enable-advanced-delinearization --weight-coalescing-threshold=512 --enable-bir-converter=enable --accumulate-on-alu-dtype --enable-tritium-loopfusion --enable-softmax-kernel --model-type-transformer --enable-isl-in-injective-check --enable-dge-on-io-dma --enable-dge-on-spill-reload-dma --enable-dge-on-indirect-dma --enable-dge-on-vector-indirect-dma --enable-dge-on-dst-reduce --keep-rng-tensor-op"
+        }
+      ],
+      "explicit_persistent_messages": [],
+      "module_hash_present_in_any_cold_graph_key_prefix": false
+    }
+  ],
+  "cold_fifth_seconds": 845.6273377500474,
+  "cold_rows": {
+    "metrics-training/metric_table_graph_stats_rank0.csv": [
+      {
+        "graph_id": "9836e351be15c436667378517bb45d19d032facf0d2a9c5e283c3e63ac0ad6c2:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_forward_1",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "666",
+        "timestamp": "20260925_231130_589347",
+        "torch_neuronx_fx_passes_us": "8887",
+        "torch_neuronx_lower_us": "518870",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "74f4bcee2eb7b52306f5b86a3ce3bcf9d6175e7b6707674531e9bd2dc005d03f:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_backward_3",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "1169",
+        "timestamp": "20260925_231509_759868",
+        "torch_neuronx_fx_passes_us": "3276",
+        "torch_neuronx_lower_us": "656450",
+        "torch_neuronx_compile_us": "470027000"
+      },
+      {
+        "graph_id": "969991620f503d3b6d01c69a57e2320dde7809b4f96a6fe28542e0bd62bc2b43:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_1_inference_4",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232336_656034",
+        "torch_neuronx_fx_passes_us": "875",
+        "torch_neuronx_lower_us": "468420",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "68963b874d0a4a5fb0560f8ae7b3998c7c94e1f00795653f016fcf5d1b2ea28a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_2_inference_5",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232347_601925",
+        "torch_neuronx_fx_passes_us": "1750",
+        "torch_neuronx_lower_us": "195981",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "94dd24779e8847ff807be4b0a13c89969e765ad7f622775fceffbf5c7a432042:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_3_inference_6",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232353_579939",
+        "torch_neuronx_fx_passes_us": "1023",
+        "torch_neuronx_lower_us": "445086",
+        "torch_neuronx_compile_us": "0"
+      }
+    ],
+    "metrics-training/metric_table_graph_stats_rank1.csv": [
+      {
+        "graph_id": "9836e351be15c436667378517bb45d19d032facf0d2a9c5e283c3e63ac0ad6c2:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_forward_1",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "666",
+        "timestamp": "20260925_231130_160533",
+        "torch_neuronx_fx_passes_us": "8787",
+        "torch_neuronx_lower_us": "410962",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "74f4bcee2eb7b52306f5b86a3ce3bcf9d6175e7b6707674531e9bd2dc005d03f:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_backward_3",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "1169",
+        "timestamp": "20260925_231510_228419",
+        "torch_neuronx_fx_passes_us": "3190",
+        "torch_neuronx_lower_us": "866751",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "bc5bfbf6480fa590bd3311596493541bd8f8bdb7c380fffa743315c22291882d:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_1_inference_4",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232343_468612",
+        "torch_neuronx_fx_passes_us": "782",
+        "torch_neuronx_lower_us": "176129",
+        "torch_neuronx_compile_us": "3290000"
+      },
+      {
+        "graph_id": "3cd1c2ad3f6842296bc231ce8156e452856fa2181af3760395e35f2caaf16cb5:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_2_inference_5",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232347_932953",
+        "torch_neuronx_fx_passes_us": "854",
+        "torch_neuronx_lower_us": "188636",
+        "torch_neuronx_compile_us": "4827000"
+      },
+      {
+        "graph_id": "68963b874d0a4a5fb0560f8ae7b3998c7c94e1f00795653f016fcf5d1b2ea28a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_3_inference_6",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232353_335677",
+        "torch_neuronx_fx_passes_us": "786",
+        "torch_neuronx_lower_us": "175961",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "9da663d1d83a5e2844a949f30e3bda3117ec7e1ef11c7b7817353d359e3b93c2:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_4_inference_7",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232355_392689",
+        "torch_neuronx_fx_passes_us": "784",
+        "torch_neuronx_lower_us": "177184",
+        "torch_neuronx_compile_us": "6059000"
+      }
+    ],
+    "metrics-training/metric_table_graph_stats_rank2.csv": [
+      {
+        "graph_id": "9836e351be15c436667378517bb45d19d032facf0d2a9c5e283c3e63ac0ad6c2:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_forward_1",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "666",
+        "timestamp": "20260925_231130_155115",
+        "torch_neuronx_fx_passes_us": "8991",
+        "torch_neuronx_lower_us": "416486",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "74f4bcee2eb7b52306f5b86a3ce3bcf9d6175e7b6707674531e9bd2dc005d03f:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_backward_3",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "1169",
+        "timestamp": "20260925_231510_026339",
+        "torch_neuronx_fx_passes_us": "3078",
+        "torch_neuronx_lower_us": "645457",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "969991620f503d3b6d01c69a57e2320dde7809b4f96a6fe28542e0bd62bc2b43:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_1_inference_4",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232336_335706",
+        "torch_neuronx_fx_passes_us": "803",
+        "torch_neuronx_lower_us": "177122",
+        "torch_neuronx_compile_us": "9699000"
+      },
+      {
+        "graph_id": "68963b874d0a4a5fb0560f8ae7b3998c7c94e1f00795653f016fcf5d1b2ea28a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_2_inference_5",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232346_762981",
+        "torch_neuronx_fx_passes_us": "1653",
+        "torch_neuronx_lower_us": "362211",
+        "torch_neuronx_compile_us": "5567000"
+      },
+      {
+        "graph_id": "94dd24779e8847ff807be4b0a13c89969e765ad7f622775fceffbf5c7a432042:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_3_inference_6",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232353_099816",
+        "torch_neuronx_fx_passes_us": "794",
+        "torch_neuronx_lower_us": "175798",
+        "torch_neuronx_compile_us": "0"
+      }
+    ],
+    "metrics-training/metric_table_graph_stats_rank3.csv": [
+      {
+        "graph_id": "9836e351be15c436667378517bb45d19d032facf0d2a9c5e283c3e63ac0ad6c2:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_forward_1",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "666",
+        "timestamp": "20260925_231130_032434",
+        "torch_neuronx_fx_passes_us": "8831",
+        "torch_neuronx_lower_us": "412939",
+        "torch_neuronx_compile_us": "202864000"
+      },
+      {
+        "graph_id": "74f4bcee2eb7b52306f5b86a3ce3bcf9d6175e7b6707674531e9bd2dc005d03f:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_0_backward_3",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "1169",
+        "timestamp": "20260925_231509_783221",
+        "torch_neuronx_fx_passes_us": "3148",
+        "torch_neuronx_lower_us": "649863",
+        "torch_neuronx_compile_us": "0"
+      },
+      {
+        "graph_id": "ef86408ccf95c6e7c4e91f89efced9d151ef83c3c32672a5633c0ade79de4d7a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_1_inference_4",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232323_541521",
+        "torch_neuronx_fx_passes_us": "781",
+        "torch_neuronx_lower_us": "174962",
+        "torch_neuronx_compile_us": "7795000"
+      },
+      {
+        "graph_id": "7c754e44ce45627cb3da185837375a707f2c693234436a0ec6395595df432556:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_2_inference_5",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232331_930703",
+        "torch_neuronx_fx_passes_us": "782",
+        "torch_neuronx_lower_us": "173456",
+        "torch_neuronx_compile_us": "10748000"
+      },
+      {
+        "graph_id": "94dd24779e8847ff807be4b0a13c89969e765ad7f622775fceffbf5c7a432042:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "graph_name": "model_default_3_inference_6",
+        "model_name": "model_default",
+        "has_collectives": "False",
+        "graph_node_count": "194",
+        "timestamp": "20260925_232343_517129",
+        "torch_neuronx_fx_passes_us": "786",
+        "torch_neuronx_lower_us": "174571",
+        "torch_neuronx_compile_us": "8269000"
+      }
+    ]
+  },
+  "full_environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/compiler",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/inductor",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/debug",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/hlo",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch36a8-startup-clock-trn22-r1-full-packet/metrics-training",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-arch36a8-startup-clock-cold-trn22-r1-packet/train/caches/local",
+    "TRN_EXP_LABEL": "fs-20260926-arch36a8-startup-clock-trn22-r1-full"
+  },
+  "full_printed_first_steps": [
+    "step 00000 | loss 9.0101 | lrm 1.000 | dt 783.64s | tok/s 167 | remaining_steps 999999 | remaining_time 1016s | epoch 1",
+    "step 00001 | loss 8.7779 | lrm 1.000 | dt 0.49s | tok/s 270,250 | remaining_steps 999998 | remaining_time 1016s | epoch 1",
+    "step 00002 | loss 8.4047 | lrm 1.000 | dt 0.49s | tok/s 267,442 | remaining_steps 999997 | remaining_time 1015s | epoch 1",
+    "step 00003 | loss 8.0711 | lrm 1.000 | dt 0.49s | tok/s 265,379 | remaining_steps 999996 | remaining_time 1015s | epoch 1",
+    "step 00004 | loss 7.7681 | lrm 1.000 | dt 0.49s | tok/s 265,225 | remaining_steps 999995 | remaining_time 1800s | epoch 1"
+  ],
+  "full_muon_specialization_prints": [
+    "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]",
+    "muon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]",
+    "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]"
+  ],
+  "closed_full_graph_stats_available_at_audit": false
+}
