@@ -1,0 +1,27 @@
+--- adopted8c6/train.py
++++ sprint-batch-lr021-warmdown-flag/train.py
+@@ -1328,7 +1328,7 @@
+     return m
+ 
+ def main() -> None:
+-    global TOTAL_BATCH_SIZE, MATRIX_LR
++    global TOTAL_BATCH_SIZE, MATRIX_LR, WARMDOWN_RATIO
+     global PACK_FACTOR
+     global loss_scale_clean, loss_scale_skips
+     global N_EMBD, SEQ_LEN
+@@ -1356,11 +1356,15 @@
+     _hp('--pack-factor', PACK_FACTOR, int, 'Rows per micro-batch: the loader fetches PACK_FACTOR*SEQ_LEN tokens per row and reshapes them to PACK_FACTOR rows of SEQ_LEN; grad_accum_steps falls as this rises (TOTAL_BATCH_SIZE is fixed).')
+     parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE)
+     parser.add_argument('--matrix-lr', type=float, default=MATRIX_LR)
++    parser.add_argument('--warmdown-ratio', type=float, default=WARMDOWN_RATIO)
+     args = parser.parse_args()
+     if args.total_batch_size <= 0 or not math.isfinite(args.matrix_lr) or args.matrix_lr <= 0:
+         parser.error('positive total batch and finite positive matrix LR required')
++    if not math.isfinite(args.warmdown_ratio) or not 0.0 < args.warmdown_ratio <= 1.0:
++        parser.error('--warmdown-ratio must be finite and in (0, 1]')
+     TOTAL_BATCH_SIZE = args.total_batch_size
+     MATRIX_LR = args.matrix_lr
++    WARMDOWN_RATIO = args.warmdown_ratio
+     if args.clip_after_reduce != True:
+         parser.error('this submission fixes CLIP_AFTER_REDUCE=True; the launch flag must agree')
+     loss_scale_clean = 0
