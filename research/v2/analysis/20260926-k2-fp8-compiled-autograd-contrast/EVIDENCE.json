@@ -1,0 +1,1289 @@
+{
+  "scope": "READ_ONLY_ANALYST_CONTRAST_NOT_NEW_GATE_OR_NATIVE_TEST",
+  "checks": 58,
+  "K2_archive_commit": "7f0fbbde",
+  "K2_archive_sha256": "16dc0f7d84eed33eaaa821cb6afd21d00fc5b6d60b4ad1b9f93e55f3e07b9c7b",
+  "K2_support": {
+    "research/v2/lanes/k2-symmetric-consumer/consumer_nki.py": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "research/v2/lanes/k2-symmetric-consumer/check_native.py": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+    "research/v2/lanes/k2-symmetric-consumer/reference.py": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f"
+  },
+  "K2": [
+    {
+      "rank": 0,
+      "receipt_sha256": "6a8fa48e399a39486101b4662585e875de6a7458542660abac21bf7f0f247fbd",
+      "source": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+      "checker": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+      "reference": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+      "torch": "2.11.0+cpu",
+      "nki": "0.5.0+28631259367.ga768afa6",
+      "case_summary": [
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 32709
+        },
+        {
+          "name": "all_same",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 128
+        },
+        {
+          "name": "counts_253_1_1_1",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 512
+        },
+        {
+          "name": "boundary_rows",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 256
+        },
+        {
+          "name": "signed_zero",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 1408
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "empty",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": null
+        },
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.float32",
+          "status": "FAIL_EXACTNESS",
+          "compiled_nonzero": 0
+        }
+      ],
+      "unique_case_details": [
+        {
+          "name": "unique",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "metadata_group_bounds": [
+            1,
+            1
+          ],
+          "checks": [
+            {
+              "name": "upstream_roundtrip",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "2555c87aa95bceb738684baa16c16e04da377b72a132075ad179a345cf39a5eb",
+              "expected_sha256": "2555c87aa95bceb738684baa16c16e04da377b72a132075ad179a345cf39a5eb"
+            },
+            {
+              "name": "direct_consumer",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            },
+            {
+              "name": "eager_autograd_backward",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            },
+            {
+              "name": "compiled_enclosing_autograd_backward",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            }
+          ]
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.float32",
+          "status": "FAIL_EXACTNESS",
+          "metadata_group_bounds": [
+            1,
+            1
+          ],
+          "checks": [
+            {
+              "name": "upstream_roundtrip",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            },
+            {
+              "name": "direct_consumer",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            },
+            {
+              "name": "eager_autograd_backward",
+              "exact": true,
+              "nonzero": 32709,
+              "max_abs": 0.0,
+              "actual_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            },
+            {
+              "name": "compiled_enclosing_autograd_backward",
+              "exact": false,
+              "nonzero": 0,
+              "max_abs": 8.0,
+              "actual_sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471",
+              "expected_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 1,
+      "receipt_sha256": "ae702de4e2d24f8a30486ba18fe13ffb12e73cda3fe3fef2d4dc2f1a205aea85",
+      "source": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+      "checker": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+      "reference": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+      "torch": "2.11.0+cpu",
+      "nki": "0.5.0+28631259367.ga768afa6",
+      "case_summary": [
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 32709
+        },
+        {
+          "name": "all_same",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 128
+        },
+        {
+          "name": "counts_253_1_1_1",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 512
+        },
+        {
+          "name": "boundary_rows",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 256
+        },
+        {
+          "name": "signed_zero",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 1408
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "empty",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": null
+        },
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.float32",
+          "status": "FAIL_EXACTNESS",
+          "compiled_nonzero": 0
+        }
+      ],
+      "unique_case_details": "See rank 0 and original hashed rank receipt."
+    },
+    {
+      "rank": 2,
+      "receipt_sha256": "d07bffcfb69b2f874230155ade842e70723c3996f713aa043e5557a9e183fc64",
+      "source": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+      "checker": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+      "reference": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+      "torch": "2.11.0+cpu",
+      "nki": "0.5.0+28631259367.ga768afa6",
+      "case_summary": [
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 32709
+        },
+        {
+          "name": "all_same",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 128
+        },
+        {
+          "name": "counts_253_1_1_1",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 512
+        },
+        {
+          "name": "boundary_rows",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 256
+        },
+        {
+          "name": "signed_zero",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 1408
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "empty",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": null
+        },
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.float32",
+          "status": "FAIL_EXACTNESS",
+          "compiled_nonzero": 0
+        }
+      ],
+      "unique_case_details": "See rank 0 and original hashed rank receipt."
+    },
+    {
+      "rank": 3,
+      "receipt_sha256": "46f0e31e12ca304e24bc90b96863b6fde578b13ad9731ce80cd2de076e9d0236",
+      "source": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+      "checker": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+      "reference": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+      "torch": "2.11.0+cpu",
+      "nki": "0.5.0+28631259367.ga768afa6",
+      "case_summary": [
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 32709
+        },
+        {
+          "name": "all_same",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 128
+        },
+        {
+          "name": "counts_253_1_1_1",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 512
+        },
+        {
+          "name": "boundary_rows",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 256
+        },
+        {
+          "name": "signed_zero",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 1408
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "empty",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "compiled_nonzero": null
+        },
+        {
+          "name": "cross_tile_large",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "cross_tile_unit",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "compiled_nonzero": 0
+        },
+        {
+          "name": "unique",
+          "dtype": "torch.float32",
+          "status": "FAIL_EXACTNESS",
+          "compiled_nonzero": 0
+        }
+      ],
+      "unique_case_details": "See rank 0 and original hashed rank receipt."
+    }
+  ],
+  "FP8": [
+    {
+      "rank": 0,
+      "receipt_sha256": "3f53fc0d865047b6ae96dd8a70bc6d3d4cf17138e75f59f27aeef8781fee6407",
+      "source": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+      "checker": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+      "cases": {
+        "original_compiled_bound_apply": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_enclosing_wrapper": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "eager_apply_inspected": {
+          "status": "OBSERVED",
+          "grad_fn": "_FP8ProjectionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.004092592280358076,
+            "rms": 1.006386160850525,
+            "max_abs": 4.875
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0029846138786524534,
+            "rms": 17.142658233642578,
+            "max_abs": 326.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_bound_apply_inspected_replay": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        }
+      },
+      "manual_native_vjp": {
+        "dx": {
+          "dtype": "torch.bfloat16",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.004092592280358076,
+          "rms": 1.006386160850525,
+          "max_abs": 4.875
+        },
+        "dw": {
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.0029846138786524534,
+          "rms": 17.142658233642578,
+          "max_abs": 326.0
+        }
+      }
+    },
+    {
+      "rank": 1,
+      "receipt_sha256": "b743a056a72c59328e6cd419e3a01129a58b4825c59de9b131072cf7b499c10f",
+      "source": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+      "checker": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+      "cases": {
+        "original_compiled_bound_apply": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_enclosing_wrapper": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "eager_apply_inspected": {
+          "status": "OBSERVED",
+          "grad_fn": "_FP8ProjectionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.004092592280358076,
+            "rms": 1.006386160850525,
+            "max_abs": 4.875
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0029846138786524534,
+            "rms": 17.142658233642578,
+            "max_abs": 326.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_bound_apply_inspected_replay": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        }
+      },
+      "manual_native_vjp": {
+        "dx": {
+          "dtype": "torch.bfloat16",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.004092592280358076,
+          "rms": 1.006386160850525,
+          "max_abs": 4.875
+        },
+        "dw": {
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.0029846138786524534,
+          "rms": 17.142658233642578,
+          "max_abs": 326.0
+        }
+      }
+    },
+    {
+      "rank": 2,
+      "receipt_sha256": "c58892e8872512b1159112bc14f7d3db7f4def8230bb6ae78fa1b7ccf5941987",
+      "source": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+      "checker": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+      "cases": {
+        "original_compiled_bound_apply": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_enclosing_wrapper": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "eager_apply_inspected": {
+          "status": "OBSERVED",
+          "grad_fn": "_FP8ProjectionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.004092592280358076,
+            "rms": 1.006386160850525,
+            "max_abs": 4.875
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0029846138786524534,
+            "rms": 17.142658233642578,
+            "max_abs": 326.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_bound_apply_inspected_replay": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        }
+      },
+      "manual_native_vjp": {
+        "dx": {
+          "dtype": "torch.bfloat16",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.004092592280358076,
+          "rms": 1.006386160850525,
+          "max_abs": 4.875
+        },
+        "dw": {
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.0029846138786524534,
+          "rms": 17.142658233642578,
+          "max_abs": 326.0
+        }
+      }
+    },
+    {
+      "rank": 3,
+      "receipt_sha256": "5b637ea1f3ee0a968a4c0b23dd49571a568ed6d13c37c86bacf1a5a3be758104",
+      "source": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+      "checker": "d8187ad2f3e68d204203a6252e16062e52521e8b93f119c7f0a9fbe82e4367fd",
+      "cases": {
+        "original_compiled_bound_apply": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_enclosing_wrapper": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "eager_apply_inspected": {
+          "status": "OBSERVED",
+          "grad_fn": "_FP8ProjectionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.004092592280358076,
+            "rms": 1.006386160850525,
+            "max_abs": 4.875
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0029846138786524534,
+            "rms": 17.142658233642578,
+            "max_abs": 326.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        },
+        "compiled_bound_apply_inspected_replay": {
+          "status": "OBSERVED",
+          "grad_fn": "CompiledFunctionBackward",
+          "dx": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "dw": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "nonzero": 0,
+            "relative_rms": 1.0,
+            "rms": 0.0,
+            "max_abs": 0.0
+          },
+          "upstream_roundtrip": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "nonzero": 65536,
+            "relative_rms": 0.0,
+            "rms": 1.0026403665542603,
+            "max_abs": 4.53125
+          }
+        }
+      },
+      "manual_native_vjp": {
+        "dx": {
+          "dtype": "torch.bfloat16",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.004092592280358076,
+          "rms": 1.006386160850525,
+          "max_abs": 4.875
+        },
+        "dw": {
+          "dtype": "torch.float32",
+          "finite": true,
+          "nonzero": 65536,
+          "relative_rms": 0.0029846138786524534,
+          "rms": 17.142658233642578,
+          "max_abs": 326.0
+        }
+      }
+    }
+  ],
+  "sources": {
+    "a4aa4351": {
+      "sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+      "excerpts": [
+        {
+          "first": 520,
+          "last": 525,
+          "lines": [
+            "def compute_dtype_for(device: torch.device) -> torch.dtype:",
+            "    if device.type == 'cuda' and torch.cuda.is_bf16_supported():",
+            "        return torch.bfloat16",
+            "    if device.type == 'neuron':",
+            "        return torch.bfloat16",
+            "    return torch.float32"
+          ]
+        },
+        {
+          "first": 1912,
+          "last": 1914,
+          "lines": [
+            "        self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})",
+            "        self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)",
+            "        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if USE_VE and has_ve(i, config.n_layer)})"
+          ]
+        },
+        {
+          "first": 2226,
+          "last": 2239,
+          "lines": [
+            "    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean'):",
+            "        _b, t = idx.shape",
+            "        assert t <= self.config.sequence_len",
+            "        cos, sin = (self.cos[:, :t], self.sin[:, :t])",
+            "        x = self.transformer.wte(idx).to(COMPUTE_DTYPE)",
+            "        x = norm(x)",
+            "        x0 = x",
+            "        doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None",
+            "        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None",
+            "        engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None",
+            "        pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1",
+            "        pool_buf: list[torch.Tensor] = []",
+            "        for i, block in enumerate(self.transformer.h):",
+            "            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None"
+          ]
+        },
+        {
+          "first": 3828,
+          "last": 3831,
+          "lines": [
+            "    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)",
+            "    global COMPUTE_DTYPE",
+            "    COMPUTE_DTYPE = compute_dtype_for(device)",
+            "    print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')"
+          ]
+        },
+        {
+          "first": 3843,
+          "last": 3850,
+          "lines": [
+            "    model = GPT(config)",
+            "    model.init_weights()",
+            "    if USE_BYTE_WTE_INIT:",
+            "        n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer, config.vocab_size)",
+            "        print0(f'byte-wte-init: {n_ok} rows from byte features, {n_skip} left random (mix={BYTE_WTE_INIT_MIX} max_n={BYTE_WTE_INIT_NGRAM} std={BYTE_WTE_INIT_STD} mean_features_per_token={feats:.1f})')",
+            "    if args.init_from:",
+            "        warm_start_from(args.init_from, model)",
+            "    model.to(device)"
+          ]
+        }
+      ]
+    },
+    "7419927c": {
+      "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "excerpts": [
+        {
+          "first": 539,
+          "last": 544,
+          "lines": [
+            "def compute_dtype_for(device: torch.device) -> torch.dtype:",
+            "    if device.type == 'cuda' and torch.cuda.is_bf16_supported():",
+            "        return torch.bfloat16",
+            "    if device.type == 'neuron':",
+            "        return torch.bfloat16",
+            "    return torch.float32"
+          ]
+        },
+        {
+          "first": 1948,
+          "last": 1950,
+          "lines": [
+            "        self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})",
+            "        self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)",
+            "        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if USE_VE and has_ve(i, config.n_layer)})"
+          ]
+        },
+        {
+          "first": 2278,
+          "last": 2294,
+          "lines": [
+            "    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean'):",
+            "        _b, t = idx.shape",
+            "        assert t <= self.config.sequence_len",
+            "        cos, sin = (self.cos[:, :t], self.sin[:, :t])",
+            "        x = self.transformer.wte(idx).to(COMPUTE_DTYPE)",
+            "        x = norm(x)",
+            "        x0 = x",
+            "        doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None",
+            "        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None",
+            "        engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None",
+            "        pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1",
+            "        pool_buf: list[torch.Tensor] = []",
+            "        unet_skips: list[torch.Tensor] = []",
+            "        for i, block in enumerate(self.transformer.h):",
+            "            if self.unet_n_enc and i >= self.unet_n_enc:",
+            "                x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()",
+            "            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if block.attn is not None and str(i) in self.value_embeds else None"
+          ]
+        },
+        {
+          "first": 3896,
+          "last": 3899,
+          "lines": [
+            "    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)",
+            "    global COMPUTE_DTYPE",
+            "    COMPUTE_DTYPE = compute_dtype_for(device)",
+            "    print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')"
+          ]
+        },
+        {
+          "first": 3913,
+          "last": 3920,
+          "lines": [
+            "        print0(f'architecture: unet_skip_pairs={model.unet_n_enc} attention_layers={tuple(i for i, block in enumerate(model.transformer.h) if block.attn is not None)} value_embedding_layers={tuple(model.value_embeds)} ngram_tables={tuple(model.ngram_embeds)}')",
+            "    model.init_weights()",
+            "    if USE_BYTE_WTE_INIT:",
+            "        n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer, config.vocab_size)",
+            "        print0(f'byte-wte-init: {n_ok} rows from byte features, {n_skip} left random (mix={BYTE_WTE_INIT_MIX} max_n={BYTE_WTE_INIT_NGRAM} std={BYTE_WTE_INIT_STD} mean_features_per_token={feats:.1f})')",
+            "    if args.init_from:",
+            "        warm_start_from(args.init_from, model)",
+            "    model.to(device)"
+          ]
+        },
+        {
+          "first": 4930,
+          "last": 4962,
+          "lines": [
+            "def _install_submission_training():",
+            "    \"\"\"Training-only adapters; load_for_eval uses the native frozen model.\"\"\"",
+            "    import sys",
+            "    module = sys.modules[__name__]",
+            "    original_init = GPT.init_weights",
+            "    original_setup_optimizer = GPT.setup_optimizer",
+            "    ce_installed = False",
+            "",
+            "    def initialize(model):",
+            "        nonlocal ce_installed",
+            "        original_init(model)",
+            "        assert USE_BF16_NORM_OUTPUT and COMPUTE_DTYPE == torch.bfloat16",
+            "        before_rng = torch.get_rng_state().clone()",
+            "        _submission_mlp_install(model, 'neuron', module, forward_backend='native')",
+            "        if not ce_installed:",
+            "            _submission_ce_install(module)",
+            "            ce_installed = True",
+            "        assert torch.equal(before_rng, torch.get_rng_state())",
+            "        print('SUBMISSION_TRAIN_INTEGRATION ' + json.dumps(dict(source_commit='1da6c0714c0755fd3b078e972fbb0aefbb43bf6d', native_forward_custom_mlp_backward=True, optimizer_ownership=True, adaptive_nki_ce=True, loader_and_timing_hooks_unchanged=True)), flush=True)",
+            "",
+            "    def setup_optimizer(model, *args, **kwargs):",
+            "        optimizer = original_setup_optimizer(model, *args, **kwargs)",
+            "        assert USE_FOREACH_OPTIM and USE_TENSOR_LR_SCALARS",
+            "        assert not USE_CAUTIOUS_WD",
+            "        assert dist.is_initialized() and dist.get_world_size() == 4",
+            "        ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)",
+            "        print('SUBMISSION_OPTIMIZER_INTEGRATION ' + json.dumps(dict(owner_partitioning=True, rank=dist.get_rank(), **ownership.summary)), flush=True)",
+            "        return optimizer",
+            "    GPT.init_weights = initialize",
+            "    GPT.setup_optimizer = setup_optimizer",
+            "if __name__ == '__main__':",
+            "    _install_submission_training()",
+            "    main()"
+          ]
+        }
+      ]
+    },
+    "50a90137": {
+      "sha256": "921271d713f53a9d952633ba98a1704c11937235ce974f6b9fcd2cbded4ad858",
+      "excerpts": [
+        {
+          "first": 1458,
+          "last": 1473,
+          "lines": [
+            "def _build_fp8_projection_kernels():",
+            "    \"\"\"Native Trn2 E4M3 double-row GEMM; no aten FP8 matmul or upcast GEMM.",
+            "",
+            "    Quantizer/FP8 transpose layout adapted from this repository's",
+            "    nki_library_row_weight_prepare.py and fp8_mlp_token_rows_nki.py.",
+            "    The 2-byte PSUM stride follows AWS NKI Library (Apache-2.0), commit",
+            "    92d11f63, core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py.",
+            "    https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html",
+            "    \"\"\"",
+            "    global nl, nisa",
+            "    import nki",
+            "    import nki.language as nl",
+            "    import nki.isa as nisa",
+            "    from torch_neuronx import wrap_nki",
+            "",
+            "    @nki.jit"
+          ]
+        },
+        {
+          "first": 1575,
+          "last": 1619,
+          "lines": [
+            "        return result, effective_x",
+            "    return wrap_nki(prepare_weight), wrap_nki(projection)",
+            "",
+            "def _ensure_fp8_projection_kernels():",
+            "    global _FP8_PROJ_KERNELS",
+            "    if _FP8_PROJ_KERNELS is None:",
+            "        _FP8_PROJ_KERNELS = _build_fp8_projection_kernels()",
+            "",
+            "class _FP8Projection(torch.autograd.Function):",
+            "    @staticmethod",
+            "    def forward(ctx, x, weight):",
+            "        shape = x.shape",
+            "        flat = x.reshape(-1, shape[-1]).to(torch.bfloat16)",
+            "        wb = weight.to(torch.bfloat16)",
+            "        if x.device.type == 'neuron':",
+            "            _ensure_fp8_projection_kernels()",
+            "            if flat.shape[1] % 256 or weight.shape[0] % 128 or flat.shape[1] > 8192:",
+            "                raise ValueError('--fp8-proj native shape requires K % 256 == N % 128 == 0 and K <= 8192')",
+            "            prepare, project = _FP8_PROJ_KERNELS",
+            "            weight_lanes = 2 if weight.shape[0] % 256 == 0 else 1",
+            "            packed, scales, effective_w = prepare[weight_lanes](wb, weight_lanes)",
+            "            padding = (-flat.shape[0]) % 256",
+            "            native_x = F.pad(flat, (0, 0, 0, padding)) if padding else flat",
+            "            result, effective_x = project[2](native_x, packed, scales, 2)",
+            "            result, effective_x = result[:flat.shape[0]], effective_x[:flat.shape[0]]",
+            "        elif x.device.type == 'cpu':",
+            "            qx, sx, effective_x = _fp8_row_reference(flat)",
+            "            qw, sw, effective_w = _fp8_row_reference(wb)",
+            "            result = ((qx @ qw.T) * sw.T * sx).to(torch.bfloat16)",
+            "        else:",
+            "            raise RuntimeError('--fp8-proj supports native Neuron and the explicit CPU reference only')",
+            "        ctx.save_for_backward(effective_x, effective_w)",
+            "        ctx.input_shape, ctx.input_dtype, ctx.weight_dtype = shape, x.dtype, weight.dtype",
+            "        return result.reshape(*shape[:-1], weight.shape[0]).to(x.dtype)",
+            "",
+            "    @staticmethod",
+            "    def backward(ctx, gradient):",
+            "        effective_x, effective_w = ctx.saved_tensors",
+            "        gradient = gradient.reshape(-1, effective_w.shape[0]).to(torch.bfloat16)",
+            "        # STE through scaling/rounding, with the actual forward operands.",
+            "        # Token scales stay inside the token reduction of dW. Products use",
+            "        # BF16; returned FP32 gradients accumulate into the FP32 masters.",
+            "        dx = (gradient @ effective_w).reshape(ctx.input_shape).to(ctx.input_dtype)",
+            "        dw = (gradient.T @ effective_x).to(ctx.weight_dtype)",
+            "        return dx, dw"
+          ]
+        },
+        {
+          "first": 1650,
+          "last": 1655,
+          "lines": [
+            "    def forward(self, x: torch.Tensor) -> torch.Tensor:",
+            "        if self.fp8_projection:",
+            "            if self.weight_transposed or self.bias is not None or self.weight.dtype != torch.float32:",
+            "                raise ValueError('--fp8-proj needs ordinary bias-free FP32 master weights')",
+            "            return _FP8Projection.apply(x, self.weight)",
+            "        if USE_WEIGHT_CACHE and self._cached_weight is not None and (self._cached_weight.dtype == x.dtype):"
+          ]
+        }
+      ]
+    }
+  },
+  "all_original_failures_preserved": true
+}
