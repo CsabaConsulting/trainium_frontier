@@ -40,7 +40,7 @@ eval behavior, initialization or model-state/config change. No changes to
 architecture, batch/LR handling, data, seed/RNG, forward/backward, optimizer
 groups, momentum/beta2/weight decay, source clock/startup/predictor/checkpoint
 reserves, distributed ownership, reduction/clipping, loader/evaluator or
-checkpoint semantics. No Recursive, K2, tables or source-size changes.
+checkpoint semantics. No Recursive, K2, tables or model-size changes.
 
 The default or explicit0.75 must produce the same globals and arithmetic as
 the parent; the two proposed arms change only this existing scalar to0.60
