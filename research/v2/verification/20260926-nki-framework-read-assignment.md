@@ -1,6 +1,6 @@
 # One read of the two observed NKI framework files
 
-Selected2026-09-26 00:52UTC: sole Operator may execute exact3554a462 payload
+Selected2026-09-26 00:51UTC: sole Operator may execute exact3554a462 payload
 framework-two-sources.py SHAd50793988cf53183dfeca43f08668616c5f50999f815594c7ed58785f381732a
 once ontrn21 using its proposed stdin timeout15/nice15/Python-I-B-S command.
 Root read complete75-line payload and proposal. Exact installed kernel.py and
