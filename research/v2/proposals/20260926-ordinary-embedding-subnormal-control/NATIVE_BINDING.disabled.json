@@ -1,0 +1,163 @@
+{
+  "schema": "disabled-ordinary-only-subnormal-diagnostic-v1",
+  "status": "DISABLED_PENDING_INDEPENDENT_REVIEW_AND_SEPARATE_OPERATOR_RELEASE",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "host_reserved": false,
+  "operator_assigned": false,
+  "source_adoption": false,
+  "submission_authorized": false,
+  "native_qualification": false,
+  "original_K2_gate": "FAILED_PRESERVED",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "label": "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+  "root": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet",
+  "source_commit": "52eab7d8",
+  "driver_sha256": "1321471447708a6c8e5e6661807933ef4801bcacfe9f538b178105495dde4618",
+  "support_sha256": {
+    "ordinary_subnormal_probe.py": "750ba91a5c22745bec65c2e603fa21186b6a88859ed757b7c442b825cec38679",
+    "validate_receipts.py": "55013b6aec3c8e64fc3044440b062030a3ca03371244dafab934f1d35b59a422",
+    "rank_entry.py": "e0ffe0416dc910e844cfaa13a1ab44e0a699921893bbd9e6579dd187168eeae8",
+    "dispatch_driver.py": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+    "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737"
+  },
+  "command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/rank_entry.py",
+    "--enable-control-only",
+    "--label",
+    "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+    "--out-dir",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/receipts"
+  ],
+  "checker_args": [
+    "--enable-control-only",
+    "--label",
+    "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+    "--out-dir",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/receipts"
+  ],
+  "environment": {
+    "HOME": "/home/ubuntu",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "TRN_EXP_LABEL": "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/metrics",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/hlo",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/inductor",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/compiler",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/debug",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/compiler"
+  },
+  "dispatch_command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/dispatch_driver.py"
+  ],
+  "outer_command": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/host_driver.py"
+  ],
+  "cache_keys": [
+    "TORCH_NEURONX_NEFF_CACHE_DIR",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR",
+    "TORCH_NEURONX_HLO_CACHE_DIR",
+    "TORCHINDUCTOR_CACHE_DIR",
+    "NEURON_COMPILE_CACHE_DIR",
+    "TORCH_NEURONX_DEBUG_DIR"
+  ],
+  "timeout_seconds": 600,
+  "term_grace_seconds": 60,
+  "retries": 0,
+  "automatic_full": false,
+  "automatic_eval": false,
+  "automatic_next_job": false,
+  "original_lock": {
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "device": 66305,
+    "inode": 596823,
+    "verification": "Sole Operator must authenticate original device/inode before dispatch; inherited lifetime guard unchanged."
+  },
+  "postflight": {
+    "owner": "Sole Operator after any exit, before any later job",
+    "required": true,
+    "method": "Record actual dispatch/flock/driver/timeout/torchrun/all four wrapper-checker PIDs and PPID/PGID/SID descendants while active; after exit prove those identities and compiler commands absent with unfiltered process snapshots plus fresh ps AND neuron-ls. Do not rely only on name filters or a released parent lock.",
+    "failure": "Any surviving, missing or ambiguous process/device evidence parks the host route; no automatic retry/next job, unrelated kill or cleanup.",
+    "artifact": "postflight-explicit-pids.json"
+  },
+  "retrieval": [
+    "outer-flock.log",
+    "outer-flock-exit.json",
+    "fresh-caches.json",
+    "under-lock-idle.json",
+    "diagnostic-launch.json",
+    "diagnostic.log",
+    "child-exit.json",
+    "rank-environment-r{0..3}.json",
+    "rank-wrapper-exit-r{0..3}.json",
+    "receipts/rank{0..3}.json",
+    "completion-check.json when complete",
+    "terminal.json",
+    "all per-rank graph_stats and compiler logs under private metrics/debug caches",
+    "Operator actual process/compiler/cache evidence",
+    "Operator postflight-explicit-pids.json with observed IDs, PPID/PGID/SID descendants, compiler commands and fresh ps/neuron-ls after every exit"
+  ],
+  "limits": [
+    "Rank environment is captured before imports, not proof SDK honors cache variables; actual compiler/cache evidence required.",
+    "Checker diagnostic clock includes imports/fixture computation but is not official quality budget accounting; outer child wall captured separately.",
+    "Failure/timeout may leave descendants; no automatic next job, Operator must prove own worker/compiler/device quiescence before another label.",
+    "Architecture decision-tree follow-up may preempt this packet. Existing source/default-OFF/fullsize/native/whole-step/quality gates are not replaced.",
+    "No component timing is executed. No graph body/cache hit/compiled-boundary value is inferred from host input hashes."
+  ],
+  "derive_from": {
+    "path": "research/v2/proposals/20260926-k2-registered-native-trn22",
+    "base_commit": "765b332d",
+    "unchanged": [
+      "idle_guard.py",
+      "dispatch_driver.py"
+    ],
+    "mechanical": "Rank entry: root/checker filename/hash only. Host driver: root/project/host/label/support pins/argv/env and description only; executable body unchanged.",
+    "validator": "New ordinary-only exact rank/case/route/raw-byte validator; no K2 module imports."
+  },
+  "prerequisites": {
+    "current_job": "Previous trn21 exact36 attached eval terminal, retrieved and all observed descendants/compiler/device/original-lock quiescence proved; fresh preflight still mandatory",
+    "minimum_disk_gib": 10.5,
+    "minimum_available_ram_gib": 8,
+    "maximum_output_mib": 64,
+    "maximum_receipt_mib_per_rank": 8,
+    "no_automatic_release": true
+  },
+  "pending_gates": [
+    "Fresh independent diff/spec/raw review and independently executed CPU oracle",
+    "Independent exact disabled binding and fail-closed checks",
+    "Separate Supervisor sole Operator release",
+    "Fresh exact host/runtime/STOP/breaker/old-runner/disk/RAM/original-lock/ps/neuron-ls preflight",
+    "Bounded output monitoring and explicit actual PID/compiler/device postflight"
+  ],
+  "scientific_scope": "Four ordered ordinary-only eager/compiled cases; one reused callable; no timing/quality/native qualification. Original failed K2 gate retained."
+}
