@@ -42,16 +42,20 @@ python3 research/v2/lanes/k2-outside-compile-rescue/analyze_native.py research/v
 ```
 
 If K2 qualifies, tables preempt this slot and require a newly bound packet/queue.
-Otherwise, after timing completed successfully but failed the net screen:
+Otherwise, after timing completed successfully but failed the net screen, OR
+after an archived K2 training-process failure with independent idle proof:
 
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-finalcold
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-finalcold research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
 ```
 
-A crashed timing predecessor currently fails this launcher's terminal-success
-guard. Preserve the failure and independently prove idle, then log and implement
-a narrowly bound failed-predecessor handoff; never fake a successful receipt.
+A narrow failed-predecessor handoff now accepts only this exact K2 label/source
+with FULL_DRIVER_FAILED, TRAIN_EXIT matching a nonzero raw run exit code,
+authenticated source/binding and exited outer guardian. All independent
+postflight process/device/original-lock and fresh admission checks remain.
+Other failures, missing receipts and other successor pairs still refuse.
+The attempt records FAILED_K2_ARCHIVED_COLD_FALLBACK_ONLY, never a K2 PASS.
 Source review is NOT a gate for the already launched research timing. Its later
 source-scope PASS does not substitute for actual native evidence or Claude audit.
 

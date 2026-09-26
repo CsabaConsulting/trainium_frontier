@@ -90,6 +90,34 @@ def remote(host, payload, body, archive):
     return json.loads(result.stdout)
 
 
+def timing_predecessor_outcome(key, expected_key, prior, prior_packet):
+    """Do not confuse a failed experiment with unsafe ownership of its host.
+
+    Only the explicitly queued K2 -> clean cold fallback may follow an archived
+    training-process failure. All original postflight and fresh launch checks
+    still execute below. This is not a retry, success verdict or K2 promotion.
+    """
+    files = prior['files']
+    terminal = json.loads(files['terminal.json']['text'])
+    if terminal['status'] == 'TIMING_TRAINING_COMPLETE_PENDING_ANALYSIS':
+        assert terminal['train_exit_code'] == 0, 'TIMING_PREDECESSOR_FAILED'
+        assert json.loads(files['train/rehearsal.json']['text'])['charged_through_process_exit_within_budget'] is True
+        return 'TIMING_COMPLETED'
+    assert key == 'trn21-finalcold' and expected_key == 'trn21-k2rescue', 'FAILED_PREDECESSOR_NOT_APPROVED_FOR_THIS_JOB'
+    binding = prior_packet['binding']
+    assert binding['source_sha256'] == '949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa'
+    assert binding['host'] == 'trn21' and binding['no_eval'] is True and binding['steps'] == 201
+    assert terminal['status'] == 'FULL_DRIVER_FAILED', 'UNRECOGNIZED_TIMING_TERMINAL'
+    code = int(files['run-exit-code.txt']['text'].strip())
+    assert code != 0 and terminal.get('error') == 'TRAIN_EXIT_' + str(code), 'UNPROVEN_TRAINING_PROCESS_FAILURE'
+    assert files['package/train.py']['sha256'] == binding['source_sha256'], 'FAILED_PREDECESSOR_SOURCE_DRIFT'
+    actual = json.loads(files['NATIVE_BINDING.json']['text'])
+    for field in ('label', 'root', 'host', 'source_sha256', 'launch_command', 'lock_identity'):
+        assert actual[field] == binding[field], 'FAILED_PREDECESSOR_BINDING_DRIFT:' + field
+    assert 'outer-flock-exit.json' in files, 'FAILED_PREDECESSOR_GUARDIAN_NOT_EXITED'
+    return 'FAILED_K2_ARCHIVED_COLD_FALLBACK_ONLY'
+
+
 def stage(key, execute=False, previous=None):
     entry, packet = checked_packet(key)
     queue = json.loads((REPO / 'research/v2/queue.json').read_bytes())['current_low_usage_queue']
@@ -142,9 +170,9 @@ def stage(key, execute=False, previous=None):
         assert sha(item['text'].encode()) == item['sha256'], 'PRIOR_FILE_DRIFT:' + name
     term = json.loads(prior['files']['terminal.json']['text'])
     assert term['label'] == prior_entry['label']
+    prior_outcome = 'FULL_EVAL_COMPLETED'
     if prior_packet['binding'].get('no_eval'):
-        assert term['status'] == 'TIMING_TRAINING_COMPLETE_PENDING_ANALYSIS' and term['train_exit_code'] == 0, 'TIMING_PREDECESSOR_FAILED'
-        assert json.loads(prior['files']['train/rehearsal.json']['text'])['charged_through_process_exit_within_budget'] is True
+        prior_outcome = timing_predecessor_outcome(key, expected_key, prior, prior_packet)
     else:
         assert term['status'] == 'COMPLETE_PENDING_INDEPENDENT_REVIEW' and term['eval_exit_code'] == 0
     post = prior['postflight']
@@ -155,7 +183,8 @@ def stage(key, execute=False, previous=None):
     attempt = folder / 'attempt.json'
     assert not attempt.exists(), 'CONSUMED_LABEL_CHECK_STATUS_DO_NOT_RETRY'
     with attempt.open('x') as stream:
-        json.dump({'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'prior_sha256': sha(prior_raw)}, stream)
+        json.dump({'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'prior_sha256': sha(prior_raw),
+                   'prior_outcome': prior_outcome}, stream)
     response = remote(b['host'], payload, body, folder / 'dispatch.json')
     print(json.dumps(response['launch']))
     return 0

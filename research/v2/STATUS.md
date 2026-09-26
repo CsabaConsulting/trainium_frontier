@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## K2 still compiling; safe fallback repaired — 26 September18:18IST
+
+Actual12:48:26UTC trn21 K2 has four worker processes plus live compilers,
+original lock held and no terminal/printed step. No startup or throughput
+measurement yet; preserve this job. trn22 momentum last verified12:42:23UTC,
+next routine check~13:03UTC. Local launcher now allows only authenticated
+K2 TRAIN_EXIT failure -> clean finalcold after independent idle and fresh
+original-lock checks; it never labels failure a PASS or retries the K2 label.
+Four narrow outcome tests and eight existing guard tests pass; no host mutation.
+Previous goal turn=PROGRESS (actual momentum launch/results). This turn=PROGRESS
+(tested safe successor handoff) plus verified wait on live K2 compiler/workers.
+
 ## Momentum150 live; both warmdowns did not improve — 26 September18:13IST
 
 trn22 .85 fresh20M=.9870423776947318, raw same-host delta+.0002693098493;
