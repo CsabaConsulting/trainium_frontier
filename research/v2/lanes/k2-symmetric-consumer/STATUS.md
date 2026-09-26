@@ -1,5 +1,25 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 06:27 IST: first-fixture failure authenticated; registration design next
+
+Source-neutral FP32-first diagnostic ontrn22 ran00:33:35–00:34:04UTC.
+All4 ranks again produce zero custom-compiled gradients versus32709 expected
+nonzeros/maxerror8.0; direct/eager and ordinary compiled controls match. All
+recorded inputs unchanged. Independent461 checks including own binary32
+reconstruction and root normal/-O replays pass696730ff/26a03fb8. This is a
+FAILED diagnostic, not native qualification. Prior BF16/zero-case history is
+not needed to reproduce it; precise compiler/runtime cause remains unknown.
+Raw015bacec retains31artifacts and9PID/256row explicit device/lock quiescence.
+
+Installed SDK source-only observations0770f22a/7ff42226/9284abc8 resolve the
+wrapper API without executing it: automatic Kernel.__call__ already constructs
+a HOP using its LNC, __getitem__ replaces LNC, nki_op exposes explicit autograd
+registration and functional decomposition. Do not run a redundant guessed
+wrap-only patch. A new minimal registered-forward/autograd proposal is being
+prepared, keeping exact2c8295 kernel,145725 oracle and automatic backward
+callable. No implementation/native release yet; original failed receipts and
+full20/all4 strict byte gate remain. Current full-quality jobs are separate.
+
 ## 05:45 IST: native exactness failed; parked
 
 Actual native run00:08:48–00:09:18UTC completed13/20cases on each of four ranks.
