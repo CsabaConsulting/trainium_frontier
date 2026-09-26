@@ -1,0 +1,92 @@
+{
+  "version": "1",
+  "pip_version": "25.0.1",
+  "install": [
+    {
+      "download_info": {
+        "url": "https://pip.repos.neuron.amazonaws.com/nki/nki-0.5.0%2B28631259367.ga768afa6-cp312-cp312-linux_x86_64.whl",
+        "archive_info": {
+          "hash": "sha256=66255c4f4211a1b9d688d2cb432cb1472bfd607afd2a7ab9fc41fb48c33d755a",
+          "hashes": {
+            "sha256": "66255c4f4211a1b9d688d2cb432cb1472bfd607afd2a7ab9fc41fb48c33d755a"
+          }
+        }
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "requested": true,
+      "metadata": {
+        "metadata_version": "2.4",
+        "name": "nki",
+        "version": "0.5.0+28631259367.ga768afa6",
+        "summary": "NKI (Neuron Kernel Interface) - MLIR-based compiler for Neuron devices",
+        "description": "# Neuron Kernel Interface (NKI)\n\n[![CI (Build → Push → Test)](https://github.com/aws-neuron/private-nki-staging/actions/workflows/ci.yaml/badge.svg)](https://github.com/aws-neuron/private-nki-staging/actions/workflows/ci.yaml)\n\n**Neuron Kernel Interface (NKI)** is a bare-metal programming language and compiler for directly programming NeuronDevices available on AWS Trainium/Inferentia instances. NKI empowers ML developers to develop, optimize and run new operators directly on NeuronCores while making full use of available compute and memory resources, starting with NeuronCores v2 (Trainium1) and beyond.\n\nNKI provides developers with direct access to the NeuronCore instruction set architecture through a Python-based programming environment with tile-level semantics similar to Triton and NumPy. This enables developers to get started quickly and optimize performance in a familiar environment, while getting full control of the underlying hardware.\n\n## Project Overview\n\nThis repository contains components of the NKI compiler infrastructure. NKI kernels bypass traditional high-level ML framework compilation stages and are compiled into intermediate representations that the compiler back-end can directly consume, giving developers great control over NeuronDevices down to the instruction level.\n\n## Project Commands\n\n### Run format/lint checks\n\nProject CI enforces clang-format and clang-tidy checks.\n\n```bash\n# runs clang-format and clang-tidy on c++ code.\n./.github/scripts/check.sh all\n# runs clang-format and clang-tidy on files that changed since a given rev (HEAD by default)\n./scripts/check_changed.sh \n```\n\nYou can also run these steps as a pre-commit hook:\n\n```bash\nln -s $(realpath ./scripts/pre-commit) .git/hooks/pre-commit\n```\n\n\n### Current Implementation: NISA Dialect\n\nThe **NISA (NKI ISA) dialect** is an MLIR dialect that represents the instruction set architecture of AWS Trainium/Inferentia NeuronCores. It serves as a core compiler intermediate representation in the NKI compilation pipeline, bridging NKI kernel code and the NeuronCore hardware through hardware-specific optimizations like memory allocation and instruction scheduling.\n\n### Key Features\n\n- **Custom MLIR Dialect**: Defines operations specific to the Trainium architecture\n- **J2Gen Dialect Scaffolding**: Uses Jinja2-based templating to generate TableGen files and custom ASM parsers/printers. This system enables concise definition of ~80 complex instructions with bundled operands (memloc, indices, affinemap, etc.) in Python rather than tediously hand-writing verbose TableGen definitions, while also producing readable textual representations for testing\n- **Memory Abstractions**: Represents memory buffers with specific shapes, element types, and memory spaces\n- **Multiple Execution Engines**: Supports different execution units (DMA, Vector, Scalar, GpSimd, Sync)\n- **Rich Operation Set**: Includes operations for data movement, activation functions, tensor operations, and more\n\n## Technical Architecture\n\n### Core Components\n\n1. **MLIR Dialect**: The project defines a custom MLIR dialect called \"nisa\" that encapsulates Trainium's instruction set.\n\n2. **J2Gen Dialect Scaffolding**: Uses a custom Jinja2-based templating system (j2gen) that transforms concise Python-based operation definitions into verbose TableGen files and custom assembly parsers/printers for MLIR.\n\n3. **nisa-opt Tool**: A custom MLIR optimization tool that registers the NISA dialect and processes MLIR files containing NISA operations.\n\n### Key Abstractions\n\n1. **Memory Locations (MemLoc)**: Represents memory buffers with specific shapes, element types, and memory spaces:\n   - HBM: High-Bandwidth Memory\n   - SBUF: Scratchpad Buffer\n   - PSUM: Partial Sum\n\n2. **Engines**: Different execution units within the Trainium architecture:\n   - DMA: Data movement engine\n   - Tensor: Matrix multiplication engine\n   - Vector: Vector processing engine\n   - Scalar: Scalar processing engine\n   - GpSimd: General-purpose SIMD engine\n   - Sync: Synchronization engine\n\n3. **Operations**: Various operations defined for the different engines, including:\n   - `DmaCopy`: Copy data between memory locations\n   - `Activation`: Apply activation functions (relu, sigmoid, tanh, etc.)\n   - `Memset`: Initialize memory with constant values\n   - `TensorTensorPower`: Element-wise power operation\n   - `TensorTensorBitvec`: Element-wise bitwise operations\n   - `TensorReduceBitvec`: Reduction operations with bitwise operations\n   - `Reciprocal`: Compute reciprocal of elements\n\n## Usage Example\n\n```mlir\nnisa.dma_copy[2, 2](\n  dst=!nisa.memloc<[2, 2], f32, hbm> %arg0[%idx0 + d0, %idx0 + d1],\n  src=!nisa.memloc<[2, 2], f32, hbm> %arg1[%idx0 + d0, %idx0 + d1]\n) engine=dma\n```\n\nThis represents a DMA copy operation between two memory locations in high-bandwidth memory (HBM), with specific access patterns.\n\n## Building from Source\n\nFor developers who want to build NKI from source, see **[docs/BUILDING.md](docs/BUILDING.md)** for complete build instructions.\n\nQuick links:\n- **[docs/BUILDING.md](docs/BUILDING.md)** - Complete build guide (Docker and local builds)\n- **[docs/ci/ToolchainDockeCiDeveloperGuide.md](docs/ci/ToolchainDockeCiDeveloperGuide.md)** - CI/Docker details\n\n## Development\n\n### Adding New Instructions\nWhen extending the NISA dialect:\n1. Define instructions in `build-tools/j2gen/nisa.py` with comprehensive documentation\n2. Add test cases in `test/nisa/nisa-op-roundtrip.mlir`\n3. Update `docs/nisa/NKINISAMappingTable.md`\n4. Verify with `ninja -C build check-nki`\n\n### Documentation\n- **[Missing Instructions](docs/nisa/NKINISAMappingTable.md)**: Implementation status tracking\n- **[Memory Location Access](docs/MemoryLocationAccess.md)**: Multi-dimensional memory access\n- **[Buffer Allocation](docs/nisa/BufferAllocation.md)**: Buffer allocation algorithm\n- **[Scheduling](docs/Scheduling.md)**: Instruction scheduling optimization\n\n### Future NKI Components\nThis repository will expand to include additional NKI compiler components beyond the current NISA dialect implementation, building towards a complete NKI programming environment that provides developers with direct access to NeuronCore capabilities.\n\n## Security\n\nSee [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.\n\n## License\n\nThis project is licensed under the Apache-2.0 License.\n",
+        "description_content_type": "text/markdown",
+        "keywords": [
+          "compiler",
+          "mlir",
+          "neuron",
+          "machine-learning"
+        ],
+        "author_email": "AWS Neuron Team <neuron-support@amazon.com>",
+        "license_expression": "Apache-2.0",
+        "classifier": [
+          "Development Status :: 4 - Beta",
+          "Intended Audience :: Developers",
+          "Topic :: Software Development :: Compilers",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13"
+        ],
+        "requires_dist": [
+          "numpy>=1.24.3",
+          "ml-dtypes>=0.2",
+          "typing_extensions>=4.5",
+          "einops==0.8.1; extra == \"kernel-builder\"",
+          "ruff; extra == \"dev\"",
+          "hypothesis>=6.0; extra == \"test\"",
+          "coverage[toml]>=7.0; extra == \"test\"",
+          "pytest-cov>=4.0; extra == \"test\"",
+          "pandas>=2.0.0; extra == \"test\"",
+          "lets-plot>=4.0.0; extra == \"test\"",
+          "matplotlib>=3.7.0; extra == \"test\"",
+          "mkdocs>=1.6; extra == \"docs\"",
+          "mkdocs-material>=9.5; extra == \"docs\"",
+          "mkdocs-minify-plugin>=0.8; extra == \"docs\"",
+          "pymdown-extensions>=10.0; extra == \"docs\"",
+          "sphinx>=7.0; extra == \"sphinx-docs\"",
+          "sphinx-design; extra == \"sphinx-docs\"",
+          "sphinx-copybutton; extra == \"sphinx-docs\""
+        ],
+        "requires_python": ">=3.10",
+        "project_url": [
+          "Homepage, https://github.com/aws-neuron/private-nki-staging",
+          "Repository, https://github.com/aws-neuron/private-nki-staging",
+          "Issues, https://github.com/aws-neuron/private-nki-staging/issues"
+        ],
+        "provides_extra": [
+          "kernel-builder",
+          "dev",
+          "test",
+          "docs",
+          "sphinx-docs"
+        ]
+      }
+    }
+  ],
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.12.13",
+    "os_name": "posix",
+    "platform_machine": "x86_64",
+    "platform_release": "7.0.0-34-generic",
+    "platform_system": "Linux",
+    "platform_version": "#34-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:29:37 UTC 2026",
+    "python_full_version": "3.12.13",
+    "platform_python_implementation": "CPython",
+    "python_version": "3.12",
+    "sys_platform": "linux"
+  }
+}

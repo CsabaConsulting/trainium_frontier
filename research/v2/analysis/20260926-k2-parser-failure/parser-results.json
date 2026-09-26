@@ -1,0 +1,59 @@
+{
+  "scope": "real matching NKI parser; CPU only; no training",
+  "cases": [
+    {
+      "case": "original",
+      "returncode": 0,
+      "stdout": "{\"case\": \"original\", \"closure\": {\"channels\": 1024, \"features\": 512, \"groups\": 64, \"partition\": 128, \"tokens\": 32768, \"vocab\": 8192}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'tokens'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/train.py:93:35: error: unbound variable 'tokens'\n        assert gradient.shape == (tokens, channels)\n                                  ^\n/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/train.py:92:5: note: when tracing NKI kernel\n    def resident_consumer(gradient, counts, starts, positions, group_maximums):\n    ^\n/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/train.py:93:35: error: unbound variable 'tokens'\n        assert gradient.shape == (tokens, channels)\n                                  ^\n/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/train.py:92:5: note: when tracing NKI kernel\n    def resident_consumer(gradient, counts, starts, positions, group_maximums):\n    ^\n"
+    },
+    {
+      "case": "minimal_closure",
+      "returncode": 0,
+      "stdout": "{\"case\": \"minimal_closure\", \"closure\": {\"tokens\": 128}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x1] error: unbound variable 'tokens'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 1, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_minimal_closure.py:8:28: error: unbound variable 'tokens'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_minimal_closure.py:7:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "minimal_local",
+      "returncode": 0,
+      "stdout": "{\"case\": \"minimal_local\", \"closure\": {}, \"lnc\": 1, \"mlir_bytes\": 1094, \"mlir_sha256\": \"8dfe302624df780c40908beee623141aa417cd591cf9a43ac95e6239dcbf8842\", \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_MLIR_PASS\", \"target\": \"trn2\"}\n",
+      "stderr": ""
+    },
+    {
+      "case": "production_local_1",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_1\", \"closure\": {\"channels\": 1024, \"features\": 512, \"groups\": 64, \"partition\": 128, \"vocab\": 8192}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'channels'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_1.py:14:43: error: unbound variable 'channels'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_1.py:12:5: note: when tracing NKI kernel\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_1.py:14:43: error: unbound variable 'channels'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_1.py:12:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "production_local_2",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_2\", \"closure\": {\"features\": 512, \"groups\": 64, \"partition\": 128, \"vocab\": 8192}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'vocab'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_2.py:16:49: error: unbound variable 'vocab'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_2.py:12:5: note: when tracing NKI kernel\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_2.py:16:49: error: unbound variable 'vocab'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_2.py:12:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "production_local_3",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_3\", \"closure\": {\"features\": 512, \"groups\": 64, \"partition\": 128}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'groups'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_3.py:19:41: error: unbound variable 'groups'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_3.py:12:5: note: when tracing NKI kernel\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_3.py:19:41: error: unbound variable 'groups'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_3.py:12:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "production_local_4",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_4\", \"closure\": {\"features\": 512, \"partition\": 128}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'features'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_4.py:24:44: error: unbound variable 'features'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_4.py:12:5: note: when tracing NKI kernel\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_4.py:24:44: error: unbound variable 'features'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_4.py:12:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "production_local_5",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_5\", \"closure\": {\"partition\": 128}, \"error\": \"error: failed to compile NKI kernel:\\nCollected 1 different diagnostics:\\n- [x2] error: unbound variable 'partition'\\n\", \"exception_type\": \"RuntimeError\", \"lnc\": 2, \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_FAIL\", \"target\": \"trn2\"}\n",
+      "stderr": "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_5.py:27:33: error: unbound variable 'partition'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_5.py:12:5: note: when tracing NKI kernel\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_5.py:27:33: error: unbound variable 'partition'\n/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/virtual_production_local_5.py:12:5: note: when tracing NKI kernel\n"
+    },
+    {
+      "case": "production_local_6",
+      "returncode": 0,
+      "stdout": "{\"case\": \"production_local_6\", \"closure\": {}, \"lnc\": 2, \"mlir_bytes\": 1062965, \"mlir_sha256\": \"4e3e0f1c579e624ca11f184a24cbfe81297e01ebb590368b904c417f72e24310\", \"nki_version\": \"0.5.0+28631259367.ga768afa6\", \"no_device_execution\": true, \"python\": \"3.12.13\", \"source_sha256\": \"a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71\", \"status\": \"PARSER_MLIR_PASS\", \"target\": \"trn2\"}\n",
+      "stderr": ""
+    }
+  ]
+}
