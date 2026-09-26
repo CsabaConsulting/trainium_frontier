@@ -1,0 +1,649 @@
+{
+  "status": "IMPLEMENTER_TINY_HELPER_TESTS_ONLY",
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "max_tensor_elements": 108,
+  "cases": [
+    {
+      "case": "preserved_AST_raw_record",
+      "outcome": "PASS"
+    },
+    {
+      "case": "preserved_AST_restored_mask_spec",
+      "outcome": "PASS"
+    },
+    {
+      "case": "preserved_AST_mask_record",
+      "outcome": "PASS"
+    },
+    {
+      "case": "preserved_AST_model_state",
+      "outcome": "PASS"
+    },
+    {
+      "case": "preserved_AST_tensor_record",
+      "outcome": "PASS"
+    },
+    {
+      "case": "preserved_AST_require_state_equal",
+      "outcome": "PASS"
+    },
+    {
+      "case": "restored_reference_masks",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(1, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(1, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(1, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(1, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(1, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(1, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(2, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(2, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(2, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(2, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(2, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(2, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(3, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(3, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(3, 8)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "masked_batch_context_(3, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "unmasked_batch_context_(3, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "cross_source_(3, 9)",
+      "outcome": "PASS"
+    },
+    {
+      "case": "future",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SYNTHETIC_PREFIX_CAUSALITY",
+      "details": {
+        "synthetic_only": true,
+        "cut": 4,
+        "prefix_stop": 3,
+        "max_abs_diff": 1.0,
+        "tolerance": 0.01,
+        "prefix_exact": false
+      }
+    },
+    {
+      "case": "alias_future",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SYNTHETIC_PREFIX_CAUSALITY",
+      "details": {
+        "synthetic_only": true,
+        "cut": 4,
+        "prefix_stop": 3,
+        "max_abs_diff": 1.0,
+        "tolerance": 0.01,
+        "prefix_exact": false
+      }
+    },
+    {
+      "case": "parameter",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_STATE_CHANGED:parameter:weight",
+      "details": null
+    },
+    {
+      "case": "buffer",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_STATE_CHANGED:buffer:cos",
+      "details": null
+    },
+    {
+      "case": "input",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "INPUT_CHANGED:original",
+      "details": null
+    },
+    {
+      "case": "mode",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_MODE_CHANGED:",
+      "details": null
+    },
+    {
+      "case": "mask",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_full:rows0:9",
+      "details": null
+    },
+    {
+      "case": "batch",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "ROWWISE_LOGITS_BYTES",
+      "details": {
+        "actual": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f1b08f4e3b57183965ebcaf88b976f8a3209dc800c4239cab8faff3d72aa2e2d",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "560c13853175490a92431111925c0b2abb1bef000bbced7aa1ad81b91bd6fd7e",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 1.0,
+        "relative_rms": 0.3941317112657173
+      }
+    },
+    {
+      "case": "repeat",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REPEATED_LOGITS_BYTES",
+      "details": {
+        "actual": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "560c13853175490a92431111925c0b2abb1bef000bbced7aa1ad81b91bd6fd7e",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f1b08f4e3b57183965ebcaf88b976f8a3209dc800c4239cab8faff3d72aa2e2d",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 1.0,
+        "relative_rms": 0.6405126152203485
+      }
+    },
+    {
+      "case": "alias_repeat",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REPEATED_LOGITS_BYTES",
+      "details": {
+        "actual": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "560c13853175490a92431111925c0b2abb1bef000bbced7aa1ad81b91bd6fd7e",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f1b08f4e3b57183965ebcaf88b976f8a3209dc800c4239cab8faff3d72aa2e2d",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 1.0,
+        "relative_rms": 0.6405126152203485
+      }
+    },
+    {
+      "case": "nonfinite",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:output:original",
+      "details": null
+    },
+    {
+      "case": "shape",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "OUTPUT_SHAPE:original",
+      "details": null
+    },
+    {
+      "case": "signed_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REPEATED_LOGITS_BYTES",
+      "details": {
+        "actual": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "6273fe196aca241bc908d6ff4310951657ecda3919a384d9e87d8681226e3c82",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            2,
+            8,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 0.0,
+        "relative_rms": 0.0
+      }
+    },
+    {
+      "case": "forward_hook",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_HOOK::_forward_hooks",
+      "details": null
+    },
+    {
+      "case": "mask_nan",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_NAN:mask_full",
+      "details": null
+    },
+    {
+      "case": "mask_posinf",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_POSINF:mask_full",
+      "details": null
+    },
+    {
+      "case": "mask_hidden_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:mask_full:rows0:9",
+      "details": null
+    },
+    {
+      "case": "mask_visible_inf",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:mask_full:rows0:9",
+      "details": null
+    },
+    {
+      "case": "mask_negative_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:mask_full:rows0:9",
+      "details": null
+    },
+    {
+      "case": "mask_shape",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_SHAPE:mask_full",
+      "details": null
+    },
+    {
+      "case": "mask_dtype",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_DTYPE_DEVICE_GRAD:mask_full",
+      "details": null
+    },
+    {
+      "case": "other_buffer_nonfinite",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:buffer:cos",
+      "details": null
+    },
+    {
+      "case": "parameter_nonfinite",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:parameter:weight",
+      "details": null
+    },
+    {
+      "case": "loaded_state_tiny",
+      "outcome": "PASS"
+    },
+    {
+      "case": "loaded_state_wrong_bytes",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "LOADED_STATE_BYTES:weight",
+      "details": {
+        "actual": {
+          "shape": [],
+          "dtype": "torch.float32",
+          "sha256": "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [],
+          "dtype": "torch.float32",
+          "sha256": "d99e58435243d9fef9c88273b8d553b4fba4d0baf8009d29eae74fa99e0d9f57",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 0.25,
+        "relative_rms": 0.5
+      }
+    },
+    {
+      "case": "loaded_state_wrong_keys",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "LOADED_STATE_KEYS",
+      "details": null
+    },
+    {
+      "case": "cross_source_wrong_bytes",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CROSS_SOURCE",
+      "details": {
+        "actual": {
+          "shape": [
+            1,
+            2,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4f05df05f8da9356bd66425351f166a5f7305b7c805e6900d9ec0f50790c9886",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            1,
+            2,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": 1.0,
+        "relative_rms": "UNDEFINED_ZERO_REFERENCE"
+      }
+    },
+    {
+      "case": "cross_source_wrong_shape",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CROSS_SOURCE",
+      "details": {
+        "actual": {
+          "shape": [
+            1,
+            2,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4f05df05f8da9356bd66425351f166a5f7305b7c805e6900d9ec0f50790c9886",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            1,
+            3,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "17b0761f87b081d5cf10757ccc89f12be355c70e2e29df288b65b30710dcbcd1",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": null,
+        "relative_rms": null
+      }
+    },
+    {
+      "case": "cross_source_wrong_dtype",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CROSS_SOURCE",
+      "details": {
+        "actual": {
+          "shape": [
+            1,
+            2,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4f05df05f8da9356bd66425351f166a5f7305b7c805e6900d9ec0f50790c9886",
+          "requires_grad": false
+        },
+        "expected": {
+          "shape": [
+            1,
+            2,
+            4
+          ],
+          "dtype": "torch.float64",
+          "sha256": "fe5b7d5309402fa73f02fe2905b3d9eeb69d9c468cf3a1b6cfc35f01f27b43ab",
+          "requires_grad": false
+        },
+        "exact_bytes": false,
+        "max_abs_diff": null,
+        "relative_rms": null
+      }
+    },
+    {
+      "case": "document_data_route",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NO_DOCUMENT_DATA_ROUTE",
+      "details": null
+    },
+    {
+      "case": "reject_tiny_as_full113M",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "FULL_PARAMETER_COUNT",
+      "details": null
+    },
+    {
+      "case": "wrong_full_config",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "FULL_CONFIG",
+      "details": null
+    },
+    {
+      "case": "wrong_state_count",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "FULL_STATE_KEYS",
+      "details": null
+    },
+    {
+      "case": "clean_no_mask_exception",
+      "outcome": "PASS"
+    },
+    {
+      "case": "candidate_unexpected_masks",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CANDIDATE_BUFFER_LAYOUT",
+      "details": null
+    },
+    {
+      "case": "candidate_wrong_class",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CANDIDATE_NOT_ORDINARY_GPT",
+      "details": null
+    },
+    {
+      "case": "pending",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REAL_INPUTS_PENDING",
+      "details": null
+    },
+    {
+      "case": "pending_manifest_refuses",
+      "outcome": "PASS"
+    },
+    {
+      "case": "manifest_shape_only_not_real_inputs",
+      "outcome": "PASS"
+    },
+    {
+      "case": "manifest_source",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SOURCE_PIN:candidate",
+      "details": null
+    },
+    {
+      "case": "manifest_checkpoint",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CHECKPOINT_MANIFEST_PIN:candidate",
+      "details": null
+    },
+    {
+      "case": "manifest_outside",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CHECKPOINT_OUTSIDE_ARM:candidate",
+      "details": null
+    },
+    {
+      "case": "manifest_traversal",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CHECKPOINT_PRIVATE_PATH:candidate",
+      "details": null
+    },
+    {
+      "case": "manifest_missing",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "EXACT_INPUT_FILE_SET",
+      "details": null
+    },
+    {
+      "case": "manifest_missing_sha",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "CHECKPOINT_PIN_PENDING:reference",
+      "details": null
+    },
+    {
+      "case": "manifest_extra_arm",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "EXACT_TWO_ARMS",
+      "details": null
+    },
+    {
+      "case": "manifest_prepare",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "PREPARE_PIN",
+      "details": null
+    },
+    {
+      "case": "file_identity",
+      "outcome": "PASS"
+    },
+    {
+      "case": "post_file_mutation",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "FILE_IDENTITY:/tmp/clean-checkpoint-helper-yk40rdjz/fixture",
+      "details": null
+    },
+    {
+      "case": "symlink_refuses",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SYMLINK:/tmp/clean-checkpoint-helper-yk40rdjz/symlink",
+      "details": null
+    },
+    {
+      "case": "synthetic_g2_metadata_not_actual_outcome",
+      "outcome": "PASS"
+    },
+    {
+      "case": "g2_rank_missing",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_FOUR_RANKS",
+      "details": null
+    },
+    {
+      "case": "g2_boolean_rank",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_FOUR_RANKS",
+      "details": null
+    },
+    {
+      "case": "g2_source",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_SOURCE_ARGV",
+      "details": null
+    },
+    {
+      "case": "g2_nan_loss",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_FINITE_THREE_LOSSES",
+      "details": null
+    },
+    {
+      "case": "g2_timeout",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_PASS_REQUIRED",
+      "details": null
+    },
+    {
+      "case": "g2_digest",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_65_DIGESTS",
+      "details": null
+    },
+    {
+      "case": "g2_checkpoint",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "G2_CHECKPOINT",
+      "details": null
+    }
+  ],
+  "count": 83,
+  "helper_sha256": "65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8",
+  "trained_checkpoint_loaded": false,
+  "scientific_source_imported": false,
+  "native_executed": false,
+  "real_inputs": "PENDING",
+  "independent_review": false
+}

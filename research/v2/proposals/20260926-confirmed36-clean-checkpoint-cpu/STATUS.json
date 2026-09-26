@@ -1,0 +1,62 @@
+{
+  "schema": "confirmed36-clean-checkpoint-implementation-status-v1",
+  "status": "IMPLEMENTED_DISABLED_PENDING_FRESH_REVIEW_AND_REAL_INPUTS",
+  "proposal_commit": "0930f2ae",
+  "base_commit": "8b8c2bed1353957a353c92f131eddb9bd6524bee",
+  "helper_sha256": "65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "submission_authorized": false,
+  "source_adoption": false,
+  "actual_fullsize_inputs": "PENDING",
+  "fullsize_cpu_executed": false,
+  "trained_checkpoint_loaded": false,
+  "source_model_imported_in_local_tests": false,
+  "local_runtime": {
+    "python": "3.14.4",
+    "torch": "2.13.0+cpu",
+    "threads": 1,
+    "max_tensor_elements": 108
+  },
+  "tests": [
+    {
+      "name": "tiny-helper",
+      "normal_exit": 0,
+      "optimized_exit": 0,
+      "cases_each": 83
+    },
+    {
+      "name": "static-scope",
+      "normal_exit": 0,
+      "optimized_exit": 0,
+      "checks_each": 153
+    },
+    {
+      "name": "pending-CLI",
+      "normal_exit": 1,
+      "optimized_exit": 1,
+      "expected_error": "REAL_INPUTS_PENDING"
+    }
+  ],
+  "preserved_failures": [
+    {
+      "path": "raw/attempt1-failure.log",
+      "test_source": "raw/attempt1-test-helper.py",
+      "cause": "Future-leak test used a suffix with equal first/last tokens; last-token dependence was unperturbed. Corrected fixture only."
+    },
+    {
+      "path": "raw/scope-attempt1-replay.log",
+      "test_source": "raw/scope-attempt1-test.py",
+      "cause": "Static test assumed direct torch.load in reference; corrected exact pinned torch_load_weights call graph. Initial error replayed verbatim before correction."
+    }
+  ],
+  "limitations": [
+    "Own tests are not independent review or full-size qualification.",
+    "No trained checkpoint hashes, actual ordinary-loader full outputs or target Torch2.11 CPU evidence yet.",
+    "600s full-host runtime unmeasured; no timeout increase.",
+    "Clean cos/sin-only layout uses no mask exemption; source-specific reference masks preserve existing semantics.",
+    "No host calls, no launching/staging, no scientific source/evaluator/threshold change.",
+    "Collaboration slot message returned agent thread limit reached; no active extra agent was created. All local child commands exited."
+  ]
+}

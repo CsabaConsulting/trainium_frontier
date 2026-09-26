@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium-confirmed36-clean-checkpoint-cpu-20260926/research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/test_scope.py", line 65, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/poojith-devan/Desktop/Trainium-confirmed36-clean-checkpoint-cpu-20260926/research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/test_scope.py", line 28, in main
+    check(len(loads)==1 and any(k.arg=='weights_only' and isinstance(k.value,ast.Constant) and k.value.value is True for k in loads[0].keywords),'SOURCE_WEIGHTS_ONLY:'+name)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/Desktop/Trainium-confirmed36-clean-checkpoint-cpu-20260926/research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/test_scope.py", line 14, in check
+    if not value:raise RuntimeError(name)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: SOURCE_WEIGHTS_ONLY:reference
