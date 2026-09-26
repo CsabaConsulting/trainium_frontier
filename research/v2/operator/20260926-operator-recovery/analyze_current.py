@@ -12,9 +12,20 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 host = sys.argv[1]
-assert host in ('trn21', 'trn22') and not sys.flags.optimize
+assert not sys.flags.optimize
 repo = HERE.parents[3]
-path = HERE / (host + '-current-completed/results-bundle.json')
+manual_key = None
+if host not in ('trn21','trn22'):
+    manual_key = host
+    manifest = json.loads((HERE/'manual-jobs/manifest.json').read_bytes())
+    entry = manifest[manual_key]
+    host = entry['host']
+    packet_raw = (HERE/'manual-jobs'/entry['packet']).read_bytes()
+    assert hashlib.sha256(packet_raw).hexdigest() == entry['packet_sha256']
+    expected_binding = json.loads(packet_raw)['binding']
+    path = HERE/'manual-jobs'/manual_key/'results-bundle.json'
+else:
+    path = HERE / (host + '-current-completed/results-bundle.json')
 raw = path.read_bytes()
 bundle = json.loads(raw)
 files = bundle['files']
@@ -31,6 +42,9 @@ proposal = obj('EXPERIMENT_PROPOSAL.json')
 arm_id = b.get('arm_id') or proposal['arm_id']
 assert not b.get('arm_id') or b['arm_id'] == proposal['arm_id']
 assert b['host'] == host
+if manual_key:
+    for field in ('label','host','root','source_sha256','launch_command','prepare_sha256','harness_sha256','lock_identity','base_sha256'):
+        assert b[field] == expected_binding[field], 'WRONG_STAGED_JOB:'+field
 assert files['package/train.py']['sha256'] == b['source_sha256']
 assert files['package/launch-command.txt']['text'].strip() == b['launch_command']
 assert obj('operator-preflight.json')['source_sha256'] == b['source_sha256']
@@ -94,7 +108,13 @@ row = dict(schema='trn-run-record-v2', label=b['label'], arm_id=arm_id, kind=b['
            raw_archive=str(path.relative_to(repo)), raw_archive_sha256=hashlib.sha256(raw).hexdigest(), submission_eligible=False,
            same_host_comparator_public_20m=control, scientific_delta=score['val_bpb']-control,
            notes='Actual fixed1800/fresh20M result. Existing comparator ledger roles retained; raw scientific delta is not a fabricated formal-control adoption.')
-out = HERE / (host + '-current-ledger-candidate.json')
+if manual_key:
+    row['cold_startup_evidence'] = str(path.relative_to(repo)) + '#operator-preflight.json/fresh_cache_absent_then_created_empty;train/rehearsal.json/observations[4]' if cold else None
+    row['cold_startup_scope'] = 'Actual private-cache empty-before-start proof' if cold else 'Warm research run; not submission-cold evidence'
+    row['manual_job_key'] = manual_key
+    out = HERE/'manual-jobs'/manual_key/'ledger-candidate.json'
+else:
+    out = HERE / (host + '-current-ledger-candidate.json')
 encoded = (json.dumps(row, indent=2) + '\n').encode()
 if out.exists(): assert out.read_bytes() == encoded
 else:

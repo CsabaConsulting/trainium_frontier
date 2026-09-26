@@ -85,6 +85,17 @@ After a control finishes, use collect trn21-control or collect trn22-control.
 These commands archive, but do NOT adopt a change or submit. Root authenticates
 metrics, appends one actual ledger row and runs unchanged decide.py.
 
+Local-only authentication after collection (replace key with the actual job):
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-warmdown060
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-warmdown085
+```
+
+This emits ledger-candidate.json beside the raw bundle; it does NOT append to
+the ledger, adopt a result or fabricate a control. Cold proof includes the
+actual preflight's empty-cache evidence and the measured fifth boundary.
+
 ## What launch does: lock, checks, launch
 
 The command authenticates exact source/argv/proposal/packet, copies over the

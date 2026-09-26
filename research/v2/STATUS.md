@@ -1,5 +1,19 @@
 # Workflow installation and incremental launch status
 
+## Final-package preparation — 26 September17:42IST
+
+Candidate workflow/candidates/final-batch262144-lr021/train.py SHAcd0c4aa5
+is accepted e1e2 with ONLY batch262144 and matrixLR.021 baked in. Accepted
+launch-command bytes/hashb75f844f unchanged. Actual CLI/effective config and
+three-step reduced BF16 Muon/AdamW state match confirmed research8c6 exactly,
+including two accumulation microsteps. Marked NOT READY; cold full/fresh20M,
+second-seed chosen-stack confirmation and Claude audit pending. No Downloads
+overwrite, new upload or official-score claim. Existing .986879 mean is not
+this package's measured cold result. Both warmdowns remain protected.
+Previous goal turn=PROGRESS (queued checked scalar, actual CPU K2 exclusion).
+Current turn=PROGRESS (checked clean final-package port, matched K2 comparator,
+generalized result authentication). Next routine host check12:30UTC.
+
 ## Read-only17:35IST observation / K2 local result
 
 Actual12:04:51UTC: trn21 warmdown.60 step960/loss2.9770/281725tok_s;

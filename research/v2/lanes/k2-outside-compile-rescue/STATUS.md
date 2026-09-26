@@ -1,5 +1,13 @@
 # K2 rescue status
 
+26 September17:42IST: matched batch262144 native comparator fixed in
+NATIVE_TIMING_REFERENCE.json before any candidate native result. Boundary9..200
+aggregate281291.27/trn21 and281392.04/trn22 tok/s. Conservative zero-charge
+baseline506.324M/506.506M; required+3% candidate521.514M/521.701M net tokens.
+Existing batch runs are WARM: no cold-start claim. Zero charge gives a stronger
+baseline upper bound, not a warm-start substitution in submission scoring.
+Historical479.79M used batch131072 and is not the matched rescue comparator.
+
 26 September17:36IST: extended CPU suite also PASS. Actual compiled-AOT vs
 eager losses and every parameter gradient bit-identical across3passes. Reused
 ID storage, two embeddings and two accumulation microsteps match framework
