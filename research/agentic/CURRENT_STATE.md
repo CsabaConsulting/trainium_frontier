@@ -1,5 +1,22 @@
 # Current state
 
+## 04:43 UTC / 10:13 IST: warm control startup110s; evaluation active
+
+trn21 completed3631steps at04:38:08; measured fifth110.209841834s,
+wall1899.475860208s and charge1789.266018374s. Prospective warm target180s
+met. Root rehashed all21 captures and recomputed accounting; rawe92e5c37 /
+canonicalf5a35079. This is not source-path-only causality or cache-hit proof.
+Actual04:39:05 evaluator3199135 (parents3199120/21) runs unchanged fresh20M,
+context1024/B1 under original596823. BPB pending; no automatic successor.
+Free13,067,354,112B is below proposed13.5GiB native diagnostic requirement.
+
+Clean cold-r2 remains accepted859.167909s. trn22 idle since04:28:48, full
+replay blocked only on its separately revised mechanics/release and fresh
+preflight (not an inferred new science gate). Fixed-job guardian13c90714 passed
+14 supplied tiny fault cases normal/-O and is being frozen for fresh review;
+not independently accepted yet. K2 repair agent successfully resumed after
+earlier capacity failures; full prototype remains disabled. Confirmed mean unchanged.
+
 ## 04:35 UTC / 10:05 IST: actual clean cold qualification accepted
 
 Clean r2 exact e1e2 finished five finite steps; uncapped fifth859.167909355s,
