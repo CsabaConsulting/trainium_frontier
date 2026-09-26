@@ -1,0 +1,572 @@
+{
+  "started_utc": "2026-09-26T04:14:37.064431+00:00",
+  "ended_utc": "2026-09-26T04:14:42.486673+00:00",
+  "rc": 0,
+  "remote_source_sha256": "f77f306479f3d326e2040df786d85cd888cd126037f25af5e5f138b6520d8b17",
+  "local_before": {
+    "utc": "2026-09-26T04:14:37.037629+00:00",
+    "controller_state_sha256": "2d3d9ac5e1f586147d51f8926c4c1210af5bce752695a2505381a32caa309da8",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": false,
+      "trn22": true
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  },
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T04:14:41.882410+00:00",
+    "host": "trn22",
+    "label": "fs-20260926-confirmed36-clean-cold-trn22-r2",
+    "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+    "processes": [
+      {
+        "pid": 3276148,
+        "exists": true,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012125,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/dispatch_driver.py"
+        ],
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3276149,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276148,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012127,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+        "argv": [
+          "/usr/bin/flock",
+          "-n",
+          "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/host_driver.py"
+        ],
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3276150,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276149,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012127,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/host_driver.py"
+        ],
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3276165,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276150,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012136,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+        "argv": [
+          "/usr/bin/timeout",
+          "--foreground",
+          "--signal=TERM",
+          "--kill-after=60s",
+          "1800s",
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+          "--mode",
+          "train",
+          "--fresh-caches"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler"
+        }
+      },
+      {
+        "pid": 3276166,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276165,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012136,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+          "--mode",
+          "train",
+          "--fresh-caches"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler"
+        }
+      },
+      {
+        "pid": 3276180,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276166,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "starttime": 101012396,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "/home/ubuntu/workspace/native_venv/bin/torchrun",
+          "--standalone",
+          "--nproc_per_node=4",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "5"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug"
+        }
+      },
+      {
+        "pid": 3276195,
+        "exists": true,
+        "state": "R",
+        "ppid": 3276180,
+        "pgid": 3276195,
+        "sid": 3276195,
+        "starttime": 101012627,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "5"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug",
+          "RANK": "0",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "0"
+        }
+      },
+      {
+        "pid": 3276196,
+        "exists": true,
+        "state": "R",
+        "ppid": 3276180,
+        "pgid": 3276196,
+        "sid": 3276196,
+        "starttime": 101012627,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "5"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug",
+          "RANK": "1",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "1"
+        }
+      },
+      {
+        "pid": 3276197,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276180,
+        "pgid": 3276197,
+        "sid": 3276197,
+        "starttime": 101012627,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "5"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug",
+          "RANK": "2",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "2"
+        }
+      },
+      {
+        "pid": 3276198,
+        "exists": true,
+        "state": "S",
+        "ppid": 3276180,
+        "pgid": 3276198,
+        "sid": 3276198,
+        "starttime": 101012627,
+        "identity_stable": true,
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train",
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--num-steps",
+          "5"
+        ],
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug",
+          "RANK": "3",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "3"
+        }
+      }
+    ],
+    "known_identity_floor": [
+      3276148
+    ],
+    "selected_ps_rows": [
+      {
+        "pid": 3276148,
+        "ppid": 1,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "python3",
+        "args": "/usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/dispatch_driver.py"
+      },
+      {
+        "pid": 3276149,
+        "ppid": 3276148,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "flock",
+        "args": "/usr/bin/flock -n /home/ubuntu/.cache/trainium_freshstart/device0.lock /usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/host_driver.py"
+      },
+      {
+        "pid": 3276150,
+        "ppid": 3276149,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "python3",
+        "args": "/usr/bin/python3 -I -B /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/host_driver.py"
+      },
+      {
+        "pid": 3276165,
+        "ppid": 3276150,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "timeout",
+        "args": "/usr/bin/timeout --foreground --signal=TERM --kill-after=60s 1800s /home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train --mode train --fresh-caches"
+      },
+      {
+        "pid": 3276166,
+        "ppid": 3276165,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "python",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py --package /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package --sandbox /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train --mode train --fresh-caches"
+      },
+      {
+        "pid": 3276180,
+        "ppid": 3276166,
+        "pgid": 3276148,
+        "sid": 3276148,
+        "comm": "pt_elastic",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python3 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5"
+      },
+      {
+        "pid": 3276195,
+        "ppid": 3276180,
+        "pgid": 3276195,
+        "sid": 3276195,
+        "comm": "python3",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5"
+      },
+      {
+        "pid": 3276196,
+        "ppid": 3276180,
+        "pgid": 3276196,
+        "sid": 3276196,
+        "comm": "python3",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5"
+      },
+      {
+        "pid": 3276197,
+        "ppid": 3276180,
+        "pgid": 3276197,
+        "sid": 3276197,
+        "comm": "python3",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5"
+      },
+      {
+        "pid": 3276198,
+        "ppid": 3276180,
+        "pgid": 3276198,
+        "sid": 3276198,
+        "comm": "python3",
+        "args": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5"
+      }
+    ],
+    "files": {
+      "operator-launch.json": {
+        "bytes_at_stat": 374,
+        "captured_bytes": 374,
+        "capture": "complete_at_observation",
+        "sha256_captured": "f09e5875b1329add05bcab5e2bd77dc5bcd841521fea4100dd924a7db9381b7a",
+        "text": "{\n  \"utc\": \"2026-09-26T04:14:22.039431+00:00\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\",\n  \"dispatch_pid\": 3276148,\n  \"root\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet\",\n  \"status\": \"DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING\",\n  \"no_automatic_next_job\": true\n}\n"
+      },
+      "training-launch.json": {
+        "bytes_at_stat": 2098,
+        "captured_bytes": 2098,
+        "capture": "complete_at_observation",
+        "sha256_captured": "913d029c4e99a47721ccc8f9a9a45f3970f48f4ddc1ef68af408e3d35b299e7a",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"1800s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train\",\n    \"--mode\",\n    \"train\",\n    \"--fresh-caches\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/metrics-training\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\",\n  \"utc\": \"2026-09-26T04:14:22.154043+00:00\"\n}\n"
+      },
+      "training.log": {
+        "bytes_at_stat": 6405,
+        "captured_bytes": 6405,
+        "capture": "complete_at_observation",
+        "sha256_captured": "4b8904fbe4e4ec3a535abad1ccd79c17ed8dc59c1eb950538b82723b1c09c30b",
+        "text": "HARNESS_START_UTC=2026-09-26T04:14:22.154145+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train\", \"files\": [\"caches\", \"prepare.py\", \"train.py\"], \"train_sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5\", \"fresh_empty_sdk_caches\": {\"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff\", \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local\", \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo\", \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor\", \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\", \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug\"}}\n[W926 04:14:24.401349992 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"/home/ubuntu/workspace/native_venv/bin/torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--num-steps\", \"5\"]\n[W926 04:14:26.969341170 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] \nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] *****************************************\nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] *****************************************\n[W926 04:14:29.298574199 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.299468540 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.299486590 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.301983536 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n"
+      },
+      "under-lock-idle.json": {
+        "bytes_at_stat": 1418,
+        "captured_bytes": 1418,
+        "capture": "complete_at_observation",
+        "sha256_captured": "ec96ec39a2fd1d853ce8dfb9d031549ad271c21d4c5d0131a4e68e3cb130f1c7",
+        "text": "{\n  \"ended_utc\": \"2026-09-26T04:14:22.153769+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3276150,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3276149,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3276150,\n      3276149\n    ],\n    \"returncode\": 0,\n    \"row_count\": 255,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"2d99de7986cab8570174bb42745045ea72eefbc6fe0deadbe67d82966d112c5d\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T04:14:22.092335+00:00\",\n  \"status\": \"PASS\"\n}\n"
+      },
+      "dispatch.log": {
+        "bytes_at_stat": 0,
+        "captured_bytes": 0,
+        "capture": "complete_at_observation",
+        "sha256_captured": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      }
+    },
+    "captured_file_bytes": 10295,
+    "checkpoint": null,
+    "ps_rc": 0,
+    "ps_stderr": "",
+    "neuron_ls_rc": 0,
+    "neuron_ls": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0673e54d9d66e6a1e",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": [
+          {
+            "pid": 3276195,
+            "command": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5",
+            "neuron_runtime_version": "2.34.10"
+          },
+          {
+            "pid": 3276196,
+            "command": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5",
+            "neuron_runtime_version": "2.34.10"
+          },
+          {
+            "pid": 3276197,
+            "command": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5",
+            "neuron_runtime_version": "2.34.10"
+          },
+          {
+            "pid": 3276198,
+            "command": "/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5",
+            "neuron_runtime_version": "2.34.10"
+          }
+        ]
+      }
+    ],
+    "neuron_ls_stderr": "",
+    "lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held": true,
+      "proc_lock_rows": [
+        "14: FLOCK  ADVISORY  WRITE 3276149 103:01:832589 0 EOF"
+      ]
+    },
+    "free_bytes": 20236988416,
+    "retired_queue_pids": {
+      "3050509": false,
+      "3053905": false
+    },
+    "completed_parent_metadata_only": {},
+    "completed_parent_cache_exists_only": {},
+    "no_changes": true,
+    "elapsed_seconds": 0.07095521898008883
+  },
+  "stdout_if_error": null
+}
