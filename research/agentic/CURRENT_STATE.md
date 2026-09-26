@@ -1,5 +1,23 @@
 # Current state
 
+## 05:11 UTC / 10:41 IST: clean cold replay past startup, still not upload-ready
+
+Actual05:09:22 trn22 snapshot has39 sequential completed step markers, first
+five finite losses9.0101/8.7779/8.4047/8.0711/7.7681, last printedstep30 at
+265975tok/s. All four actual worker identities/env and original832589 lock
+remain; free17,760,739,328B. Phase-launch-to-observation879.133328s is an upper
+bound for the first-five boundary, not the exact harness startup; final accounting
+and public20M pending. Rawf4fd4584/canonical874c41ee; root40checks normal/-O.
+Boundary intentionally did not repeat source hashes; those remain launch evidence.
+
+Two additional discarded trn21 checkpoint hashes/ownership were verified read-only
+(A1 and old LR.0175), raw17df5b64/canonical153e807c. With already inventoried bcbd,
+three checkpoints total1,679,007,744 allocated bytes. Projected free13.733GiB
+would clear helper13.5GiB by250,748,928B only, not K2's16GiB. Approval remains
+unanswered and nothing was deleted. Full cold replay stays protected; confirmed
+mean0.9883066129 unchanged. Native helper narrow repair has author22 CPU tests
+normal/-O, still needs fresh independent review. No submission approval/readiness.
+
 ## 05:06 UTC / 10:36 IST: clean full cold replay live; warm control accepted
 
 Clean e1e2 full cold replay launched on trn22 at04:54:43.028901UTC after the

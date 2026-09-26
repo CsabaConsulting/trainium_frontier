@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Latest observation — 26 September 10:39:22 IST
+
+Clean fullcold trn22 is past first five and at39 completed markers, ~266ktok/s,
+four workers healthy. First-five boundary preceded879.133328s observation bound;
+exact startup/charge/final20M pending, not a completed submission gate. Root40
+checks normal/-O; rawf4fd4584. Confirmed mean remains0.9883066129.
+trn21 cleanup approval pending. Three discarded checkpoint inventories could
+clear13.5GiB with tight250.7MB margin, not16GiB; nothing deleted. Native helper
+reporting repair locally tested, fresh review pending. Submission remains HOLD.
+
 ## Current — 26 September 10:36 IST
 
 Confirmed public20M mean0.9883066129 unchanged. Exact36 warm control finished
