@@ -17,8 +17,12 @@ files/29observed identities/postflight authenticated in235checks at38d4a863.
 Turnover to full was363.724s. No automatic successor or submission authority.
 
 trn21 exact36 LR0.012 full remains protected with its attached fresh20M;
-latest archived02:54:41 observation step360/loss3.4773/268236tok/s. New
-read-only two-host progress retrieval is assigned to the sole Operator.
+actual03:07:02 snapshot step1870/loss2.9340/265327tok/s/lrm0.671 and882s
+reported training time left. trn22 is initial-compiling with four workers and
+six observed compiler identities, no steps yet. Both original locks held,
+no logged traceback; disks15.723GB/20.795GB free. Raw897374e8/canonical6e437d87
+retains every PID/starttime; root rehashed all13captured files. No cache-hit
+claim, host mutation or extra launch from this read-only progress retrieval.
 
 Clean116188 port e1e2f686 has independent source/tinyCPU acceptance0b889d8c
 and supplied-production-tiny replay a35181b6:622records,0failures. These are
