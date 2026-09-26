@@ -1,0 +1,171 @@
+{
+  "verdict": "PASS",
+  "scope": "supplied diff and independent reconstructed CLI fragment only",
+  "input_sha256": {
+    "SOURCE.diff": "9e700fe03f7e3560a1ce31e7587a2459f64bdd4d0aeba2ccbb1c7e20c6821ef1",
+    "SPEC.md": "cf1e9240920bca5041aa6d0370190edef0bf05a41e34eea2d73dff65a4b67e95",
+    "CPU_RECEIPT.json": "28799a7ac2fd3cd89fea92712fd42823db20df9fdf7320f3d452e9d71e998f67",
+    "IMPLEMENTATION_SPEC.tested.md": "61ea9e1df60b47f0c8097ad4f02dcb16c05ecc7dbb6aa60185e9fbf89330e8d2"
+  },
+  "receipt_candidate_source_sha256_not_recomputed": "4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d",
+  "spec_wording_only_change": true,
+  "exact_allowed_diff": true,
+  "independent_parser_cases": [
+    {
+      "argument": null,
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.8000000000000p-1"
+      ]
+    },
+    {
+      "argument": ".75",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.8000000000000p-1"
+      ]
+    },
+    {
+      "argument": ".60",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.3333333333333p-1"
+      ]
+    },
+    {
+      "argument": ".85",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.b333333333333p-1"
+      ]
+    },
+    {
+      "argument": "1",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.0000000000000p+0"
+      ]
+    },
+    {
+      "argument": "0",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "-0.0",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "-0.1",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "1.0000000000000002",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "nan",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "NaN",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "inf",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "-inf",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "1e999",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "-1e999",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    },
+    {
+      "argument": "5e-324",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x0.0000000000001p-1022"
+      ]
+    },
+    {
+      "argument": "0.9999999999999999",
+      "result": [
+        "ok",
+        262144,
+        "0x1.5810624dd2f1bp-6",
+        "0x1.fffffffffffffp-1"
+      ]
+    },
+    {
+      "argument": "1e-999",
+      "result": [
+        "error",
+        2,
+        "isolated-cli-check: error: --warmdown-ratio must be finite and in (0, 1]"
+      ]
+    }
+  ],
+  "existing_invalid_checks": 14,
+  "default_explicit075_hex_exact": true,
+  "receipt_default_explicit_pairs_equal": true,
+  "model_or_native_execution": false,
+  "python": "3.14.4"
+}
