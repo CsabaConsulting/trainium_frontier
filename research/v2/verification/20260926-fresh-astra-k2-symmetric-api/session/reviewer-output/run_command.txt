@@ -1,0 +1,4 @@
+python3 -I -S /work/independent_cpu_test.py > /work/cpu_test.stdout.jsonl 2> /work/cpu_test.stderr.txt
+status=$?
+printf '%s\n' "$status" > /work/cpu_test.exitcode.txt
+exit "$status"

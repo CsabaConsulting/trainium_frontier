@@ -1,0 +1,93 @@
+[
+  {
+    "name": "missing_offset",
+    "detected": true,
+    "reason": "output bytes"
+  },
+  {
+    "name": "scaled_offset",
+    "detected": true,
+    "reason": "output bytes"
+  },
+  {
+    "name": "row_shard",
+    "detected": true,
+    "reason": "each output element has exactly one writer"
+  },
+  {
+    "name": "global_bound",
+    "detected": true,
+    "reason": "per-group dynamic bounds"
+  },
+  {
+    "name": "pid_bound",
+    "detected": true,
+    "reason": "symmetric runtime traces"
+  },
+  {
+    "name": "cross_tile_large_tile_reassociation",
+    "detected": true,
+    "expected_row127_col0": "0x0",
+    "wrong_row127_col0": "0x3f800000"
+  },
+  {
+    "name": "cross_tile_unit_tile_reassociation",
+    "detected": true,
+    "expected_row127_col0": "0x0",
+    "wrong_row127_col0": "0x33800000"
+  },
+  {
+    "name": "reversed_token_order",
+    "detected": true
+  },
+  {
+    "name": "flush_subnormal",
+    "detected": true
+  },
+  {
+    "name": "signed_zero_difference",
+    "detected": true
+  },
+  {
+    "name": "infinity_even_identical_bytes",
+    "detected": true,
+    "comparison": {
+      "exact": false,
+      "finite": false,
+      "max_abs": null,
+      "metric_status": "NONFINITE_OR_UNWRITTEN_NOT_EXACT"
+    }
+  },
+  {
+    "name": "nan_even_identical_bytes",
+    "detected": true,
+    "comparison": {
+      "exact": false,
+      "finite": false,
+      "max_abs": null,
+      "metric_status": "NONFINITE_OR_UNWRITTEN_NOT_EXACT"
+    }
+  },
+  {
+    "name": "inactive_add_without_select_witness",
+    "detected": true,
+    "prior": "0x80000000",
+    "added_zero": "0x00000000"
+  },
+  {
+    "name": "invalid_metadata_position_order",
+    "detected": true
+  },
+  {
+    "name": "invalid_metadata_maximum",
+    "detected": true
+  },
+  {
+    "name": "invalid_metadata_padding",
+    "detected": true
+  },
+  {
+    "name": "invalid_metadata_start",
+    "detected": true
+  }
+]

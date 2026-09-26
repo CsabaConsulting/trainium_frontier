@@ -1,0 +1,42 @@
+{
+  "status": "PASS_BOUNDED_SOURCE_CPU_ONLY",
+  "native_verdict": "REFUSE_UNPROVEN",
+  "source_sha256": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+  "test_sha256": "ff9f597817f843eb3b3ec22ac91c57b67b8da3ef1bfc0bedf4b71824a8335a76",
+  "limits": {
+    "cpu_seconds": 120,
+    "address_space_bytes": 268435456,
+    "max_cases": 64,
+    "max_tokens_per_case": 256,
+    "output_elements_per_case": 32768,
+    "random_seed": 260926,
+    "sdk_imports_allowed": false
+  },
+  "arithmetic_self_tests": {
+    "known_fp32": 12,
+    "known_bf16": 4,
+    "deterministic_random_fp32_pairs": 4096
+  },
+  "disabled_guard_checks": {
+    "factory_default_disabled": true,
+    "checker_default_disabled": true,
+    "sdk_import_attempts": []
+  },
+  "cases": 48,
+  "independent_cases": 28,
+  "supplied_cases": 20,
+  "negative_controls_detected": 17,
+  "full_output_bytes_compared": 6291456,
+  "effective_fp32_additions": 1315072,
+  "elapsed_seconds": 4.446059035999497,
+  "cpu_seconds": 4.482651000000001,
+  "max_rss_kib": 39004,
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "native_executed": false,
+  "limitations": [
+    "Hand-written source model, not installed NKI execution.",
+    "FP32 RNE with gradual underflow is modeled; hardware behavior remains unproved.",
+    "Bounded fixtures do not prove all finite inputs or any nonfinite input contract.",
+    "No compiler success, performance, training, or adoption conclusion."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "case": "44_supplied_signed_zero_bf16",
+  "origin": "supplied",
+  "dtype": "bf16",
+  "logical_tokens": 256,
+  "group_maximums": [
+    24,
+    0
+  ],
+  "comparison": {
+    "exact": true,
+    "finite": true,
+    "max_abs": 0.0
+  },
+  "output_bytes": 131072,
+  "output_elements": 32768,
+  "one_writer_per_element": true,
+  "symmetric_program_traces": true,
+  "stable_per_row_token_order": true,
+  "unused_rows_positive_zero": true,
+  "per_program_active_occurrences": 256,
+  "per_program_inactive_lanes": 2816,
+  "per_program_executed_vector_add_elements": 196608,
+  "effective_fp32_additions": 32768,
+  "support_checks": {
+    "dense": {
+      "exact": true,
+      "sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
+    },
+    "consumer": {
+      "exact": true,
+      "sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
+    }
+  },
+  "files": {
+    "gradient.fp32le": {
+      "bytes": 131072,
+      "sha256": "a43f4b1da1c882af633884820b2f408d59c1886010b74db122083a3a0f38003f"
+    },
+    "expected.fp32le": {
+      "bytes": 131072,
+      "sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
+    },
+    "actual.fp32le": {
+      "bytes": 131072,
+      "sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
+    },
+    "writers.u8": {
+      "bytes": 32768,
+      "sha256": "bfa5a24faa8ddf576edcc46f4f05e2459ee4a383b8dc14ff7dba0056b9c59ed0"
+    },
+    "ids.i32le": {
+      "bytes": 1024,
+      "sha256": "bdc67a401900ee3bbd1e23ce38227311ef06dfd415ef25311138f1379648567e"
+    }
+  }
+}
