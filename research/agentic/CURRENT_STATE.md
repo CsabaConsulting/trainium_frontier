@@ -1,5 +1,31 @@
 # Current state
 
+## 02:26 UTC / 07:56 IST: confirmed base unchanged; two diagnostic outcomes archived
+
+Confirmed public20M mean remains0.9883066128526815; official score unchanged.
+trn21 ordinary-only embedding diagnostic ran02:21:19–02:21:42UTC,exit1.
+All4 ranks: both ordinary eager and compiled routes zero both-sign subnormal
+gradients versus1408expected; sentinel/normal cases and input/forward identity
+pass. This is not exclusive to K2/compilation, not a correctness waiver or speed
+gain. Raw a236d73e, root31file/7295580byte audit identical normal/-O;
+all11observed identities gone/deviceidle/original596823free at02:23:53.
+
+trn22 full113M four-arm CPU qualification ran02:13:59–02:15:34UTC.
+Allfour G2 arms and default/OFF parity passed, but checkpoint helper FAILED
+before firstforward: RuntimeError: NONFINITE_TENSOR. Raw4b19365b/root92file
+audit retained. Its universalfinitecheck rejects intentional-infinity causal
+mask buffers; tiny frozen-source diagnosis proves this helper defect, not
+nonfinite trained weights. Strict mask-aware helper1b3714e is in fresh
+input-only independent review; checkpoint-only retry packet is being built.
+No model/evaluator edit, fullCPU PASS or cold/full follow-on claimed.
+
+Both hosts quiescent/HOLD after explicit original-lock postflight. trn22 idle
+alert due02:30:34UTC; trn21 due02:36:42UTC. No six-ready-job claim. Prepared
+schedule-child cold-five fa4f8953 remains separately gated after CPU acceptance.
+07:45 consolidated user report was delivered; its historical preparation-time
+host statements are superseded by its chronological addendum, not rewritten.
+Submission remains HOLD for clean116188 port, truecoldfull and Claudeviahuman.
+
 ## 02:04 UTC / 07:34 IST: clock36 architecture CONFIRMED research base
 
 trn21 fresh20M0.9882310747242088, trn22 0.9883821509811542; mean

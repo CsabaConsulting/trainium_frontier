@@ -1,0 +1,41 @@
+{
+  "command_exit_code": 0,
+  "output": {
+    "scope": "tiny exact frozen function only, no trained checkpoint loaded",
+    "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+    "helper_sha256": "a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d",
+    "source_buffers": "GPT.__init__ registers mask_full and mask_short from this function at lines2003-2004",
+    "observations": [
+      {
+        "window": 8,
+        "shape": [
+          1,
+          1,
+          8,
+          8
+        ],
+        "negative_infinity_count": 28,
+        "nan_count": 0,
+        "positive_infinity_count": 0,
+        "expected_attention_mask_exact": true,
+        "existing_helper_error": "NONFINITE_TENSOR"
+      },
+      {
+        "window": 4,
+        "shape": [
+          1,
+          1,
+          8,
+          8
+        ],
+        "negative_infinity_count": 38,
+        "nan_count": 0,
+        "positive_infinity_count": 0,
+        "expected_attention_mask_exact": true,
+        "existing_helper_error": "NONFINITE_TENSOR"
+      }
+    ],
+    "native_failure_tensor_name": "not recorded in original traceback",
+    "interpretation": "Current helper rejects intentionally negative-infinite attention masks; this necessarily blocks an ordinary loaded model snapshot. No evidence here of a trained parameter NaN, and no source/model/evaluator fix is justified by this failure."
+  }
+}

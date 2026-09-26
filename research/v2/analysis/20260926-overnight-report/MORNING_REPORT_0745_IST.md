@@ -2,6 +2,27 @@
 
 Prepared from authenticated evidence available at 07:44 IST. This is not a claim of new live leaderboard data.
 
+Delivery: consolidated report was sent to Poojith at approximately07:45IST;
+do not send a duplicate scheduled report. The original sections below retain
+their preparation-time knowledge.
+
+### Chronological addendum — 07:56 IST
+
+trn22's actual four-arm CPU qualification started07:43:59 and ended07:45:34.
+Allfour G2 arms passed, but the checkpoint helper failed before firstforward
+with `RuntimeError: NONFINITE_TENSOR`. Its finite-only buffer rule rejects the
+intentional negative-infinity attention masks. A verification-only repair is in
+fresh independent review; no model/evaluator change or fullCPU pass is claimed.
+All observed processes exited, device/original832589 lock idle at07:46:55.
+
+trn21's ordinary-only diagnostic started07:51:19 and ended07:51:42,exit1.
+Both ordinary eager and compiled paths zeroed both-sign subnormal gradients on
+allfour ranks; normal witnesses/input integrity passed. This is not K2-specific
+and does not waive its failed gate. All11 observed identities absent and device/
+original596823 lock idle at07:53:53. Raw a236d73e/root normal and optimized-mode
+checks authenticate all31files. Both hosts currently HOLD pending next checked
+packet. Confirmed BPB and submission status have not changed.
+
 ## 1. Best confirmed result
 
 Public-20M/context1024 mean **0.9883066129**: trn21 **0.9882310747**, trn22 **0.9883821510**. Improvement versus the old confirmed schedule mean0.9901674437 is **0.0018608308 BPB**. Both improve on their genuine same-host controls; paired mean delta **-0.0022703270**. Exact36 adopted for research in bdedefe0. The old single0.986340 did not replicate and is withdrawn.

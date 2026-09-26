@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 07:56 IST
+
+Confirmed mean0.9883066129 unchanged. trn21 ordinary-only test failed exact
+subnormal control in eager AND compiled routes; source-independent localization,
+not K2qualification. trn22 four full-size CPU G2 arms passed but checkpoint
+helper failed on intentional-infinity mask buffers. Narrow verifier-only repair
+is in fresh review; retained checkpoints avoid repeating the four G2 arms.
+Both hosts quiescent/HOLD, no follow-on launch or upload-ready file. Authoritative
+top-level state.hosts and CURRENT_STATE carry exact timestamps/raw hashes.
+
 ## Current — 26 September 07:34 IST
 
 Confirmed research base is now exact36 architecture:0.9882310747 and0.9883821510,
