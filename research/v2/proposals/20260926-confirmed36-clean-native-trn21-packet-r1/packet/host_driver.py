@@ -201,9 +201,11 @@ def preflight(release,stage=False):
 
 
 def sizes(root):
+    def scan_error(error):
+        raise error
     artifacts, caches = 0,0
     ranks = {str(rank):0 for rank in range(4)}
-    for directory,dirs,files in os.walk(root,followlinks=False):
+    for directory,dirs,files in os.walk(root,followlinks=False,onerror=scan_error):
         for name in dirs:
             require(not (Path(directory)/name).is_symlink(),'ARTIFACT_DIRECTORY_SYMLINK')
         for name in files:

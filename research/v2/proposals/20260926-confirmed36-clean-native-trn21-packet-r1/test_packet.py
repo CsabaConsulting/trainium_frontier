@@ -157,6 +157,47 @@ class PacketTests(unittest.TestCase):
             with self.assertRaises(RuntimeError): d.file_record(b)
             with self.assertRaises(RuntimeError): d.retained_inputs(b'{}')
 
+    def test_injected_root_and_nested_scan_failures_cancel_monitor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); (root/'receipts').mkdir()
+            (root/'receipts/.rank0.interrupted.tmp').write_bytes(b'x'*17)
+            scan = os.scandir
+            for target in (root,root/'receipts'):
+                with self.subTest(target=target):
+                    error = PermissionError(13,'injected directory scan denied',str(target))
+                    def denied_scan(path):
+                        if Path(path)==target: raise error
+                        return scan(path)
+                    fake = mock.Mock(owned={})
+                    monitor = d.Monitor(fake)
+                    with mock.patch.object(d.os,'scandir',side_effect=denied_scan), \
+                         mock.patch.object(d,'ROOT',root),mock.patch.object(d,'resources',return_value={}):
+                        with self.assertRaises(PermissionError) as raised:
+                            d.artifact_gate(d.sizes(root))
+                        self.assertIs(raised.exception,error)
+                        monitor.watch()
+                    self.assertIn('PermissionError',monitor.error)
+                    self.assertIn(str(target),monitor.error)
+                    fake._signal.assert_called_once_with(signal.SIGTERM,None)
+            self.assertEqual(d.sizes(root)['rank_receipt_bytes']['0'],17)
+
+    def test_real_root_and_nested_permission_and_missing_scan_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); (root/'receipts').mkdir()
+            (root/'receipts/.rank0.interrupted.tmp').write_bytes(b'x'*17)
+            for target in (root,root/'receipts'):
+                with self.subTest(target=target):
+                    mode = target.stat().st_mode & 0o777
+                    target.chmod(0)
+                    try:
+                        with self.assertRaises(PermissionError) as raised:
+                            d.artifact_gate(d.sizes(root))
+                        self.assertEqual(raised.exception.filename,str(target))
+                    finally:
+                        target.chmod(mode)
+            with self.assertRaises(FileNotFoundError): d.sizes(root/'missing')
+            with self.assertRaises(NotADirectoryError): d.sizes(root/'receipts/.rank0.interrupted.tmp')
+
     def test_monitor_write_failure_requests_guardian_cancel(self):
         fake = mock.Mock(owned={})
         monitor = d.Monitor(fake)
@@ -166,7 +207,7 @@ class PacketTests(unittest.TestCase):
         fake._signal.assert_called_once_with(signal.SIGTERM,None)
 
     def test_real_guardian_resource_timeout_and_helper_faults(self):
-        for mode in ('timeout','disk','rankcap','helperfail','auditfail'):
+        for mode in ('timeout','disk','rankcap','helperfail','auditfail','scanroot','scannested'):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp); (root/'device0.lock').touch(); (root/'receipts').mkdir()
                 command = [sys.executable]+(['-O'] if sys.flags.optimize else [])+['-B',str(HERE/'cpu_fault_fixture.py'),str(root),mode]
@@ -178,8 +219,9 @@ class PacketTests(unittest.TestCase):
                         rows = [json.loads(p.read_text()) for p in root.glob('leaf-*.json')]
                         if any(live(row) for row in rows):
                             self.assertTrue(busy(root/'device0.lock')); observations += 1
-                        if mode=='auditfail' and 'FAILED_LOCK_RETAINED' in (root/'fixture.log').read_text():
+                        if mode in ('auditfail','scanroot','scannested') and 'FAILED_LOCK_RETAINED' in (root/'fixture.log').read_text():
                             self.assertFalse(any(live(row) for row in rows))
+                            self.assertFalse(Path('/proc/'+str(process.pid)+'/task/'+str(process.pid)+'/children').read_text().strip())
                             self.assertTrue(busy(root/'device0.lock'))
                             os.kill(process.pid,signal.SIGKILL)  # Our quiescent CPU fixture only.
                             parked = True; break
@@ -189,15 +231,26 @@ class PacketTests(unittest.TestCase):
                 self.assertEqual(rc,-9 if parked else 0,(root/'fixture.log').read_text())
                 self.assertFalse(any(live(json.loads(p.read_text())) for p in root.glob('leaf-*.json')))
                 self.assertFalse(busy(root/'device0.lock'))
-                if mode=='auditfail': self.assertTrue(parked)
-                else:
+                if mode in ('auditfail','scanroot','scannested'): self.assertTrue(parked)
+                if mode in ('scanroot','scannested'):
+                    result = json.loads((root/'result.json').read_text())
+                    self.assertIn('injected scan '+mode,result['error'])
+                    self.assertFalse((root/'postflight.json').exists())
+                    events = [json.loads(line) for line in (root/'events.jsonl').read_text().splitlines()]
+                    self.assertEqual(events[-1]['event'],'FAILED_LOCK_RETAINED')
+                    self.assertIn('PermissionError',events[-1]['error'])
+                    self.assertTrue(any(e['event']=='guardian_signal' and e['signal']==signal.SIGTERM for e in events))
+                    self.assertTrue(any(e['event']=='signal_owned' and e['signal']==signal.SIGKILL for e in events))
+                    self.assertTrue(any(e['event']=='lineage_quiescent' and e['proof']=='waitpid_ECHILD' for e in events))
+                    self.assertFalse(any(e['event']=='release_ready' for e in events))
+                elif mode!='auditfail':
                     result = json.loads((root/'result.json').read_text())
                     self.assertTrue('error' in result or result['rc']==7)
                     events = [json.loads(line) for line in (root/'events.jsonl').read_text().splitlines()]
                     self.assertEqual(events[-1]['event'],'release_ready')
                     self.assertTrue(any(e['event']=='lineage_quiescent' for e in events))
                 print(json.dumps({'case':mode,'lock_busy_observations_with_live_leaves':observations,
-                                  'all_owned_exited':True,'audit_failure_park_observed':parked}),flush=True)
+                                  'all_owned_exited':True,'failure_park_observed':parked}),flush=True)
 
 
 if __name__=='__main__': unittest.main(verbosity=2)

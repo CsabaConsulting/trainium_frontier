@@ -59,13 +59,25 @@ def main():
         return {'free_disk_bytes':driver.RUNTIME_DISK-1 if mode=='disk' and (root/'children-ready').exists() else driver.INITIAL_DISK,
                 'available_ram_bytes':driver.RAM}
     driver.resources = observation
+    if mode in ('scanroot','scannested'):
+        scan = os.scandir
+        target = root if mode=='scanroot' else root/'receipts'
+        def denied_scan(path):
+            if Path(path)==target and (root/'children-ready').exists():
+                raise PermissionError(13,'injected scan '+mode,str(target))
+            return scan(path)
+        driver.os.scandir = denied_scan
+    def postflight():
+        if mode in ('scanroot','scannested'):
+            driver.artifact_gate(driver.sizes(root))
+        (root/'postflight.json').write_text(json.dumps({'cpu_only':True}))
     try:
         rc = driver.run_child(guardian)
         (root/'result.json').write_text(json.dumps({'rc':rc}))
     except BaseException as error:
         (root/'result.json').write_text(json.dumps({'error':str(error)}))
     finally:
-        guardian.finish(lambda:(root/'postflight.json').write_text(json.dumps({'cpu_only':True})))
+        guardian.finish(postflight)
     return 0
 
 
