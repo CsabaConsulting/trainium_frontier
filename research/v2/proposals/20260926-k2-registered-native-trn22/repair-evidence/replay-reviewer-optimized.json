@@ -1,0 +1,73 @@
+{
+  "status": "OWN_READONLY_REPLAY_COMPLETED_NOT_INDEPENDENT_REVIEW",
+  "original_gate": "REFUSED_PRESERVED",
+  "optimized": true,
+  "results": [
+    {
+      "file": "synthetic-baseline.json",
+      "sha256": "1d025908661b2f5b371f47397f96af114e5eee3149b4cb05b443d23a106dcf6d",
+      "observations": {
+        "original_54fd9a10": {
+          "accepted": true
+        },
+        "repaired": {
+          "accepted": true
+        }
+      }
+    },
+    {
+      "file": "counterexample-contradictory_candidate_forward.json",
+      "sha256": "cab7d4cc81910870ea3e1cc5557a55b7586f8745a40cec2607a46c4c8ad02776",
+      "observations": {
+        "original_54fd9a10": {
+          "accepted": true
+        },
+        "repaired": {
+          "accepted": false,
+          "error": "RuntimeError: SAME_INPUT_FORWARD_RECORD_DIFFER"
+        }
+      }
+    },
+    {
+      "file": "counterexample-contradictory_upstream_count.json",
+      "sha256": "44aea413ebc70dd121342941d95449ae1f324f382367dfb7b9320ce786efb218",
+      "observations": {
+        "original_54fd9a10": {
+          "accepted": true
+        },
+        "repaired": {
+          "accepted": false,
+          "error": "RuntimeError: FIXTURE_INPUT_RECORD"
+        }
+      }
+    },
+    {
+      "file": "counterexample-missing_runtime_versions.json",
+      "sha256": "3ccfd61275b5338af7ee3b6ed3388894563ec7e9001666fdd3fa5b064796b9a9",
+      "observations": {
+        "original_54fd9a10": {
+          "accepted": true
+        },
+        "repaired": {
+          "accepted": false,
+          "error": "KeyError: 'torch'"
+        }
+      }
+    },
+    {
+      "file": "counterexample-malformed_old_mismatch.json",
+      "sha256": "3a075f736cbca04923c9bdddcbc80cf91c333300dcb67c61b5d520adc1892c68",
+      "observations": {
+        "original_54fd9a10": {
+          "accepted": true
+        },
+        "repaired": {
+          "accepted": false,
+          "error": "RuntimeError: TENSOR_SCHEMA"
+        }
+      }
+    }
+  ],
+  "native_executed": false,
+  "launch_authorized": false
+}

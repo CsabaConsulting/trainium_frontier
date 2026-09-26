@@ -41,6 +41,15 @@ across ranks. It rejects missing/malformed/nonfinite/zero-gradient or contradict
 required evidence. A known old-route mismatch may be retained without preventing
 separate candidate comparisons; missing old observations are not accepted.
 
+Validator successor after original54fd9a10 REFUSE: reconstruct complete fixture
+input records (including nonzero counts), equate every route's upstream with the
+roundtrip record, and require same-input registered eager/compiled/ordinary full
+forward records to agree. Require typed nonempty runtime identities matching all
+four authenticated prior ranks: Torch2.11.0+cpu and NKI0.5.0+28631259367.ga768afa6.
+Old failures must contain well-formed expected/actual or explicit missing/error
+records, with consistent exact/status/finite/error metadata. Proper old zero,
+nonfinite, missing and error observations remain distinct from required routes.
+
 The driver/rank-entry executable bodies are identical to the reviewed FP32-first
 packet fa1a3652. Only constants/pins/argv/label/root are rebound. The adapter adds
 one explicit support pin/argument. The shared guard and dispatcher are unchanged.

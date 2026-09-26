@@ -1,5 +1,11 @@
 # Disabled registered K2 native packet — trn22 r1
 
+Receipt-validator successor: original packet `54fd9a10` was independently
+**REFUSED** for four false acceptances and was not launched. Its original files,
+90-check receipts and verdict remain preserved in Git. See `VALIDATOR_REPAIR.md`
+and `repair-evidence/` for the narrow successor; it still requires independent
+re-review and a separate root release. No native qualification is claimed.
+
 Proposal-first commit: d9f241f307818ad837c688a5ff3ff99daf552ac8.
 No native work or staging has occurred. Checker/mechanics review and a separate
 one-use Operator assignment remain pending. Parent reported the adapter's limited

@@ -97,11 +97,8 @@ def comparison(value):
 def case(name, dtype, changed=False):
     contract = v.fixture_contract(name, dtype, changed)
     kind = 'torch.bfloat16' if dtype == 'bf16' else 'torch.float32'
-    input_records = {}
-    for key, hashed in {**contract['inputs'], 'weight': '1' * 64}.items():
-        shape = [256, 128] if key in ('weight', 'upstream') else [256] if key == 'ids' else [2, 1] if key == 'maximums' else [256, 1]
-        input_records[key] = dict(shape=shape, dtype='torch.float32' if key == 'weight' else kind if key == 'upstream' else 'torch.int32',
-                                  finite=True, nonzero=0, sha256=hashed)
+    input_records = copy.deepcopy(contract['inputs'])
+    input_records['weight'] = dict(shape=[256, 128], dtype='torch.float32', finite=True, nonzero=0, sha256='1' * 64)
     out = dict(shape=[256, 128], dtype=kind, finite=True, nonzero=0, sha256='2' * 64)
     checks = dict(upstream_roundtrip=comparison(input_records['upstream']))
     if contract['logical_nonempty']:
@@ -128,6 +125,7 @@ for rank in range(4):
         status='REGISTERED_FULL_CASES_OBSERVED_EXACT', returncode=0,
         scope='REGISTERED_K2_COMPONENT_DIAGNOSTIC_ONLY', rank=rank, world_size=4,
         label=b['label'], shape=dict(V=256, T=256, C=128), seed=42, argv=b['checker_args'],
+        torch='2.11.0+cpu', nki_version='0.5.0+28631259367.ga768afa6',
         checker_sha256=b['support_sha256']['check_native.py'], kernel_sha256=b['support_sha256']['consumer_nki.py'],
         reference_sha256=b['support_sha256']['reference.py'], adapter_sha256=b['support_sha256']['adapter.py'],
         tolerance=dict(atol=0, rtol=0, criterion='identical bytes'), native_qualification=False,
@@ -151,6 +149,19 @@ def validate(fixture):
 
 check(validate(files)['cases_per_rank'] == 20, 'synthetic_full_case_completion')
 key = '/fixture/receipts/rank0.json'
+
+
+def every_rank(fixture, mutate):
+    for rank in range(4):
+        mutate(fixture[f'/fixture/receipts/rank{rank}.json'])
+
+
+def malformed_old_actual(receipt):
+    route = receipt['sentinel']['original_routes'][1]
+    route['status'] = 'MISMATCH'
+    route['checks']['gradient'].update(exact=False, actual={})
+
+
 mutations = [
     ('missing_rank', lambda f: f.pop('/fixture/receipts/rank3.json')),
     ('missing_case', lambda f: f[key]['cases'].pop()),
@@ -177,6 +188,24 @@ mutations = [
     ('nan_elapsed', lambda f: f[key].update(diagnostic_elapsed_seconds=float('nan'))),
     ('native_adoption', lambda f: f[key].update(native_qualification=True)),
     ('wrong_environment', lambda f: f['/fixture/rank-environment-r0.json']['environment'].update(NEURON_LOGICAL_NC_CONFIG='1')),
+    ('contradictory_candidate_forward', lambda f: [f[key]['sentinel']['routes'][3]['checks']['output'][part].update(sha256='3' * 64) for part in ('actual', 'expected')]),
+    ('contradictory_upstream_count', lambda f: [r[part]['upstream'].update(nonzero=0) for r in f[key]['sentinel']['routes'] for part in ('inputs_before', 'inputs_after')]),
+    ('contradictory_roundtrip_count', lambda f: [f[key]['sentinel']['checks']['upstream_roundtrip'][part].update(nonzero=0) for part in ('actual', 'expected')]),
+    ('contradictory_metadata_count', lambda f: [r[part]['counts'].update(nonzero=0) for r in f[key]['sentinel']['routes'] for part in ('inputs_before', 'inputs_after')]),
+    ('missing_runtime_versions', lambda f: (f[key].pop('torch'), f[key].pop('nki_version'))),
+    ('empty_runtime', lambda f: f[key].update(torch='')),
+    ('untyped_runtime', lambda f: f[key].update(nki_version=5)),
+    ('changed_runtime', lambda f: f[key].update(torch='2.13.0+cpu')),
+    ('crossrank_runtime', lambda f: f['/fixture/receipts/rank3.json'].update(nki_version='different')),
+    ('malformed_old_actual', lambda f: f[key]['sentinel']['original_routes'][1]['checks']['gradient'].update(exact=False, actual={})),
+    ('malformed_old_expected', lambda f: f[key]['sentinel']['original_routes'][1]['checks']['gradient'].update(exact=False, expected={})),
+    ('old_error_on_exact', lambda f: f[key]['sentinel']['original_routes'][1].update(error='Contradicts exact status')),
+    ('old_false_nonfinite_error', lambda f: f[key]['sentinel']['original_routes'][1]['checks']['gradient'].update(max_abs=None, max_abs_nonfinite='nan')),
+    ('old_empty_error', lambda f: f[key]['sentinel']['original_routes'][1].update(status='ERROR', error='', checks={})),
+    ('allrank_forward_count_contradiction', lambda f: every_rank(f, lambda r: [r['sentinel']['routes'][3]['checks']['output'][part].update(nonzero=1) for part in ('actual', 'expected')])),
+    ('allrank_upstream_count_contradiction', lambda f: every_rank(f, lambda r: [route[part]['upstream'].update(nonzero=0) for route in r['sentinel']['routes'] for part in ('inputs_before', 'inputs_after')])),
+    ('allrank_runtime_missing', lambda f: every_rank(f, lambda r: (r.pop('torch'), r.pop('nki_version')))),
+    ('allrank_malformed_old_mismatch', lambda f: every_rank(f, malformed_old_actual)),
 ]
 for name, mutation in mutations:
     changed = copy.deepcopy(files)
@@ -196,6 +225,25 @@ for rank in range(4):
     record['checks']['gradient']['actual'].update(nonzero=0, sha256='0' * 64)
     record['checks']['gradient']['max_abs'] = 8.0
 check(validate(changed)['native_qualification'] is False, 'old_failure_separate_not_suppressing_candidate')
+for failure in ('nonfinite_nan', 'nonfinite_inf', 'missing', 'error', 'post_error', 'signed_zero'):
+    changed = copy.deepcopy(files)
+    for rank in range(4):
+        route = changed[f'/fixture/receipts/rank{rank}.json']['sentinel']['original_routes'][1]
+        route['status'] = 'MISMATCH'
+        comparison_record = route['checks']['gradient']
+        comparison_record['exact'] = False
+        if failure.startswith('nonfinite'):
+            comparison_record['actual'].update(finite=False, sha256='4' * 64)
+            comparison_record.update(max_abs=None, max_abs_nonfinite='nan' if failure.endswith('nan') else 'inf')
+        elif failure == 'missing':
+            route['checks']['gradient'] = dict(exact=False, missing=True, expected=comparison_record['expected'])
+        elif failure in ('error', 'post_error'):
+            route.update(status='ERROR', checks={}, inputs_unchanged=False)
+            route['error' if failure == 'error' else 'post_observation_error'] = 'Synthetic retained original route failure'
+        else:
+            comparison_record['actual'].update(sha256='5' * 64)
+            comparison_record['max_abs'] = 0.0
+    check(validate(changed)['native_qualification'] is False, 'proper_old_' + failure + '_retained')
 # Reuse unchanged mocked driver fixture, with all effects substituted locally.
 old_tests = ast.parse(subprocess.check_output(['git', 'show', '710ea677:research/v2/proposals/20260926-k2-symmetric-native-trn21/test_binding.py'], cwd=REPO).decode())
 fixture_fn = next(n for n in old_tests.body if isinstance(n, ast.FunctionDef) and n.name == 'fake_driver_case')

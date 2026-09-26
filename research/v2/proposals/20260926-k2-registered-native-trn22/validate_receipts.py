@@ -14,6 +14,7 @@ spec.loader.exec_module(reference)
 ROUTES = ('direct_consumer', 'direct_repeated_call', 'registered_eager',
           'registered_compiled', 'compiled_ordinary_embedding')
 OLD_ROUTES = ('original_function_eager', 'original_function_compiled')
+RUNTIME = {'torch': '2.11.0+cpu', 'nki_version': '0.5.0+28631259367.ga768afa6'}
 
 
 def require(ok, reason):
@@ -36,13 +37,29 @@ def fixture_contract(name, dtype, changed=False):
         raw = b''.join(raw[i + 2:i + 4] for i in range(0, len(raw), 4))
     expected = dict(shape=[256, 128], dtype='torch.float32', finite=True,
                     nonzero=sum(v != 0 for row in dense for v in row), sha256=sha(reference.raw(dense)))
-    input_hashes = dict(upstream=sha(raw), ids=sha(struct.pack('<256i', *(ids if ids else [0] * 256))))
+    kind = 'torch.bfloat16' if dtype == 'bf16' else 'torch.float32'
+    input_records = dict(upstream=dict(shape=[256, 128], dtype=kind, finite=True,
+        nonzero=sum(v != 0 for row in upstream for v in row), sha256=sha(raw)))
+    index = ids if ids else [0] * 256
+    input_records['ids'] = dict(shape=[256], dtype='torch.int32', finite=True,
+        nonzero=sum(v != 0 for v in index), sha256=sha(struct.pack('<256i', *index)))
     for key, values in zip(('counts', 'starts', 'positions', 'maximums'), metadata):
-        input_hashes[key] = sha(struct.pack('<' + str(len(values)) + 'i', *values))
-    return dict(gradient=expected, inputs=input_hashes, maximums=metadata[3], logical_nonempty=bool(ids))
+        input_records[key] = dict(shape=[len(values), 1], dtype='torch.int32', finite=True,
+            nonzero=sum(v != 0 for v in values), sha256=sha(struct.pack('<' + str(len(values)) + 'i', *values)))
+    return dict(gradient=expected, inputs=input_records, maximums=metadata[3], logical_nonempty=bool(ids))
+
+
+def tensor_schema(record):
+    require(type(record) is dict and set(record) == {'shape', 'dtype', 'finite', 'nonzero', 'sha256'}, 'TENSOR_SCHEMA')
+    require(type(record['shape']) is list and all(type(n) is int and n >= 0 for n in record['shape']), 'TENSOR_SHAPE')
+    require(type(record['dtype']) is str and re.fullmatch(r'torch\.[a-z0-9_]+', record['dtype']), 'TENSOR_DTYPE')
+    require(type(record['finite']) is bool and type(record['nonzero']) is int
+            and 0 <= record['nonzero'] <= math.prod(record['shape']), 'TENSOR_FINITE_COUNT')
+    require(type(record['sha256']) is str and re.fullmatch('[0-9a-f]{64}', record['sha256']), 'TENSOR_SHA')
 
 
 def tensor(record, shape, dtype):
+    tensor_schema(record)
     require(record['shape'] == shape and record['dtype'] == dtype, 'TENSOR_SHAPE_DTYPE')
     require(record['finite'] is True and type(record['nonzero']) is int
             and 0 <= record['nonzero'] <= math.prod(shape), 'TENSOR_FINITE_COUNT')
@@ -67,8 +84,76 @@ def inputs(route, contract, dtype):
         kind = 'torch.float32' if key == 'weight' else 'torch.' + ('bfloat16' if dtype == 'bf16' else 'float32') if key == 'upstream' else 'torch.int32'
         tensor(value, shape, kind)
         if key != 'weight':
-            require(value['sha256'] == contract['inputs'][key], 'FIXTURE_INPUT_HASH')
+            require(value == contract['inputs'][key], 'FIXTURE_INPUT_RECORD')
     return before
+
+
+def old_comparison(check, expected):
+    """Validate a failed observation without requiring it to become correct."""
+    require(type(check) is dict and type(check.get('exact')) is bool, 'ORIGINAL_COMPARISON_SCHEMA')
+    tensor_schema(check['expected'])
+    require(check['expected'] == expected, 'ORIGINAL_EXPECTED_RECORD')
+    if check.get('missing') is True:
+        require(set(check) == {'exact', 'missing', 'expected'} and check['exact'] is False,
+                'ORIGINAL_MISSING_CONTRADICTION')
+        return False
+    require('missing' not in check, 'ORIGINAL_MISSING_FIELD')
+    actual = check['actual']
+    tensor_schema(actual)
+    same_shape = actual['shape'] == expected['shape']
+    same_identity = same_shape and actual['dtype'] == expected['dtype'] and actual['sha256'] == expected['sha256']
+    if same_identity:
+        require(actual == expected, 'ORIGINAL_SAME_BYTES_RECORD_CONTRADICTION')
+    observed_exact = same_identity and actual['finite'] and expected['finite']
+    require(check['exact'] is observed_exact, 'ORIGINAL_EXACT_FLAG_CONTRADICTION')
+    fields = {'exact', 'actual', 'expected'}
+    if same_shape:
+        fields.add('max_abs')
+        if actual['finite']:
+            value = check['max_abs']
+            require(type(value) in (int, float) and math.isfinite(value) and value >= 0, 'ORIGINAL_FINITE_ERROR')
+            if observed_exact:
+                require(value == 0, 'ORIGINAL_EXACT_ERROR')
+            if value == 0:
+                require(actual['nonzero'] == expected['nonzero'], 'ORIGINAL_ZERO_ERROR_COUNT')
+        else:
+            fields.add('max_abs_nonfinite')
+            require(check['max_abs'] is None and check.get('max_abs_nonfinite') in ('nan', 'inf'),
+                    'ORIGINAL_NONFINITE_ERROR')
+    require(set(check) == fields, 'ORIGINAL_COMPARISON_FIELDS')
+    return observed_exact
+
+
+def old_route(route, first, forward, contract, dtype):
+    require(type(route) is dict and route['status'] in ('EXACT', 'MISMATCH', 'ERROR', 'MISMATCH_OR_ERROR'),
+            'ORIGINAL_STATUS')
+    require(type(route.get('checks')) is dict and type(route.get('inputs_unchanged')) is bool,
+            'ORIGINAL_ROUTE_SCHEMA')
+    errors = [route[k] for k in ('error', 'post_observation_error') if k in route]
+    require(all(type(e) is str and bool(e.strip()) for e in errors), 'ORIGINAL_ERROR_METADATA')
+    if route['status'] in ('EXACT', 'MISMATCH'):
+        require(not errors and inputs(route, contract, dtype) == first, 'ORIGINAL_INPUT_OR_ERROR_CONTRADICTION')
+        require(set(route['checks']) == {'output', 'gradient'}, 'ORIGINAL_CHECKS_MISSING')
+    else:
+        require(bool(errors) or route['inputs_unchanged'] is False, 'ORIGINAL_ERROR_WITHOUT_EVIDENCE')
+        if route['status'] == 'ERROR':
+            require(bool(errors), 'ORIGINAL_ERROR_TEXT_MISSING')
+        if not errors:
+            require(route['inputs_before'] != route['inputs_after'], 'ORIGINAL_MUTATION_WITHOUT_EVIDENCE')
+        require(set(route['checks']) <= {'output', 'gradient'}, 'ORIGINAL_PARTIAL_CHECK_SCHEMA')
+        for field in ('inputs_before', 'inputs_after'):
+            records = route[field]
+            require(type(records) is dict and (not records or set(records) == set(first)), 'ORIGINAL_ERROR_INPUT_SCHEMA')
+            for record in records.values():
+                tensor_schema(record)
+        if route['inputs_before']:
+            require(route['inputs_before'] == first, 'ORIGINAL_ERROR_CHANGED_INITIAL_INPUT')
+        if route['inputs_unchanged']:
+            require(route['inputs_before'] == route['inputs_after'] == first, 'ORIGINAL_UNCHANGED_CONTRADICTION')
+    outcomes = [old_comparison(value, contract['gradient'] if key == 'gradient' else forward)
+                for key, value in route['checks'].items()]
+    if route['status'] in ('EXACT', 'MISMATCH'):
+        require(all(outcomes) == (route['status'] == 'EXACT'), 'ORIGINAL_STATUS_CONTRADICTION')
 
 
 def validate_case(case, name, dtype, changed=False):
@@ -79,13 +164,13 @@ def validate_case(case, name, dtype, changed=False):
     checks = {'upstream_roundtrip', 'dense_CPU_oracle'} if contract['logical_nonempty'] else {'upstream_roundtrip'}
     require(set(case['checks']) == checks, 'ORIGINAL_CHECK_SET')
     upstream = case['checks']['upstream_roundtrip']
-    exact(upstream, [256, 128], case['dtype'])
-    require(upstream['actual']['sha256'] == contract['inputs']['upstream'], 'UPSTREAM_HASH')
+    exact(upstream, [256, 128], case['dtype'], contract['inputs']['upstream'])
     if contract['logical_nonempty']:
         exact(case['checks']['dense_CPU_oracle'], [256, 128], 'torch.float32', contract['gradient'])
     required = ROUTES if contract['logical_nonempty'] else ROUTES[:2]
     require([r['name'] for r in case['routes']] == list(required), 'ALL_REQUIRED_ROUTES')
     first = None
+    forward = None
     for route in case['routes']:
         require(route['status'] == 'EXACT' and 'error' not in route and 'post_observation_error' not in route,
                 'ROUTE_ERROR')
@@ -93,36 +178,27 @@ def validate_case(case, name, dtype, changed=False):
         if first is None:
             first = before
         require(before == first, 'ROUTE_INPUTS_DIFFER')
+        require(before['upstream'] == upstream['actual'], 'ROUTE_ROUNDTRIP_RECORD_DIFFER')
         expected_checks = {'gradient'} if route['name'] in ROUTES[:2] else {'gradient', 'output'}
         require(set(route['checks']) == expected_checks, 'ROUTE_CHECK_SET')
         exact(route['checks']['gradient'], [256, 128], 'torch.float32', contract['gradient'])
         if 'output' in expected_checks:
             exact(route['checks']['output'], [256, 128], case['dtype'])
+            if forward is None:
+                forward = route['checks']['output']['actual']
+            require(route['checks']['output']['actual'] == forward, 'SAME_INPUT_FORWARD_RECORD_DIFFER')
     # Old failures remain visible. They neither count as candidate exactness nor
     # suppress candidate observations. Missing/malformed observations are refused.
     old_required = OLD_ROUTES if contract['logical_nonempty'] else ()
     require([r['name'] for r in case['original_routes']] == list(old_required), 'ORIGINAL_ROUTES_MISSING')
     for route in case['original_routes']:
-        require(route['status'] in ('EXACT', 'MISMATCH', 'ERROR', 'MISMATCH_OR_ERROR'), 'ORIGINAL_STATUS')
-        if route['status'] in ('ERROR', 'MISMATCH_OR_ERROR'):
-            require(bool(route.get('error') or route.get('post_observation_error')) or route.get('inputs_unchanged') is False,
-                    'ORIGINAL_ERROR_WITHOUT_EVIDENCE')
-        else:
-            inputs(route, contract, dtype)
-            require(set(route['checks']) == {'output', 'gradient'}, 'ORIGINAL_CHECKS_MISSING')
-            observed = all(x.get('exact') is True for x in route['checks'].values())
-            require(observed == (route['status'] == 'EXACT'), 'ORIGINAL_STATUS_CONTRADICTION')
-            for key, value in route['checks'].items():
-                if value.get('exact') is True:
-                    exact(value, [256, 128], 'torch.float32' if key == 'gradient' else case['dtype'],
-                          contract['gradient'] if key == 'gradient' else None)
-                else:
-                    require(value.get('missing') is True or 'actual' in value, 'ORIGINAL_MISMATCH_WITHOUT_EVIDENCE')
+        old_route(route, first, forward, contract, dtype)
 
 
 def validate(root, label, environment, hashes, checker_args):
     root = Path(root)
     observations = []
+    runtimes = []
     for rank in range(4):
         receipt = json.loads((root / 'receipts' / ('rank%d.json' % rank)).read_text())
         env = json.loads((root / ('rank-environment-r%d.json' % rank)).read_text())
@@ -132,6 +208,10 @@ def validate(root, label, environment, hashes, checker_args):
         require(receipt['scope'] == 'REGISTERED_K2_COMPONENT_DIAGNOSTIC_ONLY' and receipt['label'] == label
                 and type(receipt['rank']) is int and receipt['rank'] == rank and receipt['world_size'] == 4, 'IDENTITY')
         require(receipt['shape'] == dict(V=256, T=256, C=128) and receipt['seed'] == 42, 'SHAPE_SEED')
+        runtime = {key: receipt[key] for key in RUNTIME}
+        require(all(type(value) is str and bool(value.strip()) for value in runtime.values())
+                and runtime == RUNTIME, 'RUNTIME_IDENTITY')
+        runtimes.append(runtime)
         require(receipt['argv'] == checker_args and receipt['first_registered_compiled_fixture'] == 'unique/fp32/nonzero', 'ARGV_ORDER')
         for field, filename in [('checker_sha256', 'check_native.py'), ('kernel_sha256', 'consumer_nki.py'),
                                 ('reference_sha256', 'reference.py'), ('adapter_sha256', 'adapter.py')]:
@@ -165,6 +245,7 @@ def validate(root, label, environment, hashes, checker_args):
             return [required_only(v) for v in value]
         return value
     require(all(required_only(x) == required_only(observations[0]) for x in observations[1:]), 'CROSS_RANK_REQUIRED_DIFFER')
+    require(all(x == runtimes[0] for x in runtimes[1:]), 'CROSS_RANK_RUNTIME_DIFFER')
     return dict(status='REGISTERED_ALL4_FULL20_OBSERVATIONS_EXACT_PENDING_RESULT_REVIEW', ranks=4,
                 original_checks_per_rank=150, cases_per_rank=20, sentinel_per_rank=1, tangent_replays_per_rank=2,
                 native_qualification=False, source_adoption=False, accepted_speedup=False,
