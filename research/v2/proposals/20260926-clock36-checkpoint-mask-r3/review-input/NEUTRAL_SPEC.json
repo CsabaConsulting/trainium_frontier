@@ -1,0 +1,23 @@
+{
+  "scope": "Review new checkpoint-verification helper only, not the frozen model source. Default REFUSE until evidence supports this bounded CPU-only diagnostic.",
+  "baseline_helper": "research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/compare_checkpoints.py",
+  "baseline_helper_sha256": "a3d9d767b33967311bc8d8fceb852fb771775aeeac0a82433ed2dd9560fa1b6d",
+  "candidate_helper_sha256": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c",
+  "requirements": [
+    "One CPU-only checkpoint retry over exact four retained r2 checkpoint paths/hashes; no G2 rerun or new weights.",
+    "Ordinary unpatched load_for_eval for all four arms. Saved sequence length is widened by the frozen loader to EVAL_MIN_SEQ_LEN. SHORT_WINDOW_FRAC is restored from saved toggles or the immutable module default.",
+    "Only exact root buffers mask_full and mask_short may contain intentional negative infinity, after exact shape/FP32/configured-window and byte semantics validation against j<=i and j>i-window. Reject NaN, positive infinity, wrong zero/infinity positions and signed-zero differences.",
+    "Parameters and all other buffers/outputs remain finite-only, even if a parameter or nested buffer is named mask_full. Include names in failures.",
+    "Preserve raw parameter/all-buffer state identity after each inference, input identity, repeated byte equality, output shape/finite checks and synthetic suffix/prefix tolerance1e-2.",
+    "Preserve the separately labeled pre-existing three-arm BF16 CPU identity route. ON is not compared with OFF. Never alter source/evaluator/weights.",
+    "Run own bounded one-thread tiny reference/negative test. No model/checkpoint/host/SDK/network access. Full113M checkpoint outcomes remain unexecuted and cannot be inferred from tiny tests.",
+    "Original r2 FAIL remains recorded. Native/cold/full training/adoption require separate gates and are not authorized by helper review."
+  ],
+  "source_pins": {
+    "reference": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "default_off_on": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea"
+  },
+  "raw_tiny_receipts": ["raw/tiny-normal.json", "raw/tiny-optimized.json"],
+  "raw_original_failure_bundle": "research/v2/operator/20260926-trn22-clock36-recursive-cpu-r2/completed/results-bundle.json",
+  "raw_original_failure_bundle_sha256": "d2298e9cafa63d98e9aa54c8b324e42a5ac345f20f4144b811112900ba2b2a08"
+}

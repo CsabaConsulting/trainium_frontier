@@ -1,0 +1,359 @@
+{
+  "status": "IMPLEMENTER_TINY_MASK_HELPER_TESTS_ONLY",
+  "torch": "2.13.0+cpu",
+  "threads": 1,
+  "maximum_test_tensor_elements": 64,
+  "cases": [
+    {
+      "case": "derive_saved_restored_configuration",
+      "outcome": "PASS"
+    },
+    {
+      "case": "saved_default_fraction_restoration",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_1_1",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_1_1",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_1_1",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_4_1",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_4_2",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_4_4",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_8_1",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_8_4",
+      "outcome": "PASS"
+    },
+    {
+      "case": "exact_mask_8_8",
+      "outcome": "PASS"
+    },
+    {
+      "case": "original_legitimate_mask_failure",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR"
+    },
+    {
+      "case": "no_unvalidated_mask_exemption",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:buffer:mask_full"
+    },
+    {
+      "case": "ordinary_tiny_causal_repeat_state",
+      "outcome": "PASS"
+    },
+    {
+      "case": "nan",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_NAN:buffer:mask_short"
+    },
+    {
+      "case": "positive_infinity",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_POSINF:buffer:mask_short"
+    },
+    {
+      "case": "hidden_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_short:rows0:8"
+    },
+    {
+      "case": "visible_neginf",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_short:rows0:8"
+    },
+    {
+      "case": "negative_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_short:rows0:8"
+    },
+    {
+      "case": "wrong_shape",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_SHAPE:buffer:mask_short"
+    },
+    {
+      "case": "wrong_dtype",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_DTYPE_DEVICE_GRAD:buffer:mask_short"
+    },
+    {
+      "case": "wrong_window",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_short:rows0:8"
+    },
+    {
+      "case": "nonpositive_window",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_CONFIG:buffer:mask_short"
+    },
+    {
+      "case": "wrong_restored_length",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "RESTORED_SEQUENCE_LENGTH"
+    },
+    {
+      "case": "wrong_restored_fraction",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "RESTORED_SHORT_WINDOW_FRAC"
+    },
+    {
+      "case": "nan_saved_fraction",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SAVED_SHORT_WINDOW_FRAC"
+    },
+    {
+      "case": "parameter_named_mask_nan",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:parameter:mask_full"
+    },
+    {
+      "case": "parameter_named_mask_posinf",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:parameter:mask_full"
+    },
+    {
+      "case": "parameter_named_mask_neginf",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:parameter:mask_full"
+    },
+    {
+      "case": "other_buffer_nonfinite",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:buffer:cos"
+    },
+    {
+      "case": "nested_mask_not_exempt",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:buffer:child.mask_full"
+    },
+    {
+      "case": "missing_root_mask",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MISSING_ROOT_MASK_BUFFERS"
+    },
+    {
+      "case": "future",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SYNTHETIC_PREFIX_CAUSALITY"
+    },
+    {
+      "case": "alias_future",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "SYNTHETIC_PREFIX_CAUSALITY"
+    },
+    {
+      "case": "parameter",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_STATE_CHANGED:parameter:weight"
+    },
+    {
+      "case": "parameter_bit",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_STATE_CHANGED:parameter:weight"
+    },
+    {
+      "case": "buffer",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_STATE_CHANGED:buffer:counter"
+    },
+    {
+      "case": "mask",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_full:rows0:8"
+    },
+    {
+      "case": "mask_bit",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MASK_VALUES:buffer:mask_full:rows0:8"
+    },
+    {
+      "case": "input",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "INPUT_CHANGED"
+    },
+    {
+      "case": "training",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "MODEL_MODE_CHANGED"
+    },
+    {
+      "case": "nondeterministic",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REPEATED_LOGITS_BYTES"
+    },
+    {
+      "case": "nonfinite",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "NONFINITE_TENSOR:output"
+    },
+    {
+      "case": "shape",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "OUTPUT_SHAPE"
+    },
+    {
+      "case": "signed_zero",
+      "outcome": "REFUSED_AS_EXPECTED",
+      "error": "REPEATED_LOGITS_BYTES"
+    }
+  ],
+  "count": 45,
+  "positive_qualification": {
+    "route": "ordinary_unpatched_cpu_load_for_eval",
+    "input": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.int64",
+      "sha256": "0524e559eaaeb1f9c8c886f84fcc15e4aa62af558bfe022341350255834a79b7",
+      "requires_grad": false
+    },
+    "outputs": [
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "5d55f5c7f1af521ed9c5df4d6c804d3e9899a07dd585138d891e6ebc7e1af5cf",
+        "requires_grad": false
+      },
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "5d55f5c7f1af521ed9c5df4d6c804d3e9899a07dd585138d891e6ebc7e1af5cf",
+        "requires_grad": false
+      },
+      {
+        "shape": [
+          1,
+          8,
+          4
+        ],
+        "dtype": "torch.float32",
+        "sha256": "e14b86ed3e985dac8c0ae792f75492aa93cbd7ac201245011948817626f9bcd1",
+        "requires_grad": false
+      }
+    ],
+    "repeated_bytes_equal": true,
+    "model_state_equal_after_each_call": true,
+    "mask_configuration": {
+      "sequence_len": 8,
+      "full_window": 8,
+      "short_window": 4,
+      "saved_sequence_len": 4,
+      "eval_min_sequence_len": 8,
+      "restored_short_window_frac": 0.5
+    },
+    "named_parameters_and_all_buffers": {
+      "parameter:weight": {
+        "shape": [],
+        "dtype": "torch.float32",
+        "sha256": "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f",
+        "requires_grad": true
+      },
+      "buffer:counter": {
+        "shape": [],
+        "dtype": "torch.float32",
+        "sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+        "requires_grad": false
+      },
+      "buffer:cos": {
+        "shape": [
+          1,
+          2
+        ],
+        "dtype": "torch.float32",
+        "sha256": "80b8fd6d60fa85fd14a38b5295cb92abd80dfec5ca406c9f969609a79d36809d",
+        "requires_grad": false
+      },
+      "buffer:sin": {
+        "shape": [
+          1,
+          2
+        ],
+        "dtype": "torch.float32",
+        "sha256": "af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+        "requires_grad": false
+      },
+      "buffer:mask_full": {
+        "shape": [
+          1,
+          1,
+          8,
+          8
+        ],
+        "dtype": "torch.float32",
+        "sha256": "9f6d574d2c9ac3a8a425f4d74429838850e2832beab561f11ee1d9965e41af2a",
+        "requires_grad": false,
+        "mask_semantics_validated": true,
+        "window": 8,
+        "zero_count": 36,
+        "negative_infinity_count": 28,
+        "nan_count": 0,
+        "positive_infinity_count": 0
+      },
+      "buffer:mask_short": {
+        "shape": [
+          1,
+          1,
+          8,
+          8
+        ],
+        "dtype": "torch.float32",
+        "sha256": "0be3ace78b903fba69bac5e12f67640360fe7843215f25e51eac47e96781fc52",
+        "requires_grad": false,
+        "mask_semantics_validated": true,
+        "window": 4,
+        "zero_count": 26,
+        "negative_infinity_count": 38,
+        "nan_count": 0,
+        "positive_infinity_count": 0
+      }
+    },
+    "state_tensor_count": 6,
+    "causality": {
+      "synthetic_only": true,
+      "cut": 4,
+      "prefix_stop": 3,
+      "max_abs_diff": 0.0,
+      "tolerance": 0.01,
+      "passed": true,
+      "prefix_exact": true
+    },
+    "organizer_causality_check_called": false
+  },
+  "helper_sha256": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c",
+  "source_imported": false,
+  "trained_checkpoint_loaded": false,
+  "native_executed": false,
+  "original_r2_qualification": "FAILED_PRESERVED",
+  "cold_authorized": false
+}
