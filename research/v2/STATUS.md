@@ -1,5 +1,27 @@
 # Workflow installation and incremental launch status
 
+Cleanup receipt06a6972c/canonicalc282f927 is imported and authenticated by33
+root checks. Three exact hashes/identities before unlink, measured disk delta,
+original lock and pre/post idle checks all match the narrow human approval.
+
+## Current — 26 September 11:30 IST
+
+The exact clean e1e2 file now has a genuine cold public20M result:0.9883890652,
+3628steps,859.473524s startup,1789.768583s charge, no timeout/budget violation.
+81 root checks normal/-O authenticate terminal,43 artifacts and702-observed-ID
+quiescence; trn22 idle after05:51:11UTC, no automatic successor. Confirmed
+research mean0.9883066129 remains; official0.9901 is still human-reported.
+Downloads audit file hashes exactly match the measured candidate, but native
+consistency and human Claude audit still prevent an upload-ready claim.
+
+Human approved exactly three discarded trn21 checkpoints; sole Operator reports
+completed06:00:21UTC,1,679,007,744B reclaimed,14,746,214,400B now free. Detailed
+receipt is being archived. No other artifacts deleted.13.5GiB native floor
+clears narrowly;16GiB K2 does not. Native packet scan repair is independently
+accepted; separate original-trn21 disabled transport implementation is active.
+FullCPU batch design is completed but not launched; trn22 rebind remains a
+local unreviewed fallback. No six-ready queue or new kernel/FP8 win is claimed.
+
 ## Current — 26 September 11:01 IST
 
 Latest actual10:54:17IST trn22 midpoint:1855completed/printed1850,265783tok/s,

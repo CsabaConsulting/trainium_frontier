@@ -1,5 +1,19 @@
 # Non-blocking morning questions
 
+## Resolved narrowly — three checkpoints only, 26 September 11:27 IST
+
+Poojith answered "Yes—delete those three discarded checkpoints" to the exact
+question call_Hw6EfImkw8GwNGOswUh8t4BO. Authorization is recorded in
+verification/20260926-trn21-three-discarded-checkpoints-cleanup-authorization.md.
+Operator reports deletion completed06:00:21UTC, exactly1,679,007,744B reclaimed
+and14,746,214,400B free; receipt06a6972c/c282f927 now authenticated33 checks.
+No caches/logs/source,
+protected artifacts or AWS changes included. This resolves only those three
+paths, not the broader historical request below. Do not ask this same question
+again or infer broader deletion permission. K2 still misses16GiB; the native
+consistency floor13.5GiB may pass fresh checks. Native consistency and human
+Claude audit remain submission requirements.
+
 ## Active disk decision — 26 September 10:36 IST
 
 Already asked through the approval question; no response yet. trn21 has

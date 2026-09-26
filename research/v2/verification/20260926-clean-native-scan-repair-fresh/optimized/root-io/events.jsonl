@@ -1,0 +1,15 @@
+{"event": "guardian_started", "identity": {"pgid": 1628937, "pid": 1629080, "ppid": 1628937, "sid": 1628937, "start_ticks": 5278542, "state": "R"}, "lock_device": 64513, "lock_held": true, "lock_inode": 12988582, "monotonic": 52785.724967659, "subreaper": true}
+{"command": ["/usr/bin/python3", "-B", "-c", "import os,signal,time; from pathlib import Path; os.setsid(); signal.signal(signal.SIGTERM,signal.SIG_IGN); Path('leaf').write_text(str(os.getpid())); time.sleep(20)"], "event": "phase_spawned", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52785.726559801, "pid": 1629082}
+{"event": "owned_identity", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52785.726727269}
+{"event": "guardian_signal", "lock_held": true, "monotonic": 52785.978736704, "signal": 15}
+{"event": "cleanup_started", "lock_held": true, "monotonic": 52785.978903317, "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "signal_owned", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52785.97907931, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52786.029367845, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52786.079806016, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52786.079976039, "signal": 9}
+{"event": "owned_exited", "identity": {"pgid": 1628937, "pid": 1629082, "ppid": 1629080, "sid": 1628937, "start_ticks": 5278572, "state": "R"}, "lock_held": true, "monotonic": 52786.130243646}
+{"event": "reaped", "lock_held": true, "monotonic": 52786.130453241, "pid": 1629082, "returncode": -9, "wait_status": 9}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 52786.130490173, "proof": "waitpid_ECHILD", "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 52786.130723909, "proof": "waitpid_ECHILD", "reason": "DRIVER_FINALLY"}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 52786.130822876, "proof": "waitpid_ECHILD", "reason": "POSTFLIGHT_FAILURE: OSError(5, 'reviewer scan fault')"}
+{"error": "POSTFLIGHT_OR_QUIESCENCE_FAILED: OSError(5, 'reviewer scan fault')", "event": "FAILED_LOCK_RETAINED", "lock_held": true, "monotonic": 52786.130848072}

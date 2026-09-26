@@ -1,0 +1,71 @@
+{
+  "verdict": "ACCEPT_NARROW_SCAN_REPAIR",
+  "mode": "normal",
+  "injected_scan_cases": 4,
+  "actual_permission_cases": 2,
+  "invalid_root_cases": 2,
+  "independent_byte_oracle": {
+    "artifact_bytes": 53,
+    "cache_bytes": 101,
+    "rank_receipt_bytes": {
+      "0": 17,
+      "1": 0,
+      "2": 31,
+      "3": 0
+    }
+  },
+  "process_scenarios": [
+    {
+      "where": "root",
+      "kind": "permission",
+      "leaf": 1628815,
+      "guardian": 1628799,
+      "lock_device": 64513,
+      "lock_inode": 12988515,
+      "failure": {
+        "type": "PermissionError",
+        "message": "[Errno 13] reviewer scan fault: '/home/poojith-devan/clean36-scan-independent-QOCHoB/normal/root-permission'"
+      },
+      "status": "PASS"
+    },
+    {
+      "where": "root",
+      "kind": "io",
+      "leaf": 1628822,
+      "guardian": 1628820,
+      "lock_device": 64513,
+      "lock_inode": 12988526,
+      "failure": {
+        "type": "OSError",
+        "message": "[Errno 5] reviewer scan fault: '/home/poojith-devan/clean36-scan-independent-QOCHoB/normal/root-io'"
+      },
+      "status": "PASS"
+    },
+    {
+      "where": "nested",
+      "kind": "permission",
+      "leaf": 1628825,
+      "guardian": 1628823,
+      "lock_device": 64513,
+      "lock_inode": 12988537,
+      "failure": {
+        "type": "PermissionError",
+        "message": "[Errno 13] reviewer scan fault: '/home/poojith-devan/clean36-scan-independent-QOCHoB/normal/nested-permission/receipts'"
+      },
+      "status": "PASS"
+    },
+    {
+      "where": "nested",
+      "kind": "io",
+      "leaf": 1628828,
+      "guardian": 1628826,
+      "lock_device": 64513,
+      "lock_inode": 12988548,
+      "failure": {
+        "type": "OSError",
+        "message": "[Errno 5] reviewer scan fault: '/home/poojith-devan/clean36-scan-independent-QOCHoB/normal/nested-io/receipts'"
+      },
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,5 +1,35 @@
 # Current state
 
+## 06:00 UTC / 11:30 IST: clean cold score accepted; exact cleanup approved/completed
+
+Clean e1e2 full cold replay completed3628steps, actual fifth859.473523823s,
+charged1789.768582730s,over_budget=false. Fresh unchanged public20M/context1024
+scored0.9883890652263234 (20971520tokens,83462186bytes,57179868nats), no eval
+timeout. Eval ended05:51:11.000739UTC. All43 noncache artifacts and702actual
+observed identities/full252-row census/device/original832589 postflight are
+authenticated by81 root checks normal/-O. Raw0aedc9c4/canonical756f6062;
+analysis/20260926-clean-fullcold-launch/terminal-result.json. Stable retained
+checkpoint4d024cce. Native consistency and human Claude audit still pending;
+NOT cleared for upload. Confirmed research mean0.9883066129/official0.9901
+unchanged. trn22 has no successor launched; last free17,294,692,352B.
+
+Poojith explicitly approved only three discarded trn21 checkpoints via the
+pending question. Sole Operator reports06:00:21 exact scoped deletion after
+all hashes/identities passed, original596823 and fresh idle checks. Reclaimed
+1,679,007,744B; measured free14,746,214,400B (13.733GiB), enough for13.5GiB
+helper floor narrowly, not16GiB K2. Cleanup receipt06a6972c/canonicalc282f927
+authenticated33 root checks, SHA5947bb45;
+no caches/logs/source/protected model deleted. No backup/recovery is claimed.
+
+Native packet original scan-error REFUSE is retained; narrow repair933650c2
+has fresh independent acceptance in verification/20260926-clean-native-scan-
+repair-fresh/. Original trn21 native helper/input/science remains unchanged.
+Now prefer its local disabled staging/retrieval preparation, active with the
+separate Implementer, avoiding906MB cross-host checkpoint transfer. The locally
+completed trn22 rebind f86da662 is fallback only and unreviewed/unlaunched.
+Batch262144 completed full113M CPU design f2761695 remains unlaunched. No six-
+ready-jobs, new adoption, K2 native qualification or submission readiness claim.
+
 ## 05:31 UTC / 11:01 IST: live midpoint verified; source reviews advanced
 
 Actual05:24:17 trn22 clean fullcold has1855 sequential completed markers;
