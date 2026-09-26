@@ -1,0 +1,489 @@
+{
+  "started_utc": "2026-09-26T06:34:41.097161+00:00",
+  "ended_utc": "2026-09-26T06:34:47.005403+00:00",
+  "assignment_sha256": "440e1c649138eba18006a9082f4aaa43d2b11c9e149c45423c1923fab47e7865",
+  "controller": {
+    "utc": "2026-09-26T06:34:41.054814+00:00",
+    "state_sha256": "b8434b3529129e57aa7eb388d17488b57dfa36e69ace3c7db55c4331fc921aa6",
+    "host_launch_allowed": false,
+    "breakers": {
+      "global_correctness": false,
+      "trn22": false
+    },
+    "local_stops_present": [],
+    "assignment_sha256": "440e1c649138eba18006a9082f4aaa43d2b11c9e149c45423c1923fab47e7865",
+    "preparation_only": true
+  },
+  "source_sha256": "44407ef5eb4f8036660a2fb67694b8b3dde3f9b27002dae6c6d60433f0fae4e0",
+  "returncode": 0,
+  "stderr": "",
+  "remote": {
+    "started_utc": "2026-09-26T06:34:46.016493+00:00",
+    "host": "trn22",
+    "assignment_sha256": "440e1c649138eba18006a9082f4aaa43d2b11c9e149c45423c1923fab47e7865",
+    "commands": [
+      {
+        "name": "before-ps",
+        "argv": [
+          "/usr/bin/ps",
+          "-eo",
+          "pid,ppid,pgid,sid,comm,args"
+        ],
+        "returncode": 0,
+        "stdout": "[non-workload argv omitted]",
+        "stderr": "",
+        "stdout_sha256": "5abb530cd4b080765ab39734deb73e916088daff7b0d4c1064f7ee8016a85b6c"
+      },
+      {
+        "name": "before-neuron_ls",
+        "argv": [
+          "/opt/aws/neuron/bin/neuron-ls",
+          "--json-output"
+        ],
+        "returncode": 0,
+        "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+        "stderr": ""
+      },
+      {
+        "name": "before-fuser",
+        "argv": [
+          "/usr/bin/fuser",
+          "/dev/neuron0"
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "configured-filter-names-only",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "config",
+          "--name-only",
+          "--get-regexp",
+          "^filter\\."
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "config-core.sparseCheckout",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "config",
+          "--bool",
+          "--get",
+          "core.sparseCheckout"
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "config-core.sparseCheckoutCone",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "config",
+          "--bool",
+          "--get",
+          "core.sparseCheckoutCone"
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "info-attributes-path",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "rev-parse",
+          "--git-path",
+          "info/attributes"
+        ],
+        "returncode": 0,
+        "stdout": ".git/info/attributes\n",
+        "stderr": ""
+      },
+      {
+        "name": "before-head",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "returncode": 0,
+        "stdout": "65155c668efaa215a2136f67617b44ed32d4c9f6\n",
+        "stderr": ""
+      },
+      {
+        "name": "before-status",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=all"
+        ],
+        "returncode": 0,
+        "stdout": "?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.job.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.launch.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.log\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.postflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.preflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.process.json\n",
+        "stderr": ""
+      },
+      {
+        "name": "fixed-tree-names",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "ls-tree",
+          "-r",
+          "--name-only",
+          "65155c668efaa215a2136f67617b44ed32d4c9f6"
+        ],
+        "returncode": 0,
+        "stdout": "[3798 fixed tree names checked; raw listing preserved in prior read-only receipt]",
+        "stderr": "",
+        "stdout_sha256": "9cb6a5679033704e45f957e13e9494225a81f87f63c11661b787721512a459f2"
+      },
+      {
+        "name": "create-one-detached-worktree",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "worktree",
+          "add",
+          "--detach",
+          "/home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1",
+          "65155c668efaa215a2136f67617b44ed32d4c9f6"
+        ],
+        "returncode": 0,
+        "stdout": "HEAD is now at 65155c6 Verify and authorize Track A 35c9 controls\n",
+        "stderr": "Preparing worktree (detached HEAD 65155c6)\n"
+      },
+      {
+        "name": "new-head",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "returncode": 0,
+        "stdout": "65155c668efaa215a2136f67617b44ed32d4c9f6\n",
+        "stderr": ""
+      },
+      {
+        "name": "new-status",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1",
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=all"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "new-detached-state",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1",
+          "symbolic-ref",
+          "-q",
+          "HEAD"
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "name": "after-head",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "returncode": 0,
+        "stdout": "65155c668efaa215a2136f67617b44ed32d4c9f6\n",
+        "stderr": ""
+      },
+      {
+        "name": "after-status",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=all"
+        ],
+        "returncode": 0,
+        "stdout": "?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.job.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.launch.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.log\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.postflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.preflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.process.json\n",
+        "stderr": ""
+      },
+      {
+        "name": "worktree-registry-after",
+        "argv": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "-c",
+          "core.autocrlf=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+          "worktree",
+          "list",
+          "--porcelain"
+        ],
+        "returncode": 0,
+        "stdout": "worktree /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1\nHEAD 65155c668efaa215a2136f67617b44ed32d4c9f6\nbranch refs/heads/experiment/20260924-v2-track-a-35c9-controls-a1\n\nworktree /home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1\nHEAD 65155c668efaa215a2136f67617b44ed32d4c9f6\ndetached\n\n",
+        "stderr": ""
+      },
+      {
+        "name": "after-ps",
+        "argv": [
+          "/usr/bin/ps",
+          "-eo",
+          "pid,ppid,pgid,sid,comm,args"
+        ],
+        "returncode": 0,
+        "stdout": "[non-workload argv omitted]",
+        "stderr": "",
+        "stdout_sha256": "5b00610e0b21e3547325a1f2a87ccb72fb9472873c5c08e53198518260911dcb"
+      },
+      {
+        "name": "after-neuron_ls",
+        "argv": [
+          "/opt/aws/neuron/bin/neuron-ls",
+          "--json-output"
+        ],
+        "returncode": 0,
+        "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+        "stderr": ""
+      },
+      {
+        "name": "after-fuser",
+        "argv": [
+          "/usr/bin/fuser",
+          "/dev/neuron0"
+        ],
+        "returncode": 1,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "creation_attempted": true,
+    "packet_staged": false,
+    "native_launched": false,
+    "cleanup_performed": false,
+    "lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held_across_creation_and_postflight": true
+    },
+    "before_job_rows": [],
+    "stops_before": [],
+    "target_parent_before": {
+      "device": 66305,
+      "inode": 295711,
+      "mode": 16872,
+      "uid": 1000,
+      "bytes": 20480,
+      "allocated_bytes": 20480,
+      "mtime_ns": 1790395624875586206,
+      "ctime_ns": 1790395624875586206
+    },
+    "original_before": {
+      "head": "65155c668efaa215a2136f67617b44ed32d4c9f6",
+      "status": "?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.job.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.launch.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.log\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.postflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.preflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.process.json\n"
+    },
+    "resources_before": {
+      "free_disk_bytes": 17296408576,
+      "available_ram_bytes": 129095434240,
+      "block_size": 4096
+    },
+    "required_precreation_disk_bytes": 17283559424,
+    "required_postcreation_disk_bytes": 17179869184,
+    "creation_started_utc": "2026-09-26T06:34:46.111937+00:00",
+    "creation_ended_utc": "2026-09-26T06:34:46.462558+00:00",
+    "created_path_exists": true,
+    "new_checkout": {
+      "path": "/home/ubuntu/trainium_k2_f0f2_trn22_evidence_20260926_r1",
+      "identity": {
+        "device": 66305,
+        "inode": 2934695,
+        "mode": 16893,
+        "uid": 1000,
+        "bytes": 4096,
+        "allocated_bytes": 4096,
+        "mtime_ns": 1790404486456147755,
+        "ctime_ns": 1790404486456147755
+      },
+      "head": "65155c668efaa215a2136f67617b44ed32d4c9f6",
+      "status": "",
+      "detached": true
+    },
+    "new_checkout_footprint": {
+      "regular_files": 3799,
+      "directories": 24,
+      "regular_logical_bytes": 86770940,
+      "allocated_bytes_files_and_directories": 95686656,
+      "git_administration_outside_target_not_included": true
+    },
+    "original_after": {
+      "head": "65155c668efaa215a2136f67617b44ed32d4c9f6",
+      "status": "?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.job.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.launch.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.log\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.postflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.preflight.json\n?? research/run-logs/fs-20260924-v2-35c9-lr015-control-trn22-r1.process.json\n"
+    },
+    "resources_after": {
+      "free_disk_bytes": 17200201728,
+      "available_ram_bytes": 129068990464,
+      "block_size": 4096
+    },
+    "stops_after": [],
+    "after_job_rows": [],
+    "status": "OWNED_CLEAN_DETACHED_SOURCE_PREPARATION_COMPLETE_NO_LAUNCH",
+    "ended_utc": "2026-09-26T06:34:46.793356+00:00",
+    "elapsed_seconds": 0.7768789440160617
+  }
+}
