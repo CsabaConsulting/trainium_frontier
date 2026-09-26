@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+## Actual warmdown.60 completion / K2 handoff —26 September18:04IST
+
+trn21 public20M=.9871495484948534, raw delta+.0001640750378635 vs batch/LR.
+1920steps, cold startup849.456400917s, excess0, charged1789.437524473s.
+39rawfiles/source/accounting/checkpoint authenticated, bundleSHA1760817a;
+ledger appended once. Unchanged selectorINSUFFICIENT (historic comparator
+roles retained), no adoption. Actualterminal12:31:22, original lock/device/
+ps idle12:32:40; trn21 is IDLE awaiting pending independent K2 review.
+Human authorizes few-minute trn21 handoff polling only, not general cadence
+change. trn22 last12:25observation stilltraining; normal check due12:45UTC.
+
 ## Latest priority / actual observation — 26 September17:56IST
 
 Poojith now puts K2 rescue native201 ahead of momentum on one host, momentum

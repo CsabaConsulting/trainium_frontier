@@ -30,6 +30,13 @@ remaining arms. After actual cold result, prepare Downloads audit handoff for
 Poojith/Claude, explicitly not upload-authorized. Earlier both-host-momentum
 order below is superseded to this extent.
 
+Latest human handoff exception: poll trn21 every few minutes until evaluation
+finishes, then dispatch K2 immediately after real idle/source/review checks,
+without waiting for25minute tick. Actual eval ended12:31:22UTC; all descendants
+and device/original lock idle12:32:40, raw archive retrieved/authenticated.
+K2 review remains pending; no fabricated PASS or duplicate host job. This
+temporary exception does not restore the old5minute controller generally.
+
 Latest scalar-arm order (26 September): after the two running warmdowns,
 run batch/LR base with MUON_MOMENTUM_WARMUP_STEPS=150, not300. This replaces
 the opposite-warmdown fallback as the next job on each host. No Recursive
