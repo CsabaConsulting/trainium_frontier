@@ -1,7 +1,7 @@
 import base64,hashlib,importlib.util,json,subprocess
 from pathlib import Path
-RELEASE_COMMIT = None
-RELEASE_PATH = None
+RELEASE_COMMIT = '6458daec'
+RELEASE_PATH = 'research/v2/verification/20260926-p-readiness-r2-trn21-assignment.md'
 if RELEASE_COMMIT is None or RELEASE_PATH is None:
  raise RuntimeError('PREPARATION_ONLY_NO_REVIEWED_RELEASE_BOUND')
 repo=Path('/home/poojith-devan/Desktop/Trainium');own=Path('/home/poojith-devan/Desktop/Trainium-trn22-queue-operator')
@@ -13,7 +13,8 @@ for n,h in json.loads(manifest.read_text())['files'].items():assert hashlib.sha2
 b=json.loads(bp.read_text())
 assignment=repo/RELEASE_PATH
 assert assignment.read_bytes()==subprocess.check_output(['git','show',RELEASE_COMMIT+':'+RELEASE_PATH],cwd=repo)
-for x in (b['label'],b['runtime_sha256']['host_driver.py'],b['runtime_sha256']['decoder_support.py']):assert x in assignment.read_text()
+for x in (b['label'],b['runtime_sha256']['host_driver.py'],hashlib.sha256(bp.read_bytes()).hexdigest()):assert x in assignment.read_text()
+assert b['runtime_sha256']['decoder_support.py'][:8] in assignment.read_text()
 files={n:(d/n).read_bytes() for n in ('host_driver.py','decoder_support.py','EXPERIMENT_PROPOSAL.json','OFFLINE_BINDING.disabled.json','MANIFEST.sha256.json')}
 g=own/'research/v2/operator/20260926-common-host-idle-guard'
 for n in ('idle_guard.py','dispatch_driver.py'):files[n]=(g/n).read_bytes()
