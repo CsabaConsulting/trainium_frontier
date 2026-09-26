@@ -1,0 +1,169 @@
+{
+  "utc": "2026-09-26T03:53:59.404382+00:00",
+  "returncode": 0,
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T03:53:58.781275+00:00",
+    "root": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+    "processes": [
+      {
+        "pid": 3177118,
+        "ppid": 1,
+        "pgid": 3177118,
+        "sid": 3177118,
+        "argv": "/usr/bin/python3 -I -B /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/dispatch_driver.py",
+        "starttime": 93521308,
+        "state": "S",
+        "cwd": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3177119,
+        "ppid": 3177118,
+        "pgid": 3177118,
+        "sid": 3177118,
+        "argv": "/usr/bin/flock -n /home/ubuntu/.cache/trainium_freshstart/device0.lock /usr/bin/python3 -I -B /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/host_driver.py",
+        "starttime": 93521310,
+        "state": "S",
+        "cwd": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3177120,
+        "ppid": 3177119,
+        "pgid": 3177118,
+        "sid": 3177118,
+        "argv": "/usr/bin/python3 -I -B /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/host_driver.py",
+        "starttime": 93521310,
+        "state": "S",
+        "cwd": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+        "environment_whitelist": {}
+      },
+      {
+        "pid": 3177150,
+        "ppid": 3177120,
+        "pgid": 3177118,
+        "sid": 3177118,
+        "argv": "/usr/bin/timeout --foreground --signal=TERM --kill-after=60s 600s /home/ubuntu/workspace/native_venv/bin/python -B /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/compare_checkpoints.py --inputs /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json --inputs-sha256 0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e",
+        "starttime": 93521388,
+        "state": "S",
+        "cwd": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+        "environment_whitelist": {
+          "OMP_NUM_THREADS": "1",
+          "TRN_EXP_LABEL": "fs-20260926-confirmed36-clean-checkpoint-trn21-r1"
+        }
+      },
+      {
+        "pid": 3177151,
+        "ppid": 3177150,
+        "pgid": 3177118,
+        "sid": 3177118,
+        "argv": "/home/ubuntu/workspace/native_venv/bin/python -B /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/compare_checkpoints.py --inputs /home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json --inputs-sha256 0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e",
+        "starttime": 93521388,
+        "state": "R",
+        "cwd": "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1",
+        "environment_whitelist": {
+          "OMP_NUM_THREADS": "1",
+          "TRN_EXP_LABEL": "fs-20260926-confirmed36-clean-checkpoint-trn21-r1"
+        }
+      }
+    ],
+    "selected_pids": [
+      3177118,
+      3177119,
+      3177120,
+      3177150,
+      3177151
+    ],
+    "files": {
+      "operator-launch.json": {
+        "text": "{\n  \"utc\": \"2026-09-26T03:53:46.621203+00:00\",\n  \"root\": \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1\",\n  \"dispatch_pid\": 3177118,\n  \"status\": \"DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING\",\n  \"no_automatic_next_job\": true\n}\n",
+        "bytes": 257,
+        "sha256": "43ee1a5c6b410c9dd63627af40e0920206703be3545cdc0dd160d888b010ec56"
+      },
+      "operator-preflight.json": {
+        "text": "{\n  \"utc\": \"2026-09-26T03:53:46.620468+00:00\",\n  \"host\": \"trn21\",\n  \"root\": \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1\",\n  \"free_bytes\": 14362181632,\n  \"projected_footprint_bytes\": 1073741824,\n  \"minimum_free_plus_footprint_bytes\": 12348030976.0,\n  \"available_ram_bytes\": 131380699136,\n  \"staged_hashes\": {\n    \"INPUTS.json\": \"0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e\",\n    \"host_driver.py\": \"9badeccbd2bb33deeb53749ac3a18afc322fba60ec38e5c100457dbc019fc3b5\",\n    \"OPERATOR_BINDING.disabled.json\": \"87279109942cbac4453d110fa102879e7d3189692f78c2013ed0cf81632699ea\",\n    \"compare_checkpoints.py\": \"65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8\",\n    \"EXPERIMENT_PROPOSAL.json\": \"fbf8af9f962e01f480f7fd723330b63cf30f0b6b9ead97d9f0593207b0094f7c\",\n    \"idle_guard.py\": \"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737\",\n    \"dispatch_driver.py\": \"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a\",\n    \"SUPERVISOR_ASSIGNMENT.md\": \"bf4a6309d93ff3c73278ecadbcf7f2d4ab785a0232eda2b2a6bc824475e944cb\"\n  },\n  \"ps_rc\": 0,\n  \"job_lines\": [],\n  \"neuron_ls\": [\n    {\n      \"instance_type\": \"trn2.3xlarge\",\n      \"instance_id\": \"i-0329acb9a6244986b\",\n      \"neuron_device\": 0,\n      \"bdf\": \"0000:33:00.0\",\n      \"cpu_affinity\": \"0-11\",\n      \"numa_node\": \"0\",\n      \"connected_to\": null,\n      \"nc_count\": 4,\n      \"logical_neuroncore_config\": 2,\n      \"memory_size\": 103079215104,\n      \"neuroncore_ids\": [\n        0,\n        1,\n        2,\n        3\n      ],\n      \"neuron_processes\": []\n    }\n  ],\n  \"fuser_rc\": 1,\n  \"fuser_stdout\": \"\",\n  \"fuser_stderr\": \"\",\n  \"retained_input_pins_verified\": 17,\n  \"previous_pids_verified_absent\": [\n    3176685,\n    3176686,\n    3176687,\n    3176720,\n    3176776\n  ],\n  \"previous_pgid_sid_descendants_absent\": true,\n  \"local_state\": {\n    \"utc\": \"2026-09-26T03:53:40.287437+00:00\",\n    \"controller_state_sha256\": \"5f5c2246da70682fb2d8e1f56c4cec746d957a011de7a1517625498dca502e87\",\n    \"launch_authorized\": false,\n    \"host_launch_allowed\": {\n      \"trn21\": true,\n      \"trn22\": false\n    },\n    \"breaker_tripped\": {\n      \"global_correctness\": false,\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"local_stops_present\": []\n  },\n  \"lock_inode\": 596823,\n  \"lock_device\": 66305,\n  \"resource_checks_under_original_exclusive_lock\": true,\n  \"assignment\": \"research/v2/verification/20260926-confirmed36-clean-checkpoint-trn21-assignment.md\",\n  \"scope\": \"One retained-checkpoint CPU helper only; no G2 rerun/native/full/eval/autonext\",\n  \"launch_guard\": \"Pinned driver reacquires same original lifetime lock and rechecks ps/neuron-ls before the sole child; retained inputs hashed before and after.\"\n}\n",
+        "bytes": 2728,
+        "sha256": "8455d4b5d340443d9c653ff00f10656e788d259d804096d56812d530110d4cfe"
+      },
+      "preflight.json": {
+        "text": "{\n  \"available_ram_bytes\": 131376009216,\n  \"free_disk_bytes\": 14362091520,\n  \"hostname\": \"ip-172-31-34-85\",\n  \"utc\": \"2026-09-26T03:53:46.741674+00:00\"\n}\n",
+        "bytes": 154,
+        "sha256": "12affd445d3e4adc2b49b9bd1546a513dc2f697f1aaa931450edeecd0aded29a"
+      },
+      "under-lock-idle.json": {
+        "text": "{\n  \"ended_utc\": \"2026-09-26T03:53:46.731738+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3177120,\n    \"fd\": 3,\n    \"inode\": 596823,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3177119,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"dbac8be46157f082e72b55759124b59f9036bbfb892ca68f3e7ff462feb06ad1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3177120,\n      3177119\n    ],\n    \"returncode\": 0,\n    \"row_count\": 252,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"18cecf6f91b17a195cff54c587e21b74e996ca3cb829e3136198b41c261e36ea\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T03:53:46.671873+00:00\",\n  \"status\": \"PASS\"\n}\n",
+        "bytes": 1418,
+        "sha256": "69b39f91a4d6de4c7c78d0973984600cf46ceb16c03c1b77ac7e3ac8c7ebadf8"
+      },
+      "launch-under-lock-idle.json": {
+        "text": "{\n  \"ended_utc\": \"2026-09-26T03:53:47.421933+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3177120,\n    \"fd\": 3,\n    \"inode\": 596823,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3177119,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"dbac8be46157f082e72b55759124b59f9036bbfb892ca68f3e7ff462feb06ad1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3177120,\n      3177119\n    ],\n    \"returncode\": 0,\n    \"row_count\": 250,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"cb89e11bbb6081e1bd333a16ab960e036f1375e507f030e8baed8e7c42627e3e\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T03:53:47.360513+00:00\",\n  \"status\": \"PASS\"\n}\n",
+        "bytes": 1418,
+        "sha256": "553e8db1ea0bb34db554b2cb2bcfeb702f408810ebf35ca3ed910b80461a8f71"
+      },
+      "launch.json": {
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"600s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"-B\",\n    \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/compare_checkpoints.py\",\n    \"--inputs\",\n    \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json\",\n    \"--inputs-sha256\",\n    \"0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e\"\n  ],\n  \"cpu_only\": true,\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"MKL_NUM_THREADS\": \"1\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"OMP_NUM_THREADS\": \"1\",\n    \"OPENBLAS_NUM_THREADS\": \"1\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONPATH\": \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TMPDIR\": \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/tmp\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-confirmed36-clean-checkpoint-trn21-r1\"\n  },\n  \"label\": \"fs-20260926-confirmed36-clean-checkpoint-trn21-r1\",\n  \"utc\": \"2026-09-26T03:53:47.425630+00:00\"\n}\n",
+        "bytes": 1537,
+        "sha256": "6e648540dc87d394da56ed6f8dbc4303cdf7e01fd6d32c8660b4775a94a546c0"
+      },
+      "process.json": {
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"600s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"-B\",\n    \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/compare_checkpoints.py\",\n    \"--inputs\",\n    \"/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json\",\n    \"--inputs-sha256\",\n    \"0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e\"\n  ],\n  \"parent_pid\": 3177120,\n  \"pid\": 3177150,\n  \"utc\": \"2026-09-26T03:53:47.429494+00:00\"\n}\n",
+        "bytes": 572,
+        "sha256": "557bcbcfa76fb4f99ce3d51e2e07a9025dc315a6290b07d17203c693b6d07cb8"
+      },
+      "dispatch.log": {
+        "text": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "checkpoint-result.json": {
+        "text": "",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "checkpoint-result.stderr": {
+        "text": "[W926 03:53:49.654636091 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n",
+        "bytes": 608,
+        "sha256": "7a9d849181e059e75c0330172ca8063b601ac16e5c056570573de6ba64ad2115"
+      },
+      "inputs-before.json": {
+        "text": "{\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/checkpoint-identity.json\": {\n    \"bytes\": 320,\n    \"sha256\": \"17174bf781279b1dc0cc6fff2778d391c052f1960ed1bdc430c180d1b447253e\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/g2.json\": {\n    \"bytes\": 15221,\n    \"sha256\": \"3b838553241458abaed25cad6e79554fb4a36b93c2ceca743f176742804d6518\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/request.json\": {\n    \"bytes\": 2142,\n    \"sha256\": \"64d0b756784eb8a8306d1fcd739c09c355d7611479f8da9f64bf2fb7ffc4eca3\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/terminal.json\": {\n    \"bytes\": 331,\n    \"sha256\": \"01f4b2c0168e2dd33e30bffd908ee7d61aaf47034c314bbdd8be68361addcefa\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/tmp/g2-2xlf5hc1/out/final.pt\": {\n    \"bytes\": 453044626,\n    \"sha256\": \"3c7efed1e053cf7607e2099d52643cb368e8a1f14aebe2a36ba3f1444b63c9c9\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/train.py\": {\n    \"bytes\": 87986,\n    \"sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/preflight_dryrun.py\": {\n    \"bytes\": 23550,\n    \"sha256\": \"6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/checkpoint-identity.json\": {\n    \"bytes\": 320,\n    \"sha256\": \"f57cb5b2157349c190eff74b32d9faed8c5dd66133eef8cc7202a2a4c91976af\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/g2.json\": {\n    \"bytes\": 17875,\n    \"sha256\": \"2b2c647ee88a9ddcad57fdacb6f667a89897ea4f1b399ff5069d9329a50c633c\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/request.json\": {\n    \"bytes\": 2716,\n    \"sha256\": \"38160400738af45274aad1c96f9a54e0c5ec1343ab9eb87f1279b46e4f5ba354\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/terminal.json\": {\n    \"bytes\": 331,\n    \"sha256\": \"aa4c769ae1ab0dae90bca6b6ff0ff557a49042a611ffab989fa20b3dcb589133\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/tmp/g2-gsoipfis/out/final.pt\": {\n    \"bytes\": 453048594,\n    \"sha256\": \"623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/train.py\": {\n    \"bytes\": 324457,\n    \"sha256\": \"36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/standard-compare-exit.json\": {\n    \"bytes\": 66,\n    \"sha256\": \"08facec4a1f1beaed069b6d7cf3b673dbf3b1f7434df426d8e8928d780704119\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/standard-compare.json\": {\n    \"bytes\": 537,\n    \"sha256\": \"c490f2ac3fe51361da4185f5ef1d3226984142404b4d7c204ab4b519563a6a02\"\n  },\n  \"/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/terminal.json\": {\n    \"bytes\": 183,\n    \"sha256\": \"ce3881db6227aeed08353d94bf6e13f8092ca23f3dd6509cd38e82f4bbd8e442\"\n  },\n  \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/prepare.py\": {\n    \"bytes\": 35467,\n    \"sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\"\n  }\n}\n",
+        "bytes": 3393,
+        "sha256": "078539e3f0789dabc7ef7dd131c62b180eb309e8a06a04c1958fbe20bd37a262"
+      }
+    },
+    "neuron_ls_rc": 0,
+    "neuron_ls": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0329acb9a6244986b",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": []
+      }
+    ],
+    "neuron_ls_stderr": "",
+    "lock": {
+      "device": 66305,
+      "inode": 596823,
+      "held": true,
+      "rows": [
+        "14: FLOCK  ADVISORY  WRITE 3177119 103:01:596823 0 EOF"
+      ]
+    },
+    "no_changes": true
+  },
+  "stdout_if_error": null
+}
