@@ -16,7 +16,7 @@ Phase1 BPB by the Sep29 18:00IST freeze; human upload by Sep30 noonIST.
   ordinary schedule, no K2/tables. Two-host public mean .986879270651192;
   gap to the approximate public target .011379270651192.
 
-## Latest measured execution — 26 September16:16IST
+## Latest measured execution — 26 September16:14IST
 
 Compactf804 failed native compilation at10:37:58UTC with zero completed steps.
 No startup/rate/net result exists; it cannot satisfy either continuation branch.

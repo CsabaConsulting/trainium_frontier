@@ -1,6 +1,6 @@
 # Current state
 
-## Latest16:16IST: compact K2 failed; use approved batch base
+## Latest16:14IST: compact K2 failed; use approved batch base
 
 Exactf804 failed native compilation10:37:58UTC before any completed step.
 Error: COMPILATION FAILED: Block1_LoopBody_1_Resume_2_14 -> Block1_LoopBody_1_10, Block1_LoopBody_1_LoopBody_2_12 -> Block1_LoopBody_1_LoopBody_2_12.
