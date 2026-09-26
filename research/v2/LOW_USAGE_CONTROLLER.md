@@ -1,11 +1,18 @@
 # Current controller contract — 26 September 2026 takeover
 
+LATEST scheduling interpretation: cold replay started first as requested;
+seed43 may start after its same-host momentum predecessor while that cold run
+continues. Both use frozen cd0c and are computationally independent. Remove
+the root-added cross-host result dependency, not any correctness/budget/lock
+or submission gate. Both results plus Claude still precede upload. Remaining
+LR.0168/control packets follow, with explicit queue predecessors; no new source.
+
 LATEST18:28IST EXECUTION STATE: the single K2 rescue has FAILED native
 compilation before step1; K2 AND TABLES ARE CLOSED FOR PHASE1. No further
 retry, helper agent or table release. Exact failure/receipt is in
 lanes/k2-outside-compile-rescue/NATIVE_FAILURE.json. trn21-finalcold is LIVE
-since18:27:15IST; trn22-muon150 stays live. Then seed43 after both required
-completions, Claude/Downloads handoff, remaining safe scalar arms. All older
+since18:27:15IST; trn22-muon150 stays live. Then seed43 after its own predecessor,
+Claude/Downloads handoff after cold, remaining safe scalar arms. All older
 pending-K2/table queue prose below is historical, not renewed authority.
 
 This is the latest direct human instruction. Conflicting older agent counts,

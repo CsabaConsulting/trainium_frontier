@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Remove artificial cross-host queue wait — 26 September18:40IST
+
+Seed43 remains same frozen cd0c/accepted command plusseed43; it now follows
+same-host momentum terminal/idle without waiting for trn21 cold result. Cold
+started first; runs are computationally independent. Actual cold+seed results
+and Claude audit still precede upload.8guard tests pass; original host guards
+unchanged. Existing LR.0168/control packets requeued with explicit predecessors.
+No host change or new launch in this scheduling amendment. Next observations
+remain trn21~13:17UTC and trn22~13:23UTC; no extra polling or new agents.
+
 ## Momentum progressing; audit exporter prepared — 26 September18:34IST
 
 Actual13:02:44UTC trn22 momentum150 step450/loss3.1986/283006tok_s,

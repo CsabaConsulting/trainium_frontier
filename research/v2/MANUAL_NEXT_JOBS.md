@@ -11,13 +11,16 @@ K2 and tables are CLOSED forPhase1; no further retry or table release.
 
 | Host | Running | Next | Following |
 |---|---|---|---|
-| trn21 | trn21-finalcold | Archive cold result and prepare Downloads/Claude audit handoff | Remaining scalar arm after final-candidate decision |
-| trn22 | momentum150 | trn22-finalseed43 after authenticated final cold | Remaining scalar arm after final-candidate decision |
+| trn21 | trn21-finalcold | trn21-lr0168 after archiving cold/audit handoff | trn21-control |
+| trn22 | momentum150 | trn22-finalseed43 | trn22-lr0168, then trn22-control |
 
 Tables' K2 prerequisite failed. All table packets remain disabled.
-Remaining LR/control packets are prepared but removed from the active queue:
-do not use old command chains. Rebind the queue and exact predecessor before use.
-There are not three unconditional ready successors per host; do not claim otherwise.
+Remaining LR/control packets are now in the active queue with explicit updated
+predecessors. Seed43 may overlap the already-started cold replay: both use exact
+cd0c bytes, and neither result depends on the other computationally. Actual
+cold and second-seed results remain required before upload, as does Claude audit.
+If momentum becomes a qualifying winner, revise unstarted confirmation work
+deliberately instead of silently changing frozen packets.
 No schedule stack: it lost. Final candidate is batch262144/LR.021/.75/momentum300
 until a measured confirmed winner supersedes it.
 
@@ -53,7 +56,8 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect tr
 python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-muon150
 ```
 
-Seed43 requires BOTH completed momentum and actual clean candidate cold result:
+Seed43 requires completed same-host momentum and fresh original-lock/machine
+checks; it does NOT wait for the other host's cold result:
 
 ```bash
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
@@ -63,6 +67,40 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn
 Seed43 uses identical clean cd0c source, warm research only. It measures seed
 variation, not a matched causal gain versus seed42. Submission retains seed42.
 If momentum wins, confirm/rebind deliberately rather than silently change packets.
+
+## Remaining LR bracket and genuine controls
+
+After cold replay is collected/authenticated and the audit handoff prepared:
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-finalcold/results-bundle.json
+```
+
+After seed43 completes and is collected/authenticated:
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-finalseed43
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-finalseed43
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-finalseed43/results-bundle.json
+```
+
+After the corresponding LR arm finishes (one block per free host):
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-lr0168
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-lr0168
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-lr0168/results-bundle.json
+```
+
+```bash
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-lr0168
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-lr0168
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-lr0168/results-bundle.json
+```
+
+LR.0168 is standalone on batch262144/.75/momentum300, not a guessed stack with
+momentum150. Controls useLR.021. All1800/fresh20M/seed42; cached research runs
+are not submission qualification. Stop command chains on any error; no retries.
 
 ## Guards and handoff
 
