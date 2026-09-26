@@ -1,0 +1,270 @@
+{
+  "proposal_id": "20260926-k2-fp32-last-layer-tables-full",
+  "status": "complete_conditional_on_k2_qualification_table_native_validity_and_actual_k2_control",
+  "owner_role": "researcher",
+  "author_session": "/root/p2_full_proposal_researcher",
+  "prepared_utc": "2026-09-26T08:23:10Z",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "proposal_template": "research/agentic/EXPERIMENT_PROPOSAL.json",
+  "arm_id": "K2-P2-FP32-last-layer-tables",
+  "kind": "table_arm",
+  "run_purpose": "quality",
+  "hypothesis": "After K2 qualifies natively, adding the fixed last-layer bigram and trigram tables with FP32 master parameters, gradients and RMS state can lower final fresh public-20M BPB enough to outweigh their startup, metadata, backward, reduction and optimizer costs within the official 1800-second budget.",
+  "single_causal_change": "Enable the reviewed fixed layer-7 A1 table package on the qualified eight-layer K2 base; retain the K2 base's batch, schedule, matrix LR, data order, seed and all other scientific settings.",
+  "mechanism_class": "quality_and_throughput_tradeoff",
+  "mechanism": "The two causal hashed memories add learned bigram/trigram value capacity. Their dedicated ordered K2 backward uses the human-decided FP32 reference. Historical BF16 A1 lost +0.007157211744374 BPB on the old six-layer stack; the proposition that this new K2/FP32/eight-layer implementation changes that tradeoff remains a hypothesis and must be judged by a new fixed-budget result.",
+  "predicted_bpb_delta": -0.001,
+  "predicted_bpb_interval": [-0.01, 0.015],
+  "prediction_interval_probability": 0.8,
+  "p_improve": 0.3,
+  "p_improve_event": "candidate minus qualified same-host K2 control public-20M BPB <= -0.0010",
+  "estimated_host_hours": 1.25,
+  "ev_per_host_hour": 0.00024,
+  "prediction_note": "Low-confidence subjective planning prior, not a fitted estimate, measurement, or gate. Host-hours cover one full run and attached evaluation after prerequisites, excluding the already-required K2 control and short native checks. EV is 0.30*abs(-0.001)/1.25. Native feasibility and even the sign of the BPB effect are unknown.",
+  "candidate_shortlist": [
+    {
+      "idea": "Fixed last-layer FP32 bigram/trigram tables on qualified K2",
+      "mechanism_class": "quality_and_throughput_tradeoff",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Selected by the controlling Final Sprint and explicit FP32 amendment; exact source, CPU evidence and the patch's one independent review already exist. One full-budget measurement resolves the current capacity-versus-cost hypothesis."
+    },
+    {
+      "idea": "Qualified K2-only full control",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Required actual comparison evidence and higher-priority K2 follow-up, not a table substitute or an assumed control."
+    },
+    {
+      "idea": "Schedule or batch stack on the K2/table base",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Deferred to the later winner-stacking stage. Unconfirmed schedule, batch and LR settings are not bundled into this arm."
+    },
+    {
+      "idea": "Profile-selected kernel work",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Lower Final Sprint priority and requires measured hotspot evidence; no additional kernel change belongs in this table-quality experiment."
+    }
+  ],
+  "selection_rationale": "One full run of the already-reviewed P2 source is the next table-quality experiment after valid K2 timing and the P2 native check. K1, bigger models, new gates and FP8 remain closed. This proposal adds no new source review or test ceremony.",
+  "cheapest_falsifier": "The existing single 45-step full-shape P2 native check must first demonstrate finite correct execution, table gradients/updates, startup/accounting, checkpoint and resource evidence. A failed native gate prevents this full run. If that check passes, the cheapest quality falsifier is this one full-budget run with a valid actual same-host K2 full control and fresh public-20M/context-1024 evaluation.",
+  "prior_result_refs": [
+    "research/v2/ledger.jsonl: fs-20260925-v2-c5c-a1-m64d128-trn21-r1-full",
+    "research/agentic/DECISION_LOG.md: 2026-09-25 A1 last-layer tables fixed-budget DISCARD",
+    "research/v2/proposals/20260926-k2-last-layer-tables/DESIGN.md",
+    "research/v2/proposals/20260926-k2-final-sprint-full/EXPERIMENT_PROPOSAL.json"
+  ],
+  "evidence": [
+    "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+    "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
+    "research/v2/lanes/k2-last-layer-tables/SPEC.md",
+    "research/v2/lanes/k2-last-layer-tables/parent.diff",
+    "research/v2/lanes/k2-last-layer-tables/cpu-result.json",
+    "research/v2/lanes/k2-last-layer-tables/review/REVIEW.md",
+    "research/v2/lanes/k2-last-layer-tables/review/independent-result.json",
+    "research/v2/proposals/20260926-k2-fp32-last-layer-tables-timing/EXPERIMENT_PROPOSAL.json",
+    "research/v2/assignments/20260926-k2-use-live-parent-control.md",
+    "research/v2/operator/20260926-k2-fp32-table-timing/PREPARED.json"
+  ],
+  "duplicate_search_terms": ["K2", "FP32 last-layer", "FP32 master", "last-layer tables", "A1", "b4728d17", "63925519"],
+  "ledger_search": {
+    "files": [
+      "research/v2/ledger.jsonl",
+      "research/experiment-log.jsonl",
+      "research/agentic/DECISION_LOG.md",
+      "research/trn2-experiment-results.md",
+      "reports/2026-09-24-frontier-research-program.md"
+    ],
+    "duplicates_found": [
+      "Historical six-layer BF16 A1 is a valid negative: 0.9986312057378084 versus 0.9914739939934344, 3051 steps. It is neither this candidate nor its control.",
+      "Earlier K2 component diagnostics include failed correctness gates. They remain failures and do not qualify the integrated 63925519 source or b4728d17 tables."
+    ],
+    "conclusion": "No completed integrated 63925519 K2 full-quality control or b4728d17 FP32 table full run was found in the inspected ledger. The new source's changed geometry/precision and human-directed eight-layer K2 base make this a distinct conditional experiment; historical table losses are retained."
+  },
+  "base": {
+    "path": "research/v2/lanes/k2-final-sprint/train.py",
+    "sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "commit": "323bd6b452af2d2385c8742b188c13abb82390cc",
+    "parent_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "native_qualified": false
+  },
+  "control": {
+    "git_commit": "323bd6b452af2d2385c8742b188c13abb82390cc",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "base_sha256_for_table_comparison": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "full_proposal": "research/v2/proposals/20260926-k2-final-sprint-full/EXPERIMENT_PROPOSAL.json",
+    "run_label": null,
+    "ledger_row": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "host": null,
+    "status": "UNBOUND_NO_ACTUAL_QUALIFIED_K2_FULL_CONTROL_YET",
+    "box_constraint": "Actual same host and qualified runtime as the table candidate; seed42, eight layers x width1024, batch131072, pack32, context1024, identical base schedule/LR and official 1800-second budget.",
+    "requirement": "Bind the actual completed, retrieved and valid K2-only full row and checkpoint. Require fresh public20M/context1024, clean source, causality/correctness, finite result and over_budget=false. Freeze this real control binding before dispatch; a forecast, timing run, e1e2-only control, historical BF16 A1, or another host's K2 row is not the table control.",
+    "selector_binding": "Unchanged decide.py requires an actual kind=control row with this K2 base SHA on the selected host. A K2 throughput-arm row against e1e2 is not automatically such a row. The Supervisor must prospectively establish the control role and bind genuine evidence; do not relabel an existing row, duplicate it under an invented label, or change its base hash to manufacture a control. If no eligible row exists, readiness remains conditional and the selector remains INSUFFICIENT.",
+    "pooling": "Use the unchanged selector's last up-to-three valid same-host controls on the exact K2 base; at least one actual eligible control is required. Record cache/startup provenance and any drift alarm.",
+    "candidate_control_flag_delta": "K2 stays ON in both. The table candidate uses --ngram-ve; the K2 control uses --no-ngram-ve. Existing OFF3 identity is the source-compatibility evidence; it is not a native result."
+  },
+  "candidate": {
+    "branch": "agent/control-plane-20260921",
+    "source": "research/v2/lanes/k2-last-layer-tables/train.py",
+    "source_commit": "18275d359c6c12205e9d5521f515e7eb88d0c59e",
+    "source_sha256": "b4728d17d082b44018290d2f465b5956f99ecbebe61da8b81508365c7dc53190",
+    "files_allowed": ["train.py"],
+    "expected_diff": "No source edit for this follow-up. Execute the exact reviewed P2 timing source for the full official budget.",
+    "run_label_template": "fs-20260926-k2-fp32-tables-full-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --k2-embedding",
+    "launch_command_sha256": "7da998b8ab078c2f6fecd1a69135913a2b6d592fb6fc5f297044f3dd2359194d",
+    "launch_command_hash_encoding": "SHA256 of the exact UTF-8 launch_command string without a trailing newline",
+    "argv": ["--n-embd", "1024", "--ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--k2-embedding"],
+    "short_run_difference": "Remove only --num-steps 45 from the frozen P2 timing launch_command. Do not add schedule/batch/LR flags, alter source, or inherit a short-run NUM_STEPS override.",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "legal_shape": "Full chip, LNC2, four ranks, eight layers x width1024, batch131072, pack32, context1024",
+    "submission_authorized": false
+  },
+  "host_alternatives": [
+    {"host": "trn21", "label": "fs-20260926-k2-fp32-tables-full-trn21-r1"},
+    {"host": "trn22", "label": "fs-20260926-k2-fp32-tables-full-trn22-r1"}
+  ],
+  "dispatch": {
+    "selected_host": null,
+    "selected_label": null,
+    "launch_authorized": false,
+    "operator": "Existing sole Operator only",
+    "sequence": "Qualified K2 native result, valid actual K2 full control and successful P2 short native check precede the first table full run. Select one eligible host alternative; these alternatives do not authorize two concurrent table full runs or a launcher.",
+    "replicate": "An eligible other-host replicate follows the unchanged selector and needs its own actual same-host K2 control and fresh machine admission; no favorable-seed selection.",
+    "binding": "Operator records selected host, unused exact label, proposal commit/hash, source/hash, control row and complete environment/argv before launch. Reuse proven full-run guardian/harness mechanics; this proposal creates no queue entry, release file or active launcher."
+  },
+  "precision_contract": {
+    "reference": "F.embedding(fp32_master_table, rows).to(torch.bfloat16)",
+    "tables": "Two zero-initialized FP32 Parameters[524288,128], b7/t7 at absolute layer7 only; use the reviewed fixed signed-int32 hash formula and padding8192.",
+    "forward": "Gather from FP32 masters before converting only gathered activations to BF16. Never cast the whole table to BF16 before lookup.",
+    "gradients": "Ordered per-occurrence FP32 accumulation of BF16 tangents; FP32 Parameter.grad, cross-microstep accumulation, distributed AVG and optimizer input. Do not substitute the historical BF16 collision-rounding oracle.",
+    "rms": "FP32 master/state/update; beta1=0, beta2=0.999, epsilon1e-10, weight_decay0, bias correction and no_lr_decay, LR=0.3*(1024/768)^(-0.5)=0.2598076211353316.",
+    "ownership_and_clip": "Tables are excluded from packed ownership/all-gather and receive one replicated RMS update per rank after AVG and joint table norm1 clipping. Ordinary parameters, projections and gates retain their separate main norm1 clip and original optimizer behavior.",
+    "checkpoint_and_eval": "Production model-only checkpoint persists FP32 tables and the config flag; ordinary load_for_eval reconstructs the trained model and strict state. No evaluator adapter, optimizer resume, alternate model, validation training, tokenizer/data/scoring change or external weights."
+  },
+  "trainium_feasibility": {
+    "world_size": 4,
+    "lnc": 2,
+    "table_geometry": "V524288/T32768/C128, 4096 runtime row groups, two64-feature owners, fresh metadata per table/call",
+    "ownership": "Reviewed FP32 table groups remain replicated; ordinary owned AdamW/Muon routing is unchanged.",
+    "device_memory_increment_bytes_per_rank": 1610612736,
+    "memory_limits": "This is 512MiB weights + 512MiB dense gradients + 512MiB RMS state per rank, before metadata, activations, update temporaries, projections and gates. Native peak HBM fit is unproved until the short check; no full-size CPU test is added.",
+    "compile_and_sbuf": "Runtime row traversal avoids 4096 Python-unrolled bodies and uses bounded named scratch. Native dynamic row/DMA lowering, allocation/liveness, stable sort/searchsorted, FP32 collectives/RMS and compile duration remain unresolved by CPU interpretation. A source/scratch-size estimate is not a native fit pass.",
+    "whole_step_cost": "Include both metadata producers, both table backwards, dense FP32 AVG/clipping/RMS, cache refresh and normal data/control work. Checkpoint/save/exit time stays inside official accounting."
+  },
+  "evidence_hashes": {
+    "spec_sha256": "b5547916655fe0b5643cf51069e3e4ecd6f0c648f715ea356ad832c2761e5a3e",
+    "parent_diff_sha256": "7b5bff632a616b84ae94f3d9fe17b1b5fc88802485bfdab1728300b9d8e3afea",
+    "author_cpu_receipt_sha256": "4d50830392a7735298e08438542736a191f01ca0d4cc795a08f0c7432bbf11a1",
+    "independent_review_sha256": "c41e16d647658817b2456847d9e8221aeb1f8ff739f7d856577e406d99c5e435",
+    "independent_result_sha256": "3bde62971fa3c8d25a874050bf323a01d4ce731ebae6933f71be9fd689958b41",
+    "independent_review_archive_commit": "5c33718006af539c2d69147f2322fcfb4702c5ae",
+    "p2_timing_proposal_sha256": "86c6114c5b18c189b140d39a21231e8e4bda123329e077bc5937fa7b8c2e6e40",
+    "k2_full_proposal_sha256": "8fc0371221408106e89d5ea8bf99627d667a7f3bac8eafc59351aa66b4a6638f",
+    "unchanged_selector_sha256": "fa4a3d3dd3697093f93ac73b5c95335a7c1efa12534589ed3c3e2b64940ca0ac"
+  },
+  "gates": {
+    "cpu_exactness_author": "PASS in frozen author receipt: actual tiny producer/consumer, FP32 collisions and microsteps, hashes, RMS and replicated-routing checks; native_executed=false.",
+    "flag_off_three_step_identity_author": "BIT_IDENTICAL against exact K2 parent; author ON2 ordinary-reference/checkpoint and same-shape causality evidence retained.",
+    "independent_review": "Existing single review c41e16d6: PASS_FOR_SHORT_NATIVE_CHECK only. Reviewer independently executed extracted hash/consumer/FP32-gradient/RMS checks. No second review or repeated full-size CPU ceremony for this run-length-only follow-up.",
+    "review_limitations": "Review attaches to the frozen diff; reviewer did not receive/re-hash the full candidate or rerun a full model. Operator must bind exact full source b4728d17. Native lowering, device arithmetic, actual collectives, memory and timing are not established by the review.",
+    "preserved_diagnostics": "Optional cross-shape prefix test failed its stated tolerance at max_abs=7.62939453125e-6; same-shape author causality/batch tests passed by bytes. Do not erase the failed diagnostic or claim native causality. Common parameter initialization passed; whole-program ON/OFF RNG-state identity was not proved, so preserve seed/data-stream comparability.",
+    "k2_native_rate_ge_1_03_passed": false,
+    "k2_native_prerequisite": "Retrieved valid integrated K2 native whole-step rate at least1.03x its same-host preselected control, exact source63925519 and matched shape/runtime/seed. Current amendment permits the actual e1e2/trn22 control's precommitted35*131072/(t44-t9) window; do not resurrect the cancelled extra OFF45 job or choose another window after seeing results. All finite/native/source/startup/accounting requirements remain.",
+    "p2_short_native_passed": false,
+    "p2_short_native_prerequisite": "One existing-proposal P2 45-step native check on exact b4728d17: finite complete steps, supported/correct execution, finite nonzero table gradients and updates, correct checkpoint/causality, actual startup/charge, trustworthy whole-step observations and measured resource evidence. Full-run correctness remains required separately.",
+    "p2_additional_speedup_required": false,
+    "p2_speed_rule": "The >=3% rate gate belongs to K2 qualification only. Tables may cost throughput; their decision is final fixed-budget public20M BPB.",
+    "actual_same_host_k2_full_control_bound": false,
+    "fresh_machine_preflight_passed": false,
+    "full_source_argv_environment_binding_passed": false,
+    "full_checkpoint_and_fresh20m_passed": false,
+    "human_run_approval": "Covered conditionally by Poojith's Final Sprint standing development authorization; this does not assert any pending gate has passed.",
+    "submission_approval": false
+  },
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "short_step_override": "NEURON_COMPETITION_R1_NUM_STEPS must be absent; the reviewed source's1000000 step ceiling leaves the official budget in control.",
+    "binding_requirement": "Archive the actual allowlisted effective worker environment and exact runtime/package pins. Other experimental environment overrides must not alter this source/argv contract; no secrets in receipts."
+  },
+  "resource_admission": {
+    "fresh_measured_resources_required": true,
+    "runtime_floor_bytes": 11274289152,
+    "existing_full_run_prospective_footprint_bytes": 3221225472,
+    "additional_table_checkpoint_bytes": 536870912,
+    "minimum_projected_new_footprint_bytes": 3758096384,
+    "minimum_initial_floor_bytes": 15032385536,
+    "memory_available_minimum_bytes": 68719476736,
+    "basis": "Carry the Operator's prepared P2 timing floors forward: 10.5GiB runtime + 3GiB existing full-run footprint + 512MiB additional table checkpoint = 14GiB initial, with64GiB host MemAvailable. These supersede the timing proposal's unaugmented initial-floor field, not the existing runtime floor.",
+    "full_run_adjustment": "Operator must account for actual prospective full-run checkpoint, cache/log growth, fresh evaluation artifacts and any materialization/copy costs. Require at least max(15032385536,11274289152+measured_or_conservatively_projected_new_footprint) free bytes before staging; raise the reserve if the short run exposes larger needs. No admission merely because the timing floor once passed.",
+    "preservation": "Already-existing K2 control, K2 timing and P2 short checkpoints/caches remain allocated and protected in fresh measured free space. Do not overwrite the short checkpoint, assume reclamation, lower a floor, delete unscored/protected artifacts or infer cleanup/AWS authority. Cache reuse is not guaranteed footprint elimination.",
+    "failed_admission": "Retain the measured deficit and skip this launch. No host or resource pass is claimed by this local proposal."
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "source_checkpoint_reserve_seconds": 15,
+    "source_startup_launch_margin_seconds": 30,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "existing_timeout_term_grace_seconds": 60,
+    "official_budget": "Use unchanged proven full-run harness/guardian and prepare accounting, including first-five startup boundaries, capped allowance, source predictor, checkpoint reserve and through-exit charge. Outer timeouts are containment ceilings, not permission to exceed1800 charged seconds; preserve all existing full-run guards.",
+    "startup": "Record uncapped actual fifth boundary, capped allowance, startup excess and source-native estimates distinctly. Actual startup above900 seconds is charged against1800; retain the source's existing30-second predictor margin. Around870 seconds is a planning warning, not an invented exemption or altered allowance.",
+    "steps": "Report steps and tokens. Below60% of the same-host control, timing spikes or stalls trigger diagnosis; step count is not an adoption gate. A crash, truncated run or over-budget result remains invalid.",
+    "cache_provenance": "Research full run may reuse only the selected host's authenticated P2 short-run private six-cache namespace after that job exits; record the actual owner label/paths and observed hits. The namespace must be the P2 source's cache, not an assumed equivalent K2 cache. Protect existing artifacts; record fresh evaluator cache provenance independently.",
+    "cold_startup": "Retain the P2 short check's genuine cold-start measurement and all charged excess. A warm full run does not certify cold final quality. Before submission eligibility, measure a genuinely cold full candidate replay and fresh20M with the same official accounting, then obtain the required Claude audit and human upload decision."
+  },
+  "machine_protocol": {
+    "reference": "research/experiment-protocol.md and workflow/SINGLE_LAUNCHER_2026-09-26.md",
+    "lock": "Sole Operator holds the same original exclusive nonblocking /home/ubuntu/.cache/trainium_freshstart/device0.lock through the entire training, attached evaluation and owned-child lifetime; never replace its inode or use a per-run alternative.",
+    "preflight": "Fresh successful ps AND neuron-ls under the lock, supplemental fuser idle, STOP/authority checks, clean exact source/commit/proposal/argv/runtime binding, unused label, measured disk and RAM. Preserve active jobs; busy, ambiguous, malformed or missing evidence is no launch.",
+    "completion": "Confirm training descendants have exited before attached fresh evaluation while retaining the lock. Retrieve complete artifacts and prove owned-child and device/process quiescence before safe release. Follow the existing guardian's release policy; no other launcher or unrelated process termination."
+  },
+  "evaluation": {
+    "mode": "Fresh-process unchanged prepare.py eval-public through the existing full-run rehearsal/harness, after training exit, using this run's actual produced checkpoint and exact b4728d17 train.py",
+    "tokens": 20971520,
+    "context": 1024,
+    "expected_public_bytes": 83462186,
+    "checkpoint_required": true,
+    "selection_metric": "final public20M BPB only",
+    "public2m": "Screening evidence only, never a replacement for this20M decision",
+    "private_or_external_data": false,
+    "eval_path_change": false
+  },
+  "success_criteria": {
+    "quality": "Use unchanged workflow/tools/decide.py rules v2-2026-09-25-general-fixed-budget on valid genuine same-host K2 controls. One-host delta<=-0.0006 nominates; delta>=+0.0005 discards; an ambiguous table_arm receives the existing replicate treatment. Confirmed adoption needs both host deltas negative, mean<=-0.0010 and disagreement<=0.0015. Preserve big-win HOLD for delta<=-0.010 or public20M<0.975; no threshold changes or invented control rows.",
+    "throughput": "No minimum P2-over-K2 speedup. Record actual complete-step rate, training work, cold/warm startup and costs so the final fixed-budget BPB comparison is interpretable.",
+    "correctness": "No crash, NaN, causality failure, dirty executed tree, source/argv mismatch, missing/unloadable checkpoint, missing evidence, failed resource gate or official budget violation. Valid fresh20M and complete retrieved logs are required before result use.",
+    "if_positive": "Follow unchanged selector/replication requirements on actual K2 controls. Stack schedule/batch/LR only after independently confirmed winners and a separately declared stack experiment; this arm does not pre-adopt them.",
+    "if_negative": "Preserve the full result and failed/negative evidence, apply the unchanged verdict and close or replicate only as that verdict directs. Do not call slower or failed execution a promising result.",
+    "submission": "Separate human-only upload after the controlling confirmed>=0.003 official-improvement target (next<=0.9848), genuinely cold replay/fresh20M and Claude audit. Public planning offsets are estimates, quota is unconfirmed, and this proposal grants no submission permission."
+  },
+  "abort_conditions": [
+    "Any required K2 qualification, P2 native correctness/startup/accounting/resource or actual-control binding condition remains failed, missing or ambiguous at dispatch.",
+    "Original lifetime-lock, idle, STOP, source/argv/environment, clean-tree or fresh resource preflight fails.",
+    "Native compile/runtime failure, nonfinite values, causality failure, checkpoint/load failure or official charged-budget violation.",
+    "Required logs, timings, checkpoint identity, fresh20M result or quiescence evidence cannot be retrieved/authenticated.",
+    "The selected run label was already consumed or the proposed source/flags cease to match the frozen single-factor experiment."
+  ],
+  "retry_policy": "Retain the actual failed command/error and diagnosis. At most one diagnosed new-label repair/retry under the controlling policy, then park; do not relaunch a consumed label. A new source repair follows its applicable patch checks, while the unchanged run-length-only follow-up needs no second review or repeated CPU ceremony.",
+  "required_artifacts": [
+    "Proposal and its committed hash; selected host, label, exact source commit/SHA and launch string/argv hash",
+    "Actual K2 timing qualification, P2 short-native receipt and genuine same-host K2 full-control row/checkpoint binding",
+    "Full effective allowlisted environment, runtime/package pins, original-lock and fresh idle/STOP/resource/source preflight evidence",
+    "Training log, sequential step observations, finite table-update evidence available from the native check, actual startup/cap/excess and through-exit charged time",
+    "Checkpoint path/size/stable SHA and load/causality status; retained P2 short/control checkpoints and cache provenance",
+    "Fresh public20M/context1024 eval command/log/result and token/byte counts, with no score inferred from a partial evaluation",
+    "Terminal/quiescence receipts, durable parsed record, same-host comparison and unchanged selector verdict, including failed results"
+  ],
+  "role_separation": "This Researcher prepares only this proposal and does not modify scientific source, verify its own proposal, operate hosts or launch. Reuse the completed independent patch review; the existing sole Operator executes mechanical admitted work, and the Analyst compares retrieved results. No shared queue/state/ledger file is modified by this proposal task.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization and explicit FP32 table amendment",
+  "submission_authorized": false,
+  "verdict": null
+}
