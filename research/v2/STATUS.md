@@ -1,5 +1,18 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 11:45 IST
+
+Research resumed on explicit user instruction; best confirmed0.9883066129
+public, clean cold0.9883890652 unchanged. No successor native job launched.
+Fresh transport review REFUSE reproduced a local file-swap copy-exclusion
+race, not a host failure. Narrow repair active; original failure retained.
+Sole Operator gathers installed package/project/anchor facts read-only while
+review/repair proceeds. Original05:58UTC tooling timebox remains06:28UTC.
+Selected explicit trn22 K2 F0/F2 evidence proposal09549851, not a gate PASS;
+all28 real routes and numerical/resource limits retained. Separate binding
+builder attempt failed agent-capacity limit; do not count it as active.
+No upload readiness, broader cleanup authority or six-ready queue claim.
+
 Cleanup receipt06a6972c/canonicalc282f927 is imported and authenticated by33
 root checks. Three exact hashes/identities before unlink, measured disk delta,
 original lock and pre/post idle checks all match the narrow human approval.

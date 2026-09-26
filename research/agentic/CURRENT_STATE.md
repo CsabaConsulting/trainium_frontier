@@ -1,5 +1,39 @@
 # Current state
 
+## 06:15 UTC / 11:45 IST: research resumed; transport refusal preserved
+
+Poojith explicitly resumed all-in BPB research. Confirmed mean remains
+0.9883066129; exact clean cold result0.9883890652, not a new official score.
+Neither successor has launched. Both hosts' last terminal observations were
+idle; trn22's15-minute idle incident has already been reported.
+
+Original-trn21 transport3d902184/canonical1a9cc987 was independently REFUSED:
+a pathname replacement between hashing and opening emitted32 synthetic
+prohibited bytes before RETRIEVAL_FILE_CHANGED:artifact.log. Normal/-O own
+tests reproduce it; no real checkpoint transfer or host action occurred.
+Report052959d5 is retained in verification/20260926-clean-native-transport-
+fresh/. Separate Implementer is repairing only this transport fault. The
+05:58UTC preparation timebox is not reset; plan manual fallback by06:28 if
+tooling still blocks an otherwise-qualified run. Scientific/lock/resource
+and result-retrieval checks remain mandatory.
+
+Read-only trn21 runtime608f2dd0 authenticated41 structured root checks:
+eight executable facts and17 input pins match, historical disk14,746,206,208B
+and RAM131,413,176,320B pass. Its ps receipt stores digest/parsed outcome,
+not raw census; a preliminary audit KeyError was corrected without claiming
+an independent raw ps reparse. Installed package metadata still pending.
+Sole Operator is gathering that and trn22 K2 project/runtime/source-anchor
+facts read-only; no source mutation, staging, cleanup or launch assigned.
+
+Selected separate Researcher proposald6ded1f9/canonical09549851 for local
+trn22 K2 partial F0/F2 preparation. Preserve28 actual observations, all exact
+fixtures/domain/limits and old unconditional bypass NOT_ESTABLISHED. Fresh
+review must distinguish supported-path defects from a substituted trusted
+SDK; CPU mocks are never native evidence. This is not a correctness waiver,
+kernel qualification or launch release. A separate Implementer attempt hit
+the agent thread limit; no K2 binding builder is falsely claimed active.
+Native clean consistency and human Claude audit still block submission.
+
 ## 06:00 UTC / 11:30 IST: clean cold score accepted; exact cleanup approved/completed
 
 Clean e1e2 full cold replay completed3628steps, actual fifth859.473523823s,
