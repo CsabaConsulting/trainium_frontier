@@ -23,7 +23,7 @@ class BindingTests(unittest.TestCase):
         for commit,path,sha in [(B['source_commit'],B['source_git_path'],B['source_sha256']),(B['harness_source']['commit'],B['harness_source']['git_path'],B['harness_sha256'])]:
             raw=subprocess.check_output(['git','show',commit+':'+path],cwd=ROOT)
             self.assertEqual(hashlib.sha256(raw).hexdigest(),sha)
-        for path,sha in [('host_driver.py',B['driver_sha256']),('package/launch-command.txt',B['package_launch_sha256']),('package/provenance.json',B['package_provenance_sha256'])]:
+        for path,sha in [('host_driver.py',B['driver_sha256']),('lifetime_guard.py',B['lifetime_guard_sha256']),('package/launch-command.txt',B['package_launch_sha256']),('package/provenance.json',B['package_provenance_sha256'])]:
             self.assertEqual(hashlib.sha256((HERE/path).read_bytes()).hexdigest(),sha)
         for name,key in [('idle_guard.py','idle_guard_sha256'),('dispatch_driver.py','dispatch_driver_sha256')]:
             self.assertEqual(hashlib.sha256((ROOT/'research/v2/operator/20260926-common-host-idle-guard'/name).read_bytes()).hexdigest(),B[key])
@@ -53,11 +53,16 @@ class BindingTests(unittest.TestCase):
 
     def test_shared_guard_and_inherited_fd_control_flow(self):
         phase=next(n for n in TREE.body if isinstance(n,ast.FunctionDef) and n.name=='phase')
-        calls=[n for n in ast.walk(phase) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='call']
+        calls=[n for n in ast.walk(phase) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='run']
         self.assertEqual(len(calls),1)
-        self.assertIn('(lock_fd,)',[ast.unparse(k.value) for k in calls[0].keywords if k.arg=='pass_fds'])
+        self.assertEqual(ast.unparse(calls[0].func),'guardian.run')
+        lifetime=ast.parse((HERE/'lifetime_guard.py').read_text())
+        spawns=[n for n in ast.walk(lifetime) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='Popen']
+        self.assertEqual(len(spawns),1)
+        self.assertIn('(self.fd,)',[ast.unparse(k.value) for k in spawns[0].keywords if k.arg=='pass_fds'])
         guards=[n for n in ast.walk(TREE) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='require_idle_under_inherited_lock']
-        self.assertEqual(len(guards),2)
+        self.assertEqual(len(guards),3)
+        guards=sorted(guards,key=lambda n:n.lineno)[1:]  # Earlier one is final postflight's body.
         phasecalls=[n for n in ast.walk(TREE) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='phase']
         self.assertLess(guards[0].lineno,phasecalls[0].lineno)
         self.assertLess(guards[1].lineno,phasecalls[1].lineno)
@@ -77,15 +82,23 @@ class BindingTests(unittest.TestCase):
             def glob(self,pattern):return []
             def is_dir(self):return True
         pins={B['root']+'/package/train.py':B['source_sha256'],B['root']+'/package/launch-command.txt':B['package_launch_sha256'],B['root']+'/package/provenance.json':B['package_provenance_sha256'],B['prepare_path']:B['prepare_sha256'],B['harness_path']:B['harness_sha256']}
-        for bad in (None,'optimized','host','STOP','disk','source','launch','provenance','prepare','harness','sandbox','url'):
+        for bad in (None,'optimized','host','STOP','disk','disk11','disk13.49','source','launch','provenance','prepare','harness','sandbox','url'):
             env=copy.deepcopy(B['training_environment'])
             if bad=='url':env['NEURON_COMPILE_CACHE_URL']='/wrong'
             mapping={'source':B['root']+'/package/train.py','launch':B['root']+'/package/launch-command.txt','provenance':B['root']+'/package/provenance.json','prepare':B['prepare_path'],'harness':B['harness_path']}
-            ns=dict(ROOT=FakePath(B['root']),PREP=FakePath(B['prepare_path']),HARNESS=FakePath(B['harness_path']),SOURCE_SHA=B['source_sha256'],PREP_SHA=B['prepare_sha256'],HARNESS_SHA=B['harness_sha256'],TRAIN_ENV=env,Path=FakePath,sys=SimpleNamespace(flags=SimpleNamespace(optimize=int(bad=='optimized'))),socket=SimpleNamespace(gethostname=lambda:'bad' if bad=='host' else B['expected_hostname']),sha=lambda path:'bad' if str(path)==mapping.get(bad) else pins[str(path)],os=SimpleNamespace(path=SimpleNamespace(lexists=lambda path:(bad=='STOP' and str(path).endswith('/STOP')) or (bad=='sandbox' and str(path)==B['root']+'/train')),statvfs=lambda path:SimpleNamespace(f_bavail=1 if bad=='disk' else 20*1024**3,f_frsize=1)))
+            free={'disk':1,'disk11':11*1024**3,'disk13.49':13.49*1024**3}.get(bad,13.5*1024**3)
+            ns=dict(ROOT=FakePath(B['root']),PREP=FakePath(B['prepare_path']),HARNESS=FakePath(B['harness_path']),SOURCE_SHA=B['source_sha256'],PREP_SHA=B['prepare_sha256'],HARNESS_SHA=B['harness_sha256'],TRAIN_ENV=env,Path=FakePath,sys=SimpleNamespace(flags=SimpleNamespace(optimize=int(bad=='optimized'))),socket=SimpleNamespace(gethostname=lambda:'bad' if bad=='host' else B['expected_hostname']),sha=lambda path:'bad' if str(path)==mapping.get(bad) else pins[str(path)],os=SimpleNamespace(path=SimpleNamespace(lexists=lambda path:(bad=='STOP' and str(path).endswith('/STOP')) or (bad=='sandbox' and str(path)==B['root']+'/train')),statvfs=lambda path:SimpleNamespace(f_bavail=free,f_frsize=1)))
             exec(code,ns)
             if bad is None:ns['preflight'](env)
             else:
                 with self.assertRaises((AssertionError,RuntimeError),msg=bad):ns['preflight'](env)
+        bad=None
+        ns['TRAIN_ENV']={}
+        env=copy.deepcopy(B['evaluation_environment'])
+        for free in (10.5*1024**3,11*1024**3):
+            ns['preflight'](env)
+        free=10.49*1024**3
+        with self.assertRaises(AssertionError):ns['preflight'](env)
 
     def test_exact_harness_creates_empty_caches_before_child_and_accounts_exit(self):
         raw=subprocess.check_output(['git','show',B['harness_source']['commit']+':'+B['harness_source']['git_path']],cwd=ROOT).decode()
@@ -116,7 +129,13 @@ class BindingTests(unittest.TestCase):
         expected=parent.decode()
         for old,new in derivation['replacements']:
             self.assertIn(old,expected);expected=expected.replace(old,new)
-        self.assertEqual(expected,SOURCE)
+        baseline=subprocess.check_output(['git','show','3378ac0181f77610ae24d69281c5768f00b589e6:'+str((HERE/'host_driver.py').relative_to(ROOT))],cwd=ROOT).decode()
+        self.assertEqual(expected,baseline)  # Historical four-literal derivation remains auditable.
+        self.assertEqual(B['mechanics_revision']['baseline_driver_sha256'],hashlib.sha256(baseline.encode()).hexdigest())
+        self.assertIn("(66305,832589)",SOURCE)
+        self.assertIn('guardian.finish(postflight)',SOURCE)
+        self.assertEqual(B['resource_gates']['final_training_disk_floor_gib'],13.5)
+        self.assertEqual(B['resource_gates']['pre_eval_disk_floor_gib'],10.5)
         self.assertEqual(B['native_resolved_training_command'],proposal['argv'])
         self.assertEqual(B['native_resolved_training_command'][1:],B['training_command'][1:])
         self.assertEqual(B['native_resolved_training_command'][0],B['training_environment']['PATH'].split(':')[0]+'/torchrun')

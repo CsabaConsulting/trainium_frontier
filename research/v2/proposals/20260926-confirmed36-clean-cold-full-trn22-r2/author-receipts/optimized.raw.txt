@@ -1,0 +1,171 @@
+AUTHOR_CPU_ARTIFACTS=research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized
+test_00_original_timeout_defect (__main__.LifetimeTests.test_00_original_timeout_defect) ... flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/old-timeout/device0.lock: No such file or directory
+FAIL
+test_driver_exception (__main__.LifetimeTests.test_driver_exception) ... FAIL
+test_eval_failure (__main__.LifetimeTests.test_eval_failure) ... FAIL
+test_failed_audit_write_retains_lock_after_cleanup (__main__.LifetimeTests.test_failed_audit_write_retains_lock_after_cleanup) ... FAIL
+test_harness_crash_new_session_grandchild (__main__.LifetimeTests.test_harness_crash_new_session_grandchild) ... FAIL
+test_normal_train_then_eval (__main__.LifetimeTests.test_normal_train_then_eval) ... FAIL
+test_postflight_failure_retains_lock (__main__.LifetimeTests.test_postflight_failure_retains_lock) ... FAIL
+test_signal_new_session_grandchild (__main__.LifetimeTests.test_signal_new_session_grandchild) ... FAIL
+test_timeout_new_session_grandchild (__main__.LifetimeTests.test_timeout_new_session_grandchild) ... FAIL
+test_train_failure (__main__.LifetimeTests.test_train_failure) ... FAIL
+test_unknown_quiescence_retains_lock (__main__.LifetimeTests.test_unknown_quiescence_retains_lock) ... FAIL
+test_wrong_original_inode_refuses (__main__.LifetimeTests.test_wrong_original_inode_refuses) ... FAIL
+
+======================================================================
+FAIL: test_00_original_timeout_defect (__main__.LifetimeTests.test_00_original_timeout_defect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 129, in test_00_original_timeout_defect
+    self.assertEqual(process.wait(timeout=3),124)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 124
+
+======================================================================
+FAIL: test_driver_exception (__main__.LifetimeTests.test_driver_exception)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 160, in test_driver_exception
+    def test_driver_exception(self): self.run_case('driver-exception',1)
+                                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 1 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/driver-exception/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_eval_failure (__main__.LifetimeTests.test_eval_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 162, in test_eval_failure
+    def test_eval_failure(self): self.run_case('eval-fail',9)
+                                 ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 9 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/eval-fail/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_failed_audit_write_retains_lock_after_cleanup (__main__.LifetimeTests.test_failed_audit_write_retains_lock_after_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 165, in test_failed_audit_write_retains_lock_after_cleanup
+    def test_failed_audit_write_retains_lock_after_cleanup(self): self.run_case('audit-fail',137,parked=True)
+                                                                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 137 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/audit-fail/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_harness_crash_new_session_grandchild (__main__.LifetimeTests.test_harness_crash_new_session_grandchild)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 158, in test_harness_crash_new_session_grandchild
+    def test_harness_crash_new_session_grandchild(self): self.run_case('harness-crash',137)
+                                                         ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 137 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/harness-crash/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_normal_train_then_eval (__main__.LifetimeTests.test_normal_train_then_eval)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 150, in test_normal_train_then_eval
+    def test_normal_train_then_eval(self): self.run_case('normal',0)
+                                           ~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 0 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/normal/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_postflight_failure_retains_lock (__main__.LifetimeTests.test_postflight_failure_retains_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 163, in test_postflight_failure_retains_lock
+    def test_postflight_failure_retains_lock(self): self.run_case('postflight-fail',137,parked=True)
+                                                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 137 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/postflight-fail/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_signal_new_session_grandchild (__main__.LifetimeTests.test_signal_new_session_grandchild)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 159, in test_signal_new_session_grandchild
+    def test_signal_new_session_grandchild(self): self.run_case('signal',143)
+                                                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 143 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/signal/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_timeout_new_session_grandchild (__main__.LifetimeTests.test_timeout_new_session_grandchild)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 154, in test_timeout_new_session_grandchild
+    self.run_case('timeout',124)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 124 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/timeout/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_train_failure (__main__.LifetimeTests.test_train_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 161, in test_train_failure
+    def test_train_failure(self): self.run_case('train-fail',7)
+                                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 7 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/train-fail/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_unknown_quiescence_retains_lock (__main__.LifetimeTests.test_unknown_quiescence_retains_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 164, in test_unknown_quiescence_retains_lock
+    def test_unknown_quiescence_retains_lock(self): self.run_case('quiescence-unknown',137,parked=True)
+                                                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 137 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/quiescence-unknown/device0.lock: No such file or directory
+
+
+======================================================================
+FAIL: test_wrong_original_inode_refuses (__main__.LifetimeTests.test_wrong_original_inode_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 166, in test_wrong_original_inode_refuses
+    def test_wrong_original_inode_refuses(self): self.run_case('wrong-inode',1)
+                                                 ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 88, in run_case
+    self.assertEqual(result, expected, (directory/'outer.log').read_text())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 66 != 1 : flock: cannot open lock file research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized/wrong-inode/device0.lock: No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.151s
+
+FAILED (failures=12)

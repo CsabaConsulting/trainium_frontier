@@ -1,6 +1,6 @@
 {
-  "schema": "guarded-confirmed36-clean-true-cold-full-v1",
-  "status": "DISABLED_PENDING_ACTUAL_COLD_FIVE_ACCEPTANCE_MECHANICS_AND_SCOPED_RELEASE",
+  "schema": "guarded-confirmed36-clean-true-cold-full-v2",
+  "status": "DISABLED_PENDING_FRESH_LIFETIME_REVIEW_COLD_FIVE_ACCEPTANCE_AND_SCOPED_RELEASE",
   "stage_authorized": false,
   "launch_authorized": false,
   "label": "fs-20260926-confirmed36-clean-coldfull-trn22-r2",
@@ -103,7 +103,8 @@
     "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/metrics-eval"
   },
   "driver_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/host_driver.py",
-  "driver_sha256": "ee5bc9f7a984c77b2c489eb5f361be37949de29f7b48637c58eb3a384c27dd90",
+  "driver_sha256": "23c8ad2f6037a6f479e0049473686146bc249b1edf535427725e107da1ac5061",
+  "lifetime_guard_sha256": "e461ec5c76c784fd51471c9e8c268cdde42fe1def68b31bfc9524480f980c312",
   "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
   "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
   "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
@@ -153,7 +154,7 @@
     "operator_release": "NONE",
     "human_submission": "Still required; Claude compliance audit via Poojith remains"
   },
-  "guard_review": "Unchanged guard/dispatcher; mechanical root/label/source/provenance pins on existing disabled cold-full control-plane body. New exact binding requires independent acceptance.",
+  "guard_review": "Unchanged idle guard/dispatcher. Fixed-job subreaper/pidfd lifetime repair outside protected harness/science requires fresh independent fault verification; no authority granted.",
   "no_auto_next_job": true,
   "old_queue": "PAUSED_AND_EXITED; no re-arm",
   "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
@@ -230,6 +231,8 @@
       "inode": 832589
     },
     "disk_floor_gib": 10.5,
+    "final_training_disk_floor_gib": 13.5,
+    "pre_eval_disk_floor_gib": 10.5,
     "projected_compile_checkpoint_footprint_gib": 3,
     "no_cleanup_authorized": true,
     "no_parallel_job": true
@@ -249,6 +252,16 @@
     "old_failure_preserved": "56b5220b"
   },
   "old_scientific_approval_inherited": false,
+  "mechanics_revision": {
+    "baseline_commit": "3378ac0181f77610ae24d69281c5768f00b589e6",
+    "baseline_driver_sha256": "ee5bc9f7a984c77b2c489eb5f361be37949de29f7b48637c58eb3a384c27dd90",
+    "scope": "Only fixed-job containment, final original-lock/disk gates and locked postflight. Immutable proposal/science/protected harness/long argv/cache routing/official accounting unchanged.",
+    "ownership": "Linux PR_SET_CHILD_SUBREAPER before helper/job spawn; recursive kernel child links; PID/start_ticks with pidfd-only signals; waitpid ECHILD proves no live or zombie children.",
+    "failure": "TERM then KILL only owned pidfds; preserve underlying returncode; no eval on training failure; unknown quiescence, audit write or postflight failure parks with original lock open; no successor.",
+    "signals": ["SIGTERM", "SIGINT", "SIGHUP", "SIGQUIT"],
+    "limits": "SIGKILL/fatal native failure of guardian or host death cannot be caught by userspace and is outside this protocol. Guardian is not itself under a timeout. No external process may kill it while the job exists.",
+    "fresh_independent_review": "PENDING_DEFAULT_REFUSE"
+  },
   "proposal_sha256": "475e62406dc419dea2e218e1a5a631b80a55c8571efb482ea0690d4d913d0069",
   "driver_derivation": {
     "commit": "d9f372dcc3ab3726131b8ee623c8f6338c2db065",

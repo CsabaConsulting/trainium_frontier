@@ -1,0 +1,54 @@
+AUTHOR_CPU_ARTIFACTS=/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/author-receipts/optimized-release
+test_00_original_timeout_defect (__main__.LifetimeTests.test_00_original_timeout_defect) ... {"old_defect_reproduced": true, "outer_rc": 124, "child_alive_after_outer_exit": true, "child_has_original_lock_fd": false, "competitor_rc": 0}
+ok
+test_driver_exception (__main__.LifetimeTests.test_driver_exception) ... {"case": "driver-exception", "outer_rc": 1, "live_competitor_checks": 33, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_eval_failure (__main__.LifetimeTests.test_eval_failure) ... ERROR
+/usr/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 1513301 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_failed_audit_write_retains_lock_after_cleanup (__main__.LifetimeTests.test_failed_audit_write_retains_lock_after_cleanup) ... {"case": "audit-fail", "outer_rc": 137, "live_competitor_checks": 33, "boundary_competitors": {}, "parked": true}
+ok
+test_harness_crash_new_session_grandchild (__main__.LifetimeTests.test_harness_crash_new_session_grandchild) ... {"case": "harness-crash", "outer_rc": 137, "live_competitor_checks": 44, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_initial_preflight_refusal_releases_without_job (__main__.LifetimeTests.test_initial_preflight_refusal_releases_without_job) ... {"case": "preflight-refuse", "outer_rc": 1, "live_competitor_checks": 0, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_interrupt_new_session_grandchild (__main__.LifetimeTests.test_interrupt_new_session_grandchild) ... {"case": "interrupt", "outer_rc": 130, "live_competitor_checks": 23, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_normal_train_then_eval (__main__.LifetimeTests.test_normal_train_then_eval) ... {"case": "normal", "outer_rc": 0, "live_competitor_checks": 30, "boundary_competitors": {"between-phases": 1, "postflight-entered": 1}, "parked": false}
+ok
+test_postflight_failure_retains_lock (__main__.LifetimeTests.test_postflight_failure_retains_lock) ... {"case": "postflight-fail", "outer_rc": 137, "live_competitor_checks": 57, "boundary_competitors": {"between-phases": 1, "postflight-entered": 1}, "parked": true}
+ok
+test_signal_new_session_grandchild (__main__.LifetimeTests.test_signal_new_session_grandchild) ... {"case": "signal", "outer_rc": 143, "live_competitor_checks": 24, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_timeout_new_session_grandchild (__main__.LifetimeTests.test_timeout_new_session_grandchild) ... {"case": "timeout", "outer_rc": 124, "live_competitor_checks": 63, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_train_failure (__main__.LifetimeTests.test_train_failure) ... {"case": "train-fail", "outer_rc": 7, "live_competitor_checks": 15, "boundary_competitors": {"postflight-entered": 1}, "parked": false}
+ok
+test_unknown_quiescence_retains_lock (__main__.LifetimeTests.test_unknown_quiescence_retains_lock) ... {"case": "quiescence-unknown", "outer_rc": 137, "live_competitor_checks": 30, "boundary_competitors": {"between-phases": 1}, "parked": true}
+ok
+test_wrong_original_inode_refuses (__main__.LifetimeTests.test_wrong_original_inode_refuses) ... {"case": "wrong-inode", "outer_rc": 1, "live_competitor_checks": 0, "boundary_competitors": {}, "parked": false}
+ok
+
+======================================================================
+ERROR: test_eval_failure (__main__.LifetimeTests.test_eval_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 167, in test_eval_failure
+    def test_eval_failure(self): self.run_case('eval-fail',9)
+                                 ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 60, in run_case
+    alive = [r for r in rows if live(r)]
+                                ~~~~^^^
+  File "/home/poojith-devan/clean-fullcold-lifetime-guard/research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2/test_lifetime.py", line 24, in live
+    fields = Path(f"/proc/{row['pid']}/stat").read_text().rsplit(')', 1)[1].split()
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 789, in read_text
+    return f.read()
+           ~~~~~~^^
+ProcessLookupError: [Errno 3] No such process
+
+----------------------------------------------------------------------
+Ran 14 tests in 11.776s
+
+FAILED (errors=1)

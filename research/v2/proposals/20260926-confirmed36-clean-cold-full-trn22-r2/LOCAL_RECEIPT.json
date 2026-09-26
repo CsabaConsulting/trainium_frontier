@@ -1,13 +1,54 @@
 {
-  "status": "LOCAL_MECHANICAL_PREPARATION_PASS_NOT_INDEPENDENT_REVIEW",
-  "test_groups_normal": 8,
-  "test_groups_optimized": 8,
-  "preflight_fixture_cases": 12,
+  "status": "AUTHOR_CPU_CHECKS_PASS_NOT_INDEPENDENT_REVIEW",
+  "prepared_utc": "2026-09-26T04:43:00Z",
+  "baseline_commit": "3378ac0181f77610ae24d69281c5768f00b589e6",
+  "test_groups_normal": 14,
+  "test_groups_optimized": 14,
+  "binding_groups_normal": 8,
+  "binding_groups_optimized": 8,
   "host_calls": false,
-  "source_execution": false,
-  "tensors": false,
+  "scientific_source_execution": false,
+  "protected_harness_popen_ast_executed_in_cpu_fixture": true,
   "stage_authorized": false,
   "launch_authorized": false,
-  "driver_derivation": "Exact four-literal transform of existing cold-full template, not warm-full flow.",
+  "submission_authorized": false,
+  "driver_sha256": "23c8ad2f6037a6f479e0049473686146bc249b1edf535427725e107da1ac5061",
+  "lifetime_guard_sha256": "e461ec5c76c784fd51471c9e8c268cdde42fe1def68b31bfc9524480f980c312",
+  "normal_receipt": "author-receipts/normal-reviewed-evidence.json",
+  "normal_receipt_sha256": "a9b1ee87f16fc2696cd99b0d576ce1c46a4ea8cbee067c6dbc228f86ba86ed21",
+  "optimized_receipt": "author-receipts/optimized-reviewed-evidence.json",
+  "optimized_receipt_sha256": "36c89486fd76fe3c45e4fd89ee033f7bbd695f65f6c5326089638005d3396a9f",
+  "old_defect_reproduced": {
+    "outer_rc": 124,
+    "child_alive_after_outer_exit": true,
+    "child_has_original_lock_fd": false,
+    "competitor_rc": 0
+  },
+  "repaired_claims": [
+    "same original open-file lock throughout owned children, phase gap and postflight",
+    "timeout124, harnessSIGKILL137, driver exception1, TERM143, INT130 preserved",
+    "train7 prevents eval; eval9 terminal",
+    "setsid child and new-session grandchild killed/reaped using owned pidfds only",
+    "unrelated CPU process survives",
+    "original-inode mismatch refuses before child; train13.5GiB/eval10.5GiB boundary fixtures",
+    "ENOSPC event-write failure contains children then parks locked",
+    "postflight helper failure contains its child then parks locked",
+    "unknown quiescence parks locked",
+    "initial preflight refusal without job releases after owned helper quiescence"
+  ],
+  "author_preparation_failures": [
+    {
+      "files": [
+        "author-receipts/normal.raw.txt",
+        "author-receipts/optimized.raw.txt"
+      ],
+      "cause": "Author test receipt-root initially relative; flock fixture could not open local lock after chdir. No fixture job started. Fixed absolute path resolution."
+    },
+    {
+      "file": "author-receipts/optimized-release.raw.txt",
+      "cause": "Author observer raced /proc process exit and did not catch ESRCH. Fixed observer FileNotFoundError/ProcessLookupError handling; final normal/-O runs pass."
+    }
+  ],
+  "limits": "Not independent review, native containment evidence, cold qualification or submission authority. SIGKILL/fatal native failure of guardian or host death is outside the catchable userspace signal guarantee; guardian must not be externally killed with descendants alive.",
   "old_scientific_approval_inherited": false
 }
