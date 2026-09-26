@@ -91,3 +91,29 @@ report that precise obstacle before selecting a different factor.
 - No timing, BPB, production integration, SDK upgrade or automatic retry. New
   frozen source, own executed tiny tests, fresh independent review and separate
   binding/Operator release remain required. Original failure receipts stay intact.
+
+## Archived path search — an important qualification
+
+A bounded local decode/length/hash check of80 archived small files across the
+reporting-r2, namespace-r3 and symmetric native bundles found the exact path
+`/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py`.
+The earlier reporting-r2 error stack contains `__call__` at line239 followed
+by `return torch_hop(*args, **kwargs)`, then `nki_hop.py:515` entering eager
+dispatch. This is actual historical call-path evidence, not current source.
+It shows that raw NKI call syntax already reached a HOP in eager execution.
+Therefore explicit wrapping is **not** proved to introduce a previously absent
+bridge; the difference in capture/functionalization must be established by
+reading that underlying `__call__` and `__getitem__` implementation. If the
+existing compile route is identical, wrapper-only may be a no-op and the
+registered-autograd route becomes the distinct useful factor instead.
+
+Exact provenance: `94fb52c4`,
+`research/v2/operator/20260926-trn22-k2-reporting-native/completed/results-bundle.json`,
+SHA `129b9e69352a63d49922dc386c849836ad829dcbb85ef3e33b50b28b64cf9e04`;
+decoded `diagnostic.log`44857bytes/SHA
+`e9a645d695ee5ed965f7b0280e7bebc30493c1282cc7f1ac4e8a608640f72dd6`.
+The same stack names `nki/framework/compiled.py:42,197` and
+`torch_neuronx/nki_kernel.py:202,211`. No `nki/__init__.py` origin or jit-factory
+definition was found in this bounded search, so those remain unknown rather
+than guessed. The single request now uses the observed kernel.py path and
+asks explicitly whether automatic and explicit bridging differ.

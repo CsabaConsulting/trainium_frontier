@@ -19,10 +19,10 @@
       "required_definitions": ["TorchNeuronNKIKernelV3 fields/constructor and grid ownership, or exact imported definition locator"]
     },
     {
-      "file": "Installed NKI0.5 jit factory and actual returned callable/indexed-callable class definitions",
-      "location_rule": "Resolve only through installed distribution metadata and the imports in the two pinned files. No SDK execution or arbitrary filesystem search. Record exact resolved origins, imports, lines, file hashes and stable identity.",
+      "file": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py",
+      "location_rule": "Exact file path observed in archived94fb52c4 diagnostic.log stack, __call__ line239. Current file identity/hash and jit export origin remain unobserved. Follow only installed distribution metadata and explicit imports if needed; no SDK execution or arbitrary filesystem search.",
       "ranges": "jit definition; returned class dataclass fields/constructor; __getitem__ and __call__; any directly invoked grid-normalization helper, complete AST definition ranges",
-      "required_question": "What exact object/fields does resident_consumer[2] return, and how do those fields combine with NKIHOPCaller grid selection?"
+      "required_question": "What exact object/fields does resident_consumer[2] return, how do those fields combine with NKIHOPCaller grid selection, and when does __call__ automatically bridge through torch_hop versus explicit wrap_nki?"
     }
   ],
   "proposed_limits": {
