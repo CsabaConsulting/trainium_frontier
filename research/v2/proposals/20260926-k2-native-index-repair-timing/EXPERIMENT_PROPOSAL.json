@@ -1,0 +1,91 @@
+{
+  "proposal_id": "20260926-k2-native-index-repair-timing",
+  "status": "source_cpu_pass_one_independent_repair_review_pass_native_retry_conditionally_released",
+  "owner_role": "supervisor selecting human-directed K2",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "hypothesis": "Stable device metadata plus ordered NKI embedding backward improves complete eight-layer optimizer-step rate by at least 3% without changing the operation.",
+  "single_causal_change": "Same K2 throughput arm, minimally repaired two-line dtype guard permits official loader int32 as well as int64. No metadata/cast/backward/FP32/flag-OFF change. Source a3181d0d replaces only failed63925519 for this uniquely labelled retry.",
+  "mechanism_class": "throughput",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown: a timing falsifier, not a BPB quality test.",
+  "selection_rationale": "Final Sprint P1; complete producer/WTE/VE7/autograd cost is included rather than a supplied-metadata component.",
+  "trainium_feasibility": "Full chip LNC2/four ranks, batch131072, pack32/context1024/width1024. Native stable argsort/searchsorted and dynamic-loop/indirect-DMA lowering remain unproved.",
+  "cheapest_falsifier": "Reuse preselected first45-boundary window of already-running true same-host e1e2 control; one freshcold K2 ON45 native test, no duplicate OFF45.",
+  "evidence": [
+    "research/v2/lanes/k2-native-index-repair/SOURCE.diff",
+    "research/v2/lanes/k2-native-index-repair/cpu-result.json",
+    "research/v2/operator/20260926-final-sprint-successors/trn22-on-parentcontrol-completed/results-bundle.json",
+    "research/v2/operator/20260926-final-sprint-successors/trn22-parent-control-timing-acceptance.json",
+    "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md"
+  ],
+  "control": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "run_label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+    "kind": "control",
+    "host": "trn22",
+    "public_val_bpb": 0.9879041000701606,
+    "training_budget_seconds": 1800,
+    "steps": "Whole full-budget run; only predetermined t9 through t44 used for timing",
+    "identity_evidence": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "must_not_relabel_quality_run_as_smoke": true,
+    "actual_steps": 3640,
+    "primary_tokens_per_second": 266629.65793002315
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-native-index-repair/train.py",
+    "source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "control_command_difference": "K2 ON source has audited default-OFF identity to e1e2; --num-steps45 only changes termination/remaining-steps logging. Both use1800-second LR/budget; boundary44 precedes different stop collective.",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false
+  },
+  "gates": {
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "independent_review": "PASS_FOR_ONE_NATIVE_RETRY: research/v2/verification/20260926-k2-native-index-repair/REVIEW.md SHAb689fb6ed0dd86b73bb945da2fb6bb31a3e8a524b15dc3c984624a5dea08c6dc; fresh isolated session, own32 exact metadata/reference comparisons,gather/FP32,snapshot14rejections; no native claim",
+    "native_timing": false,
+    "native_cold_startup": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(observed boundary t44 minus t9), current exact-parent control and ON45. Selected before either new steady timing is observed.",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "Both matching windows valid and finite; ON45 completes; actual cold startup/budget recorded; ON/parent-control rate>=1.03",
+    "quality_followup": "Only after timing PASS: separate fixed1800s full run, fresh20M/context1024, unchanged decide.py"
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "One diagnosed retry after63925519 failed beforestep0 on int64-only guard; this attempt consumes that retry. If it fails, archive and park, next eligible job. No extraOFF or review loops.",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "verdict": null,
+  "amendment": "research/v2/assignments/20260926-k2-native-index-repair.md",
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "prospective_candidate_footprint_bytes": 3221225472,
+    "control_artifacts": "Already allocated and protected; accounted by actual free-space check. No hypothetical extra OFF job or deletion."
+  },
+  "failed_attempt": {
+    "label": "fs-20260926-k2-sprint-on-parentcontrol-trn22-r1",
+    "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "exit_code": 1,
+    "steps": 0,
+    "error": "ValueError: K2 requires two-dimensional int64 token IDs",
+    "archive_sha256": "52c017298afa972fb5731e479f1c3fa4eb72ee5ae7ed8eb39c067c41de4976de",
+    "actual_runtime_dtype_logged": false,
+    "static_cause": "Real unchanged prepare.py479/481/514 allocates/copies int32 input tensors."
+  }
+}

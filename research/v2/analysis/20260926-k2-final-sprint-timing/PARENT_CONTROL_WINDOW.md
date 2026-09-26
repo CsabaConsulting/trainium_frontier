@@ -30,3 +30,13 @@ Fresh evaluator3367667/start102668192 was live under original guardian3345115
 and held lock832589. Public20M score, completed bundle, checkpoint rehash,
 all-owned-process/device/lock quiescence and next fresh preflight remain
 pending; this file cannot authorize a launch or claim a K2 result.
+
+## Cache provenance clarification
+
+The earlier110.209841834s fast trn21 control was source36a86274, not exact
+e1e2. It reused the previous absolute36a8 execution path/cache namespace.
+Currente1e2 uses a new sandbox path and legacy shared research caches, not
+the private caches populated by its successful e1e2 cold replay. Thus this
+is not a same-source/path cache-hit comparison. Different reuse provenance
+is established; the exact missed cache keys remain unknown. Do not call
+retained directories proven cache hits or change the pending K2 experiment.

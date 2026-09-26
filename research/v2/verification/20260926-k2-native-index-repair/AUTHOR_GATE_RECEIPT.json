@@ -1,0 +1,238 @@
+{
+  "hashes": {
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/train.py": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/test_k2.py": "1512aa797cd9e6ee1c3aad21a0cb4a13e2dc6badfa01ce43d596b8411353166e",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-native-index-repair/cpu_instruction_model.py": "98ec82913b314bfcb2fea519540c5806109609f80422210999955bd9eb8e9024",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-final-sprint/train.py": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "/home/poojith-devan/Desktop/Trainium/workflow/candidates/confirmed-clock36-116188/train.py": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43"
+  },
+  "torch": "2.13.0+cpu",
+  "native_compiled": false,
+  "input_contract": {
+    "int32_int64_metadata": "BIT_IDENTICAL_VALUES_AND_ROUTING",
+    "dtype_preserved": true,
+    "frozen_int32_failure_reproduced": true,
+    "rejected": [
+      "torch.float32",
+      "torch.float64",
+      "torch.bfloat16",
+      "torch.bool",
+      "torch.int16",
+      "torch.uint8",
+      "torch.int32()",
+      "torch.int32(8,)",
+      "torch.int32(1, 2, 4)",
+      "torch.int32 bad geometry",
+      "torch.int32 position overflow",
+      "torch.int32 range -1",
+      "torch.int32 range 8",
+      "torch.int64()",
+      "torch.int64(8,)",
+      "torch.int64(1, 2, 4)",
+      "torch.int64 bad geometry",
+      "torch.int64 position overflow",
+      "torch.int64 range -1",
+      "torch.int64 range 8",
+      "int64 no narrowing"
+    ],
+    "range_guard": "unchanged F.embedding rejection"
+  },
+  "by_index_dtype": {
+    "torch.int32": {
+      "keys": [
+        "model",
+        "operation"
+      ],
+      "operation": [
+        {
+          "name": "min_pos",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "min_neg",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "normal_cancel_pos",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "normal_cancel_neg",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "large_order",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "small_order",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "zero_sign",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "cancel_then_subnormal",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "overflow_pos",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "overflow_neg",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "inf_cancel",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "nan",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "balanced",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "duplicates",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "all_one_row",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "empty_group",
+          "verdict": "EXACT_FINITE"
+        }
+      ],
+      "metadata": null,
+      "identity": null,
+      "model": {
+        "status": "OFF_3_STEPS_BIT_IDENTICAL",
+        "losses": [
+          4.156866073608398,
+          4.15728235244751,
+          4.162270545959473
+        ],
+        "on_status": "ON_3_STEPS_BIT_IDENTICAL_CPU_INTERPRETER",
+        "on_losses": [
+          4.159947395324707,
+          4.159997940063477,
+          4.156461238861084
+        ],
+        "metadata_calls_for_three_on_steps": 3,
+        "eval_ordinary": true,
+        "geometry": "8 layers, width64, context8, batch2",
+        "optimizer": "SGD .01",
+        "scope": "real model forward/backward/updates; not full training-loop or native proof",
+        "import_shims": [
+          "existing test-only prepare",
+          "unused pyarrow.parquet placeholder"
+        ]
+      },
+      "lifetime": null
+    },
+    "torch.int64": {
+      "keys": [
+        "model",
+        "operation"
+      ],
+      "operation": [
+        {
+          "name": "min_pos",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "min_neg",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "normal_cancel_pos",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "normal_cancel_neg",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "large_order",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "small_order",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "zero_sign",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "cancel_then_subnormal",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "overflow_pos",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "overflow_neg",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "inf_cancel",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "nan",
+          "verdict": "FAIL_NONFINITE_DIAGNOSTIC"
+        },
+        {
+          "name": "balanced",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "duplicates",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "all_one_row",
+          "verdict": "EXACT_FINITE"
+        },
+        {
+          "name": "empty_group",
+          "verdict": "EXACT_FINITE"
+        }
+      ],
+      "metadata": null,
+      "identity": null,
+      "model": {
+        "status": "OFF_3_STEPS_BIT_IDENTICAL",
+        "losses": [
+          4.156866073608398,
+          4.15728235244751,
+          4.162270545959473
+        ],
+        "on_status": "ON_3_STEPS_BIT_IDENTICAL_CPU_INTERPRETER",
+        "on_losses": [
+          4.159947395324707,
+          4.159997940063477,
+          4.156461238861084
+        ],
+        "metadata_calls_for_three_on_steps": 3,
+        "eval_ordinary": true,
+        "geometry": "8 layers, width64, context8, batch2",
+        "optimizer": "SGD .01",
+        "scope": "real model forward/backward/updates; not full training-loop or native proof",
+        "import_shims": [
+          "existing test-only prepare",
+          "unused pyarrow.parquet placeholder"
+        ]
+      },
+      "lifetime": null
+    }
+  }
+}

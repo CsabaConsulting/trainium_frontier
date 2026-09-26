@@ -1,5 +1,46 @@
 # Workflow installation and incremental launch status
 
+## 14:39 IST: storage resolved; K2 first native attempt failed before step 0
+
+Both 400GiB disks and root filesystems are verified expanded, about158/160GiB
+free. No user action needed. trn21 genuine e1e2 control remains protected.
+Actual trn22 control completed public20M0.9879041000701606,3640steps,
+1789.206186chargedseconds. All39 file hashes and BPB independently checked.
+Batch262144/LR.015 delta is+0.0000899543296504; unchanged decide.py says
+DISCARD (ambiguous band, low-prior kind). Its52.72% step ratio reflects doubled
+batch, not a hang: total trained tokens are105.44% of control. No batch win.
+
+K2ON45 dispatched09:03:38UTC with exact63925519, four actual ranks and six
+empty private caches. All ranks failed at09:04:07 beforestep0:
+ValueError: K2 requires two-dimensional int64 token IDs.
+Archive b92c8f93/SHA52c01729; all48 observed identities gone, deviceidle and
+original832589 free at09:08:26. No timing/BPB/checkpoint qualification.
+Real unmodified prepare.py479/481/514 explicitly uses int32 input tensors;
+the failed process did not print its tensor dtype. One minimal repair is
+assigned to k2_native_int32_repair, preserving frozen source/OFF semantics.
+One diagnosed retry after CPU/existing gates; no full K2 release or new review
+loop. Native deadline16:00IST remains a target, not a success guarantee.
+
+Promising batch.021 single result0.986985 still awaits actual same-host
+control and confirmation. Official best remains0.9878; no upload package.
+
+## 14:28 IST: new single-run public0.986985; next control already live
+
+Batch262144/matrixLR.021 trn21 completed fresh20M at08:56:46UTC with
+public0.9869854734569898,1921steps,1788.753648s officialcharge, zero exits.
+Raw bundle30826ff2 imported46000717; checkpoint7ca06a5c retained/stable.
+Ledger/result and unchangedselector are at
+analysis/20260926-clean-batch-lr021-results/. SelectorINSUFFICIENT: genuine
+same-host e1e2 control missing. Rawdelta-.001403592 vs earlier clean replay
+is context only. Warm research, cold proof absent. Promising, not adopted,
+not a confirmed>=.003official gain and not upload-ready. Officialbest.9878.
+
+Selected genuine trn21 control launched08:58:01.842582UTC, just75.614s after
+preceding whole-job terminal including retrieval/quiescence. Actual guardian
+3256952, torchrun3256985, four ranks3257000–03/world4/LNC2 and original596823
+lock authenticated08:58:14; sourcee1e2/scoredcommandb75 unchanged. Receipt
+29f02651. trn22 parent20M remains protected; K2ON45 next upon its result.
+
 ## 14:20 IST observed: both full runs are now evaluating
 
 trn22 genuinee1e2 control finished3640steps/exit0, uncappedstartup793.865135s
