@@ -1,0 +1,110 @@
+{
+  "proposal_id": "20260926-clock36-recursive-conditional",
+  "status": "COMPLETED_RESEARCH_DISPOSITION_BLOCKED_NO_EXISTING_FLAG",
+  "owner_role": "Researcher only; no implementation, independent approval or Operator authority",
+  "hypothesis": "A Recursive schedule combined with the startup-adjusted architecture clock could differ from both existing arms, but exact36a862 cannot express this combination through its existing flags.",
+  "single_causal_change": "Intended future contrast only: Recursive schedule OFF versus ON while retaining the exact startup-adjusted clock and architecture. This contrast is NOT executable on the requested immutable source, and no substitute source is proposed here.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [
+    {
+      "idea": "Conditional flag-only Recursive stack on exact36a862",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": null,
+      "why_ranked": "The requested prerequisite was falsified by complete-source AST inspection: neither the Recursive CLI declaration nor its state/branches exists. Do not rank this as ready work."
+    }
+  ],
+  "selection_rationale": "Stop at the missing-source prerequisite. Adding a flag or substituting75b944 would be a new scientific source decision outside this flag-only Researcher task. No additional candidate, retune, host reservation or implementation is selected.",
+  "p_improve": null,
+  "estimated_host_hours": 0.0,
+  "trainium_feasibility": "Not qualified for the combined stack. Existing exact36 cold-five845.6273377500474s on trn22 used the startup-adjusted clock without Recursive. Existing75b9 cold qualification applies to Recursive without the new clock. The Recursive implementation changes Muon beta2 from a Python scalar route to a device tensor route and adds separate optimizer LR schedules, so their graph qualification must not be composed by assertion.",
+  "cheapest_falsifier": "Completed without importing train.py: parse both immutable sources with Python ast. Exact36 has zero '--recursive-schedule' string constants and zero RECURSIVE_SCHEDULE Name nodes; exact75 has one CLI declaration and seven Name nodes, but zero '--startup-adjusted-schedule' constants.",
+  "prior_result_refs": [
+    "research/v2/proposals/20260926-startup-adjusted-full-trn21-replication/EXPERIMENT_PROPOSAL.json",
+    "research/v2/verification/20260926-startup-clock-full-result/FINAL_REVIEW.md",
+    "research/v2/verification/20260926-75b9-formal-control-crosscheck/REVIEW.md",
+    "research/v2/verification/20260926-architecture-recursive-full-result/ledger-row.json"
+  ],
+  "evidence": [
+    "7419927c7417b5666a984ec9c2b849feadabaaa9:workflow/proposals/research-v2/train.py",
+    "fe0969fd311d654e143dc6113614416c8970a424:workflow/proposals/research-v2/train.py",
+    "workflow/NEXT_12_HOURS_2026-09-26.md section1: conditional architecture follow-up, not unconditional adoption",
+    "workflow/COMPILE_TIME_GATE_2026-09-26.md",
+    "research/agentic/CURRENT_STATE.md and research/v2/state.json at canonical ce6ea8c9abc24452aad18e7cf265685700495583"
+  ],
+  "duplicate_search_terms": ["--recursive-schedule", "RECURSIVE_SCHEDULE", "--startup-adjusted-schedule", "75b944", "36a862"],
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "run_label": "fs-20260926-arch36a8-startup-clock-trn21-r2-full",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Future same-host scientific OFF contrast only. Existing row remains a candidate/replication, not retrospectively relabelled kind=control. At this disposition its fresh20M result is pending."
+  },
+  "candidate": {
+    "branch": "codex/20260926-clock36-recursive-conditional",
+    "files_allowed": [],
+    "expected_diff": "None. Documentation-only missing-prerequisite disposition; no candidate implementation.",
+    "run_label": "fs-20260926-clock36-recursive-conditional-r1",
+    "launch_command": null,
+    "label_scope": "Prospective identifier only; no executable argv, host assignment or reservation."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "static_research_finding": {
+    "status": "MISSING_FLAG_CONFIRMED_NOT_SOURCE_APPROVAL",
+    "clock36": {
+      "commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+      "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "bytes": 324457,
+      "recursive_flag_constants": 0,
+      "recursive_name_nodes": 0,
+      "startup_flag_constants": 1,
+      "startup_flag_line": 3520,
+      "startup_helper_lines": [3302, 3312],
+      "schedule_callsite_lines": [4083, 4095]
+    },
+    "recursive75": {
+      "commit": "fe0969fd311d654e143dc6113614416c8970a424",
+      "sha256": "75b944f7caf7f16a8392e720c135d7a6436f4c1ef980a6bb0c9ac15bafc9f70f",
+      "bytes": 325282,
+      "recursive_flag_constants": 1,
+      "recursive_name_nodes": 7,
+      "startup_flag_constants": 0,
+      "recursive_flag_line": 3666,
+      "tensor_beta2_route_line": 2973
+    }
+  },
+  "success_criteria": {
+    "quality": "Not evaluable now. A separately selected combined-source experiment would require fresh-process public20M (20971520 tokens), context1024/B1, fixed1800, same-host scientific contrasts and unchanged decide.py with genuine formal controls. Preserve the human decision-tree conditions and confirmation requirements; no automatic adoption from a conditional proposal.",
+    "throughput": "No throughput threshold or claim; final BPB is the objective.",
+    "correctness": "No qualified combined candidate exists. Any later implementation requires its own independent fresh source review, exact-size CPU qualification and exact-stack true-cold first-five gate (uncapped launch-to-fifth<=900s, architecture target870s) before full training, plus finite updates, zero exit, checkpoint/load/causality and official through-process-exit charge<=1800s."
+  },
+  "comparator_roles": [
+    {"label":"fs-20260926-arch36a8-startup-clock-trn22-r1-full","host":"trn22","bpb":0.9883821509811542,"role":"Exact36 startup-clock candidate; no Recursive. Genuine same-host6ef7 control-r2 fresh20M is pending at this freeze; not a confirmed architecture win."},
+    {"label":"fs-20260925-l3-base-repeat-trn21-r2-full","host":"trn21","bpb":0.9899528600562257,"role":"Genuine formal kind=control/base6ef7; distinct model/schedule stack from36. Preserve original role."},
+    {"label":"fs-20260926-arch75b9-recursive-trn21-r1-full","host":"trn21","bpb":0.9896621160468637,"delta_vs_formal_control":-0.0002907440093620206,"verdict":"DISCARD","role":"Architecture+Recursive, without startup-adjusted clock. Not proof about the unimplemented combination; do not rerun/relabel this closed arm as new work."},
+    {"label":"fs-20260925-l3-timer-dense-trn21-r1-full","host":"trn21","bpb":0.9900560897366009,"role":"Earlier schedule_arm comparator, not the later formal control."},
+    {"label":"fs-20260925-l3-timer-dense-trn22-r1-full","host":"trn22","bpb":0.9902787975734985,"role":"Earlier schedule_arm comparator, not the running genuine control-r2."}
+  ],
+  "abort_conditions": [
+    "Already met: required Recursive flag and branches are absent from immutable exact36.",
+    "Do not substitute75b944: that removes startup-adjusted progress and duplicates the prior schedule-only stack contrast.",
+    "Do not approximate the Recursive package with unrelated existing tuning flags or silently change LR/source.",
+    "No launch, source adoption, submission, host reservation, queue write, ledger relabel or automatic next action."
+  ],
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "host_reserved": false,
+  "source_adoption": false,
+  "submission_authorized": false,
+  "human_approved_by": null,
+  "verdict": "BLOCKED_NO_FLAG_ONLY_ARM; any new combined implementation needs separate selection, review and cold qualification"
+}
