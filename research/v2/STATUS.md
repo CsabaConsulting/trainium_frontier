@@ -1,5 +1,19 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 10:19 IST
+
+Confirmed public20M mean remains 0.9883066129; no new official score.
+trn21 completed 3631 steps with startup110.209842s and charged1789.266018s;
+fresh20M was active at04:39:05UTC. A new read-only Operator observation is
+actually underway; no current completion or score is inferred.
+trn22 clean cold-five passed at859.167909s, but the host is idle pending the
+full-replay launcher's independent repair review. Its15-minute idle incident
+was reported to the user. The fixed-job repair and disabled transport are
+committed; fresh input-only Astra review is running, not accepted yet.
+K2's separate mechanics repair4b56428b is committed and awaits fresh review;
+native release remains disabled. Native clean-loader consistency, full cold
+replay/fresh20M and human-mediated Claude audit still block submission.
+
 ## Current — 26 September 10:10 IST
 
 Confirmed mean0.9883066129 unchanged. Last verified trn21 control was healthy

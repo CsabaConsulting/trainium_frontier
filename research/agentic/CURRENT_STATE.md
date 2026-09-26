@@ -1,5 +1,21 @@
 # Current state
 
+## 04:49 UTC / 10:19 IST: launcher repair in fresh review; live eval check resumed
+
+Fixed-job lifetime repair13c90714 and disabled transportd7d2ea6b are frozen.
+Fresh independent Astra reviewer is actually running on only diff/spec/receipts
+in `/home/poojith-devan/clean-fullcold-lifetime-fresh-TOCGAp`; no acceptance or
+full-cold release yet. Author14 fault cases and8 binding groups normal/-O are
+not substituted for independent review. trn22 remains idle; its>15min incident
+was reported around04:44UTC. No new training launch is claimed.
+
+Sole Operator successfully resumed for a read-only trn21 eval boundary after
+earlier agent-capacity failures. Last actual evaluation evidence remains
+04:39:05UTC, not a new BPB. K2 repair4b56428b completed locally; fresh packet
+`/home/poojith-devan/k2-f0f2-repair-review-EHvK9J` awaits separate verification.
+Consumer/oracle/caps and disabled binding unchanged. Confirmed mean0.9883066129,
+submission HOLD, protected artifacts and both original locks unchanged.
+
 ## 04:43 UTC / 10:13 IST: warm control startup110s; evaluation active
 
 trn21 completed3631steps at04:38:08; measured fifth110.209841834s,
