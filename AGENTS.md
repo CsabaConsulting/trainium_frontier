@@ -2,6 +2,19 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Latest direct amendment — 26 September, 15:12 IST
+
+Read `workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md` with FINAL SPRINT.
+K2 retry owns the NEXT free host before new controls or confirmations; preserve
+live train/eval jobs. Before native retry, real local production-shape forward
+AND backward compilation is required; parser-only/Python success is not enough.
+Run simulator/reference numerics if available. Only one local heavy process
+at once. Package FP32 tables concurrently without competing test processes.
+If K2 timing is missing at18:00IST, give a revised conditional tables ETA.
+If actual trn22 confirms batch/LR0.986985, test its schedule stack as the new
+research base. Prior conflicting queue/parser-only admission prose is overridden.
+All unchanged correctness, budget, original-lock, selection and human-only rules stay.
+
 ## CONTROLLING NOW: pinned FINAL SPRINT — 26 September, 13:26 IST
 
 Read `workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md` FIRST after every

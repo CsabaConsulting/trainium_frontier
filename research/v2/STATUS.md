@@ -1,5 +1,33 @@
 # Workflow installation and incremental launch status
 
+## 15:17 IST report / latest next-slot instruction
+
+Direct authority: workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md. K2 retry
+gets NEXT free host ahead of new controls/confirmations, but real local
+production forward/backward compilation and available simulator checks come
+first. Active jobs/evals remain protected. One local heavy process at a time.
+
+Best single public20M0.9869854734569898; officialbest0.9878 unchanged.
+trn21 control training ended09:41:13UTC,3631steps, startup799.159801s,
+charged1789.720523s, withinbudget; attachedfresh20M live, no score yet.
+trn22 jointbatch/LR confirmation step10 observed09:43:46,282288tok/s,
+allfouroriginalworkers/lock intact. These are actual observations, not polling
+estimates. Rawbc5293d8 imported46aa0bac, authenticated live receipts retained.
+
+K2 source662c has its one independent review PASS. Official simulator
+production-shape zero-error PASS and production-option BIR lowering reported
+by compiler agent; final backend execution is currently blocked by local
+libxml2.so.2 dependency. Initial SBUF failure used different experimental
+allocator options and MUST NOT be called a production-default source failure.
+No native release until actual matching backend evidence is accepted.
+
+Tables scope-only4079 package committedfe9bb842 with FP32 paths unchanged;
+its tests have not run while compiler owns local process slot. Human18:00IST
+conditionalETA alert added to existing heartbeat; no second launcher.
+If trn22 confirms batch/LR under actual matchedcontrols, prepare/run its
+schedule stack; gains are not assumed additive. Busypercent unknown.
+Formal six-line report delivered09:47UTC; nextscheduledreport12:47UTC.
+
 ## 15:02 IST: useful cross-host confirmation live; failed K2 variant parked
 
 trn22 actually dispatched batch262144/matrixLR.021 at09:30:00.148440UTC,
