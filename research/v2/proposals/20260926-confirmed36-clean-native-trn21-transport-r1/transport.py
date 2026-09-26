@@ -180,6 +180,33 @@ def census(d):
     return result
 
 
+def authenticated_chunks(fd,offset,size,expected):
+    """Authenticate immutable chunk bytes against a bounded fanout hash tree.
+
+    Each parent is rehashed before its child hashes are trusted. Only a leaf
+    bytes object whose hash matches that chain can leave this generator.
+    At most 64 child hashes per level and two CHUNK buffers are resident;
+    depth is at most eight for signed 64-bit file sizes. No temporary writes.
+    """
+    if size<=CHUNK:
+        raw = os.pread(fd,size,offset)
+        require(len(raw)==size and sha(raw)==expected,'RETRIEVAL_CHUNK_CHANGED')
+        if raw: yield raw
+        return
+    width = (size+63)//64; children = []; whole = hashlib.sha256()
+    for start in range(offset,offset+size,width):
+        length = min(width,offset+size-start); digest = hashlib.sha256()
+        for position in range(start,start+length,CHUNK):
+            count = min(CHUNK,start+length-position)
+            raw = os.pread(fd,count,position)
+            require(len(raw)==count,'RETRIEVAL_CHUNK_CHANGED')
+            whole.update(raw); digest.update(raw)
+        children.append((start,length,digest.hexdigest()))
+    require(whole.hexdigest()==expected,'RETRIEVAL_CHUNK_CHANGED')
+    del raw
+    for child in children: yield from authenticated_chunks(fd,*child)
+
+
 def retrieve(payload,source_sha,emit):
     files,release_raw,release,d,g,idle = decode_payload(payload,source_sha)
     require(ROOT.is_dir(),'RETRIEVAL_ROOT_MISSING')
@@ -204,12 +231,15 @@ def retrieve(payload,source_sha,emit):
         if path.relative_to(ROOT).parts[0]=='receipts':
             for rank in ranks:
                 if path.name.startswith(('rank'+rank+'.','.rank'+rank+'.')): ranks[rank] += pin['bytes']
-        emit({'kind':'file','name':name,**pin})
-        digest = hashlib.sha256(); size = 0
-        with path.open('rb') as stream:
-            while raw := stream.read(CHUNK):
+        fd = os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+        try:
+            require(stat.S_ISREG(os.fstat(fd).st_mode),'RETRIEVAL_NONREGULAR')
+            emit({'kind':'file','name':name,**pin})
+            digest = hashlib.sha256(); size = 0
+            for raw in authenticated_chunks(fd,0,pin['bytes'],pin['sha256']):
                 size += len(raw); digest.update(raw)
                 emit({'kind':'chunk','b64':base64.b64encode(raw).decode('ascii')})
+        finally: os.close(fd)
         require({'bytes':size,'sha256':digest.hexdigest()}==pin and d.file_record(path)==pin,'RETRIEVAL_FILE_CHANGED:'+name)
         records[name] = pin; emit({'kind':'end_file','name':name,**pin})
     # Reinventory and rehash: additions/removals and post-read changes fail completeness.

@@ -251,6 +251,77 @@ class TransportTests(unittest.TestCase):
             alias=root/'alias'; alias.symlink_to(PACKET,target_is_directory=True)
             with self.assertRaisesRegex(RuntimeError,'LOCAL_PACKET_SYMLINK'): t.make_wire(alias,rel,run,'stage')
 
+    def test_checkpoint_replacement_and_mutation_never_reach_wire_or_receiver(self):
+        prohibited = b'tiny prohibited checkpoint bytes'
+        allowed = b'x'*len(prohibited)
+        for mode in ('before_open','replace_after_header','mutate_after_header','mutate_after_read'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as tmp,fixture(Path(tmp),'retrieve') as (output,lock,body,d,g,retained):
+                output.mkdir(); path=output/'artifact.log'; path.write_bytes(allowed)
+                records=[]; changed=False; original_record=d.file_record; original_read=os.pread
+                def replace():
+                    other=output/'replacement'; other.write_bytes(prohibited); os.replace(other,path)
+                def record(target):
+                    nonlocal changed
+                    pin=original_record(target)
+                    if mode=='before_open' and not changed:
+                        changed=True; replace()
+                    return pin
+                def pread(fd,count,offset):
+                    nonlocal changed
+                    raw=original_read(fd,count,offset)
+                    if mode=='mutate_after_read' and not changed:
+                        changed=True; path.write_bytes(prohibited)
+                    return raw
+                def emit(row):
+                    records.append(row)
+                    if row['kind']=='file':
+                        if mode=='replace_after_header': replace()
+                        if mode=='mutate_after_header': path.write_bytes(prohibited)
+                with mock.patch.object(t,'CHECKPOINT_SHAS',{t.sha(prohibited)}), \
+                     mock.patch.object(t,'census',return_value={}), \
+                     mock.patch.object(d,'file_record',side_effect=record), \
+                     mock.patch.object(t.os,'pread',side_effect=pread), \
+                     self.assertRaisesRegex(RuntimeError,'RETRIEVAL_'):
+                    t.retrieve(body,SOURCE_SHA,emit)
+                wire=b''.join(base64.b64decode(row['b64']) for row in records if row['kind']=='chunk')
+                self.assertIn(wire,(b'',allowed)); self.assertNotEqual(wire,prohibited)
+                self.assertFalse(any(row['kind']=='complete' for row in records))
+                destination=Path(tmp)/'received'
+                with self.assertRaisesRegex(RuntimeError,'WIRE_INCOMPLETE'):
+                    t.receive([t.json_bytes(row) for row in records],destination)
+                self.assertEqual((destination/'files/artifact.log').read_bytes(),wire)
+                self.assertNotEqual((destination/'files/artifact.log').read_bytes(),prohibited)
+
+    def test_multilevel_authentication_mutation_is_rejected_before_changed_chunk(self):
+        with tempfile.TemporaryDirectory() as tmp,fixture(Path(tmp),'retrieve') as (output,lock,body,d,g,retained):
+            output.mkdir(); path=output/'artifact.log'; allowed=b'x'*1024; prohibited=b'q'*1024
+            path.write_bytes(allowed); records=[]; changed=False
+            def emit(row):
+                nonlocal changed
+                records.append(row)
+                if row['kind']=='chunk' and not changed:
+                    changed=True; path.write_bytes(prohibited)
+            with mock.patch.object(t,'CHUNK',8),mock.patch.object(t,'CHECKPOINT_SHAS',{t.sha(prohibited)}), \
+                 mock.patch.object(t,'census',return_value={}),self.assertRaisesRegex(RuntimeError,'RETRIEVAL_CHUNK_CHANGED'):
+                t.retrieve(body,SOURCE_SHA,emit)
+            wire=b''.join(base64.b64decode(row['b64']) for row in records if row['kind']=='chunk')
+            self.assertTrue(wire); self.assertEqual(wire,allowed[:len(wire)]); self.assertNotIn(b'q',wire)
+            self.assertFalse(any(row['kind']=='complete' for row in records))
+
+    def test_multilevel_authentication_is_bounded_and_exact_without_writes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'fixture'; raw=bytes(range(251))*40; path.write_bytes(raw)
+            fd=os.open(path,os.O_RDONLY); original=os.pread; reads=[]
+            def bounded(descriptor,count,offset):
+                reads.append(count); self.assertLessEqual(count,8)
+                return original(descriptor,count,offset)
+            try:
+                with mock.patch.object(t,'CHUNK',8),mock.patch.object(t.os,'pread',side_effect=bounded):
+                    copied=b''.join(t.authenticated_chunks(fd,0,len(raw),t.sha(raw)))
+            finally: os.close(fd)
+            self.assertEqual(copied,raw); self.assertTrue(reads)
+            self.assertEqual(path.read_bytes(),raw)
+
     def test_readonly_census_distinguishes_busy_original_lock(self):
         with tempfile.TemporaryDirectory() as tmp,fixture(Path(tmp),'retrieve') as (output,lock,body,d,g,retained):
             for held in (False,True):

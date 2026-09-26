@@ -124,7 +124,15 @@ The two exact retained checkpoint hashes are explicitly rejected before contents
 are emitted, as well as by the local receiver.
 
 Raw chunks are bounded to 256 KiB, encoded wire lines to 512 KiB. Each file's bytes
-and hash are checked during and after transfer; the final inventory is rescanned
+are read through one retained no-follow descriptor. Before emission each immutable
+chunk bytes object is authenticated to the approved whole-file SHA256 by bounded
+64-way range hashes: a parent's bytes are hashed before its child hashes are trusted,
+and leaf bytes are hashed before those same bytes are emitted. Path replacement or
+in-place mutation cannot substitute unapproved bytes between verification and send.
+Memory is bounded to two chunk buffers and at most 64 child hashes per level (at
+most eight levels for signed 64-bit file lengths); no host snapshot/temp writes or
+new artifact-size ceiling is added. Late source changes still fail completeness.
+The whole-file hash is also checked after transfer; the final inventory is rescanned
 and rehashed. File changes, additions or removals fail completeness. The seventeen
 retained inputs and eight runtime identities are checked without importing native
 packages. Input or runtime mismatches are preserved as failed gates while recovery
