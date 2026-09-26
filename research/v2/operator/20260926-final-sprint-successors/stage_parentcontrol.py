@@ -21,6 +21,20 @@ replace_once("assignment=REPO/'research/v2/assignments/20260926-sprint-next-disp
 replace_once("if choice in ('trn22-off','trn22-on'):","if choice in ('trn22-off','trn22-on','trn22-on-parentcontrol'):")
 replace_once("'basis':'Unchanged prepared per-job13.5GiB initial/10.5GiB runtime floor; pair admission additional and explicit.'",
              "'basis':'Unchanged per-job13.5GiB initial/10.5GiB runtime floor; already allocated parent retained, extraOFF45 cancelled prospectively.'")
+proposal_binding="""current_proposal_path='research/v2/proposals/20260926-k2-live-parent-control-timing/EXPERIMENT_PROPOSAL.json'
+current_proposal_raw=(REPO/current_proposal_path).read_bytes()
+assert sha(current_proposal_raw)=='2c2b4611530c64a7f854f01221c159ac08bdd96d34ef1a1dc67cba1b2ab685d4'
+current_proposal=json.loads(current_proposal_raw)
+assert current_proposal['candidate']['source_sha256']==b['source_sha256']
+assert current_proposal['candidate']['launch_command']==b['launch_command']
+assert current_proposal['candidate']['run_label_template']==b['label']
+assert current_proposal['control']['run_label']==b['comparison_control']['label']
+b['completed_proposal_path']=current_proposal_path
+b['completed_proposal_sha256']=sha(current_proposal_raw)
+files['CURRENT_EXPERIMENT_PROPOSAL.json']=current_proposal_raw
+"""
+replace_once("files['NATIVE_BINDING.json']=(json.dumps(b,indent=2)+'\\n').encode()",
+             proposal_binding+"files['NATIVE_BINDING.json']=(json.dumps(b,indent=2)+'\\n').encode()")
 replace_once("predecessor=HERE/('trn22-off-completed/results-bundle.json' if choice=='trn22-on' else host+'-p0-completed/results-bundle.json')",
              "predecessor=HERE/'trn22-e1e2-control-completed/results-bundle.json'")
 # These are the Supervisor's existing comparison conditions, not an added
