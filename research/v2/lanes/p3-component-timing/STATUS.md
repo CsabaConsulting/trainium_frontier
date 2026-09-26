@@ -14,7 +14,9 @@ profile evidence contains monolithic forward/backward costs on the old six-layer
 model and cannot select the current eight-layer hotspot. See
 research/v2/analysis/20260926-p3-local-profile/REPORT.md.
 
-No native run or launch assignment. Operator prepares a disabled bounded
-direct-diagnostic binding; P0 and K2 remain higher priority. Native
+No native run. Both disabled bounded direct-diagnostic alternatives are prepared
+at research/v2/operator/20260926-p3-component-timing/PREPARED.json, imported as
+be31e02d. The completed proposal resolves their exact labels/argv. P0 and K2
+remain higher priority; no new source review is needed. Native
 component times will not be described as exclusive production graph costs,
 additive savings or a whole-step speedup. No full-trace download/decoder retry.

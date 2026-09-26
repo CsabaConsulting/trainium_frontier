@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260926-p3-component-timing",
-  "status": "complete_source_review_pass_operator_binding_pending",
+  "status": "complete_source_review_pass_bindings_prepared_native_slot_pending",
   "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
   "owner_role": "Supervisor selecting the independent Analyst's current-base measurement",
   "hypothesis": "A small current-eight-layer native component measurement can distinguish plausible attention versus activation work worth optimizing; the old six-layer monolithic trace cannot do so.",
@@ -16,9 +16,10 @@
     "source_sha256": "3637166b43a0b996e7eb7c71bb3b5d56e7f8119241b0278107a72787044dcc99",
     "source_commit": "6203c308713efad326093fba0eb6cebae5a5b598",
     "files_allowed": ["train.py"],
-    "label_template": "fs-20260926-p3-components-<host>-r1",
+    "label_template": "fs-20260926-p3-component-<host>-r1",
+    "exact_host_bindings": "research/v2/operator/20260926-p3-component-timing/PREPARED.json",
     "launch_command_template": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --p3-component-timing --device-type neuron --seed 42 --p3-max-seconds 900 --p3-blocks 4 --p3-repeats 3 --out-dir <unique-diagnostic-output>",
-    "binding_requirement": "Operator resolves exact host label/output/cache paths and argv in prepared packet before assignment; use unchanged source and existing direct diagnostic guardian.",
+    "binding_requirement": "Exact labels/output/cache paths and argv are now in trn21-prepared.json and trn22-prepared.json under the prepared-binding directory; choose only one eligible host, unchanged source/existing guardian. No stage or launch occurred during preparation.",
     "seed": 42,
     "legal_shape": "Full chip, LNC2/four ranks; BF16 B32/T1024/H8/D128 attention and32768x1024 MLP with4096 hidden."
   },
