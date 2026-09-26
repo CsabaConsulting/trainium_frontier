@@ -1,0 +1,66 @@
+{
+  "schema": "narrow-independent-composition-review-v1",
+  "role": "independent_verifier",
+  "timestamp_utc": "2026-09-26T10:33:24Z",
+  "verdict": "PASS",
+  "scope": "Exact supplied batch/LR parent plus donor Recursive schedule composition diff; source authentication separately owned by Supervisor",
+  "blocking_defects": [],
+  "source_sha256_declared_not_opened": "c2e27ccde59e619d74102429e340716dbec16a6ba538ea9beca9c714d0d33f87",
+  "input_hashes": {
+    "source.diff": "79d3e7e9cf0cda770a580d4e8ef2fd156a95965afd2851378803c381046a7516",
+    "SPEC.md": "5a0f9fde3d09d2420a38905b7b5b8841660475a69992abd3d995d44ee192fa95",
+    "CPU_RECEIPT.json": "8e1698a3e7d993c1c4fbc1d147e644ab6275b61097d24d483b8b069e60f32fef",
+    "MANIFEST.json": "64f3ecea25e0e1cae828066696ef5b6ebe8692255b0f7bd31b2c2970df844d26"
+  },
+  "own_reference": {
+    "path": "research/v2/verification/20260926-batch-recursive-composition/your_reference.py",
+    "sha256": "44b375e32cc6a96ce113fe922c3458412c4ce65431722c42b109971b170e1e5b",
+    "command": "python3 -B research/v2/verification/20260926-batch-recursive-composition/your_reference.py",
+    "exit_code": 0,
+    "verdict": "PASS",
+    "schedule_scalar_comparisons": 3696,
+    "schedule_absolute_tolerance": 3e-16,
+    "schedule_max_absolute_error": 1.1102230246251565e-16,
+    "explicit_endpoint_comparisons": 4,
+    "routing_bit_exact_comparisons": 448,
+    "beta2_transport_comparisons": 10,
+    "uses_only_stdlib": true,
+    "executes_exact_diff_excerpts": true,
+    "author_test_executed": false,
+    "candidate_module_imported": false
+  },
+  "findings": {
+    "off_schedule_original_bodies_preserved": true,
+    "off_group_routing_bit_exact": true,
+    "on_group_routing_correct_including_no_lr_decay": true,
+    "off_scalar_on_tensor_transport_routing_correct": true,
+    "batch_lr_parser_and_defaults_unchanged_in_diff": true,
+    "architecture_clock_eval_checkpoint_data_untouched_in_diff": true,
+    "no_composition_defect_found": true
+  },
+  "author_receipt_scope": {
+    "independently_rerun": false,
+    "model_layers": 8,
+    "model_width": 128,
+    "vocabulary": 256,
+    "sequence_length": 32,
+    "parameters": 1475892,
+    "off_default_steps": 3,
+    "off_target_steps": 3,
+    "donor_on_target_steps": 3,
+    "full_global_batch_materialized": false,
+    "raw_pair_traces_in_receipt": false
+  },
+  "limits": [
+    "Full source and exact diff coverage authentication remain with Supervisor",
+    "Existing accepted forward evidence not reopened",
+    "Author reduced-model OFF3 and donorON3 witnesses inspected, not independently rerun",
+    "Independent scalar references test diff recurrence/routing, not native tensor arithmetic",
+    "No full113M, distributed ownership, checkpoint I/O, native compiler, startup, speed or BPB evidence"
+  ],
+  "host_contact": false,
+  "launch_authorization": false,
+  "adoption": false,
+  "bpb_win": false,
+  "submission_authorization": false
+}
