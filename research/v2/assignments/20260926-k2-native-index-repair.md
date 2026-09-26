@@ -39,3 +39,11 @@ source3637166b is the bounded fallback after its completed proposal, original
 guardian and ordinary guards are bound. Do not overlap launches. If retry
 fails, archive literal error and park K2; select existing qualified fallback.
 No new reworded model calls, review loop, automatic full or submission.
+
+Fallback selected at09:14:07UTC: exact label fs-20260926-p3-component-trn22-r1.
+Source3637166b43a0b996e7eb7c71bb3b5d56e7f8119241b0278107a72787044dcc99;
+completed proposal research/v2/proposals/20260926-p3-component-timing/EXPERIMENT_PROPOSAL.json
+SHA663e9848d56701e380a0a2ae4cfa61245c951e6800595aabd7ce28d7ee60a5ad.
+Use frozen trn22-prepared.json packetda7a290e and stage_trn22.py5d510872;
+same900-second source cap, outer930+15, original guardian/fresh guards.
+K2 repair is next after this bounded diagnostic. No source/driver changes.
