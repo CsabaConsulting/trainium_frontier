@@ -1,0 +1,236 @@
+{
+  "proposal_id": "20260926-k2-compiler-local-constants-timing",
+  "status": "complete_research_design_source_cpu_review_and_native_binding_pending_not_ready",
+  "owner_role": "researcher",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "hypothesis": "Putting the six unchanged fixed geometry constants inside the jitted resident_consumer resolves the independently reproduced NKI closure-name tracing failure without changing the K2 operation; any useful whole-step speedup still requires one actual native45 comparison at >=1.03x.",
+  "single_causal_change": "In a NEW train.py derivative of frozen a318 only, move/bind vocab=8192, tokens=32768, channels=1024, partition=128, features=512, groups=64 as local constants in resident_consumer instead of outer Python closure variables. No numeric value, operation, traversal, accumulation, metadata, guard, registration, optimizer, model, data or clock change.",
+  "mechanism_class": "throughput",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Compiler compatibility hypothesis supported by CPU parser evidence, not a BPB or native speed prediction. No full-quality or submission claim.",
+  "selection_rationale": "This distinct repair has a real matching-version CPU parser reproduction and controlled six-name localization, unlike blindly retrying parked a318. Final Sprint prioritizes bounded K2 qualification; preserve the running batch/control jobs and existing flag-only fallback if source gates are not complete at a host boundary.",
+  "trainium_feasibility": "Keep fixed full chip LNC2/four ranks, eight layers/width1024, batch131072, pack32/context1024. Offline exact NKI-version parse/MLIR verification is encouraging only for name resolution; actual native lowering, SBUF/liveness, DMA, metadata ops, registration, device arithmetic, fit and whole-step rate remain unproved.",
+  "cheapest_falsifier": "One existing CPU evidence bundle on the actual future full source: exact narrow diff/shape constants, original both-dtype arithmetic/OFF identity checks and matching-version offline parser. One fresh bounded review of this repair. Only after source binding and same-host control acceptance, one fresh-cold full-shape native45; no duplicate OFF45.",
+  "evidence": [
+    "research/v2/analysis/20260926-k2-parser-failure/README.md",
+    "research/v2/analysis/20260926-k2-parser-failure/parser-results.json",
+    "research/v2/analysis/20260926-k2-parser-failure/diagnose.py",
+    "research/v2/analysis/20260926-k2-parser-failure/nki-install-report.json",
+    "research/v2/analysis/20260926-k2-parser-failure/dependency-install-report.json",
+    "research/v2/lanes/k2-native-index-repair/train.py",
+    "research/v2/lanes/k2-native-index-repair/cpu-result.json",
+    "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md",
+    "research/v2/ledger.jsonl: fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1"
+  ],
+  "control": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "kind": "control",
+    "host": null,
+    "run_label": null,
+    "primary_tokens_per_second": null,
+    "selected_control_bound": false,
+    "rule": "Before dispatch bind the declared genuine same-host e1e2 full run's exact source/argv/runtime/seed and trustworthy sequential t9..t44 observations. Use only that host's precommitted35*131072/(t44-t9). No cross-host rate, best window, post-result host/label selection or new OFF45. Host selection follows ready/idle priority, not favorable timing.",
+    "alternatives": [
+      {
+        "host": "trn21",
+        "run_label": "fs-20260926-sprint-e1e2-control-trn21-r1",
+        "status": "currently running; terminal/retrieval and exact window acceptance pending",
+        "primary_tokens_per_second": null,
+        "public_val_bpb": null
+      },
+      {
+        "host": "trn22",
+        "run_label": "fs-20260926-sprint-e1e2-control-trn22-r1",
+        "status": "actual completed genuine control; rebind trustworthy existing receipt",
+        "primary_tokens_per_second": 266629.65793002315,
+        "public_val_bpb": 0.9879041000701606,
+        "actual_steps": 3640
+      }
+    ],
+    "must_not_relabel_quality_run_as_smoke": true
+  },
+  "candidate": {
+    "source": "research/v2/lanes/k2-compiler-local-constants/train.py",
+    "source_sha256": null,
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-k2-localconstants-on-parentcontrol-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "control_command_difference": "The new source must preserve audited K2-OFF behavior versus a318/e1e2. ON adds --k2-embedding; --num-steps45 changes termination only. Same1800-second schedule/budget, seed42 and data order; boundary44 precedes different stop collective. No source patch may change clock or final boundary semantics.",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false,
+    "source_commit": null,
+    "source_status": "INTENDED_NEW_PATH_NOT_IMPLEMENTED_OR_FROZEN; Implementer supplies exact bytes/commit/SHA/diff and single CPU bundle, then the single fresh reviewer. No candidate source is created by Researcher.",
+    "parent_source": "research/v2/lanes/k2-native-index-repair/train.py",
+    "parent_source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "expected_diff": "In a NEW train.py derivative of frozen a318 only, move/bind vocab=8192, tokens=32768, channels=1024, partition=128, features=512, groups=64 as local constants in resident_consumer instead of outer Python closure variables. No numeric value, operation, traversal, accumulation, metadata, guard, registration, optimizer, model, data or clock change.",
+    "launch_command_sha256": "7c1e0c36c8abbae4728424f95b0a80e80a4d3617d89d730ac2b3e168e1467c7f",
+    "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline"
+  },
+  "gates": {
+    "source_frozen": false,
+    "actual_full_source_diff_identity_passed": false,
+    "cpu_exactness_author": false,
+    "flag_off_three_step_identity_author": false,
+    "matching_version_offline_parser_on_final_source_passed": false,
+    "independent_repair_review": "PENDING: exactly one fresh bounded <=30min repair review with its own CPU reference, frozen diff/spec/raw receipts and actual source identity. No repeated review absent an actual failed test; no extra full-size CPU ceremony.",
+    "independent_review_passed": false,
+    "same_host_control_timing_bound": false,
+    "native_timing": false,
+    "native_cold_startup": false,
+    "fresh_machine_admission_passed": false,
+    "human_run_approval": "Standing development scope plus Supervisor's distinct evidence-backed repair selection; this is not native release.",
+    "submission_authorized": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(t44-t9) from sequential observed boundaries on candidate and declared same-host genuine e1e2 control. This exact window is prospectively frozen here for BOTH hosts before candidate execution; discard no slow sample and choose no alternative observed window.",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "One admitted ON45 completes45 finite correct steps with exact source/argv/runtime, valid native/checkpoint evidence, trustworthy same-host matching windows, cold startup/accounting/resources; exact unrounded candidate/control rate>=1.03. Parser success is not this pass.",
+    "quality_followup": "Only after actual qualification, declare/bind a separate same-new-source full1800 plus fresh20M/context1024. If used as future P2 control, prospectively fix kind=control/base=new SHA before full launch/BPB, one actual row. Old a318/639 control/full proposals remain disabled and cannot supply new-source qualification."
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "Old639 failed and its one diagnosed a318 retry failed; both remain parked with actual records intact. This is a distinct proposal justified by real new matching-parser evidence and requires new exact source plus one fresh review and explicit Supervisor native release. It grants ONE new-source native check only, no automatic retry/reset or repaired-source full launch. On failure archive literal evidence, park this source and take next eligible job.",
+  "human_approved_by": "Poojith Final Sprint standing development scope; Supervisor explicitly requested this new evidence-backed research proposal, not an automatic third attempt.",
+  "verdict": null,
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "prospective_candidate_footprint_bytes": 3221225472,
+    "control_artifacts": "Already allocated and protected; accounted by actual free-space check. No hypothetical extra OFF job or deletion.",
+    "memory_available_minimum_bytes": 68719476736,
+    "policy": "Fresh measured free space>=max(14495514624,11274289152+actual conservatively projected new footprint) and MemAvailable>=68719476736. Protect all controls, failed K2/P3, live batch, caches and checkpoints. No hypothetical reclamation, reduced floor, deletion or AWS action."
+  },
+  "prepared_utc": "2026-09-26T09:35:13Z",
+  "proposal_template": "research/agentic/EXPERIMENT_PROPOSAL.json",
+  "candidate_shortlist": [
+    {
+      "idea": "Localize exactly six fixed K2 kernel constants",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Matching NKI parser fails on each remaining free variable and passes after all six become locals; smallest evidence-backed source change."
+    },
+    {
+      "idea": "Repeat parked a318 unchanged",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Rejected: observed failure reproduced; prior diagnosed retry consumed."
+    },
+    {
+      "idea": "Change SDK, global injection, wrapper, geometry or accumulation",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Rejected here: unnecessary causal expansion; local six-constant diagnostic already passes parser."
+    },
+    {
+      "idea": "Accepted eight-layer matrixLR.021-only flag arm",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": null,
+      "why_ranked": "Existing-code fallback can separate batch/LR effects if this new source is not admitted; no launch by this proposal."
+    }
+  ],
+  "p_improve": null,
+  "estimated_host_hours": 0.8,
+  "diagnostic_evidence": {
+    "parser_results_sha256": "6547d2ade17aff60108aa0c9135618101f529972ac108d35673449e97a8a1840",
+    "diagnostic_script_sha256": "3812ebb533af43e2b4251688e1b9b1c9fc5dc613fe4e8f315836aae08f765197",
+    "nki_install_report_sha256": "b446090c16b004f8c66f863bb2ddc7914b701bc83ad62c537005a149098a60c9",
+    "dependency_install_report_sha256": "17ca5dbc78461604ecfe6c8e29a6a89eed9104ffb7dc4d4a2416e2003cf85ac8",
+    "nki_version": "0.5.0+28631259367.ga768afa6",
+    "diagnostic_python": "3.12.13, CPU only; matching NKI wheel, not an assertion that every host Python/package byte is identical",
+    "production_geometry": {
+      "vocab": 8192,
+      "tokens": 32768,
+      "channels": 1024,
+      "partition": 128,
+      "features": 512,
+      "groups": 64,
+      "lnc": 2,
+      "target": "trn2"
+    },
+    "failed_cases": "Original full-source extracted kernel and minimal closure fail unbound tokens. Production local1..5 fail on channels, vocab, groups, features, partition respectively.",
+    "successful_case": "Standalone production_local_6 has closure={} and PARSER_MLIR_PASS with verified1062965-byte MLIR.",
+    "successful_mlir_sha256": "4e3e0f1c579e624ca11f184a24cbfe81297e01ebb590368b904c417f72e24310",
+    "scope": "The diagnostic's source_sha256 identifies unchanged a318 extraction origin, not a new repaired candidate hash. Virtual local-constant source is diagnostic only. Actual final train.py implementation, CPU/source binding and fresh review remain pending. No hardware ran."
+  },
+  "implementation_contract": {
+    "permitted_scope": "Only train.py, narrow _k2_build_kernel/resident_consumer fixed-constant lexical binding. Preserve int32/int64 guard and every original shape/value.",
+    "arithmetic": "Unchanged stable metadata, token-order per-occurrence FP32 accumulation of BF16 tangents, dense FP32 output, exact zero-row handling, ownership and writeback; no cast or regrouping. Two programs retain512 features each and64 row groups of128.",
+    "off_identity": "K2 default OFF path, parameters/initialization, forward, model config, optimizer, evaluation/checkpoint/load semantics and data stream must remain identical. Existing CPU suite scope stays explicit; reduced/interpreted checks are not native/full-size proof.",
+    "forbidden": "No prepare/evaluator/tokenizer/scoring/data changes, no pretrained/private/external data, SDK upgrade, global-name workaround, table port, shape fallback, architecture/LR/batch/schedule changes or relaxed oracle.",
+    "p2": "P2 remains parked. Do not silently port this repair into0127 or reuse its old proposals as qualified new-source P2 authority."
+  },
+  "host_alternatives": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-k2-localconstants-on-parentcontrol-trn21-r1"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-k2-localconstants-on-parentcontrol-trn22-r1"
+    }
+  ],
+  "dispatch": {
+    "selected_host": null,
+    "selected_label": null,
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "priority": "Earliest independently admitted idle host after its protected current job and attached evaluation naturally finish; trn21 around09:53UTC is a planning estimate only. Preserve current trn21 control and trn22 batch.021. If the new source is not ready, take a qualified existing-code fallback; no idle wait for incomplete gates.",
+    "binding": "Existing sole Operator records exact future source/commit/review/proposal/argv/environment/runtime and genuine same-host comparator. Reuse held-original-guardian mechanics after literal binding changes; never old a318/639 source payload or a second launcher."
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "term_grace_seconds": 60,
+    "policy": "Unchanged source/harness startup/predictor/checkpoint/exit accounting. Startup above900 is charged; outer timeout does not enlarge budget. Cold native startup retained; later warm full is not cold submission proof."
+  },
+  "machine_protocol": "Same sole Operator and original exclusive /home/ubuntu/.cache/trainium_freshstart/device0.lock held through all owned activity; fresh ps AND neuron-ls plus fuser/STOP/source/argv/runtime/resource/unused-label checks under lock. Preserve running jobs, retrieve success/failure artifacts and prove owned-child/device quiescence before existing guardian release.",
+  "failed_attempts": [
+    {
+      "label": "fs-20260926-k2-sprint-on-parentcontrol-trn22-r1",
+      "source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+      "exit_code": 1,
+      "steps": 0,
+      "error": "ValueError: K2 requires two-dimensional int64 token IDs",
+      "archive_sha256": "52c017298afa972fb5731e479f1c3fa4eb72ee5ae7ed8eb39c067c41de4976de",
+      "actual_runtime_dtype_logged": false,
+      "static_cause": "Real unchanged prepare.py479/481/514 allocates/copies int32 input tensors."
+    },
+    {
+      "label": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+      "source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+      "steps": 0,
+      "error": "All four ranks: NKI tracing unbound variable 'tokens'; no timing/checkpoint/BPB.",
+      "status": "PARKED_DIAGNOSED_RETRY_CONSUMED",
+      "evidence": "research/v2/ledger.jsonl; Supervisor's retrieved failure and parser-results.json"
+    }
+  ],
+  "success_criteria": {
+    "throughput": "Actual unrounded same-host precommitted whole-step ratio>=1.03; no CPU/parser-based speed claim.",
+    "correctness": "No crash/nonfinite/causality/source/budget/checkpoint/resource failure; finite full-shape native execution and retrieved actual evidence.",
+    "quality": "No BPB verdict from45 steps. Later separately declared full1800/fresh20M uses unchanged decide.py; cold full replay/Claude/human required for submission."
+  },
+  "required_artifacts": [
+    "Committed proposal; exact new train.py source/commit/SHA/diff and unchanged-parent binding",
+    "Single actual CPU/off-identity/parser bundle and one fresh repair review with scope/hash",
+    "Precommitted same-host actual control timing/source/argv/runtime receipts",
+    "Original-lock and fresh idle/resource/STOP/provenance receipts; all six private cold cache namespaces",
+    "Complete candidate log, all45 sequential boundaries, native correctness/checkpoint evidence, uncapped startup and charged-time metrics",
+    "Failure or completion/quiescence record and unchanged exact ratio verdict; no invented future quality row"
+  ],
+  "role_separation": "Researcher writes this proposal only. Implementer owns new source/author CPU receipts; one independent Reviewer checks repair; Supervisor binds evidence and selects later release; existing sole Operator alone admits/runs; Analyst compares observed results. No source/selector/queue/state/ledger/host action by this task."
+}
