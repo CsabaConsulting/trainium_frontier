@@ -8,7 +8,9 @@ No fifth/startup/rate/net/BPB exists. Failure found10:42:11;29 rawmember hashes
 verified. All103 observedIDs/device/original832589 idle10:42:38. K2 is CLOSED
 under the human decision tree, tables4b74 PARKED; no retry or phantom speed win.
 trn21 c2e batch/LR+Recursive full stays live. trn22 next is single-factor
-LR.02625 on adopted8c6 batch262144; assignmentab480e247 released, not launched.
+LR.02625 on adopted8c6 batch262144 actually launched16:15:00IST; four ranks
+verified and original832589 held.13 staged/9 live hashes checked; attached20M.
+Compact failure-to-next dispatch422.117603s. Warm use is not cold/hit proof.
 Corrected target<=.975official/~.9755public; officialbest.9878 unchanged.
 Evidence: operator/20260926-k2-runtimegroups-handoff/FAILURE.md; state top.
 

@@ -22,8 +22,8 @@ Compactf804 failed native compilation at10:37:58UTC with zero completed steps.
 No startup/rate/net result exists; it cannot satisfy either continuation branch.
 K2 is closed and tables parked under the human decision tree below. Preserve
 all source/local evidence; no automatic retry. trn21 runs the batch/LR+Recursive
-stack; nexttrn22 is single-factor LR.02625 on adopted8c6, releasedab480e247.
-This is not yet a launch or result. The target and official score are unchanged.
+stack; trn22 single-factor LR.02625 on adopted8c6 launched16:15:00IST.
+Both actual full runs include fresh20M; results pending. Official score unchanged.
 
 ## Current execution and decision tree
 
