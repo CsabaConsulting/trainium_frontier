@@ -1,0 +1,277 @@
+{
+  "schema": "guarded-confirmed36-clean-true-cold-full-v1",
+  "status": "DISABLED_PENDING_ACTUAL_COLD_FIVE_ACCEPTANCE_MECHANICS_AND_SCOPED_RELEASE",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "label": "fs-20260926-confirmed36-clean-coldfull-trn22-r2",
+  "host": "trn22",
+  "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet",
+  "package": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/package",
+  "sandbox": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train",
+  "eval_sandbox": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval",
+  "source_commit": "7b9c20c696237fbb2abef57135bf777e6a801365",
+  "source_git_path": "workflow/candidates/confirmed-clock36-116188/train.py",
+  "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+  "prepare_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "harness_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+  "harness_sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+  "training_command": [
+    "torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "2730s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+    "--package",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/package",
+    "--sandbox",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train",
+    "--mode",
+    "train",
+    "--fresh-caches"
+  ],
+  "evaluation_command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+    "--package",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/package",
+    "--sandbox",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval",
+    "--mode",
+    "eval",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/out/final.pt",
+    "--eval-tokens",
+    "20971520",
+    "--fresh-caches"
+  ],
+  "training_environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/metrics-training",
+    "TRN_EXP_LABEL": "fs-20260926-confirmed36-clean-coldfull-trn22-r2",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/compiler"
+  },
+  "evaluation_environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TRN_EXP_LABEL": "fs-20260926-confirmed36-clean-coldfull-trn22-r2",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/compiler",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/metrics-eval"
+  },
+  "driver_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/host_driver.py",
+  "driver_sha256": "ee5bc9f7a984c77b2c489eb5f361be37949de29f7b48637c58eb3a384c27dd90",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+  "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+  "outer_command": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/host_driver.py"
+  ],
+  "cold_gate": {
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "required_before_full_launch": true,
+    "threshold_seconds": 900,
+    "target_seconds": 870,
+    "status": "PENDING_ACTUAL_R2_COLD_FIVE_TERMINAL_AND_INDEPENDENT_ACCEPTANCE",
+    "result": null,
+    "cold_packet": "c1384be93c2d314b49dd574f4b936a732f0b1a26",
+    "no_old_source_result_transfer": true
+  },
+  "budgets": {
+    "source_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "train_outer_seconds": 2730,
+    "eval_outer_seconds": 1800,
+    "kill_grace_seconds": 60,
+    "actual_accounting": "Unchanged rehearsal harness records process wall and actual uncapped first-five observations, asserts charged wall minus capped allowance <=1800 through training process exit; all cleanup/CSV inside source process included."
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "seq_len": 1024,
+    "batch_size": 1,
+    "device": "neuron",
+    "prepare_unchanged": true,
+    "same_lifetime_lock": true,
+    "new_guard_before_eval": true
+  },
+  "source_gate": {
+    "source": "Fresh source/tiny0b889d8c and root622-record replaya35181b6",
+    "full_g2": "Actual reference+candidate standardG2 accepted a72617ec, all8 ranks/65digestprefixes/12losses; CPU shims explicit",
+    "ordinary_checkpoint": "Actual helper2e7 independently accepted188 own checks/rootreplay364b76a5; CPU synthetic only.",
+    "cold_five": "PENDING e1e2 corrected hostroot/label r2; originalr1 failed beforetorchrun. Require actualuncappedfifth<=900,target870,all4exit0/finite/sixemptycaches/officialcharge/checkpoint/postflight.",
+    "packet": "NOT_BUILT. Mechanical composition of existing cold train preflight/harness and attached fresh eval phases; must review difference from warmfull preflight which expects caches already present. No new numerical/scientific/evaluator flow.",
+    "operator_release": "NONE",
+    "human_submission": "Still required; Claude compliance audit via Poojith remains"
+  },
+  "guard_review": "Unchanged guard/dispatcher; mechanical root/label/source/provenance pins on existing disabled cold-full control-plane body. New exact binding requires independent acceptance.",
+  "no_auto_next_job": true,
+  "old_queue": "PAUSED_AND_EXITED; no re-arm",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "fresh_cache_contract": {
+    "creation": "Pinned unchanged rehearsal creates absent sandbox and six absent empty SDK dirs before prepare check/torchrun; URL prebound to matching compiler directory.",
+    "true_cold_training": true,
+    "true_cold_eval": true,
+    "expected_training_dirs": {
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/hlo",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/inductor",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/compiler",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/train/caches/debug"
+    },
+    "expected_eval_dirs": {
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/local",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/hlo",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/inductor",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/compiler",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/eval/caches/debug"
+    },
+    "reuse_shared_compile_cache": false,
+    "actual_effective_compiler_routing_still_requires_retrieved_evidence": true
+  },
+  "harness_source": {
+    "commit": "00f2ca7f79696e65ce52458f074dd13b871da90c",
+    "git_path": "research/scratch/submission_rehearsal.py",
+    "sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b"
+  },
+  "expected_hostname": "ip-172-31-32-253",
+  "hardware_actions_taken": false,
+  "package_launch_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+  "package_provenance_sha256": "dcec405e7b4ee2fd78d60382aaebadc0ab0f114c6c6abfae11bc2efea236683f",
+  "detached_dispatch_command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet/dispatch_driver.py"
+  ],
+  "trained_checkpoint_diagnostic": "Actual clean e1e2 full113M G2 and ordinary trained-checkpoint CPU helper accepted; native cold/full/eval proof remains pending. No old3f scientific approval inherited.",
+  "comparison_target": {
+    "base_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "reference_public20m_mean": 0.9883066128526815,
+    "tolerance": 0.0015,
+    "scope": "Submission-port target, not new research gain or official score promise; final independent comparison required."
+  },
+  "proposal_first_commit": "e80692e2469cc7620e75132861462157ffc065bf",
+  "native_resolved_training_command": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "training_command_path_note": "Package launch is byte-identical proven submission command, including NEURON_LOGICAL_NC_CONFIG=2 and torchrun. Controlled PATH resolves the exact venv binary; proposal absolute argv differs only argv0.",
+  "resource_gates": {
+    "original_lock": {
+      "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+      "device": 66305,
+      "inode": 832589
+    },
+    "disk_floor_gib": 10.5,
+    "projected_compile_checkpoint_footprint_gib": 3,
+    "no_cleanup_authorized": true,
+    "no_parallel_job": true
+  },
+  "original_lock": {
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "device": 66305,
+    "inode": 832589
+  },
+  "postflight": "Retrieve exact source/argv/env/label/box/log/rehearsal/stepboundaries/graph stats/startup/charge/all exits/checkpoint hashes/fresh eval. All observed dispatcher/flock/driver/harness/torchrun/workers/compiler/evaluator PID/starttime/PPID/PGID/SID absence, ps/device/fuser/original lock free. Post-eval checkpoint rehash. Independent actual archive acceptance before packaging advice.",
+  "submission_authorized": false,
+  "native_launch_authorized": false,
+  "harness_containment": {
+    "old_outside_root": "/home/ubuntu/trainium_confirmed36_clean_coldfull_20260926_trn22_r1",
+    "rule": "Resolved train AND eval sandbox must be below resolved harness.parents[2]/out",
+    "remote_check_required_before_stage": true,
+    "old_failure_preserved": "56b5220b"
+  },
+  "old_scientific_approval_inherited": false,
+  "proposal_sha256": "475e62406dc419dea2e218e1a5a631b80a55c8571efb482ea0690d4d913d0069",
+  "driver_derivation": {
+    "commit": "d9f372dcc3ab3726131b8ee623c8f6338c2db065",
+    "path": "research/v2/proposals/20260926-architecture-clean-cold-full/host_driver.py",
+    "sha256": "0b0f34cba9757f9371ab9c0b6e2b33adc6294023f5ea7f61464eaf96f2b9a511",
+    "replacements": [
+      [
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-arch3e79-clean-cold-trn22-r1-packet",
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-coldfull-trn22-r2-packet"
+      ],
+      [
+        "fs-20260926-arch3e79-clean-cold-trn22-r1",
+        "fs-20260926-confirmed36-clean-coldfull-trn22-r2"
+      ],
+      [
+        "3f5035da293d984e15df915e2348258aea7f399bbf4d0e47aeb5c9896c35a47f",
+        "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43"
+      ],
+      [
+        "9f917597ed0f6e48e32b029e0b5e158011620eee832bb4d204f7d97fea4f685c",
+        "dcec405e7b4ee2fd78d60382aaebadc0ab0f114c6c6abfae11bc2efea236683f"
+      ]
+    ],
+    "scope": "Whole-file literal root,label,sourceSHA,provenanceSHA only. Old3f scientific REFUSE is immutable and confers no source approval."
+  }
+}
