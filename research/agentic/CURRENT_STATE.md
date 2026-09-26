@@ -1,5 +1,41 @@
 # Current state
 
+## 00:34 UTC / 06:04 IST: promising score authenticated; no adoption yet
+
+Exact36a862 startup-clock architecture scored fresh20M/context1024
+**0.9883821509811542**, 3,630 steps, fifth807.694s, charged1789.505s.
+Root65+68 checks normal/-O authenticate final raw and unchanged checkpoint
+f22d8287. Relative to earlier same-host6ef7 schedule arm: -0.001896647,
+but this compares different stacks, not just one factor. Relative to raw
+unconfirmed3e79 parent: +0.002041846. Unchanged selector is INSUFFICIENT
+because trn22 has no genuine kind=control/base6ef7 yet; no role relabeling.
+Confirmed mean remains0.9901674436550496, submission HOLD unchanged.
+
+trn21 bcbd full continues: actual00:31:51 step1130,266235tok/s,1246s source
+remaining,18.664GB free. Its original lifetime lock and attachedfresh20M
+remain. Exact36 trn21 replication is proposal-first preparation only;
+packet/in-dependent mechanics and separate assignment still pending.
+
+trn22 W1 ran00:27:12–00:29:20: actual uncapped fifth120.337942s versus
+originalS1~845.593623s. This narrowly MISSES predeclared120s target, despite
+large observed operational reduction. Cache-hit/path-only causality unproved,
+compiler bytes unavailable. Rawfae79d5f and explicit10PID/257row quiescence
+retrieved; independent final authentication in progress. No auto full/eval.
+
+Next exact K2 FP32-first diagnostic is assignedca0cc017 ontrn22, source-neutral,
+one600+60s four-rank test. Fresh input-only Astra independently executed33 CPU
+checks; separate125 mechanics and rootreplays pass. Original20-case native
+failure stays failed even if this diagnostic passes. Actual launch pending
+fresh Operator checks. Afterwards genuine6ef7 trn22 control is conditionally
+releasedcac7cfdc after terminal/retrieval/explicitquiescence and top-level state
+advance. Root50 mechanics plus six author groups pass; no source patch.
+
+Primary AWS/PyTorch documentation supports investigating registered autograd
+as a separate integration hypothesis, not a diagnosed fix; current checker is
+byte-frozen. No six-ready-jobs or new upload-ready artifact claim. Goal ACTIVE.
+Actual top-level state.hosts governs assignments; older snapshots below are
+historical. Sole Operator, original locks and unchanged selection rules remain.
+
 ## 00:17 UTC / 05:47 IST: fallback launched; architecture evaluation running
 
 trn21's exact bcbd base-cache full run launched at 00:15:00.993796 UTC.
