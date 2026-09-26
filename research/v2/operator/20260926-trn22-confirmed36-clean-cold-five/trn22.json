@@ -1,0 +1,139 @@
+{
+  "started_utc": "2026-09-26T04:07:22.955328+00:00",
+  "ended_utc": "2026-09-26T04:07:28.091731+00:00",
+  "rc": 0,
+  "remote_source_sha256": "d8ecc03646f4d8c2bb1a957b0898e17872eaf88b2665e9fe87825c0dc9c5a4f8",
+  "local_before": {
+    "utc": "2026-09-26T04:07:22.929203+00:00",
+    "controller_state_sha256": "d987548cb35e33f04d867d0d9b718c67652fd36e638967836fc54abe456f941f",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": true,
+      "trn22": true
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  },
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T04:07:27.884162+00:00",
+    "host": "trn22",
+    "label": "fs-20260926-confirmed36-clean-cold-trn22-r1",
+    "root": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1",
+    "processes": [
+      {
+        "pid": 3275899,
+        "exists": false
+      }
+    ],
+    "known_identity_floor": [
+      3275899
+    ],
+    "selected_ps_rows": [],
+    "files": {
+      "operator-launch.json": {
+        "bytes_at_stat": 309,
+        "captured_bytes": 309,
+        "capture": "complete_at_observation",
+        "sha256_captured": "fee733228d1a9c040953e77a91ff42012b1e91711d6cfe7db4a7c470990a5066",
+        "text": "{\n  \"utc\": \"2026-09-26T04:07:04.877608+00:00\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r1\",\n  \"dispatch_pid\": 3275899,\n  \"root\": \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1\",\n  \"status\": \"DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING\",\n  \"no_automatic_next_job\": true\n}\n"
+      },
+      "training-launch.json": {
+        "bytes_at_stat": 1838,
+        "captured_bytes": 1838,
+        "capture": "complete_at_observation",
+        "sha256_captured": "e4a95c92fce6b467075fa61e7d3ec74eb2ba72fceab5cd6781e23cf4a3056d51",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"1800s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1/train\",\n    \"--mode\",\n    \"train\",\n    \"--fresh-caches\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1/train/caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1/metrics-training\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-confirmed36-clean-cold-trn22-r1\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r1\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\",\n  \"utc\": \"2026-09-26T04:07:04.995616+00:00\"\n}\n"
+      },
+      "training.log": {
+        "bytes_at_stat": 544,
+        "captured_bytes": 544,
+        "capture": "complete_at_observation",
+        "sha256_captured": "e751362cf056d94bcbf758a1e48506195557a53ec4cc01c0e85517978e6559ac",
+        "text": "HARNESS_START_UTC=2026-09-26T04:07:04.995712+00:00\nTraceback (most recent call last):\n  File \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\", line 121, in <module>\n    main()\n  File \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\", line 38, in main\n    assert sandbox.is_relative_to(root / \"out\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\nHARNESS_END_UTC=2026-09-26T04:07:05.029780+00:00\n"
+      },
+      "run-exit-code.txt": {
+        "bytes_at_stat": 2,
+        "captured_bytes": 2,
+        "capture": "complete_at_observation",
+        "sha256_captured": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+        "text": "1\n"
+      },
+      "terminal.json": {
+        "bytes_at_stat": 206,
+        "captured_bytes": 206,
+        "capture": "complete_at_observation",
+        "sha256_captured": "5fff34948913acddfb8333013f2ff4260d03f69b36308ce02ef426cb7f55e47d",
+        "text": "{\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r1\",\n  \"no_automatic_full\": true,\n  \"no_eval\": true,\n  \"returncode\": 1,\n  \"status\": \"CT_HARNESS_FAILED\",\n  \"utc\": \"2026-09-26T04:07:05.029980+00:00\"\n}\n"
+      },
+      "outer-flock-exit.json": {
+        "bytes_at_stat": 473,
+        "captured_bytes": 473,
+        "capture": "complete_at_observation",
+        "sha256_captured": "d84ec4ddcc87b732ca15846d249ce8ec34411b8460f5a196497f80d5e650558b",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/flock\",\n    \"-n\",\n    \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"/usr/bin/python3\",\n    \"-I\",\n    \"-B\",\n    \"/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn22_r1/host_driver.py\"\n  ],\n  \"driver_terminal_exists\": true,\n  \"ended_utc\": \"2026-09-26T04:07:05.035587+00:00\",\n  \"returncode\": 1,\n  \"started_utc\": \"2026-09-26T04:07:04.899083+00:00\",\n  \"status\": \"OUTER_COMMAND_FAILED\",\n  \"under_lock_receipt_exists\": true\n}\n"
+      },
+      "under-lock-idle.json": {
+        "bytes_at_stat": 1418,
+        "captured_bytes": 1418,
+        "capture": "complete_at_observation",
+        "sha256_captured": "2cec85272c8528d4c7e0b75f4e74ea9c96d8c16712c7c0fe616f088e554e5b5a",
+        "text": "{\n  \"ended_utc\": \"2026-09-26T04:07:04.995361+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3275901,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3275900,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3275901,\n      3275900\n    ],\n    \"returncode\": 0,\n    \"row_count\": 254,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"f3f5772f3bbf7dbbc033a022759492f84f944bf03f39632036ccddc40a25c6ed\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T04:07:04.929963+00:00\",\n  \"status\": \"PASS\"\n}\n"
+      },
+      "dispatch.log": {
+        "bytes_at_stat": 0,
+        "captured_bytes": 0,
+        "capture": "complete_at_observation",
+        "sha256_captured": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      }
+    },
+    "captured_file_bytes": 4790,
+    "checkpoint": null,
+    "ps_rc": 0,
+    "ps_stderr": "",
+    "neuron_ls_rc": 0,
+    "neuron_ls": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0673e54d9d66e6a1e",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": []
+      }
+    ],
+    "neuron_ls_stderr": "",
+    "lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held": false,
+      "proc_lock_rows": []
+    },
+    "free_bytes": 20237496320,
+    "retired_queue_pids": {
+      "3050509": false,
+      "3053905": false
+    },
+    "completed_parent_metadata_only": {},
+    "completed_parent_cache_exists_only": {},
+    "no_changes": true,
+    "elapsed_seconds": 0.0747453219955787
+  },
+  "stdout_if_error": null
+}
