@@ -1,4 +1,30 @@
-# K2 BF16 production implementation scoping
+# Latest: production-shape supplied-metadata consumer implemented, native unproved
+
+Supervisor narrowed the next deliverable to SPEC gate2's consumer-first
+falsifier after incomplete commita56e4dcc. New `consumer_nki.py` contains the
+actual fixed V8192/T32768/C1024 NKI source, two512-channel owners and64row
+groups, default disabled. `CONSUMER_SPEC.md` is the component's exact scope.
+The missing producer is not a prerequisite for reviewing this supplied-metadata
+component; it remains mandatory for production integration and useful timing.
+
+Own `test_consumer.py` interprets the same body with ONLY six geometry constants
+changed to V8/T16/C8/P4/F4/G2, using a clearly labeled tiny CPU instruction model.
+19fixtures run in normal/-O with identical raw receipts
+b757a9db3d9bbfe60efdb84a71d6b792c3056e2cab4db6759190c7c24bded386.
+It checks exact finite bits, both owners' write coverage, identical runtime
+group schedules, repeated same-callable input/output freshness, subnormal/order
+witnesses and exceptional diagnostics. No NKI SDK/compiler or native execution
+occurred; no claim of native512-channel legality follows from tiny interpretation.
+Largest interpreted tensor is128elements. Consumer source SHA256:
+9425390c96053a1b24d4addf8b61b1a87c4993f3551f08c7cdcefcf142d84dcd.
+
+The narrower source is reviewable, but fresh independent diff/spec/receipts
+review and a separately completed component proposal MUST precede native tests.
+No training flag, registered autograd integration, model/evaluator edit, source
+adoption, producer, speed claim, launch packet or host action is included.
+Protected tiny consumer rehash remains2c8295a4...; frozen train.py stays36a862.
+
+## Historical incomplete production handoff at a56e4dcc (preserved)
 
 Status: **INCOMPLETE / HOLD**. Implementer only. No independent source review,
 native component, G2, timing, training, quality, adoption or submission result.
