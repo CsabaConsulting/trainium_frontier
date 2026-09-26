@@ -1,5 +1,25 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 12:01 IST
+
+Exact clean native diagnostic actually dispatched on trn21 at06:26:19UTC,
+before the06:28 tooling fallback deadline, with four recorded workers. Its
+resource monitor failed at06:26:56 on compiler-cache
+`default_control_fast_table.bin` with `ARTIFACT_NONREGULAR`. Operator reports
+owned descendants reaped; final cache census repeats the error, so guardian
+3202398 retains original lock596823. Raw retrieval/independent acceptance is
+pending; no native PASS, retry or host reuse is authorized. Consumed launch
+bit is closed. Human approval requested for a narrowly checked safety-hold
+release; preserve all files and the failed evidence.
+
+K2 trn22 binding ec0ff8ae is preparation-only. Fresh independent verifier is
+active on frozen diff/spec/receipts and own CPU checks; kernel/oracle unchanged.
+Its proposed new clean checkout does not exist yet. Existing three projects
+were observed dirty and remain untouched. Native runtime, clean checkout and
+fresh16GiB disk/24GiB RAM gates remain. Check whether its cache census shares
+the newly observed compiler-file incompatibility before any native launch.
+Best confirmed public mean0.9883066129 and clean cold0.9883890652 unchanged.
+
 ## Current — 26 September 11:45 IST
 
 Research resumed on explicit user instruction; best confirmed0.9883066129

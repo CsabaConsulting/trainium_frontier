@@ -1,5 +1,27 @@
 # Current state
 
+## 06:31 UTC / 12:01 IST: actual native launch, compiler-cache gate failure
+
+Clean-file native consistency launched on trn21 at06:26:19.059069UTC, before
+the06:28 tooling fallback deadline. Operator reports four workers and then
+`ARTIFACT_NONREGULAR` at06:26:56.535471 on a compiler debug-cache table file.
+All owned children were reportedly reaped, but postflight repeats the cache
+census error and guardian3202398 retains original lock596823. Raw retrieval
+and independent quiescence acceptance are pending. One-use launch bit is
+closed; no retry, external signal or host reuse is authorized. Human asked
+for a specific checked hold-release decision. No numerical/native PASS.
+
+K2 trn22 host-only binding ec0ff8ae is in fresh independent CPU/diff review;
+the reviewer also confirms its cache census rejects every symlink. Actual
+failed object type/target remains pending read-only observation. Fix only the
+diagnosed cache-accounting incompatibility after evidence/review; never weaken
+tensor comparisons, budgets, resource floors or artifact retrieval. New clean
+trn22 project has not been created, and existing dirty projects stay intact.
+
+Confirmed research mean0.9883066129 and clean cold0.9883890652 are unchanged.
+Submission still needs native ordinary-loader consistency and human Claude
+audit. Exact audit-only Downloads e1e2 file remains the measured cold candidate.
+
 ## 06:15 UTC / 11:45 IST: research resumed; transport refusal preserved
 
 Poojith explicitly resumed all-in BPB research. Confirmed mean remains
