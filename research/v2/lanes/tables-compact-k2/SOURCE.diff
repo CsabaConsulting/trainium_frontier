@@ -1,0 +1,33 @@
+--- tables-runtime-select/train.py
++++ tables-compact-k2/train.py
+@@ -113,14 +113,13 @@
+         sentinel = nl.full((partition, 1), tokens, dtype=nl.int32, buffer=nl.sbuf)
+         limit = nisa.register_alloc(0)
+ 
+-        # 64 bounded static row-group bodies, each containing a runtime loop.
++        # 64 ordered runtime row groups, each containing an occurrence loop.
+         # Neither T nor the per-row occurrence count is statically unrolled.
+         # Both programs traverse identical groups and supplied loop limits.
+-        for group in range(groups):
+-            first = group * partition
+-            nisa.dma_copy(dst=remaining, src=counts[first:first + partition, :])
+-            nisa.dma_copy(dst=pointer, src=starts[first:first + partition, :])
+-            nisa.dma_copy(dst=maximum, src=group_maximums[group:group + 1, :])
++        for group in nl.dynamic_range(groups):
++            nisa.dma_copy(dst=remaining, src=counts.reshape((groups, partition, 1)).select(0, group))
++            nisa.dma_copy(dst=pointer, src=starts.reshape((groups, partition, 1)).select(0, group))
++            nisa.dma_copy(dst=maximum, src=group_maximums.reshape((groups, 1, 1)).select(0, group))
+             nisa.register_load(limit, maximum)
+             nisa.memset(dst=accumulator, value=0.0)
+             for _ in nl.dynamic_range(limit):
+@@ -154,8 +153,8 @@
+                                    engine=nisa.engine.vector)
+             # A fresh dense output per call; untouched rows store positive zero.
+             # Owner0 writes c[0:512], owner1 writes c[512:1024].
+-            nisa.dma_copy(dst=output[first:first + partition,
+-                                     feature_first:feature_first + features], src=accumulator)
++            nisa.dma_copy(dst=output.reshape((groups, partition, channels)).select(0, group)[
++                                     :, feature_first:feature_first + features], src=accumulator)
+         return output
+ 
+     return resident_consumer[2]

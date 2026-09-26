@@ -1,0 +1,45 @@
+{
+  "input_dtype": "torch.int32",
+  "reference": {
+    "status": "PASS_FP32_MASTER_REFERENCE",
+    "collision_and_microstep_gradient": [
+      0.00390625,
+      0.00390625,
+      0.00390625,
+      0.00390625
+    ]
+  },
+  "hashes_test": "production_hashes_length1_2_4_and_signed_int32_exact",
+  "op_cases": [
+    "bf16_old_witness",
+    "fp32_large_order",
+    "fp32_small_order",
+    "subnormal_pos",
+    "subnormal_neg",
+    "normal_cancellation"
+  ],
+  "rms": "FP32_RMS_3_UPDATES_EXACT_AND_REPLICATED_ROUTING_4_FAKE_RANKS",
+  "clip": "SEPARATE_MAIN_AND_JOINT_TABLE_CLIP_EXACT_FP32_AVG_ROUTING",
+  "model": {
+    "off_3_steps": "BIT_IDENTICAL",
+    "off_losses": [
+      4.161633014678955,
+      4.1532745361328125,
+      4.155467987060547
+    ],
+    "on_2_steps": "REGISTERED_VS_ORDINARY_BIT_IDENTICAL",
+    "common_init": "BIT_IDENTICAL",
+    "checkpoint": "STRICT_ON_AND_OLD_PARENT_ROUNDTRIP",
+    "causality_and_batch_independence": "SAME_SHAPE_BIT_EXACT",
+    "cross_shape_prefix_max_abs_difference_diagnostic": 7.62939453125e-06,
+    "test_geometry": "8layers,C128,T16,V64,table32x128"
+  },
+  "native_executed": false,
+  "sha256": {
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/train.py": "f8047d07908386c8155218d89773405b1a7a6d7c2d33ce420899bb342d5fb07e",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-compact-k2/train.py": "4b74ed48c772a5e82807d5509529704deaf1c8cd56692705efe9047ea7ae4a7b",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-compact-k2/test_tables.py": "ed7a6946811cbd5ecd319f1d7833d1ffcfe9262b1e99cd518df1a2016323c9d5",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-compact-k2/test_fp32_reference.py": "35adcf7fa09be762673bae40e651d8e2b60f110b7517aafd069232d3d492a2bc",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-compact-k2/cpu_instruction_model.py": "b8e3f52bff60be9337f1e1945e98f03a6b0fb10ab6074473189fd9c509a961a3"
+  }
+}
