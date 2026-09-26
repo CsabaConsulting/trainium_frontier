@@ -19,7 +19,7 @@ review=(REPO/'research/v2/verification/20260926-p3-sprint-independent/REVIEW.md'
 assignment_path='research/v2/assignments/20260926-sprint-next-dispatch.md' if local else sys.argv[2]
 assignment=(REPO/assignment_path).read_bytes()
 if local:assert b'P3 direct diagnostic' in assignment
-else:assert b'fs-20260926-p3-component-trn22-r1' in assignment and b'3637166b' in assignment
+else:assert sha(assignment)=='b474bd86479da5ef12e8812d8ad2f3a296c3bd825a093582a2fe439d2673b0c4' and b'P3 reviewed diagnostic' in assignment and b'3637166b' in assignment
 b.update(stage_authorized=True,launch_authorized=True,release_file_created=True,full_proposal_present=True,submission_authorized=False,completed_proposal_path=proposal_path,completed_proposal_sha256=sha(proposal),operator_assignment_path=assignment_path,operator_assignment_sha256=sha(assignment))
 # Retain the known unchanged harness as provenance only; this direct diagnostic
 # never invokes it. These paths permit unchanged staging identity checks.
