@@ -1,0 +1,189 @@
+{
+  "started_utc": "2026-09-26T04:29:53.509145+00:00",
+  "ended_utc": "2026-09-26T04:29:59.026145+00:00",
+  "rc": 0,
+  "remote_source_sha256": "f77f306479f3d326e2040df786d85cd888cd126037f25af5e5f138b6520d8b17",
+  "local_before": {
+    "utc": "2026-09-26T04:29:53.483130+00:00",
+    "controller_state_sha256": "d397823557be66eee7e052865abec45f007ba592cfb829991d0797d23e38496e",
+    "launch_authorized": false,
+    "host_launch_allowed": {
+      "trn21": false,
+      "trn22": false
+    },
+    "breaker_tripped": {
+      "global_correctness": false,
+      "trn21": false,
+      "trn22": false
+    },
+    "local_stops_present": []
+  },
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T04:29:58.420605+00:00",
+    "host": "trn22",
+    "label": "fs-20260926-confirmed36-clean-cold-trn22-r2",
+    "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet",
+    "processes": [
+      {
+        "pid": 3276148,
+        "exists": false
+      }
+    ],
+    "known_identity_floor": [
+      3276148
+    ],
+    "selected_ps_rows": [],
+    "files": {
+      "operator-launch.json": {
+        "bytes_at_stat": 374,
+        "captured_bytes": 374,
+        "capture": "complete_at_observation",
+        "sha256_captured": "f09e5875b1329add05bcab5e2bd77dc5bcd841521fea4100dd924a7db9381b7a",
+        "text": "{\n  \"utc\": \"2026-09-26T04:14:22.039431+00:00\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\",\n  \"dispatch_pid\": 3276148,\n  \"root\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet\",\n  \"status\": \"DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING\",\n  \"no_automatic_next_job\": true\n}\n"
+      },
+      "training-launch.json": {
+        "bytes_at_stat": 2098,
+        "captured_bytes": 2098,
+        "capture": "complete_at_observation",
+        "sha256_captured": "913d029c4e99a47721ccc8f9a9a45f3970f48f4ddc1ef68af408e3d35b299e7a",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"1800s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train\",\n    \"--mode\",\n    \"train\",\n    \"--fresh-caches\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/metrics-training\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\",\n  \"utc\": \"2026-09-26T04:14:22.154043+00:00\"\n}\n"
+      },
+      "training.log": {
+        "bytes_at_stat": 10387,
+        "captured_bytes": 10387,
+        "capture": "complete_at_observation",
+        "sha256_captured": "8f901368a0a31ac0edb9dbca3b1a094e9db50006fa3c8935d3e26acece9f03e4",
+        "text": "HARNESS_START_UTC=2026-09-26T04:14:22.154145+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train\", \"files\": [\"caches\", \"prepare.py\", \"train.py\"], \"train_sha256\": \"e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 5\", \"fresh_empty_sdk_caches\": {\"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff\", \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local\", \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo\", \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor\", \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\", \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug\"}}\n[W926 04:14:24.401349992 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"/home/ubuntu/workspace/native_venv/bin/torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--num-steps\", \"5\"]\n[W926 04:14:26.969341170 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] \nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] *****************************************\nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 04:14:26.778000 3276180 torch/distributed/run.py:851] *****************************************\n[W926 04:14:29.298574199 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.299468540 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.299486590 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 04:14:29.301983536 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\ndevice=neuron dtype=torch.bfloat16 world_size=4\ntraining target=5 steps max_seconds=1800 official_budget=1800s\ngradient_clip=1 clip_after_reduce=True\nmodel_config={\n  \"sequence_len\": 1024,\n  \"vocab_size\": 8192,\n  \"n_layer\": 8,\n  \"n_head\": 8,\n  \"n_embd\": 1024,\n  \"mlp_ratio\": 4,\n  \"attn_scale\": 0.0,\n  \"n_kv_heads\": 0\n}\nnum_params=113,256,724 flops_per_token=6.921232e+08\ntorch.compile enabled (backend=neuron)\nmicro_tokens=131,072 grad_accum_steps=1 pack_factor=32\nmuon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]\nmuon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]\nmuon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]\nstep 00000 | loss 9.0101 | lrm 1.000 | dt 830.56s | tok/s 158 | remaining_steps 4 | remaining_time 967s | epoch 1\nstep 00001 | loss 8.7779 | lrm 1.000 | dt 0.49s | tok/s 264,949 | remaining_steps 3 | remaining_time 966s | epoch 1\nstep 00002 | loss 8.4047 | lrm 1.000 | dt 0.49s | tok/s 267,189 | remaining_steps 2 | remaining_time 966s | epoch 1\nstep 00003 | loss 8.0711 | lrm 1.000 | dt 0.49s | tok/s 268,509 | remaining_steps 1 | remaining_time 965s | epoch 1\nstep 00004 | loss 7.7681 | lrm 1.000 | dt 0.49s | tok/s 268,238 | remaining_steps 0 | remaining_time 1800s | epoch 1\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\n---\ncheckpoint_path:    /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/out/final.pt\ntraining_seconds:  0.0\nbudget_seconds:    1800\ntarget_steps:      5\nmax_train_seconds: 1800\nstartup_allowance_est: 856.8\ncharged_seconds_est:   0.4\nover_budget:       False\ntotal_seconds:     835.8\ncompiled:          True\nnum_steps:         5\ntotal_tokens_M:    0.7\nworld_size:        4\nlnc:               2\nseq_len:           1024\nnum_params_M:      113.3\nSUBMISSION_REHEARSAL {\"returncode\": 0, \"wall_seconds\": 863.638870780007, \"step_boundaries\": 5, \"mode\": \"train\", \"fresh_empty_sdk_caches\": {\"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff\", \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local\", \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo\", \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor\", \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\", \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug\"}, \"startup_allowance_observed\": 859.1679093550192, \"charged_through_process_exit\": 4.470961424987763, \"checkpoint_bytes\": 453044626, \"checkpoint_sha256\": \"8e867c7a541f799e96502001e91ea06388e46fe0c2159a7c07c684d947b9dbde\", \"charged_through_process_exit_within_budget\": true}\nHARNESS_END_UTC=2026-09-26T04:28:48.701657+00:00\n"
+      },
+      "run-exit-code.txt": {
+        "bytes_at_stat": 2,
+        "captured_bytes": 2,
+        "capture": "complete_at_observation",
+        "sha256_captured": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "text": "0\n"
+      },
+      "train/rehearsal.json": {
+        "bytes_at_stat": 1921,
+        "captured_bytes": 1921,
+        "capture": "complete_at_observation",
+        "sha256_captured": "88c5462be9b3d9a0f1c0c921ddc43ce15baa841283f72797ea851e3094591e34",
+        "text": "{\n  \"returncode\": 0,\n  \"wall_seconds\": 863.638870780007,\n  \"step_boundaries\": 5,\n  \"mode\": \"train\",\n  \"fresh_empty_sdk_caches\": {\n    \"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/neff\",\n    \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/local\",\n    \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/hlo\",\n    \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/inductor\",\n    \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/compiler\",\n    \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/caches/debug\"\n  },\n  \"startup_allowance_observed\": 859.1679093550192,\n  \"charged_through_process_exit\": 4.470961424987763,\n  \"checkpoint_bytes\": 453044626,\n  \"checkpoint_sha256\": \"8e867c7a541f799e96502001e91ea06388e46fe0c2159a7c07c684d947b9dbde\",\n  \"observations\": [\n    {\n      \"step\": 0,\n      \"observed_seconds\": 855.5032516639913\n    },\n    {\n      \"step\": 1,\n      \"observed_seconds\": 857.6618753699586\n    },\n    {\n      \"step\": 2,\n      \"observed_seconds\": 858.1637012680294\n    },\n    {\n      \"step\": 3,\n      \"observed_seconds\": 858.6654968990479\n    },\n    {\n      \"step\": 4,\n      \"observed_seconds\": 859.1679093550192\n    }\n  ],\n  \"charged_through_process_exit_within_budget\": true\n}\n"
+      },
+      "train/steps.jsonl": {
+        "bytes_at_stat": 10,
+        "captured_bytes": 10,
+        "capture": "complete_at_observation",
+        "sha256_captured": "026d8ad3dfa1f2aa9da7964947ddedd4e83c6fc008206ebf898699dea80f9804",
+        "text": "0\n1\n2\n3\n4\n"
+      },
+      "terminal.json": {
+        "bytes_at_stat": 206,
+        "captured_bytes": 206,
+        "capture": "complete_at_observation",
+        "sha256_captured": "94d0faef1edce0d853db62a35c5413a68638103d610d0013aeb7bf3e8580c930",
+        "text": "{\n  \"label\": \"fs-20260926-confirmed36-clean-cold-trn22-r2\",\n  \"no_automatic_full\": true,\n  \"no_eval\": true,\n  \"returncode\": 0,\n  \"status\": \"CT_HARNESS_EXITED\",\n  \"utc\": \"2026-09-26T04:28:48.701880+00:00\"\n}\n"
+      },
+      "outer-flock-exit.json": {
+        "bytes_at_stat": 538,
+        "captured_bytes": 538,
+        "capture": "complete_at_observation",
+        "sha256_captured": "3745cd7934f2fbd9095f0611dd084ac7db990feb00168b0d5b99b0f739f397d4",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/flock\",\n    \"-n\",\n    \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"/usr/bin/python3\",\n    \"-I\",\n    \"-B\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/host_driver.py\"\n  ],\n  \"driver_terminal_exists\": true,\n  \"ended_utc\": \"2026-09-26T04:28:48.707320+00:00\",\n  \"returncode\": 0,\n  \"started_utc\": \"2026-09-26T04:14:22.061314+00:00\",\n  \"status\": \"OUTER_COMMAND_EXITED\",\n  \"under_lock_receipt_exists\": true\n}\n"
+      },
+      "under-lock-idle.json": {
+        "bytes_at_stat": 1418,
+        "captured_bytes": 1418,
+        "capture": "complete_at_observation",
+        "sha256_captured": "ec96ec39a2fd1d853ce8dfb9d031549ad271c21d4c5d0131a4e68e3cb130f1c7",
+        "text": "{\n  \"ended_utc\": \"2026-09-26T04:14:22.153769+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3276150,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3276149,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3276150,\n      3276149\n    ],\n    \"returncode\": 0,\n    \"row_count\": 255,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"2d99de7986cab8570174bb42745045ea72eefbc6fe0deadbe67d82966d112c5d\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T04:14:22.092335+00:00\",\n  \"status\": \"PASS\"\n}\n"
+      },
+      "dispatch.log": {
+        "bytes_at_stat": 0,
+        "captured_bytes": 0,
+        "capture": "complete_at_observation",
+        "sha256_captured": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "metrics-training/metric_table_graph_stats_rank0.csv": {
+        "bytes_at_stat": 1246,
+        "captured_bytes": 1246,
+        "capture": "complete_at_observation",
+        "sha256_captured": "8c4396b57c78068a4651a97d4e419f5eaeb1ec956699b9cbdf9dbb48a095c77c",
+        "text": "graph_id,graph_name,model_name,has_collectives,graph_node_count,timestamp,torch_neuronx_fx_passes_us,torch_neuronx_lower_us,torch_neuronx_compile_us\r\n0ed52033111e7c9465e1961936c8fe58b63f0ed9c261122553bb44d8f15026a4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_forward_1,model_default,False,666,20260926_041555_785981,8302,412753,0\r\ne92733ec99229849b6c729b5b680eae29e39d47635d7df951331feea8c94d6e8:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_backward_3,model_default,False,1169,20260926_041936_762382,3309,666808,0\r\naccc32aa965c361c072dc7935e244d33f0b0a9990f3b24271907b8d2fdb56203:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_1_inference_4,model_default,False,194,20260926_042814_220842,1591,257848,0\r\n2cf7375cbfa9eff49e12367c40226e3a5ec5f4e804edaa383881b17989237da0:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_2_inference_5,model_default,False,194,20260926_042825_376342,874,161006,0\r\n72b94dc2a552b858d4648c478926c18e38abb6eea57b514d2a316a662361f82b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_3_inference_6,model_default,False,194,20260926_042832_188506,792,158347,0\r\n"
+      },
+      "metrics-training/metric_table_graph_stats_rank1.csv": {
+        "bytes_at_stat": 1482,
+        "captured_bytes": 1482,
+        "capture": "complete_at_observation",
+        "sha256_captured": "fef604fdfbf693ed296f144c4dfdedac72018f0ddfba46145989f2f1cea10d32",
+        "text": "graph_id,graph_name,model_name,has_collectives,graph_node_count,timestamp,torch_neuronx_fx_passes_us,torch_neuronx_lower_us,torch_neuronx_compile_us\r\n0ed52033111e7c9465e1961936c8fe58b63f0ed9c261122553bb44d8f15026a4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_forward_1,model_default,False,666,20260926_041556_014478,8420,417247,0\r\ne92733ec99229849b6c729b5b680eae29e39d47635d7df951331feea8c94d6e8:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_backward_3,model_default,False,1169,20260926_041937_021653,3202,690876,0\r\n2f1695455ddbf0e461cbb28d72c105dfd077e464793178887e757d19d6a4ccc1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_1_inference_4,model_default,False,194,20260926_042821_643844,867,181629,4903000\r\n299a09930a42ccaa3e251f1a564d53d2376edb2c698459e24d9d8ba86aa4c9b4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_2_inference_5,model_default,False,194,20260926_042827_326037,806,157968,4094000\r\n2cf7375cbfa9eff49e12367c40226e3a5ec5f4e804edaa383881b17989237da0:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_3_inference_6,model_default,False,194,20260926_042831_932618,789,157459,0\r\n4a5eb00ae9ccb4213476b9d0997e28e62366a29fc578c2cfe17d195b7e67e4a6:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_4_inference_7,model_default,False,194,20260926_042834_006459,884,157740,5859000\r\n"
+      },
+      "metrics-training/metric_table_graph_stats_rank2.csv": {
+        "bytes_at_stat": 1276,
+        "captured_bytes": 1276,
+        "capture": "complete_at_observation",
+        "sha256_captured": "cec1952929090a4383a3d60ad62e0bbce58557ddd265932d6cac662890454d95",
+        "text": "graph_id,graph_name,model_name,has_collectives,graph_node_count,timestamp,torch_neuronx_fx_passes_us,torch_neuronx_lower_us,torch_neuronx_compile_us\r\n0ed52033111e7c9465e1961936c8fe58b63f0ed9c261122553bb44d8f15026a4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_forward_1,model_default,False,666,20260926_041555_727095,8212,412071,203745000\r\ne92733ec99229849b6c729b5b680eae29e39d47635d7df951331feea8c94d6e8:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_backward_3,model_default,False,1169,20260926_041936_556748,3265,669747,479374000\r\naccc32aa965c361c072dc7935e244d33f0b0a9990f3b24271907b8d2fdb56203:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_1_inference_4,model_default,False,194,20260926_042813_989190,1591,421306,10024000\r\n2cf7375cbfa9eff49e12367c40226e3a5ec5f4e804edaa383881b17989237da0:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_2_inference_5,model_default,False,194,20260926_042824_933197,1672,179633,5954000\r\n72b94dc2a552b858d4648c478926c18e38abb6eea57b514d2a316a662361f82b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_3_inference_6,model_default,False,194,20260926_042831_485651,883,159667,0\r\n"
+      },
+      "metrics-training/metric_table_graph_stats_rank3.csv": {
+        "bytes_at_stat": 1264,
+        "captured_bytes": 1264,
+        "capture": "complete_at_observation",
+        "sha256_captured": "123ca4d554dea8e0e2be12dd4f8bc0d25c311b6f120019a4091ef6896b96dc62",
+        "text": "graph_id,graph_name,model_name,has_collectives,graph_node_count,timestamp,torch_neuronx_fx_passes_us,torch_neuronx_lower_us,torch_neuronx_compile_us\r\n0ed52033111e7c9465e1961936c8fe58b63f0ed9c261122553bb44d8f15026a4:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_forward_1,model_default,False,666,20260926_041555_805126,8322,408556,0\r\ne92733ec99229849b6c729b5b680eae29e39d47635d7df951331feea8c94d6e8:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_0_backward_3,model_default,False,1169,20260926_041937_104637,3244,701608,0\r\n65207461e89ea139b4d7a8a8a968d151f9027c4d642be9fbd0b74b9b572e509d:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_1_inference_4,model_default,False,194,20260926_042801_071692,870,177179,4934000\r\n18d851a5e9cbb4a4fbdfebdedb6ed775b88431c483aacd205bfe20ae7f036ce0:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_2_inference_5,model_default,False,194,20260926_042808_859833,807,176104,10481000\r\n72b94dc2a552b858d4648c478926c18e38abb6eea57b514d2a316a662361f82b:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433,model_default_3_inference_6,model_default,False,194,20260926_042820_001716,779,160834,6765000\r\n"
+      }
+    },
+    "captured_file_bytes": 22222,
+    "checkpoint": {
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/out/final.pt",
+      "bytes": 453044626,
+      "device": 66305,
+      "inode": 2932562,
+      "mtime_ns": 1790396924229241123,
+      "ctime_ns": 1790396924229241123,
+      "sha256_source": "archived checkpoint.json / train rehearsal; no rehash during live eval"
+    },
+    "ps_rc": 0,
+    "ps_stderr": "",
+    "neuron_ls_rc": 0,
+    "neuron_ls": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0673e54d9d66e6a1e",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": []
+      }
+    ],
+    "neuron_ls_stderr": "",
+    "lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held": false,
+      "proc_lock_rows": []
+    },
+    "free_bytes": 18772881408,
+    "retired_queue_pids": {
+      "3050509": false,
+      "3053905": false
+    },
+    "completed_parent_metadata_only": {},
+    "completed_parent_cache_exists_only": {},
+    "no_changes": true,
+    "elapsed_seconds": 0.073945052921772
+  },
+  "stdout_if_error": null
+}
