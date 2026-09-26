@@ -1,5 +1,13 @@
 # K1 Muon batching — source audit, 26 September 2026
 
+## CLOSED by Final Sprint, 26 September12:17 IST
+
+Literal same-shape Muon batching and rank ownership already exist in audited
+e1e2. Do not allocate another implementation/review/native slot to this lane.
+This closure is the human's priority decision, NOT proof that all optimizer
+cost is below5%. Preserve the measured profile and all earlier findings below.
+Any later reopening needs a distinct measured bottleneck and current policy.
+
 ## 02:12 IST evidence update
 
 The completed P trace is now correlated against the exact OwnedOptimizer tail.

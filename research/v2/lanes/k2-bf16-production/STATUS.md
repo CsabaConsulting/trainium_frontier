@@ -1,5 +1,17 @@
 # Latest: production-shape supplied-metadata consumer implemented, native unproved
 
+## Final Sprint override — 26 September12:17 IST
+
+Prospective production base is auditede1e2, not research36. Actual producer,
+model/autograd integration and OFF3step identity remain missing. Native timing
+deadline16:00IST today. One patch directory, one independentreview<=30min;
+CPU exactness vs plain torch, OFF3step identity and short Trn2 timing/coldstartup
+are the research evidence bar. Old full-size/repeated-proof/28-route gate
+ceremonies below are overridden; original numerical counterexamples remain.
+Do not label the current supplied-metadata consumer an integrated timing-ready
+model. P0 uses the available Implementer slot first; no new K2 builder has yet
+started under this directive because the attempted spawn hit the thread limit.
+
 Supervisor narrowed the next deliverable to SPEC gate2's consumer-first
 falsifier after incomplete commita56e4dcc. New `consumer_nki.py` contains the
 actual fixed V8192/T32768/C1024 NKI source, two512-channel owners and64row
