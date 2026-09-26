@@ -1,0 +1,64 @@
+{
+  "schema": "completed-clean-port-cpu-qualification-v1",
+  "proposal_id": "20260926-confirmed36-clean-cpu-trn21-r1",
+  "prepared_utc": "2026-09-26T03:03:00Z",
+  "status": "COMPLETED_SPEC_PACKET_NOT_PREPARED",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "owner_role": "Supervisor specification; sole Operator may prepare exact mechanical packet, not launch without separate release",
+  "label": "fs-20260926-confirmed36-clean-cpu-trn21-r1",
+  "host": "trn21",
+  "scope": "Full113M synthetic CPU qualification of an independently source-reviewed clean port using unchanged standard G2. No native/training data/evaluation/cold/full/submission action.",
+  "hypothesis": "The clean e1e2f686 file preserves confirmed36 initialization and production three-step training semantics at full parameter size; tiny comparisons alone do not prove this.",
+  "candidate": {
+    "commit": "7b9c20c696237fbb2abef57135bf777e6a801365",
+    "path": "workflow/candidates/confirmed-clock36-116188/train.py",
+    "sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "launch_command_file": "workflow/candidates/confirmed-clock36-116188/launch-command.txt",
+    "launch_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd"
+  },
+  "reference": {
+    "commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "path": "workflow/proposals/research-v2/train.py",
+    "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "argv_source": "research/v2/proposals/20260926-clock36-recursive-exact-cpu-r2-trn22/reference/request.json"
+  },
+  "gates_already_scoped": {
+    "fresh_source_review": "0b889d8c / c4464dca report, source and independent tiny functional arithmetic only",
+    "root_supplied_tiny_replay": "a35181b6,622 records no failed cases, production optimizer/cache comparisons included at tiny size",
+    "old_refusal": "Preserved for old route-preservation contract. New ordinary116188 loader retained, no hidden row adapter."
+  },
+  "execution": {
+    "tool": "workflow/tools/preflight_dryrun.py",
+    "tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "mode": "Existing exact standard G2, two sequential arms (reference, candidate), no new verification algorithm",
+    "steps": 3,
+    "nproc": 4,
+    "micro_rows": 2,
+    "micro_tokens": 256,
+    "parameters": 113256724,
+    "parameter_tensors": 65,
+    "seed": 42,
+    "cpu_only": true,
+    "real_data": false,
+    "keep": true,
+    "timeout_seconds": 3600,
+    "threads_per_rank": 1,
+    "minimum_available_ram_gib": 64,
+    "minimum_disk_gib": 10.5,
+    "extra_footprint_required": true
+  },
+  "required_checks": [
+    "Each exact source/argv G2 PASS, unchanged prepare hash, all4 perrank receipts and checkpoints saved.",
+    "Existing standard --compare of two PASS receipts must report identical parameters/plans/finite losses. Inspect detailed losses, per-rank equality and effective argv, no source-dependent mismatch normalization.",
+    "Retain both checkpoints and exact source/request receipts for separate strict-mask-aware ordinary-loader purity/causality validation. This proposal alone does not close that later check.",
+    "No full-size allocation on local laptop, no device execution or ordinary training while this CPU job runs.",
+    "One exclusive original66305:596823 lifetime lock, fresh ps AND neuron-ls/fuser/STOP/disk/memory and exact-byte checks; retire oldqueue stays.",
+    "Explicit all observed PID/starttime/PPID/PGID/SID/device/originallock quiescence on every outcome, even standard G2 timeout; no orphan assumptions."
+  ],
+  "immutable_reference_policy": "Do not rewrite historical proposal, source or old failure. New request labels/root/host/pins only. Mechanical preparation may reuse proven CPU driver but new verifier algorithm or scientific change needs a distinct Implementer and fresh review; do not self-approve one.",
+  "budget_scope": "CPU qualification fake clock/synthetic microbatch, NOT fixed1800 performance or score. Official launch command unchanged; G2 appends disclosed CPU-only runtime overrides exactly as existing tool does.",
+  "follow_on": "No automatic native/cold/full/eval. Independent actual-result acceptance then separately bound ordinary-loader/native/cold gates.",
+  "failure_policy": "Archive exact failure and park; do not relax equality, change either source, or rerun automatically.",
+  "rollback": "Leave new disabled packet unused; preserve current native jobs, source, checkpoints, logs and Downloads."
+}
