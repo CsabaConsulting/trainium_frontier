@@ -1,0 +1,18 @@
+{"event": "guardian_started", "identity": {"pgid": 1607558, "pid": 1607704, "ppid": 1607621, "sid": 1607558, "start_ticks": 5197875, "state": "R"}, "lock_device": 64513, "lock_held": true, "lock_inode": 11714423, "monotonic": 51979.060069197, "subreaper": true}
+{"command": ["/home/poojith-devan/venv/bin/python", "-B", "-c", "import subprocess,sys,time; subprocess.Popen([sys.executable,'-c',sys.argv[1]]); time.sleep(20)", "import os,signal,time; from pathlib import Path; signal.signal(signal.SIGTERM,signal.SIG_IGN); os.setsid(); Path('child.pid').write_text(str(os.getpid())); time.sleep(20)"], "event": "phase_spawned", "identity": {"pgid": 1607558, "pid": 1607706, "ppid": 1607704, "sid": 1607558, "start_ticks": 5197906, "state": "R"}, "lock_held": true, "monotonic": 51979.061642426, "pid": 1607706}
+{"event": "owned_identity", "identity": {"pgid": 1607558, "pid": 1607706, "ppid": 1607704, "sid": 1607558, "start_ticks": 5197906, "state": "R"}, "lock_held": true, "monotonic": 51979.06180739}
+{"event": "owned_identity", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.112432123}
+{"event": "guardian_signal", "lock_held": true, "monotonic": 51979.568531842, "signal": 15}
+{"event": "cleanup_started", "lock_held": true, "monotonic": 51979.569009534, "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "signal_owned", "identity": {"pgid": 1607558, "pid": 1607706, "ppid": 1607704, "sid": 1607558, "start_ticks": 5197906, "state": "R"}, "lock_held": true, "monotonic": 51979.56948371, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.569569382, "signal": 15}
+{"event": "owned_exited", "identity": {"pgid": 1607558, "pid": 1607706, "ppid": 1607704, "sid": 1607558, "start_ticks": 5197906, "state": "R"}, "lock_held": true, "monotonic": 51979.619931024}
+{"event": "signal_owned", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.620366576, "signal": 15}
+{"event": "reaped", "lock_held": true, "monotonic": 51979.62046996, "pid": 1607706, "returncode": -15, "wait_status": 15}
+{"event": "signal_owned", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.671300942, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.671591449, "signal": 9}
+{"event": "owned_exited", "identity": {"pgid": 1607708, "pid": 1607708, "ppid": 1607706, "sid": 1607708, "start_ticks": 5197908, "state": "S"}, "lock_held": true, "monotonic": 51979.721786376}
+{"event": "reaped", "lock_held": true, "monotonic": 51979.721973031, "pid": 1607708, "returncode": -9, "wait_status": 9}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 51979.722019861, "proof": "waitpid_ECHILD", "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 51979.722444649, "proof": "waitpid_ECHILD", "reason": "DRIVER_FINALLY"}
+{"event": "release_ready", "lock_held": true, "monotonic": 51979.722557998, "proof": "waitpid_ECHILD_AND_POSTFLIGHT_PASS", "signal_received": 15}
