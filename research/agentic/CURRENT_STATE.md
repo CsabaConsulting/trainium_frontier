@@ -1,5 +1,14 @@
 # Current state
 
+## Current takeover — 26 September16:50 IST
+
+Use research/v2/LOW_USAGE_CONTROLLER.md and top research/v2/STATUS.md.
+Root is acting Operator; no new subagents,25-minute checks and6-line reports.
+Both original full jobs live at11:20UTC: trn21 stackstep1810, trn22 LRstep1390,
+four workers/original locks intact; attached20M not yet started in receipts.
+No restart. Warmdowns.60/.85 next unless a qualifying cross-host replica takes
+priority. Officialbest.9878 unchanged; active appgoal now updated FINAL SPRINT.
+
 ## Latest verified live state — 26 September16:29:42IST
 
 Both exact full jobs survived the monitoring-agent quota error. trn21 c2e

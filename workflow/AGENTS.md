@@ -1,5 +1,11 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**CONTROLLING TAKEOVER:** Read `../research/v2/LOW_USAGE_CONTROLLER.md` and
+root AGENTS first. One main+Operator, no new subagents;25-minute single-check
+controller, <=6-line reports, current manual launch guide. All older agent
+counts/polling/audit schedules below are overridden. Pinned goal now FINAL
+SPRINT: safe stack, one bounded K2 rescue, cold finalpackage+Claude, human upload.
+
 **NEWEST:** `SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` controls: safe-stack
 brackets/secondseed, final-slot packageMondayevening even under.003 gain,
 ONE outside-compile K2rescue with native+3%net deadlineSunday12IST. Oldfailed

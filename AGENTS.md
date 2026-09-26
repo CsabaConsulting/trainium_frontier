@@ -2,6 +2,22 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## CONTROLLING: usage-conserving FINAL SPRINT takeover
+
+Read `research/v2/LOW_USAGE_CONTROLLER.md` FIRST, then current STATUS and
+`MANUAL_NEXT_JOBS.md`. The user updated the actual pinned goal to FINAL SPRINT;
+older claims that it cannot be updated are historical. One main agent plus
+Operator maximum, NO new subagents without approval. Root acts as Operator
+for already independently checked jobs; old quota-failed Operators have no
+concurrent authority. Check hosts once per25minutes; scheduled wakes only
+observe, dispatch ready work under original locks, log one line and exit.
+Reports<=6lines. Maintain exact manual commands for3jobs/host. Older5min/
+04:00/07:45 tasks and racing/helper counts are superseded. Safe stack, ONE
+local K2rescue deadlineSunday12IST, cold finalpackage+Claude byMondayevening,
+human uploads and all legality/correctness rules remain. Older sections below
+are historical wherever they conflict; do not recursively follow their FIRST
+headings instead of this current contract.
+
 ## Latest direct plan — safe stack, one K2 rescue, research-only cache reuse
 
 Read `workflow/SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` FIRST, then

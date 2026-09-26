@@ -1,5 +1,19 @@
 # Workflow installation and incremental launch status
 
+## Takeover observation — 26 September16:50 IST
+
+Both existing jobs survive; no restart or host mutation. trn21 stack step1810,
+loss2.6096,282868tok/s; trn22 LR.02625 step1390,loss2.8788,282308tok/s.
+Four workers each, original lock596823/832589 held; neuron-ls rc0. Raw receipts
+operator/20260926-operator-recovery/*-full-takeover1121.json. No final score yet.
+Estimated train ends16:52/16:59IST, fresh20M approximately17:05–17:15IST;
+these are estimates, not observed completions. Next checks at~17:15IST.
+Current contract LOW_USAGE_CONTROLLER.md:25-minute wakes, no new subagents,
+root acts as Operator for existing checked jobs. Old Operator quota-failed;
+no running monitor/dual launcher claimed. Saved controller25min;04/07:45 tasks
+PAUSED, scheduler pickup unobserved. Manual guide preparation in progress.
+Officialbest.9878; confirmed batch/LR mean.986879270651192 unchanged.
+
 ## Latest verified live state — 26 September16:29:42IST
 
 Both original full jobs are training. trn21 c2e stack:494 completed boundaries,

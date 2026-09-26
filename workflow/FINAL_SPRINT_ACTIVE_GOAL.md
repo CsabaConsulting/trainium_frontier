@@ -1,5 +1,14 @@
 # Controlling FINAL SPRINT goal — updated26 September2026,16:04IST report
 
+## Current pinned goal and conservation amendment
+
+The user has now replaced the actual app goal with FINAL SPRINT. Read
+`../research/v2/LOW_USAGE_CONTROLLER.md` first. One main plus Operator, no new
+subagents, checks every25minutes, scheduled wake logs one line then exits,
+manual next3jobs/host kept current, <=6-line reports. These constraints
+override older role counts/polling below. Safe-stack/K2rescue/cold-finalpackage
+plan and <=.975official target stay; no promise of reaching that target.
+
 ## Newest amendment — 26 September16:35IST
 
 Read `SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` FIRST. It supersedes the
