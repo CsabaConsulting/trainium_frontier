@@ -1,0 +1,164 @@
+{
+  "status": "PASS_REDUCED_CPU_ONLY",
+  "source_sha256": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+  "receipts": {
+    "int32": {
+      "sha256": "ed463f70f0e1da95809cdf786a78302dfd460e7c9fd1f2d5b170f2bf39e17269",
+      "result": {
+        "index_dtype": "int32",
+        "reference": {
+          "status": "PASS_FP32_MASTER_REFERENCE",
+          "collision_and_microstep_gradient": [
+            0.00390625,
+            0.00390625,
+            0.00390625,
+            0.00390625
+          ]
+        },
+        "hashes": "production_hashes_length1_2_4_and_signed_int32_exact",
+        "operations": [
+          "bf16_old_witness",
+          "fp32_large_order",
+          "fp32_small_order",
+          "subnormal_pos",
+          "subnormal_neg",
+          "normal_cancellation"
+        ],
+        "rms": "FP32_RMS_3_UPDATES_EXACT_AND_REPLICATED_ROUTING_4_FAKE_RANKS",
+        "clipping": "SEPARATE_MAIN_AND_JOINT_TABLE_CLIP_EXACT_FP32_AVG_ROUTING",
+        "unchanged_ast": [
+          "_k2_build_kernel",
+          "_k2_prepare_metadata",
+          "_k2_build_registered_lookup",
+          "_k2_table_build_kernel",
+          "_k2_table_build_registered_lookup",
+          "_p2_hashes",
+          "MuonAdamW",
+          "OwnedOptimizer",
+          "load_for_eval",
+          "save_checkpoint"
+        ],
+        "model": {
+          "off_3_steps": "BIT_IDENTICAL",
+          "off_losses": [
+            4.161633014678955,
+            4.1532745361328125,
+            4.155467987060547
+          ],
+          "on_2_steps": "REGISTERED_VS_ORDINARY_BIT_IDENTICAL",
+          "common_init": "BIT_IDENTICAL",
+          "checkpoint": "STRICT_ON_AND_OLD_PARENT_ROUNDTRIP",
+          "causality_and_batch_independence": "SAME_SHAPE_BIT_EXACT",
+          "cross_shape_prefix_max_abs_difference_diagnostic": 7.62939453125e-06,
+          "test_geometry": "8layers,C128,T16,V64,table32x128"
+        },
+        "status": "PASS_REDUCED_CPU",
+        "aot_vs_reference": "EXACT_LOSS_AND_ALL_GRADIENTS_3_PASSES",
+        "losses": [
+          4.160157680511475,
+          4.163044452667236,
+          4.162499904632568
+        ],
+        "eager_kernel_backward_calls": 12,
+        "captured_graph_nodes": [
+          5,
+          872,
+          1682
+        ],
+        "native_executed": false,
+        "torch_version": "2.13.0+cpu",
+        "input_sha256": {
+          "research/v2/lanes/tables-outside-compile-rescue/train.py": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+          "research/v2/lanes/k2-outside-compile-rescue/train.py": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+          "research/v2/lanes/tables-outside-compile-rescue/test_candidate.py": "5d385cd4ced186ce56987b850abaa84f885dd98dcf6411c31e362a7c54db3b44",
+          "research/v2/lanes/tables-compact-k2/train.py": "4b74ed48c772a5e82807d5509529704deaf1c8cd56692705efe9047ea7ae4a7b",
+          "research/v2/lanes/tables-compact-k2/test_tables.py": "ed7a6946811cbd5ecd319f1d7833d1ffcfe9262b1e99cd518df1a2016323c9d5",
+          "research/v2/lanes/tables-compact-k2/cpu_instruction_model.py": "b8e3f52bff60be9337f1e1945e98f03a6b0fb10ab6074473189fd9c509a961a3",
+          "research/v2/lanes/tables-compact-k2/test_fp32_reference.py": "35adcf7fa09be762673bae40e651d8e2b60f110b7517aafd069232d3d492a2bc"
+        },
+        "source_sha256": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+        "scope": "Reduced CPU/interpreted kernel, not full-shape Neuron compilation, speed or BPB"
+      }
+    },
+    "int64": {
+      "sha256": "9013280ec036cd42f47ceb5dfe4d9c2fab5663a39cf2289acc6e4a95f981d71d",
+      "result": {
+        "index_dtype": "int64",
+        "reference": {
+          "status": "PASS_FP32_MASTER_REFERENCE",
+          "collision_and_microstep_gradient": [
+            0.00390625,
+            0.00390625,
+            0.00390625,
+            0.00390625
+          ]
+        },
+        "hashes": "production_hashes_length1_2_4_and_signed_int32_exact",
+        "operations": [
+          "bf16_old_witness",
+          "fp32_large_order",
+          "fp32_small_order",
+          "subnormal_pos",
+          "subnormal_neg",
+          "normal_cancellation"
+        ],
+        "rms": "FP32_RMS_3_UPDATES_EXACT_AND_REPLICATED_ROUTING_4_FAKE_RANKS",
+        "clipping": "SEPARATE_MAIN_AND_JOINT_TABLE_CLIP_EXACT_FP32_AVG_ROUTING",
+        "unchanged_ast": [
+          "_k2_build_kernel",
+          "_k2_prepare_metadata",
+          "_k2_build_registered_lookup",
+          "_k2_table_build_kernel",
+          "_k2_table_build_registered_lookup",
+          "_p2_hashes",
+          "MuonAdamW",
+          "OwnedOptimizer",
+          "load_for_eval",
+          "save_checkpoint"
+        ],
+        "model": {
+          "off_3_steps": "BIT_IDENTICAL",
+          "off_losses": [
+            4.161633014678955,
+            4.1532745361328125,
+            4.155467987060547
+          ],
+          "on_2_steps": "REGISTERED_VS_ORDINARY_BIT_IDENTICAL",
+          "common_init": "BIT_IDENTICAL",
+          "checkpoint": "STRICT_ON_AND_OLD_PARENT_ROUNDTRIP",
+          "causality_and_batch_independence": "SAME_SHAPE_BIT_EXACT",
+          "cross_shape_prefix_max_abs_difference_diagnostic": 7.62939453125e-06,
+          "test_geometry": "8layers,C128,T16,V64,table32x128"
+        },
+        "status": "PASS_REDUCED_CPU",
+        "aot_vs_reference": "EXACT_LOSS_AND_ALL_GRADIENTS_3_PASSES",
+        "losses": [
+          4.160157680511475,
+          4.163044452667236,
+          4.162499904632568
+        ],
+        "eager_kernel_backward_calls": 12,
+        "captured_graph_nodes": [
+          5,
+          872,
+          1682
+        ],
+        "native_executed": false,
+        "torch_version": "2.13.0+cpu",
+        "input_sha256": {
+          "research/v2/lanes/tables-outside-compile-rescue/train.py": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+          "research/v2/lanes/k2-outside-compile-rescue/train.py": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+          "research/v2/lanes/tables-outside-compile-rescue/test_candidate.py": "5d385cd4ced186ce56987b850abaa84f885dd98dcf6411c31e362a7c54db3b44",
+          "research/v2/lanes/tables-compact-k2/train.py": "4b74ed48c772a5e82807d5509529704deaf1c8cd56692705efe9047ea7ae4a7b",
+          "research/v2/lanes/tables-compact-k2/test_tables.py": "ed7a6946811cbd5ecd319f1d7833d1ffcfe9262b1e99cd518df1a2016323c9d5",
+          "research/v2/lanes/tables-compact-k2/cpu_instruction_model.py": "b8e3f52bff60be9337f1e1945e98f03a6b0fb10ab6074473189fd9c509a961a3",
+          "research/v2/lanes/tables-compact-k2/test_fp32_reference.py": "35adcf7fa09be762673bae40e651d8e2b60f110b7517aafd069232d3d492a2bc"
+        },
+        "source_sha256": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+        "scope": "Reduced CPU/interpreted kernel, not full-shape Neuron compilation, speed or BPB"
+      }
+    }
+  },
+  "native_measured": false,
+  "new_independent_review": false
+}

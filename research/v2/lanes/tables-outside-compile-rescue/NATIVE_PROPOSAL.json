@@ -1,0 +1,38 @@
+{
+  "proposal_id": "fs-20260926-tables-outside-compile-native201-trn21-r1",
+  "arm_id": "last-layer-fp32-tables-outside-compile",
+  "kind": "kernel_timing",
+  "authority": "Poojith: tables timing next free slot ONLY if current K2 rescue native net>=3%",
+  "status": "PREPARED_CONDITIONAL_NOT_RELEASED",
+  "host": "trn21",
+  "label": "fs-20260926-tables-outside-compile-native201-trn21-r1",
+  "candidate": {
+    "source_sha256": "ba5add518bfb93206313476b2cd929cd678b0ed63b0045d65ad547970a9b7ee7",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --num-steps 201 --k2-embedding",
+    "steps": 201
+  },
+  "single_causal_change": "Last-layer b7/t7 FP32 tables on949f; gather outside graph; batch262144/LR.021/.75/momentum300/seed42 unchanged",
+  "controls": {
+    "source_sha256": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+    "required_native_label": "fs-20260926-k2-outside-compile-native201-trn21-r1"
+  },
+  "prerequisite": "Actual K2 cold net>=+3% and acceptable loss/correctness; no unmeasured promotion",
+  "measure": [
+    "cold startup",
+    "startup charge above900",
+    "boundary9..200 steady tok/s",
+    "net tokens",
+    "loss through200"
+  ],
+  "limits": {
+    "training_seconds": 1800,
+    "full_chip": true,
+    "no_eval": true,
+    "no_automatic_full": true
+  },
+  "cpu_receipt_sha256": "33b0cbe997461920fbcfa2e95014ba46c6b405345db5011b8105cb577e379d5a",
+  "scope": "New reduced CPU evidence; unchanged component backend evidence is not a new whole-model compile",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "submission_authorized": false
+}

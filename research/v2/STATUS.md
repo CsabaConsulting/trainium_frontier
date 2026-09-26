@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+## Conditional table source ready locally — 26 September18:25IST
+
+tables-outside-compile-rescue/ sourceba5add51 passes INT32/INT64 FP32 reference,
+OFF3/ON2 model identity and AOT3 loss/allgrad parity. Both embedding backwards
+execute outside captured graphs; no native speed or BPB claim. Disabled cold201
+packet0afb4f7d prepared with original guardians, batch262144/LR.021/.75/300.
+No queue registration/release; current K2 must qualify first. K2 last actual
+12:48:26 live compiler/workers, no terminal/steps then; momentum last12:42:23.
+Next routine observation~13:03UTC. This turn=PROGRESS (conditional implementation
+and actual local tests), not a measured leaderboard improvement.
+
 ## K2 still compiling; safe fallback repaired — 26 September18:18IST
 
 Actual12:48:26UTC trn21 K2 has four worker processes plus live compilers,

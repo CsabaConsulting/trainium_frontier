@@ -1,0 +1,83 @@
+diff --git a/research/v2/lanes/tables-compact-k2/train.py b/research/v2/lanes/tables-outside-compile-rescue/train.py
+index cb0b9c6c7..a85d037c9 100644
+--- a/research/v2/lanes/tables-compact-k2/train.py
++++ b/research/v2/lanes/tables-outside-compile-rescue/train.py
+@@ -334,6 +334,23 @@ _P2_WIDTH = 128
+ _K2_TABLE_LOOKUP = None
+ 
+ 
++@torch.compiler.disable
++def _k2_eager_embeddings(model, idx):
++    # Keep both registered embedding backwards outside the compiled transformer.
++    metadata = _K2_METADATA(idx, model.transformer.wte.num_embeddings)
++    x = _K2_LOOKUP(model.transformer.wte.weight, *metadata)
++    values = {}
++    for i, block in enumerate(model.transformer.h):
++        if block.attn is not None and str(i) in model.value_embeds:
++            values[str(i)] = _K2_LOOKUP(model.value_embeds[str(i)].weight, *metadata)
++    table_values = {}
++    if model.config.ngram_ve:
++        for key, rows in zip(('b7', 't7'), _p2_hashes(metadata[0])):
++            table_meta = _K2_METADATA(rows, _P2_ROWS)
++            table_values[key] = _K2_TABLE_LOOKUP(model.ngram_tables[key], *table_meta)
++    return x, values, table_values
++
++
+ def _p2_hashes(idx):
+     cur = idx.to(torch.int32)
+     length = cur.shape[1]
+@@ -1213,8 +1230,7 @@ class GPT(nn.Module):
+         sin = self.sin[:, :t]
+         k2 = K2_EMBEDDING and self.training and torch.is_grad_enabled()
+         if k2:
+-            metadata = _K2_METADATA(idx, self.transformer.wte.num_embeddings)
+-            x = _K2_LOOKUP(self.transformer.wte.weight, *metadata)
++            x, k2_values, k2_tables = _k2_eager_embeddings(self, idx)
+         else:
+             x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
+         x = norm(x)
+@@ -1224,19 +1240,18 @@ class GPT(nn.Module):
+             if i >= self.unet_n_enc:
+                 x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()
+             if block.attn is not None and str(i) in self.value_embeds:
+-                ve = (_K2_LOOKUP(self.value_embeds[str(i)].weight, *metadata) if k2
++                ve = (k2_values[str(i)] if k2
+                       else self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE))
+             else:
+                 ve = None
+             ngrams = None
+             if self.config.ngram_ve and i == 7:
+-                rows_pair = _p2_hashes(metadata[0] if k2 else idx)
++                rows_pair = (None, None) if k2 else _p2_hashes(idx)
+                 projected = []
+                 for key, rows in zip(('b7', 't7'), rows_pair):
+                     master = self.ngram_tables[key]
+                     if k2:
+-                        table_meta = _K2_METADATA(rows, _P2_ROWS)
+-                        gathered = _K2_TABLE_LOOKUP(master, *table_meta)
++                        gathered = k2_tables[key]
+                     else:
+                         gathered = F.embedding(rows, master).to(torch.bfloat16)
+                     projected.append(self.ngram_projections[key](gathered))
+@@ -1677,6 +1692,7 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+     return m
+ 
+ def main() -> None:
++    global TOTAL_BATCH_SIZE, MATRIX_LR
+     global PACK_FACTOR, K2_EMBEDDING, _K2_LOOKUP, _K2_METADATA, _K2_TABLE_LOOKUP
+     global loss_scale_clean, loss_scale_skips
+     global N_EMBD, SEQ_LEN
+@@ -1703,7 +1719,13 @@ def main() -> None:
+     parser.add_argument('--clip-after-reduce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE', '1') != '0', help='Average gradients across ranks before clipping. Default on.')
+     _hp('--pack-factor', PACK_FACTOR, int, 'Rows per micro-batch: the loader fetches PACK_FACTOR*SEQ_LEN tokens per row and reshapes them to PACK_FACTOR rows of SEQ_LEN; grad_accum_steps falls as this rises (TOTAL_BATCH_SIZE is fixed).')
+     parser.add_argument('--k2-embedding', action=argparse.BooleanOptionalAction, default=False)
++    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE)
++    parser.add_argument('--matrix-lr', type=float, default=MATRIX_LR)
+     args = parser.parse_args()
++    if args.total_batch_size <= 0 or not math.isfinite(args.matrix_lr) or args.matrix_lr <= 0:
++        parser.error('positive total batch and finite positive matrix LR required')
++    TOTAL_BATCH_SIZE = args.total_batch_size
++    MATRIX_LR = args.matrix_lr
+     K2_EMBEDDING = args.k2_embedding
+     if args.clip_after_reduce != True:
+         parser.error('this submission fixes CLIP_AFTER_REDUCE=True; the launch flag must agree')
