@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "source_sha256": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+  "torch_version": "2.13.0+cpu",
+  "kernel_helpers_ast_unchanged": true,
+  "model_tests": [
+    {
+      "dtype": "torch.int32",
+      "off3": "BIT_IDENTICAL",
+      "on3": "BIT_IDENTICAL_INTERPRETED_NKI",
+      "losses": [
+        4.156866073608398,
+        4.15728235244751,
+        4.162270545959473,
+        4.159947395324707,
+        4.159997940063477,
+        4.156461238861084
+      ],
+      "optimizer": "SGD .01",
+      "shape": "8 layers/width64/context8/batch2"
+    },
+    {
+      "dtype": "torch.int64",
+      "off3": "BIT_IDENTICAL",
+      "on3": "BIT_IDENTICAL_INTERPRETED_NKI",
+      "losses": [
+        4.156866073608398,
+        4.15728235244751,
+        4.162270545959473,
+        4.159947395324707,
+        4.159997940063477,
+        4.156461238861084
+      ],
+      "optimizer": "SGD .01",
+      "shape": "8 layers/width64/context8/batch2"
+    }
+  ],
+  "aot_graphs": [
+    {
+      "kind": "forward",
+      "nodes": 5
+    },
+    {
+      "kind": "forward",
+      "nodes": 830
+    },
+    {
+      "kind": "backward",
+      "nodes": 1612
+    }
+  ],
+  "eager_kernel_backward_calls_after_aot": 12,
+  "kernel_absent_from_captured_forward_and_backward": true,
+  "aot_vs_eager_losses_and_all_gradients": "BIT_IDENTICAL_3_PASSES",
+  "reused_ids_two_tables_two_accumulation_microsteps": "BIT_IDENTICAL_BOTH_INDEX_DTYPES",
+  "native_measured": false,
+  "independent_review": false
+}

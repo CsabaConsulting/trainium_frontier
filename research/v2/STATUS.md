@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Read-only17:35IST observation / K2 local result
+
+Actual12:04:51UTC: trn21 warmdown.60 step960/loss2.9770/281725tok_s;
+trn22 .85 step480/loss3.1305/282691tok_s. Four original workers each, original
+locks held, free151.31/153.89GiB. No terminal or final20M yet. Next routine
+check12:30UTC; estimated train ends17:50/17:57IST, final20M18:02/18:10IST.
+These ETAs are estimates only. Source: operator-recovery/manual-status-*120445.
+K2 rescue949f262c has actual reduced CPU OFF3/ON3 bit identity on both index
+dtypes; AOT forward/backward capture excludes K2 and eager backward fires.
+No native speed/startup or new-code independent review yet. Hosts remain on
+safe scalar queue. Actual scheduled controller tick still unobserved.
+
 ## Current: direct warmdowns live, human momentum arm next
 
 trn21 .60 launched17:05:44IST; trn22 .85 launched17:13:51IST. Actual four

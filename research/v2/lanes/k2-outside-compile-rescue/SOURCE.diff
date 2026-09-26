@@ -1,0 +1,35 @@
+diff --git a/research/v2/lanes/k2-runtime-groups/train.py b/research/v2/lanes/k2-outside-compile-rescue/train.py
+index 15bf6c58b..55c37c8c7 100644
+--- a/research/v2/lanes/k2-runtime-groups/train.py
++++ b/research/v2/lanes/k2-outside-compile-rescue/train.py
+@@ -214,0 +215,13 @@ def _k2_build_registered_lookup(*, kernel=None, nki_op_factory=None):
++@torch.compiler.disable
++def _k2_eager_embeddings(model, idx):
++    # A single graph boundary before the transformer: registered autograd for
++    # these lookup outputs stays outside its captured AOT backward.
++    metadata = _K2_METADATA(idx, model.transformer.wte.num_embeddings)
++    x = _K2_LOOKUP(model.transformer.wte.weight, *metadata)
++    values = {}
++    for i, block in enumerate(model.transformer.h):
++        if block.attn is not None and str(i) in model.value_embeds:
++            values[str(i)] = _K2_LOOKUP(model.value_embeds[str(i)].weight, *metadata)
++    return x, values
++
++
+@@ -1054,2 +1067 @@ class GPT(nn.Module):
+-            metadata = _K2_METADATA(idx, self.transformer.wte.num_embeddings)
+-            x = _K2_LOOKUP(self.transformer.wte.weight, *metadata)
++            x, k2_values = _k2_eager_embeddings(self, idx)
+@@ -1065 +1077 @@ class GPT(nn.Module):
+-                ve = (_K2_LOOKUP(self.value_embeds[str(i)].weight, *metadata) if k2
++                ve = (k2_values[str(i)] if k2
+@@ -1478,0 +1491 @@ def main() -> None:
++    global TOTAL_BATCH_SIZE, MATRIX_LR
+@@ -1504,0 +1518,2 @@ def main() -> None:
++    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE)
++    parser.add_argument('--matrix-lr', type=float, default=MATRIX_LR)
+@@ -1505,0 +1521,4 @@ def main() -> None:
++    if args.total_batch_size <= 0 or not math.isfinite(args.matrix_lr) or args.matrix_lr <= 0:
++        parser.error('positive total batch and finite positive matrix LR required')
++    TOTAL_BATCH_SIZE = args.total_batch_size
++    MATRIX_LR = args.matrix_lr
