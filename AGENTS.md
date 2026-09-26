@@ -2,6 +2,16 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Current target correction — human leaderboard update16:04IST
+
+Read `workflow/FINAL_SPRINT_ACTIVE_GOAL.md` before older goal files.
+Top-ten target is<=.975 official, approximately<=.9755 public20M/context1024.
+Human reports current tenth.9775; older .970 cutoff/target prose is superseded.
+Official best.9878; gap.0128. Approved research base8c6 batch262144/LR.021 has
+two-host public mean.98687927065. Compact K2's actual result decides tonight.
+The app API cannot edit an active goal objective; its old text is NOT the
+controlling target. Keep goal ACTIVE and do not falsely mark it complete.
+
 ## Newest human order — adopt batch/LR, stop first K2, cap compact startup
 
 Read `workflow/BATCH_BASE_AND_COMPACT_K2_LIMIT_2026-09-26.md` FIRST.

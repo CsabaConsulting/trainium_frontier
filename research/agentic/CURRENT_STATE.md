@@ -1,5 +1,19 @@
 # Current state
 
+## Current runtime handoff — 26 September16:10IST
+
+Read workflow/FINAL_SPRINT_ACTIVE_GOAL.md and top research/v2/STATUS.md/state
+before older paragraphs. Corrected target<=.975official/~.9755public; current
+tenth.9775 perhuman, older .970cutoff wrong. Officialbest.9878 unchanged.
+Human adopted8c6 batch262144/LR.021: twohostpublicmean.986879270651192.
+Old662 K2/trn21 stopped byhuman, zero steps, archivedHUMAN_STOP_COMPILE_COST;
+do not restart it. trn21 c2e batch/LR+Recursive fullactuallylaunched16:07:56IST.
+trn22 compactf804 coldnative201 launched16:00:51IST; fifthstartup/rate pending.
+Startuplimit1300s; promptfifthpollbracket thenexactofficialtimeatterminal.
+Continuation net>=3%; speed>=10withstartupfailure retainscompile-onlylane;
+otherwisecloseK2 andbracketLR/warmdown. Source/locks/evals unchanged.
+AppgoalactivewordingcannotbeeditedwithcurrentAPI; newestfile/AGENTScontrols.
+
 ## Current runtime handoff — 26 September15:44 IST
 
 Read top research/v2/STATUS.md and state.hosts, not historical paragraphs below.

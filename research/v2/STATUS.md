@@ -1,5 +1,40 @@
 # Workflow installation and incremental launch status
 
+## Current16:10IST handoff — approved base, stack and compact K2 live
+
+Read workflow/FINAL_SPRINT_ACTIVE_GOAL.md FIRST: corrected target<=.975official,
+approximately<=.9755public. Human reports tenth.9775; .970 report superseded.
+Officialbest.9878 stillunchanged. App activegoal wording cannot be edited by
+available API; topAGENTS/currentgoalfile/state/queue control after restart.
+
+Human explicitly adopted batch262144/LR.021 source8c6: actualtwohost public
+mean.986879270651192, matchedmean delta-.00112045343. Raw unchanged selector
+ADOPT_PENDING_HUMAN_ACK retained, explicit adoption suppliesacknowledgement.
+trn22 confirmation.9867730678453942 is appendedONCE; warmresearch only, no upload.
+
+First K2variant662c stopped on humanorder: pidfdSIGTERM10:34:40UTC, raw
+TRAIN_EXIT_143 at10:34:41, no steps/checkpoint, all172identities/device/original
+596823 idle10:36:26. Archivedcc9c8ad05 and ledger HUMAN_STOP_COMPILE_COST,
+not a numericalfailure or measurednetresult.
+
+trn21 actually launched exactc2e batch/LR+Recursive full at10:37:56.287966UTC
+(16:07:56IST), four verifiedranks3283822–25/guardian3283774/original596823 held,
+sixemptyprivatecaches,1800budget+attachedfresh20M. Turnover194.971786s.
+Reviewffe84f704+rootbytecompositionaccepted; no extrasmoke/control/review.
+Same-hostscientific comparator is actualbatch.9869854735; no additivegain assumed.
+
+trn22 compactf804 native201 launched10:30:51.644273UTC, fourverifiedranks,
+original832589/sixemptycaches. Startup/rate/netunknown. Humanstartup limit1300s,
+approximately10:52:32UTC operationaldeadline. Operatorchecks every30s from10:42
+for fifthboundary; earlynotice mustgivepollbracket because exactobserver
+timestamps persistonlyatterminal. Never callbracket theexactofficialstartup.
+Net>=3% permitseligible tablecontinuation; net-fail/steady>=10% keepscompile
+lane whilehostsstack;otherwisecloseK2 andLR/warmdown onnewbatchbase.
+
+Bothlivejobsprotectedunderlatestinstructions. Table+compactsourcecomposition
+is localconditionalpreparation only. No human action needed for current jobs;
+upload/coldqualification and actualnetdecision remainpending. GoalACTIVE.
+
 ## 16:00 IST timing milestone missed; one compact diagnostic released
 
 Human notified10:30UTC: no usable K2 native rate/startup/net result yet.
