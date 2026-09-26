@@ -1,0 +1,40 @@
+{
+  "parent_commit": "54dda2fa0219926e1c85d863385c54de5fba7320",
+  "parent_path": "research/v2/proposals/20260926-architecture-clean-exact-cpu/host_driver.py",
+  "parent_sha256": "d35da6e3c5df8a8f9176414875042c69505b2eec064b46966d9d0a25d61300ee",
+  "literal_replacements": [
+    {
+      "from": "/home/ubuntu/trainium_arch3e79_clean_cpu_20260926_trn22_r1",
+      "to": "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1"
+    },
+    {
+      "from": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+      "to": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2"
+    },
+    {
+      "from": "ip-172-31-32-253",
+      "to": "ip-172-31-34-85"
+    },
+    {
+      "from": "PINS = {\"compare_checkpoints.py\":\"3e987b4e0e8a6c223fdb8af49654438f1b1a4eafdea957639904a5450487a386\",\"validate_receipts.py\":\"1a01059cb5fe14b1b8aa965233b15fec22d0d495cb046b0d7135a674f101d6a0\",\"candidate/request.json\":\"baf1aa45ca2085158710e77ce77a42a5e20701b1ce09177cde0c6fa3fefd9ac8\",\"reference/request.json\":\"0a080d14fe2ed557ac183a58bb1a233ff80693f39c8d2656d9d864c98a005759\"}",
+      "to": "PINS = {\"reference/request.json\":\"38160400738af45274aad1c96f9a54e0c5ec1343ab9eb87f1279b46e4f5ba354\",\"candidate/request.json\":\"64d0b756784eb8a8306d1fcd739c09c355d7611479f8da9f64bf2fb7ffc4eca3\"}"
+    },
+    {
+      "from": "free >= 6.5 * 1024**3",
+      "to": "free >= 10.5 * 1024**3"
+    },
+    {
+      "from": "        ('strict-receipts', ['/usr/bin/python3', '-I', '-B', str(PAIR_ROOT / 'validate_receipts.py'), str(PAIR_ROOT)]),\n        ('checkpoint-compare', ['/usr/bin/timeout', '--foreground', '--signal=TERM', '--kill-after=60s', '600s',\n                                VENV + '/bin/python', '-B', str(PAIR_ROOT / 'compare_checkpoints.py'), str(PAIR_ROOT)]),\n",
+      "to": ""
+    },
+    {
+      "from": "        elif phase == 'strict-receipts':\n            require(observed['status'] == 'FULL_PARAMETER_CPU_RECEIPTS_MATCH', 'STRICT_RECEIPTS')\n        else:\n            require(observed['status'] == 'FULL_PARAMETER_CPU_CHECKPOINT_AND_LOGIT_IDENTITY', 'CHECKPOINT_IDENTITY')\n",
+      "to": ""
+    },
+    {
+      "from": "file bytes only; model-state comparison follows",
+      "to": "file bytes only; ordinary-loader comparison requires a separately assigned later check"
+    }
+  ],
+  "scope": "Existing two-arm standard G2 driver with host/root/request pins and stricter stated disk constant rebound; remove previously separate strict-receipts/checkpoint comparison phases because this proposal requests standard G2 only. No source/tool/guard/math edits or new verification algorithm."
+}
