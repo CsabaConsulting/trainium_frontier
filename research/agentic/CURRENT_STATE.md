@@ -1,5 +1,35 @@
 # Current state
 
+## 03:07 UTC / 08:37 IST: both full runs active; clean-port full-size CPU packet prepared
+
+Confirmed public20M/context1024 mean remains **0.9883066128526815**; no new
+quality result or official score. Earlier0.986340 remains withdrawn after
+nonconfirmation. Current exact36 base does not include Recursive.
+
+trn22 Recursive-on-clock36 full1800 actually started03:01:15.555974UTC under
+original66305:832589 lifetime lock; four workers3252248–3252251 independently
+authenticated from raw14f79ea6/canonicalb3db652d. Root62launch checks pass;
+actual source4bfaec/argv/cache environment match. Reused cache paths are not a
+proven cache hit. Full startup, charged seconds, final steps and attached
+fresh20M are still pending. Both top-level launch flags are nowfalse.
+Cold predecessor is fully accepted: uncapped fifth845.889473766s, all20raw
+files/29observed identities/postflight authenticated in235checks at38d4a863.
+Turnover to full was363.724s. No automatic successor or submission authority.
+
+trn21 exact36 LR0.012 full remains protected with its attached fresh20M;
+latest archived02:54:41 observation step360/loss3.4773/268236tok/s. New
+read-only two-host progress retrieval is assigned to the sole Operator.
+
+Clean116188 port e1e2f686 has independent source/tinyCPU acceptance0b889d8c
+and supplied-production-tiny replay a35181b6:622records,0failures. These are
+not full-size/native/BPB evidence. Full113M two-arm standardG2 packet8cc56def
+(canonical312ec498) is prepared LOCAL-ONLY; root read driver/diff/plan and
+replayed79mechanical checks. No tensors or host call during preparation.
+Target trn21 only after current train/eval/retrieval/quiescence and separate
+release. It retains checkpoints for a separately scoped ordinary-loader
+purity/causality check; cold replay and ClaudeviaPoojith audit still required.
+No upload-ready file or six-ready-jobs claim. K2 remains on correctnessHOLD.
+
 ## 02:57 UTC / 08:27 IST: child cold finished; full result audit and next release pending
 
 Confirmed public20M mean remains0.9883066128526815; no new quality score.

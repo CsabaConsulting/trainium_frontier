@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 08:37 IST
+
+Both full jobs are active: trn21 exact36 LR0.012, trn22 Recursive-on-clock36
+started08:31:15 after accepted845.889s cold-five. Fresh20M outcomes pending;
+confirmed mean0.9883066129 unchanged. Both actual original lifetime locks
+and sole Operator remain; both top-level launch flagsfalse. Clean e1e2 port
+passed scoped independent tiny/source checks and622 supplied production-tiny
+records. Its full113M standard CPU pair is prepared, not launched. No upload
+ready until remaining full-size/native/coldfull/fresh20M/humanClaude checks.
+
 ## Current — 26 September 08:27 IST
 
 Confirmed mean0.9883066129 unchanged. trn21 LR0.012 training; trn22 childcold
