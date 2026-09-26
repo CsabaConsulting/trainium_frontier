@@ -1,0 +1,82 @@
+{
+  "proposal_id": "20260926-k2-bf16-production-domain",
+  "status": "RESEARCH_SPEC_COMPLETE_NON_LAUNCHABLE_PENDING_SELECTION_AND_FRESH_REVIEW",
+  "owner_role": "researcher_analyst",
+  "launch_authorized": false,
+  "production_activation": false,
+  "historical_unrestricted_fp32_gate": "FAILED_PRESERVED",
+  "hypothesis": "An ordered resident-row backward limited to actual BF16-output WTE and VE7 can preserve the reachable tangent recurrence and may repay device metadata costs with at least 5% whole-step throughput improvement.",
+  "single_causal_change": "Default-OFF registered training backward for exactly the two immediate-BF16 ordinary embedding paths, including necessary metadata generation; no forward math, optimizer, evaluator, data, schedule or architecture change.",
+  "mechanism_class": "throughput",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.0015, 0.0010],
+  "prediction_kind": "Subjective low-confidence 80% planning prior, not measured or fitted; timing benefit and BPB transfer are unknown.",
+  "p_improve": 0.1,
+  "p_mean_delta_le_minus_0_001": 0.1,
+  "estimated_host_hours": 1.5,
+  "host_hour_scope": "Prospective staged native correctness/component and A-B-A timing reservation only, not authorized and not fixed-budget quality replicates; reject before whole model if component loses or fails.",
+  "ev_abs_bpb_per_host_hour": 0.00006666666666666667,
+  "ev_basis": "Planning only: 0.1 probability times 0.001 meaningful improvement divided by 1.5 prospective host-hours. Not a claim of positive expected measured delta.",
+  "candidate_shortlist": [
+    {"idea": "BF16-output-only resident-row production-domain specialization", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Only next design with new source reachability and genuine BF16-subnormal native evidence; still high metadata and skew risk."},
+    {"idea": "Repeat unrestricted FP32 registered gate", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Reject duplicate: unchanged ordinary native FP32-subnormal failure is already reproduced."},
+    {"idea": "Tile-grouped FP32 embedding sums", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Reject: retained BF16-representable cross-tile cancellation counterexamples violate the ordered recurrence."},
+    {"idea": "Enable old small segmented DMA prototype", "mechanism_class": "throughput", "predicted_bpb_delta": 0.0, "why_ranked": "Reject direct reuse: old token limit8192 excludes32768 production, old four-table amortization and1.417% speed do not qualify this two-table source."}
+  ],
+  "selection_rationale": "Select a CPU-only specification for independent assessment, not an implementation or native job. Mathematical domain clarification supplies information absent from prior unrestricted tests, but no speed claim.",
+  "trainium_feasibility": "V8192/T32768/C1024, world4/LNC2; two512-feature owners,64 row groups,8MiB HBM prefix scratch and196864B metadata; about1MiB obvious SBUF tiles per owner. Q256..32768 means33.55M..4.295B padded additions per table. Producer,512-wide compile,skew latency,cold startup and actual native cast reachability remain unproven.",
+  "cheapest_falsifier": "Independent CPU contract/provenance review; then, only after separate reviewed implementation and release, real-shape one-table/two-table native metadata+consumer component. Any exactness failure or consistent total-component regression parks before a whole model.",
+  "prior_result_refs": [
+    "research/v2/analysis/20260926-k2-cast-boundary/README.md",
+    "research/v2/analysis/20260926-k2-denormal-domain/RESEARCH.md",
+    "research/v2/operator/20260926-trn22-k2-registered/completed/results-bundle.json",
+    "research/v2/operator/20260926-trn21-ordinary-subnormal/completed/ordinary-control-summary.json",
+    "research/v2/lanes/k2-embedding-scatter/STATUS.md",
+    "research/v2/lanes/k2-resident-row-research/PROPOSAL.md",
+    "research/v2/analysis/20260926-p-runtime-interpretation/ANALYSIS.md"
+  ],
+  "evidence": ["SPEC.md", "domain_probe.py", "probe-normal.json", "probe-optimized.json"],
+  "duplicate_search_terms": ["K2", "embedding_dense_backward", "embedding scatter", "resident row", "segmented", "BF16 subnormal"],
+  "duplicate_search_disposition": "Reviewed current lane statuses, prior ordered/resident-row proposals, decision log, experiment log and trn2 experiment results. Old Mamba k2 matches are unrelated. Historical grouped-sum exactness rejection, old32768 shape exclusion and1.417% timing remain negative evidence. This proposal newly narrows by an authenticated cast boundary, not by removing reachable failures.",
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "run_label": null,
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "New same-host same-day bracketing default-OFF controls required; historical research mean0.9883066128526815 is context, not this implementation's timing or quality control."
+  },
+  "candidate": {
+    "branch": "codex/k2-bf16-production-contract",
+    "files_allowed": ["research/v2/proposals/20260926-k2-bf16-production-domain/"],
+    "expected_diff": "Research proposal/spec and tiny mathematical/provenance probe only. No production implementation in this branch.",
+    "run_label": null,
+    "launch_command": null,
+    "nonlaunchable_reason": "No production implementation, source hash, independently reviewed native packet or host assignment exists. A later stage requires a separate completed immutable launch proposal."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "research_checks_only": "16 tiny cast/recurrence cases plus65280 finite BF16 encodings normal/-O agree; original four failed native aggregates authenticated. This is not a candidate gate.",
+  "success_criteria": {
+    "quality": "Later unchanged fixed1800 fresh public20M/context1024 decisions, exact existing rules including mean delta<=-0.0010; no quality claim now.",
+    "throughput": "Later A-B-A whole-step screen: candidate>=1.05x each bracketing control including all metadata/copies;30 complete timed steps after5 startup+5 settling, controls drift<=2% or result is inconclusive.",
+    "correctness": "Strict finite raw equality against ordered FP32 recurrence; preserve signed-zero bits, reachable BF16 subnormals/cancellation, and all nonfinite diagnostic failures. No tolerance waiver. Exact default/OFF, native actual-use, checkpoint/causal and budget gates stay required."
+  },
+  "abort_conditions": [
+    "Any reachable-domain mismatch, NaN/Inf training output, invalid metadata/address, stale or zero consumer acceptance",
+    "Reassociation, silent tangent narrowing, filtered exceptional values or relaxed oracle",
+    "Producer/consumer real-shape compile failure, content-dependent recompilation, unsafe scratch allocation or worst-skew timeout",
+    "Total real-shape component consistently slower on balanced and interleaved cases before any full-model timing",
+    "Whole-step gain below5% or unbounded timing drift; no automatic fixed-budget quality launch",
+    "Missing fresh independent review, immutable stage proposal, exclusive host interlock or clean idle preflight"
+  ],
+  "human_approved_by": null,
+  "verdict": "HOLD_RESEARCH_SPEC_ONLY"
+}

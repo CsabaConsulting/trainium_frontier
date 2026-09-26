@@ -1,0 +1,846 @@
+{
+  "status": "RESEARCH_ONLY_NOT_GATE_PASS",
+  "interpreter": "/home/poojith-devan/venv/bin/python",
+  "torch": "2.13.0+cpu",
+  "pin": "e018498e4bdd91ce5c93a184c3e7602a42228311",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "inputs": {
+    "research/v2/lanes/k2-symmetric-consumer/consumer_nki.py": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "research/v2/lanes/k2-registered-forward-autograd/adapter.py": "d761a7274e50c21d5930bfa8b984da710ed257be73381fc17ea5f062c03f190a",
+    "research/v2/analysis/20260926-k2-cast-boundary/audit.py": "a8b4af7d8b67077dbfc8879d55eceacee5b33a3a2baa06b0a6ee6237503d4b28",
+    "research/v2/analysis/20260926-k2-cast-boundary/result.json": "32b9b192c8ad487aef55465672a0e7437851e74e0fabf9ddecf23655ceb0aed9"
+  },
+  "finite_bf16_encodings_checked": 65280,
+  "cpu_cases": [
+    {
+      "name": "min_positive",
+      "input_fp32_bits": [
+        "00010000"
+      ],
+      "promoted_bits": [
+        "00010000"
+      ],
+      "intermediates": [
+        "00010000"
+      ],
+      "actual": "00010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "min_negative",
+      "input_fp32_bits": [
+        "80010000"
+      ],
+      "promoted_bits": [
+        "80010000"
+      ],
+      "intermediates": [
+        "80010000"
+      ],
+      "actual": "80010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "cancel_to_min",
+      "input_fp32_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "promoted_bits": [
+        "00810000",
+        "80800000"
+      ],
+      "intermediates": [
+        "00810000",
+        "00010000"
+      ],
+      "actual": "00010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "cancel_to_negative_min",
+      "input_fp32_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "promoted_bits": [
+        "80810000",
+        "00800000"
+      ],
+      "intermediates": [
+        "80810000",
+        "80010000"
+      ],
+      "actual": "80010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "alternating_min",
+      "input_fp32_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "promoted_bits": [
+        "00010000",
+        "80010000",
+        "00010000"
+      ],
+      "intermediates": [
+        "00010000",
+        "00000000",
+        "00010000"
+      ],
+      "actual": "00010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "cross_tile_rounding",
+      "input_fp32_bits": [
+        "4b800000",
+        "3f800000",
+        "cb800000"
+      ],
+      "promoted_bits": [
+        "4b800000",
+        "3f800000",
+        "cb800000"
+      ],
+      "intermediates": [
+        "4b800000",
+        "4b800000",
+        "00000000"
+      ],
+      "actual": "00000000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "small_rounding",
+      "input_fp32_bits": [
+        "3f800000",
+        "33800000",
+        "bf800000"
+      ],
+      "promoted_bits": [
+        "3f800000",
+        "33800000",
+        "bf800000"
+      ],
+      "intermediates": [
+        "3f800000",
+        "3f800000",
+        "00000000"
+      ],
+      "actual": "00000000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "signed_zero",
+      "input_fp32_bits": [
+        "80000000",
+        "00000000",
+        "80000000"
+      ],
+      "promoted_bits": [
+        "80000000",
+        "00000000",
+        "80000000"
+      ],
+      "intermediates": [
+        "00000000",
+        "00000000",
+        "00000000"
+      ],
+      "actual": "00000000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "max_cancel",
+      "input_fp32_bits": [
+        "7f7f0000",
+        "ff7f0000",
+        "00010000"
+      ],
+      "promoted_bits": [
+        "7f7f0000",
+        "ff7f0000",
+        "00010000"
+      ],
+      "intermediates": [
+        "7f7f0000",
+        "00000000",
+        "00010000"
+      ],
+      "actual": "00010000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "overflow",
+      "input_fp32_bits": [
+        "7f7f0000",
+        "7f7f0000"
+      ],
+      "promoted_bits": [
+        "7f7f0000",
+        "7f7f0000"
+      ],
+      "intermediates": [
+        "7f7f0000",
+        "7f800000"
+      ],
+      "actual": "7f800000",
+      "training_acceptance": "FAIL_NONFINITE"
+    },
+    {
+      "name": "positive_infinity",
+      "input_fp32_bits": [
+        "7f800000"
+      ],
+      "promoted_bits": [
+        "7f800000"
+      ],
+      "intermediates": [
+        "7f800000"
+      ],
+      "actual": "7f800000",
+      "training_acceptance": "FAIL_NONFINITE"
+    },
+    {
+      "name": "negative_infinity",
+      "input_fp32_bits": [
+        "ff800000"
+      ],
+      "promoted_bits": [
+        "ff800000"
+      ],
+      "intermediates": [
+        "ff800000"
+      ],
+      "actual": "ff800000",
+      "training_acceptance": "FAIL_NONFINITE"
+    },
+    {
+      "name": "opposite_infinities",
+      "input_fp32_bits": [
+        "7f800000",
+        "ff800000"
+      ],
+      "promoted_bits": [
+        "7f800000",
+        "ff800000"
+      ],
+      "intermediates": [
+        "7f800000",
+        "ffc00000"
+      ],
+      "actual": "ffc00000",
+      "training_acceptance": "FAIL_NONFINITE"
+    },
+    {
+      "name": "nan",
+      "input_fp32_bits": [
+        "7fc00000"
+      ],
+      "promoted_bits": [
+        "7fc00000"
+      ],
+      "intermediates": [
+        "7fc00000"
+      ],
+      "actual": "7fc00000",
+      "training_acceptance": "FAIL_NONFINITE"
+    },
+    {
+      "name": "rounded_fp32_min",
+      "input_fp32_bits": [
+        "00000001"
+      ],
+      "promoted_bits": [
+        "00000000"
+      ],
+      "intermediates": [
+        "00000000"
+      ],
+      "actual": "00000000",
+      "training_acceptance": "FINITE_EXACT"
+    },
+    {
+      "name": "rounded_normal_cancel",
+      "input_fp32_bits": [
+        "00800001",
+        "80800000"
+      ],
+      "promoted_bits": [
+        "00800000",
+        "80800000"
+      ],
+      "intermediates": [
+        "00800000",
+        "00000000"
+      ],
+      "actual": "00000000",
+      "training_acceptance": "FINITE_EXACT"
+    }
+  ],
+  "native_archive_sha256": "a210263a3f0cd67f4896cb76c55ae67198331053220432800639b4483b1d2563",
+  "native": [
+    {
+      "rank": 0,
+      "sha256": "57edf0d316c93a10aab213c6df167bf7dbdde5631dd1a6857c38f5751a9792c4",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 0
+            }
+          ]
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "nonzero": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 1,
+      "sha256": "282469a3bc501cf8e04cac6f28572bc0688daea7de0298aef4e5f9709659efc7",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 0
+            }
+          ]
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "nonzero": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "sha256": "d6d43fe0c9390b3a004b9b69280728c01cb0f01b94f00afcf358ee4ebeda007c",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 0
+            }
+          ]
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "nonzero": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "sha256": "295a36b57d61df39086aec111ea25a501f82024ae85c7c02ab280c9642f57071",
+      "original_status": "REGISTERED_FULL_CASES_MISMATCH_OR_ERROR",
+      "cases": [
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.bfloat16",
+          "status": "EXACT",
+          "input_nonzero": 0,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 0
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 0
+            }
+          ]
+        },
+        {
+          "name": "bf16_subnormal",
+          "dtype": "torch.float32",
+          "status": "EXACT",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "EXACT",
+              "nonzero": 1408
+            }
+          ]
+        },
+        {
+          "name": "fp32_subnormal",
+          "dtype": "torch.float32",
+          "status": "MISMATCH_OR_ERROR",
+          "input_nonzero": 32768,
+          "routes": [
+            {
+              "name": "direct_consumer",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "direct_repeated_call",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_eager",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "registered_compiled",
+              "status": "EXACT",
+              "nonzero": 1408
+            },
+            {
+              "name": "compiled_ordinary_embedding",
+              "status": "MISMATCH",
+              "nonzero": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "largest_tensor_elements": 3,
+  "no_native_launch": true
+}
