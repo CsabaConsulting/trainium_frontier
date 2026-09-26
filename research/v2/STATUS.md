@@ -9,16 +9,21 @@ Current K2's exact startup/rate remain unknown: no full/table continuation
 released. Every table run must record cold startup and charge. Warm cached
 startup cannot stand in for cold. Original jobs and scientific/budget gates stay.
 
-Dedicated /root/muon_compile_cost_analyst is attributing base Muon compile
-graphs. Initial archived small-graph compiler-counter sum59.817s is not wall
-startup or yet a proven four-shape mapping. Transposed state/scalar details
-need exact CPU evidence; moving ve_gate toAdamW is not exact by definition.
+Dedicated /root/muon_compile_cost_analyst completed c47a260c0: cold Muon
+compiler counters total59.817s across8 distinct graphs/13 rank occurrences.
+Inferred shape totals23.629/12.692/18.693/4.803s; concurrent wall savings unknown.
+Small BF16 transpose/state cases are bit-identical; FP32 cases differ up to
+5.7742e-8. No production exactness or trivial four-to-two graph claim. The
+base already charges0startup seconds; ve_gate AdamW is a separate change.
+The compile lane now prepares the compact K2 native proposal in parallel.
 
 Compile-size fallbackf8047d07 changes only K2's64 static row-group bodies
 to an ordered runtime loop with proven grouped addresses. Actual local
 backward executable61338B versus349692B; CPU/OFF and two official full-shape
 simulators exact. Whole-model startup/native speed unmeasured. One fresh
-narrow independent reviewer active; this is not a replacement of live662.
+narrow independent review d6e385693 PASSED changed-source correctness; root
+rehashes both full sources and verifies113 other AST nodes unchanged. This
+does not replace live662. Native cold startup and net tokens remain unknown.
 Speculative batch/schedule sourcec2e27ccd deliveredc76a4f165 with actual
 small-model/optimizer OFF3/donorON3/recurrence checks; confirmation stillpending.
 
