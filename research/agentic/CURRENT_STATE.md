@@ -1,5 +1,28 @@
 # Current state
 
+## 01:49 UTC / 07:19 IST: K2 native test running; first compiled gradient exact
+
+Exact repaired0009d9de packet earned independent57-test normal/-O scoped
+PASS9e1d7b12; original54fd9a10 REFUSE is preserved. Root authenticated all28
+packet entries and all9 review artifacts. Release ddbe5dcc/state03df9375.
+Sole Operator dispatched01:46:24.846292UTC, diagnostic01:46:24.962161;
+actual01:46:55 shows4 workers3244039–42, original832589 lifetime lock,
+fresh ps/neuron-ls pass and six new private caches. Raw66031909/a16d5baa.
+Prior idle749.785069s was below15min. No second launcher or automatic next.
+
+Four printed sentinel observations show registered compiled gradient EXACT,
+32709nonzeros/maxerror0; old compiled Function stillzero. This is promising
+localization evidence, NOT full all20/all4 correctness or a speed/BPB result.
+Wait for all receipts and explicit actual compiler/descendant postflight.
+The two local root parsing mistakes (optional file_count and text/base64)
+were corrected without source/host edits and are recorded in review receipts.
+
+trn21 exact36 confirmation and attached20M remain protected, last01:39 step2420.
+New clock36+Recursive source port44926a6f/SHA4bfaec50 is in isolated tiny CPU
+testing only, default OFF; new exact-byte review/fullCPU/cold gates remain.
+Researcher proposal628b8933/68eab362 and selectiona18b754a are durable.
+Confirmed schedule mean and submission HOLD unchanged.
+
 ## 01:39 UTC / 07:09 IST: genuine control scored; architecture nominated
 
 Formal trn22 genuine6ef7 control completed fresh20M:0.9912010195941572,

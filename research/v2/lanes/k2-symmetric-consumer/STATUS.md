@@ -1,5 +1,13 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 07:19 IST: repaired packet launched; sentinel promising, suite pending
+
+Independent repair PASS9e1d7b12, one-use releasedddbe5dcc; actual01:46:24UTC
+launch/raw66031909 with4 workers/original832589 lock. Four printed registered
+compiled FP32 sentinel gradients now match32709nonzeros exactly; original
+compiled Function stillzero. Complete all20/all4 gate remains pending; no
+native qualification, performance, BPB or production integration is claimed.
+
 ## 07:09 IST: native packet refused; validator-only repair in re-review
 
 Independent672b8a0c reproduced four false acceptances in54fd9a10 validation
