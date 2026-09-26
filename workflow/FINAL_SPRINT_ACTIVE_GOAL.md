@@ -1,5 +1,17 @@
 # Controlling FINAL SPRINT goal — updated26 September2026,16:04IST report
 
+## Newest amendment — 26 September16:35IST
+
+Read `SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` FIRST. It supersedes the
+blanket closure below only for ONE new local-only outside-compiled-graph K2
+rescue, native net>=3% deadlineSunday27 September12:00IST. Failedvariants remain
+closed; tables remain parked pending actual rescue qualification. Hosts build
+the safe measured stack, then LR/warmdown and second-seed confirmation.
+Best confirmed final-slot package by Mondayevening even if gain<0.003, still
+genuinecold/fresh20M/Claude/human upload. Stable-source cache reuse is approved
+for RESEARCH only; warm startup never qualifies a submission. One rescueagent,
+soleOperator and one needed reviewer; no analysts or duplicate helpers.
+
 Latest direct human target correction controls over all older MOONSHOT,
 FINAL SPRINT, milestone and app-goal numbers. Seek the lowest legal official
 Phase1 BPB by the Sep29 18:00IST freeze; human upload by Sep30 noonIST.
@@ -51,8 +63,9 @@ fresh public20M/context1024, exact source/argv/proposal and preserved evidence.
 One Operator, original per-host lifetime lock and fresh ps/neuron-ls/resource
 checks. CPU exactness/OFF identity/one native check and one bounded independent
 review where applicable; no added smoke/control/reviewer cycle.
-Next human upload only for confirmed>=.003 official gain after cold replay,
-fresh20M and Claude audit. Quota unconfirmed; README5/week. Human-only upload,
+Interim human uploads use confirmed>=.003 official gain; the latest final-slot
+exception permits the best confirmed stack below that gain. Both need cold
+replay, fresh20M and Claude audit. Quota unconfirmed; README5/week. Human-only upload,
 AWS spend/new instances and legality changes. Never claim a BPB win from speed.
 
 Persist lane status, actual ledger/queue, decisions and errors. Follow current

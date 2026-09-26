@@ -2,6 +2,21 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Latest direct plan — safe stack, one K2 rescue, research-only cache reuse
+
+Read `workflow/SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` FIRST, then
+`workflow/FINAL_SPRINT_ACTIVE_GOAL.md`. Build/measure the safe stack, LR/warmdown
+brackets and a second-seed best-stack confirmation. Final-slot package due
+Monday28 September evening even if gain<0.003; genuine cold run/fresh20M/Claude
+audit and human-only upload remain. Exactly one local-only K2 rescue agent may
+move NKI backward outside torch.compile; no host time before local checks and
+one independent review. Native timing net>=3% by Sunday27 September12:00IST,
+else K2/tables close forPhase1. Old variants/labels stayclosed and consumed.
+Stable source paths are approved for research only; NEVER use warm startup for
+submission selection. Concurrency remains Operator, one rescue Implementer,
+one needed reviewer; no analysts/racers. Later scoped amendment overrides the
+earlier blanket K2-closed/no-implementer prose below, not scientific/legal gates.
+
 ## Agent concurrency limit — latest human amendment, 26 September 16:28 IST
 
 Keep only essential host Operator/monitor, an authorized K2/tables implementer,

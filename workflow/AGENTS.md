@@ -1,5 +1,11 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**NEWEST:** `SAFE_STACK_AND_ONE_K2_RESCUE_2026-09-26.md` controls: safe-stack
+brackets/secondseed, final-slot packageMondayevening even under.003 gain,
+ONE outside-compile K2rescue with native+3%net deadlineSunday12IST. Oldfailed
+K2variants remainclosed. Stable source paths approvedresearch-only; submissions
+still require genuinecold timing/fresh20M/Claude/humanupload. No newanalysts.
+
 **CURRENT RESTART AUTHORITY:** Read the repository-root AGENTS.md and
 `FINAL_SPRINT_ACTIVE_GOAL.md` first. They supersede the older priorities and
 targets below. Human16:04IST correction: target<=.975official/~.9755public,
