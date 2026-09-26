@@ -1,0 +1,110 @@
+{
+  "schema": "completed-researcher-flag-only-proposal-v1",
+  "proposal_id": "20260926-clock36-lr012-trn21",
+  "status": "COMPLETED_PROPOSAL_ONLY_PENDING_SUPERVISOR_OPERATOR_ASSIGNMENT",
+  "owner_role": "researcher",
+  "prepared_utc": "2026-09-26T02:28:21Z",
+  "label": "fs-20260926-clock36-lr012-trn21-r1",
+  "arm_id": "clock36-matrixlr012",
+  "kind": "matrix_lr_arm",
+  "host": "trn21",
+  "launch_authorized": false,
+  "stage_authorized": false,
+  "submission_authorized": false,
+  "hypothesis": "On the confirmed startup-clock 8x1024 base, reducing only matrix LR from 0.015 to 0.012 may improve final fixed-budget public20M BPB by reducing late optimizer noise; the old-clock architecture's negative LR result does not determine the new clock's outcome.",
+  "single_causal_change": "Replace the single value following --matrix-lr, 0.015 -> 0.012, in the exact confirmed trn21 scientific argv. Scientific file, all other arguments, startup clock, batch, seed, training/evaluation paths and arithmetic remain unchanged. New label/output sandbox/metrics path are operational identity changes only.",
+  "mechanism_class": "optimizer_hyperparameter",
+  "predicted_bpb_delta": -0.0004,
+  "predicted_bpb_interval": [-0.0015, 0.0020],
+  "prediction_scope": "Subjective planning estimate, not a fitted confidence interval or result. The earlier unadjusted-clock LR0.012 arm was worse, so improvement probability is deliberately below one half.",
+  "candidate_shortlist": [
+    {"idea": "Matrix LR0.012 on adopted exact36", "mechanism_class": "optimizer_hyperparameter", "predicted_bpb_delta": -0.0004, "why_ranked": "Explicit current Supervisor priority; authorized 0.8x LR retune on the newly adopted architecture/clock base; no code change and all source/native gates already exist."},
+    {"idea": "Matrix LR0.01875 on adopted exact36", "mechanism_class": "optimizer_hyperparameter", "predicted_bpb_delta": null, "why_ranked": "The authorized 1.25x bracket is a later independent proposal, not included in this run."},
+    {"idea": "Recursive child on exact36", "mechanism_class": "schedule", "predicted_bpb_delta": null, "why_ranked": "Separate unconfirmed source and independently pending checkpoint/cold gates; cannot be silently stacked."},
+    {"idea": "Repeat LR0.012 on old6x1024 or withdrawn3e79", "mechanism_class": "optimizer_hyperparameter", "predicted_bpb_delta": null, "why_ranked": "Not selected: old6x LR work is prohibited by latest priorities and3e79 failed confirmation."}
+  ],
+  "selection_rationale": "ALL IN lane S expressly requests x0.8/x1.25 retuning on every new base; exact36 was adopted at02:04UTC. This is bounded flag-only research while separate higher-priority gates are prepared, not a submission port or a waiver of priority/preflight.",
+  "p_improve": 0.35,
+  "estimated_host_hours": 1.2916666666666667,
+  "trainium_feasibility": "Exact113256724-parameter 8x1024 file completed3630steps on each host. The changed LR is an existing parsed float, carried by the same tensor scalar optimizer transport and does not change model/collective shapes. Warm research caches are permitted; actual startup is measured again and cache hits are not assumed. No new cold qualification or speed gain is claimed.",
+  "cheapest_falsifier": "Operator authenticates committed file and argv differ from the confirmed run at precisely one LR value, then checks label/STOP/disk/lock/ps/neuron-ls. Final full-budget fresh20M is the first quality falsifier; no shorter quality run or new source review ceremony is requested.",
+  "source_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "base_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "run_label": "fs-20260926-arch36a8-startup-clock-trn21-r2-full",
+    "public_val_bpb": 0.9882310747242088,
+    "steps": 3630,
+    "matrix_lr": 0.015,
+    "seed": 42,
+    "box_constraint": "trn21; preserve its environment/cache choices and report actual elapsed interval and operational path differences",
+    "role": "Authenticated scientific parent comparator, NOT a newly invented formal control row",
+    "immutable_ledger_kind": "architecture_startup_clock_arm",
+    "immutable_ledger_base_sha256": "6ef7d09017de0045f1bcf854571ee3f9aeaffc1080c003c1806f7e20394ad3b3",
+    "formal_control_eligible": false
+  },
+  "candidate": {
+    "branch": "codex/20260926-clock36-lr012-trn21-packet",
+    "files_allowed": [],
+    "expected_diff": "No scientific code diff. Only --matrix-lr 0.015 -> --matrix-lr 0.012 in research argv.",
+    "run_label": "fs-20260926-clock36-lr012-trn21-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 /home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.012 --seed 42 --max-train-seconds 1800 --num-steps 1000000 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule",
+    "launch_command_scope": "Research train child inside the already-proven detached full1800/attached20M driver and lifetime lock, not a new launcher or a command to execute from this proposal. Submission launch-command.txt is untouched. Separate frozen mechanical binding must resolve the unique sandbox and support hashes before Operator dispatch."
+  },
+  "argv": ["--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.012", "--seed", "42", "--max-train-seconds", "1800", "--num-steps", "1000000", "--out-dir", "out", "--unet-8x1024", "--attention-layers", "0,2,4,6,7", "--initial-cache-refresh", "--startup-adjusted-schedule"],
+  "environment": {
+    "policy": "Copy the exact completed trn21 replication environment/support/cache-root binding; change only experiment label, output sandbox and metrics destination. Preserve all cache contents. Record effective environment and installed versions before dispatch.",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "parent_binding": "research/v2/proposals/20260926-startup-adjusted-full-trn21-replication/NATIVE_BINDING.disabled.json"
+  },
+  "evaluation": {"fresh_process": true, "tokens": 20971520, "seq_len": 1024, "batch_size": 1, "device": "neuron", "prepare_unchanged": true, "same_lifetime_lock": true, "new_guard_before_eval": true, "public2m_selection": false},
+  "budgets": {"source_seconds": 1800, "startup_cap_seconds": 900, "train_outer_seconds": 2730, "eval_outer_seconds": 1800, "kill_grace_seconds": 60, "accounting": "Unchanged official observer; report actual uncapped fifth boundary and process wall, capped allowance, charged-through-training-exit<=1800, checkpoint reserve and any unknown separately."},
+  "prior_result_refs": [
+    "research/v2/adoptions/20260926-clock36-confirmed.json",
+    "research/v2/proposals/20260926-startup-adjusted-full-trn21-replication/EXPERIMENT_PROPOSAL.json",
+    "research/v2/analysis/20260926-clock36-trn21-final-audit/actual-selector.json",
+    "fs-20260926-arch3e79-lr012-trn22-r1-full"
+  ],
+  "evidence": [
+    "workflow/ALL_IN_FOR_FIRST_2026-09-26.txt lane S",
+    "workflow/NEXT_12_HOURS_2026-09-26.md",
+    "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md",
+    "workflow/SINGLE_LAUNCHER_2026-09-26.md",
+    "research/v2/verification/20260926-fresh-astra-startup-adjusted-schedule/session/reviewer-output/REPORT.md",
+    "research/v2/verification/20260926-startup-adjusted-full-cpu-result/RESULT.json",
+    "research/v2/ledger.jsonl"
+  ],
+  "duplicate_search_terms": ["clock36-lr012", "arch36-lr012", "36a862", "matrix-lr", "LR0.012", "startup-adjusted-schedule"],
+  "duplicate_search": {"paths": ["research/agentic/DECISION_LOG.md", "research/experiment-log.jsonl", "research/trn2-experiment-results.md", "research/v2/ledger.jsonl"], "finding": "No completed exact36/LR0.012 arm found. The prior3e79/LR0.012 trn22 result0.9883603019664198 was +0.002019996726161488 worse than its declared3e79 comparator; its old startup-contaminated clock and withdrawn parent make it a distinct negative, preserved without relabeling."},
+  "gates": {"rules_review": false, "diff_review": false, "cpu_or_static_checks": false, "numerical_equivalence": false, "causality": false, "smoke_run": false, "human_run_approval": false},
+  "gate_scope": "This Researcher has performed no implementation, model execution, independent verification or host action. Existing exact-source gates are cited, not reissued. Current human directive permits Operator-checked flag-only launch without a new independent prelaunch review ceremony; exact packet/assignment, machine guards, durable retrieval and independent result acceptance still apply.",
+  "success_criteria": {
+    "quality": "Report raw candidate minus0.9882310747242088 as a predeclared same-host scientific delta. Automatic nomination/adoption only through unchanged decide.py once a genuine prospective kind=control row for base36 exists; never retype/rebase the historical architecture-arm row. Single-host nomination threshold<=-0.0006, two-host both negative/mean<=-0.0010/disagreement<=0.0015, current HOLD rules retained.",
+    "throughput": "Report startup, charged seconds, steps and steady tokens/s. No throughput claim without matched same-host timing; step count is not a quality veto.",
+    "correctness": "Clean frozen science bytes, seed42, full4-rank/LNC2 chip, finite losses/checkpoint/logits, successful unchanged loader and fresh20M, immutable checkpoint hash before/after eval, charged-through-exit<=1800 and explicit process/device/lock postflight.",
+    "selector_limitation": "At proposal time no genuine base36 control row exists. The scientifically useful filler may run under standing authorization, but its automatic selection is INSUFFICIENT until that independent control exists. Do not compare to6ef7 to claim an isolated LR win."
+  },
+  "preflight": [
+    "Supervisor selects one sole-Operator assignment after current trn21 job/eval is terminal, fully retrieved and explicitly quiescent; preserve all current jobs",
+    "Unique label and absent sandbox; pinned source/prepare/harness/support/argv; clear STOP/breakers; clean tracked scientific files; no competing launcher",
+    "Same original device0.lock inode66305:596823 at /home/ubuntu/.cache/trainium_freshstart/device0.lock; exclusive nonblocking flock retained through train and attached eval",
+    "Fresh successful ps AND neuron-ls checks inside lock before each stage; supplementary fuser; contention/busy/error/ambiguous=>no launch",
+    "trn21 host ip-172-31-34-85; disk>=10.5GiB and current validated footprint requirement; do not delete anything to satisfy this proposal",
+    "Record complete non-secret environment, label, start identities, source/command hashes, compiler flags including optlevel1, seed and installed runtime; use normal pinned Python"
+  ],
+  "abort_conditions": [
+    "Any source/argv/host/label/lock/disk/STOP/breaker/idle failure: no launch",
+    "Crash, nonfinite value, missing checkpoint or charged budget violation: preserve failure, do not score/adopt/retry automatically",
+    "Evaluation timeout/error/incomplete tokens/context, modified checkpoint or unauthenticated raw records: no accepted result",
+    "Do not change submission command, model/evaluator/source bytes, cache contents, selector thresholds or historical ledger roles"
+  ],
+  "postflight": "Archive exact proposal/commit/command/environment/box/log/checkpoint status/fresh20M and full hashes, actual fifth/process-exit timing, complete exits and observed PID/PPID/PGID/SID descendants/compiler quiescence, device-idle and original-lock-free receipts. Independent Analyst authenticates raw results before use. No automatic next job or adoption.",
+  "human_approved_by": "Standing development authority plus current ALL IN new-base LR-retune instruction and Supervisor task assignment; this record is not an Operator launch release or submission approval.",
+  "verdict": null
+}
