@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Latest16:16IST: compact K2 failed; use approved batch base
+
+Exactf804 failed native compilation10:37:58UTC before any completed step.
+Error: COMPILATION FAILED: Block1_LoopBody_1_Resume_2_14 -> Block1_LoopBody_1_10, Block1_LoopBody_1_LoopBody_2_12 -> Block1_LoopBody_1_LoopBody_2_12.
+No fifth/startup/rate/net/BPB exists. Failure found10:42:11;29 rawmember hashes
+verified. All103 observedIDs/device/original832589 idle10:42:38. K2 is CLOSED
+under the human decision tree, tables4b74 PARKED; no retry or phantom speed win.
+trn21 c2e batch/LR+Recursive full stays live. trn22 next is single-factor
+LR.02625 on adopted8c6 batch262144; assignmentab480e247 released, not launched.
+Corrected target<=.975official/~.9755public; officialbest.9878 unchanged.
+Evidence: operator/20260926-k2-runtimegroups-handoff/FAILURE.md; state top.
+
 ## Current16:10IST handoff — approved base, stack and compact K2 live
 
 Read workflow/FINAL_SPRINT_ACTIVE_GOAL.md FIRST: corrected target<=.975official,

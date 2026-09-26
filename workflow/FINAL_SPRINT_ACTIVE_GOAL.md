@@ -16,6 +16,15 @@ Phase1 BPB by the Sep29 18:00IST freeze; human upload by Sep30 noonIST.
   ordinary schedule, no K2/tables. Two-host public mean .986879270651192;
   gap to the approximate public target .011379270651192.
 
+## Latest measured execution — 26 September16:16IST
+
+Compactf804 failed native compilation at10:37:58UTC with zero completed steps.
+No startup/rate/net result exists; it cannot satisfy either continuation branch.
+K2 is closed and tables parked under the human decision tree below. Preserve
+all source/local evidence; no automatic retry. trn21 runs the batch/LR+Recursive
+stack; nexttrn22 is single-factor LR.02625 on adopted8c6, releasedab480e247.
+This is not yet a launch or result. The target and official score are unchanged.
+
 ## Current execution and decision tree
 
 Stop old662c K2 ontrn21 safely and run one full batch/LR+Recursive stack there.
