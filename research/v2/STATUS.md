@@ -1,5 +1,20 @@
 # Workflow installation and incremental launch status
 
+## Latest priority / actual observation — 26 September17:56IST
+
+Poojith now puts K2 rescue native201 ahead of momentum on one host, momentum
+on the other; then cold final batch/LR and seed43 before remaining arms.
+trn21 reservedK2, trn22 nextmomentum150. K2 localCPU PASS, native packet
+preparedDISABLED; applicable independent review is pending and one bounded
+reviewer approval requested under no-new-agent rule. No native claim/launch.
+Actual12:25:40UTC trn21 warmdown.60 train completed1920steps,cold849.456s,
+charged1789.438s; fresh20M process3342065 active under original lock. trn22
+12:25:45UTC .85 stillstep1820/280468tok_s,~110secondsremaining. No finalBPB.
+Newcold fallback packetcd0c prepareddisabled, originaldriver/guardians retained;
+after actual cold result copy candidate+brief to unique Downloads audit folder.
+Next routine host observation~12:50UTC unless observed handoff event earlier;
+do not repoll every automatic goal wake or start duplicate controller.
+
 ## Scheduler metadata mismatch — 26 September17:45IST
 
 Read-only app metadata still says controller5minutes and old04/07:45tasksACTIVE;

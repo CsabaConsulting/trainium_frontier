@@ -1,5 +1,14 @@
 # Manual next jobs — current human momentum150 order
 
+LATEST override: trn21 is reserved for K2 rescue native201 timing, pending
+independent review and exact release. Do NOT run the old trn21 momentum/LR/
+control command chain below. trn22 momentum150 remains next; its old LR/control
+successor blocks below are also superseded and will be refused by the queue.
+Overnight cold
+clean batch/LR replay and seed43 confirmation precede remaining scalar arms.
+Exact new timing/cold/seed command blocks will replace these after packaging;
+these are not yet launch-ready. No stale scheduler may bypass this reservation.
+
 Running: trn21 warmdown0.60, launched17:05:44IST; trn22 warmdown0.85,
 launched17:13:51IST on26 September. Do NOT rerun either label.
 The latest human order replaces opposite-warmdown fallbacks with momentum150.

@@ -20,6 +20,16 @@ This is the latest direct human instruction. Conflicting older agent counts,
 
 ## Each scheduled wake
 
+Latest18:00IST preparation amendment: after current warmdowns, one host gets
+K2 rescue native201 timing ahead of momentum150; the other gets momentum150.
+Prefer trn21 for K2, trn22 for momentum, while preserving attached evaluations.
+K2 still needs the applicable independent review; no fabricated PASS or new
+reviewer without user approval. If K2 qualifies, tables timing is next eligible
+slot. Overnight: cold clean batch/LR fallback, its seed43 confirmation, then
+remaining arms. After actual cold result, prepare Downloads audit handoff for
+Poojith/Claude, explicitly not upload-authorized. Earlier both-host-momentum
+order below is superseded to this extent.
+
 Latest scalar-arm order (26 September): after the two running warmdowns,
 run batch/LR base with MUON_MOMENTUM_WARMUP_STEPS=150, not300. This replaces
 the opposite-warmdown fallback as the next job on each host. No Recursive
