@@ -2,8 +2,8 @@
 import ast,base64,hashlib,json,sys
 from pathlib import Path
 HERE=Path(__file__).resolve().parent;REPO=Path('/home/poojith-devan/Desktop/Trainium')
-ASSIGNMENT_PATH=None
-ASSIGNMENT_SHA256=None
+ASSIGNMENT_PATH='research/v2/assignments/20260926-k2-runtimegroups-native201-trn22.md'
+ASSIGNMENT_SHA256='25bdacab22b4d4223900f060666df9ba0cfa1608d3ad606f4fad396022452648'
 CHOICE='trn22-runtimegroups-native201'
 PACKET='20260926-k2-sprint-timing/trn22-runtimegroups-native201-prepared.disabled.json'
 PIN='ddb614e5853e7242abe2757ee6271ae33d6492557fbeb5f69d2f1555fa7bcae3'
@@ -37,6 +37,7 @@ files['EXPERIMENT_PROPOSAL.json']=proposal_raw
 files['SUPERVISOR_ASSIGNMENT.md']=auth
 files['EXACT_SOURCE_REVIEW.md']=review
 files['SOURCE_COMPOSITION.md']=(REPO/'research/v2/verification/20260926-k2-runtime-groups/COMPOSITION.md').read_bytes()
+assert sha(files['SOURCE_COMPOSITION.md'])=='aac28c5d267a38650b63f5dc12418b6d5aa774a50cbc5f46d6ec0525d6e94460'
 b['completed_proposal_path']=proposal_path;b['completed_proposal_sha256']=sha(proposal_raw)
 """
 replace_once("files['NATIVE_BINDING.json']=(json.dumps(b,indent=2)+'\\n').encode()",insert+"files['NATIVE_BINDING.json']=(json.dumps(b,indent=2)+'\\n').encode()")
