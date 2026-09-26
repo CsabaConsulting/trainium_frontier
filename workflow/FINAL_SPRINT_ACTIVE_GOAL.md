@@ -59,6 +59,13 @@ AGENTS.md and this file after restart; do not follow superseded app-goal target
 .970. Reports every3h plus actual results, failures, missed milestones and
 the compact fifth-boundary notification.
 
+Latest concurrency amendment: essential Operator/monitor, authorized K2/tables
+implementer and one reviewer only. No new analysts or duplicate helpers; do not
+restart the Muon compile analyst. K2 remains closed, so no implementation lane
+is active without a new authorized scope. Main session currently unaffected by
+the old Operator's quota error. Record exact startup and charge before asserting
+compile drift:893.5s is a polling bound; the official cap is900s, not870s.
+
 ## App-goal synchronization limitation
 
 The current API exposes get_goal, create_goal (fails if an unfinished goal

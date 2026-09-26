@@ -2,6 +2,22 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Agent concurrency limit — latest human amendment, 26 September 16:28 IST
+
+Keep only essential host Operator/monitor, an authorized K2/tables implementer,
+and one needed independent reviewer. No new analysts or duplicate helpers.
+The Muon compile analyst is stopped; preserve its existing findings and do not
+restart it. K2 currently remains closed after native compilation failure, so
+no implementer or reviewer is active merely to fill a named role. The sole
+active subagent is `/root/operator_recovery`; old Operator authority is revoked.
+Report if the platform quota error affects the main session; it has not so far.
+
+Treat stack startup893.5s as a fifth-boundary polling upper bound, not an exact
+official timer. The actual prepare.py allowance cap is900s;870s is a planning
+warning, not a charging cap. Record exact startup/charged time at terminal and
+track compile drift against the859.47s historical cold reference without
+pretending source/host differences are a matched measurement.
+
 ## Current target correction — human leaderboard update16:04IST
 
 Read `workflow/FINAL_SPRINT_ACTIVE_GOAL.md` before older goal files.
