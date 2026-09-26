@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 09:06 IST
+
+Confirmed mean0.9883066129 unchanged. trn21 LR.012 training finished3632steps,
+799.196s startup/1789.468s charged; fresh20M still live at09:03:12IST. trn22
+Recursive remains protected. Clean full113M G2 is next eligible trn21 job,
+not launched; its later checkpoint helper passed fresh independent source/tiny
+review, actual checkpoint inputs pending. Cold-five mechanical packet accepted
+but disabled. Same-path cache-control packet implementation and closed graph
+analysis continue locally; no cache-hit, new BPB or upload-ready claim.
+
 ## Current actual snapshot — 26 September 08:48 IST
 
 Both full jobs training without logged errors: trn21 LR.012 step3280,

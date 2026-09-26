@@ -1,6 +1,6 @@
 # Clean full-size CPU transport: scoped review
 
-2026-09-26 03:29 UTC. Read full stage-dispatch.py, test_transport.py,
+2026-09-26 03:28 UTC (corrected rounded label). Read full stage-dispatch.py, test_transport.py,
 REMOTE_BODY_DERIVATION.json and README fromd44e415b/canonical27cf0ee2.
 Replayed31 local checks normally and under-O, identical PASS results.
 Transport SHA36a3ad45b1cc37f50981814d0f57332c7b256175741150f6acc23351836f43ed.

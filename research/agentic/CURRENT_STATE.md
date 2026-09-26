@@ -1,5 +1,31 @@
 # Current state
 
+## 03:36 UTC / 09:06 IST: LR training complete, final eval live; clean checks advancing
+
+Confirmed best remains0.9883066128526815 public20M/context1024. LR.012 on
+trn21 completed3632steps with uncapped fifth799.195814511s and official charge
+1789.467597069s, exit0. Its attached fresh20M began03:21:33 and was still live
+at actual03:33:12.856758; no new BPB or free-host claim. Raw08e1ecbd/canonical
+be05918f preserves evaluator3175146 and original66305:596823 held lock. trn22
+Recursive remains protected; latest actual03:18 step440, no newer claim here.
+
+Clean e1e2 full113M CPU pair and its one-shot transport are mechanically
+accepted, next eligible trn21 slot after eval/retrieval/all-descendant quiescence.
+Checkpoint helper65e7 now has genuinely fresh independent source/tiny review:
+96 own tests normal/-O plus23 boundary tests and real mutation rejection.
+Root repeated these and authenticated verbatim review artifacts. Actual
+fullG2 checkpoints, frozen INPUTS and full ordinary-loader outcome are pending.
+Disabled clean cold-five packet passed73 mechanical checks normal/-O; it still
+cannot launch before those CPU/checkpoint gates. No upload-ready file yet.
+
+Completed nonlaunchable K2 production-BF16 proposal91494cb0 preserves the old
+native refusal and prices all metadata costs; no new kernel/speed claim.
+Anchored same-path full-control design16d14c8f is now in separate mechanical
+implementation. It cannot claim historical immutability/cache hits, reuse W1's
+failed120s verdict, chmod parent files or mix warm/cold controls silently.
+Both formal new-path base36 control packets remain disabled fallback options.
+No six-ready-jobs claim. Top-level state and exact scoped assignments control.
+
 ## 03:18 UTC / 08:48 IST actual snapshot: both full jobs training; next gates prepared
 
 Confirmed public20M mean remains0.9883066128526815; no new quality result.

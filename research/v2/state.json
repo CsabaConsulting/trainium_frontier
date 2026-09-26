@@ -1010,7 +1010,7 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-clock36-lr012-trn21-r1",
-      "status": "FULL_RUN_TRAINING_FRESH20M_PENDING",
+      "status": "TRAINING_COMPLETE_FRESH20M_EVAL_RUNNING",
       "original_lock_device": 66305,
       "original_lock_inode": 596823,
       "launch_allowed": false,
@@ -1148,7 +1148,7 @@
       "started_utc": "2026-09-26T02:38:21.880129+00:00",
       "dispatch_started_utc": "2026-09-26T02:38:21.766359+00:00",
       "actual_launch_commit": "5b559f9c317e415216669ee803972e205162c62b",
-      "last_process_check_utc": "2026-09-26T03:18:38.832271+00:00",
+      "last_process_check_utc": "2026-09-26T03:33:12.856758+00:00",
       "dispatch_pid": 3152603,
       "flock_pid": 3152604,
       "driver_pid": 3152605,
@@ -1175,27 +1175,29 @@
         "remaining_seconds_reported": 882,
         "raw": "research/v2/operator/20260926-dual-full-progress-0306/trn21.json"
       },
-      "latest_free_bytes": 15723196416,
+      "latest_free_bytes": 15269150720,
       "latest_progress": {
-        "phase": "TRAINING",
-        "step": 3280,
-        "loss": 2.7232,
-        "tokens_per_second": 266017,
-        "source_reported_seconds_remaining": 188,
-        "workers": [
-          3152652,
-          3152653,
-          3152654,
-          3152655
-        ],
-        "raw": "research/v2/operator/20260926-dual-full-progress-0318/trn21.json",
-        "no_traceback_at_observation": true,
-        "cache_hit_proven": false,
-        "uncapped_startup_pending": true
+        "phase": "FRESH20M_EVALUATION_LIVE",
+        "raw": "research/v2/operator/20260926-trn21-lr-final-boundary-0333/trn21.json",
+        "raw_sha256": "c7cdbdbea99fdb734450db1da3cfb56eaddaea3059e44a5f3b853fd57055227a",
+        "root_training_audit": "b2ddd4e7",
+        "budget_accepted_training_only": true,
+        "final_bpb": null,
+        "posteval_checkpoint_hash_pending": true
       },
-      "last_observed_step": 3280,
+      "last_observed_step": 3632,
       "reported_tokens_per_second": 266017,
-      "source_reported_seconds_remaining": 188
+      "source_reported_seconds_remaining": 0,
+      "startup_measured_seconds": 799.1958145109238,
+      "training_process_wall_seconds": 2588.663411580026,
+      "charged_through_exit_seconds": 1789.4675970691023,
+      "training_end_utc": "2026-09-26T03:21:33.346937+00:00",
+      "training_exit_code": 0,
+      "evaluation_start_utc": "2026-09-26T03:21:33.415409+00:00",
+      "eval_timeout_pid": 3175131,
+      "eval_harness_pid": 3175132,
+      "evaluator_pid": 3175146,
+      "training_checkpoint_sha256": "3d2a0663fa285c4d2be9f3214aee2ace58e07fd4311b98370f87c45f3ac80fbc"
     },
     "trn22": {
       "label": "fs-20260926-clock36-recursive-trn22-r1-full",
