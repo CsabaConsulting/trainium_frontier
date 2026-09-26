@@ -2,6 +2,18 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Newest direct amendment — net tokens and Muon compile cost
+
+Read `workflow/NET_TOKENS_AND_MUON_COMPILE_2026-09-26.md` first.
+K2 and table continuation requires >=3% NET tokens versus accepted base:
+max(0,1800-max(0,cold_startup-900))*steady_tok_s. Speed-only gates below are
+superseded. Record cold startup, startup charge and net work for every table
+run. Preserve current native201; no blind restart. A dedicated parallel
+compile-time lane measures per-shape Muon compile cost; if >~60s, investigate
+exact transposed c_proj/c_fc stacking and a separately acknowledged ve_gate
+AdamW change. CPU exactness and one full run remain. This reopens only the
+compile reduction investigation, not general closed K1 racing.
+
 ## Latest direct amendment — 26 September, 15:12 IST
 
 Read `workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md` with FINAL SPRINT.

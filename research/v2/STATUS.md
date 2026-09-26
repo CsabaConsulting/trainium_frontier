@@ -1,5 +1,27 @@
 # Workflow installation and incremental launch status
 
+## Latest human amendment: >=3% NET tokens, parallel compile-cost lane
+
+Read workflow/NET_TOKENS_AND_MUON_COMPILE_2026-09-26.md FIRST. Net work is
+max(0,1800-max(0,cold_startup-900))*steady_tok/s, not step speed alone.
+Current trn21 baseline is479791343.2820709 tokens; threshold494185083.580533.
+Current K2's exact startup/rate remain unknown: no full/table continuation
+released. Every table run must record cold startup and charge. Warm cached
+startup cannot stand in for cold. Original jobs and scientific/budget gates stay.
+
+Dedicated /root/muon_compile_cost_analyst is attributing base Muon compile
+graphs. Initial archived small-graph compiler-counter sum59.817s is not wall
+startup or yet a proven four-shape mapping. Transposed state/scalar details
+need exact CPU evidence; moving ve_gate toAdamW is not exact by definition.
+
+Compile-size fallbackf8047d07 changes only K2's64 static row-group bodies
+to an ordered runtime loop with proven grouped addresses. Actual local
+backward executable61338B versus349692B; CPU/OFF and two official full-shape
+simulators exact. Whole-model startup/native speed unmeasured. One fresh
+narrow independent reviewer active; this is not a replacement of live662.
+Speculative batch/schedule sourcec2e27ccd deliveredc76a4f165 with actual
+small-model/optimizer OFF3/donorON3/recurrence checks; confirmation stillpending.
+
 ## 15:44 IST: K2 native test active; table compiler and simulator checks complete
 
 Latest direct follow-up in K2_NEXT_SLOT accepts existing native framework-forward
