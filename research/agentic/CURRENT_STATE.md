@@ -1,5 +1,38 @@
 # Current state
 
+## 03:18 UTC / 08:48 IST actual snapshot: both full jobs training; next gates prepared
+
+Confirmed public20M mean remains0.9883066128526815; no new quality result.
+Raw39ea86ce/canonical93526a22 authenticates both original locks and all eight
+actual-source worker identities. Root rehashed all24 captured files. Its two
+initial local parser mistakes (actual_train_sha256 key and retired-pid objects)
+were corrected against raw schema; no host operation or raw data was changed.
+trn21 LR.012:3280steps/loss2.7232/266017tok/s/188s source-reported remaining.
+trn22 Recursive:440steps/loss3.3857/266799tok/s/1585s remaining. No current
+compiler descendants or logged errors; disks15.723GB/20.692GB free. Last
+snapshot is not a terminal/eval result. Final uncapped fifth and charge pending.
+
+Clean e1e2 full113M standardG2 pair remains next eligible trn21 slot after
+current train/eval/retrieval/quiescence. Disabled transport is being prepared
+locally, no host release. The checkpoint checker now has a live separate
+Implementer on proposal0930f2ae; real INPUTS remain PENDING. Earlier pending/
+capacity errors are preserved, not falsely described as active work. New
+fresh independent review remains mandatory before its full checkpoint run.
+
+Two genuine base36 control packets are prepared: Operatore5ba2552/canonical
+8b8c2bed, root narrow reviewf1df7e6b with103checks perhost normal and-O.
+Only unique label changes in proven drivers, no source/science changes.
+They remain disabled, with submission safety and higher-priority qualified
+work first. Historical architecture rows are not rewritten as controls.
+
+K2 analysis7938485c preserves unrestricted native gate failure while identifying
+the immediateBF16 tangent boundary in actualwte/VE source:24 tiny CPU cases
+plus allfour archived native rank receipts separate unreachable FP32 minimum
+from reachableBF16-subnormal cases that were exact. This is new evidence,
+not a production kernel/native/speed/BPB pass or tolerance waiver. A distinct
+production-domain proposal and fresh independent proof are still required.
+No ready-to-upload file, cache-hit proof or six-ready-jobs-perhost claim.
+
 ## 03:07 UTC / 08:37 IST: both full runs active; clean-port full-size CPU packet prepared
 
 Confirmed public20M/context1024 mean remains **0.9883066128526815**; no new

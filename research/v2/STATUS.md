@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+## Current actual snapshot — 26 September 08:48 IST
+
+Both full jobs training without logged errors: trn21 LR.012 step3280,
+trn22 Recursive step440. Confirmed public20M mean0.9883066129 unchanged;
+final evals pending. Raw39ea86ce/canonical93526a22, root24file rehash and
+eight actual worker identities accepted. Original lifetime locks protected.
+CleanfullCPU pair prepared; disabled transport preparation and separate
+checkpoint-helper implementation now in progress. Two prospective base36
+controls mechanically accepted but disabled. K2 BF16-boundary evidence is
+analysis only, not qualification. No upload-ready file or six-ready queue.
+
 ## Current — 26 September 08:37 IST
 
 Both full jobs are active: trn21 exact36 LR0.012, trn22 Recursive-on-clock36

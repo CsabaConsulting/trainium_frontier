@@ -1,6 +1,6 @@
 # Prospective exact36 controls: bounded packet review
 
-2026-09-26 03:20 UTC. Supervisor reviewed canonical8b8c2bed / Operator
+2026-09-26 03:19 UTC (corrected rounded label). Supervisor reviewed canonical8b8c2bed / Operator
 e5ba2552, both README files, both mechanical derivations and the entire shared
 binding test. Replayed103checks per host, normally and with Python-O; all four
 invocations passed. No host call, tensors, scientific-source execution or
