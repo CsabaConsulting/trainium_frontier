@@ -1,0 +1,2741 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "payload_sha256": "7d25cae835392d0e10dd93478fc28dc1690e6dcf8d975492b5c092317a593421",
+  "remote": {
+    "utc": "2026-09-26T09:43:46.939777+00:00",
+    "host": "trn22",
+    "label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+    "root": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+    "processes": [
+      {
+        "identity_before": {
+          "pid": 3373963,
+          "state": "S",
+          "ppid": 1,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905936
+        },
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/dispatch_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3373963,
+          "state": "S",
+          "ppid": 1,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905936
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3373964,
+          "state": "S",
+          "ppid": 3373963,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905938
+        },
+        "argv": [
+          "/usr/bin/flock",
+          "-n",
+          "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/host_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3373964,
+          "state": "S",
+          "ppid": 3373963,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905938
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3373964 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3373965,
+          "state": "S",
+          "ppid": 3373964,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905938
+        },
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-B",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/host_driver.py"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+        "environment_whitelist": {},
+        "identity_after": {
+          "pid": 3373965,
+          "state": "S",
+          "ppid": 3373964,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905938
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3373964 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3373982,
+          "state": "S",
+          "ppid": 3373965,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905948
+        },
+        "argv": [
+          "/usr/bin/timeout",
+          "--foreground",
+          "--signal=TERM",
+          "--kill-after=60s",
+          "2730s",
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+          "--mode",
+          "train"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3373982,
+          "state": "S",
+          "ppid": 3373965,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905948
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3373964 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3373983,
+          "state": "S",
+          "ppid": 3373982,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905948
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py",
+          "--package",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/package",
+          "--sandbox",
+          "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+          "--mode",
+          "train"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3373983,
+          "state": "S",
+          "ppid": 3373982,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102905948
+        },
+        "identity_stable": true,
+        "original_lock_fds": [
+          {
+            "fd": 3,
+            "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t832589\nlock:\t1: FLOCK  ADVISORY  WRITE 3373964 103:01:832589 0 EOF\n"
+          }
+        ]
+      },
+      {
+        "identity_before": {
+          "pid": 3373999,
+          "state": "S",
+          "ppid": 3373983,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102906203
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "/home/ubuntu/workspace/native_venv/bin/torchrun",
+          "--standalone",
+          "--nproc_per_node=4",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--total-batch-size",
+          "262144",
+          "--matrix-lr",
+          "0.021"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug"
+        },
+        "identity_after": {
+          "pid": 3373999,
+          "state": "S",
+          "ppid": 3373983,
+          "pgid": 3373963,
+          "sid": 3373963,
+          "start_ticks": 102906203
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3374014,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374014,
+          "sid": 3374014,
+          "start_ticks": 102906407
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--total-batch-size",
+          "262144",
+          "--matrix-lr",
+          "0.021"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "0",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "0"
+        },
+        "identity_after": {
+          "pid": 3374014,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374014,
+          "sid": 3374014,
+          "start_ticks": 102906407
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3374015,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374015,
+          "sid": 3374015,
+          "start_ticks": 102906407
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--total-batch-size",
+          "262144",
+          "--matrix-lr",
+          "0.021"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "1",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "1"
+        },
+        "identity_after": {
+          "pid": 3374015,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374015,
+          "sid": 3374015,
+          "start_ticks": 102906407
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3374016,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374016,
+          "sid": 3374016,
+          "start_ticks": 102906407
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--total-batch-size",
+          "262144",
+          "--matrix-lr",
+          "0.021"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "2",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "2"
+        },
+        "identity_after": {
+          "pid": 3374016,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374016,
+          "sid": 3374016,
+          "start_ticks": 102906407
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      },
+      {
+        "identity_before": {
+          "pid": 3374017,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374017,
+          "sid": 3374017,
+          "start_ticks": 102906407
+        },
+        "argv": [
+          "/home/ubuntu/workspace/native_venv/bin/python3",
+          "-u",
+          "train.py",
+          "--n-embd",
+          "1024",
+          "--no-ngram-ve",
+          "--no-qk-shift",
+          "--compile-sdpa-direct",
+          "--nki-local-conv",
+          "--bf16-norm-output",
+          "--pack-factor",
+          "32",
+          "--clip-after-reduce",
+          "--seq-len",
+          "1024",
+          "--no-eval-public",
+          "--total-batch-size",
+          "262144",
+          "--matrix-lr",
+          "0.021"
+        ],
+        "cwd": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train",
+        "environment_whitelist": {
+          "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+          "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+          "NEURON_COMPETITION_R1_SEED": "42",
+          "NEURON_LOGICAL_NC_CONFIG": "2",
+          "TRN_EXP_LABEL": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+          "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff",
+          "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local",
+          "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo",
+          "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor",
+          "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler",
+          "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug",
+          "RANK": "3",
+          "WORLD_SIZE": "4",
+          "LOCAL_RANK": "3"
+        },
+        "identity_after": {
+          "pid": 3374017,
+          "state": "S",
+          "ppid": 3373999,
+          "pgid": 3374017,
+          "sid": 3374017,
+          "start_ticks": 102906407
+        },
+        "identity_stable": true,
+        "original_lock_fds": []
+      }
+    ],
+    "census": [
+      {
+        "pid": 1,
+        "state": "S",
+        "ppid": 0,
+        "pgid": 1,
+        "sid": 1,
+        "start_ticks": 58
+      },
+      {
+        "pid": 2,
+        "state": "S",
+        "ppid": 0,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 3,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 4,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 5,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 6,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 7,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 8,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 10,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 13,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 14,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 15,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 16,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 17,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 18,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 19,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 20,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 58
+      },
+      {
+        "pid": 21,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 22,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 23,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 24,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 26,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 27,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 28,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 29,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 30,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 32,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 33,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 34,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 35,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 36,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 38,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 39,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 40,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 41,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 42,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 44,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 45,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 46,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 47,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 48,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 50,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 51,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 52,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 53,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 54,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 56,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 57,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 58,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 59,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 60,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 62,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 63,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 64,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 65,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 66,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 68,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 69,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 70,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 71,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 72,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 74,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 75,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 76,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 77,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 78,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 80,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 81,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 82,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 83,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 84,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 86,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 59
+      },
+      {
+        "pid": 87,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 60
+      },
+      {
+        "pid": 88,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 89,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 90,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 61
+      },
+      {
+        "pid": 91,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 62
+      },
+      {
+        "pid": 92,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 93,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 96,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 97,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 98,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 99,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 100,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 101,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 102,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 63
+      },
+      {
+        "pid": 103,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 64
+      },
+      {
+        "pid": 106,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 109
+      },
+      {
+        "pid": 107,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 108,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 109,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 110,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 111,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 110
+      },
+      {
+        "pid": 112,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 113
+      },
+      {
+        "pid": 114,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 113
+      },
+      {
+        "pid": 115,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 116
+      },
+      {
+        "pid": 116,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 147
+      },
+      {
+        "pid": 117,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 147
+      },
+      {
+        "pid": 118,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 148
+      },
+      {
+        "pid": 119,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 149
+      },
+      {
+        "pid": 120,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 149
+      },
+      {
+        "pid": 121,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 122,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 123,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 150
+      },
+      {
+        "pid": 124,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 125,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 126,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 127,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 151
+      },
+      {
+        "pid": 128,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 129,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 130,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 131,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 152
+      },
+      {
+        "pid": 132,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 133,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 134,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 153
+      },
+      {
+        "pid": 135,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 136,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 137,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 138,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 154
+      },
+      {
+        "pid": 139,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 140,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 141,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 155
+      },
+      {
+        "pid": 142,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 143,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 144,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 156
+      },
+      {
+        "pid": 145,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 146,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 147,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 148,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 157
+      },
+      {
+        "pid": 149,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 150,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 151,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 158
+      },
+      {
+        "pid": 152,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 153,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 154,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 159
+      },
+      {
+        "pid": 155,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 156,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 157,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 158,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 160
+      },
+      {
+        "pid": 159,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 160,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 161,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 161
+      },
+      {
+        "pid": 162,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 163,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 164,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 162
+      },
+      {
+        "pid": 165,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 166,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 167,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 163
+      },
+      {
+        "pid": 169,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 164
+      },
+      {
+        "pid": 170,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 171,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 172,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 173,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 175,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 167
+      },
+      {
+        "pid": 183,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 184,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 185,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 172
+      },
+      {
+        "pid": 186,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 173
+      },
+      {
+        "pid": 194,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 177
+      },
+      {
+        "pid": 205,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 179
+      },
+      {
+        "pid": 206,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 180
+      },
+      {
+        "pid": 208,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 228
+      },
+      {
+        "pid": 209,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 228
+      },
+      {
+        "pid": 212,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 510
+      },
+      {
+        "pid": 213,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 515
+      },
+      {
+        "pid": 214,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 523
+      },
+      {
+        "pid": 237,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 544
+      },
+      {
+        "pid": 254,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 741
+      },
+      {
+        "pid": 256,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 749
+      },
+      {
+        "pid": 258,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 749
+      },
+      {
+        "pid": 262,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 757
+      },
+      {
+        "pid": 302,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 768
+      },
+      {
+        "pid": 312,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 313,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 314,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 315,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 772
+      },
+      {
+        "pid": 334,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 790
+      },
+      {
+        "pid": 335,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 790
+      },
+      {
+        "pid": 339,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 801
+      },
+      {
+        "pid": 344,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 805
+      },
+      {
+        "pid": 500,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 864
+      },
+      {
+        "pid": 501,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 864
+      },
+      {
+        "pid": 667,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 1335
+      },
+      {
+        "pid": 668,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 1335
+      },
+      {
+        "pid": 815,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 815,
+        "sid": 815,
+        "start_ticks": 2128
+      },
+      {
+        "pid": 823,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 823,
+        "sid": 823,
+        "start_ticks": 2130
+      },
+      {
+        "pid": 827,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 827,
+        "sid": 827,
+        "start_ticks": 2130
+      },
+      {
+        "pid": 838,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 838,
+        "sid": 838,
+        "start_ticks": 2132
+      },
+      {
+        "pid": 850,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 850,
+        "sid": 850,
+        "start_ticks": 2134
+      },
+      {
+        "pid": 887,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 887,
+        "sid": 887,
+        "start_ticks": 2137
+      },
+      {
+        "pid": 900,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 900,
+        "sid": 900,
+        "start_ticks": 2139
+      },
+      {
+        "pid": 1580,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 1580,
+        "sid": 1580,
+        "start_ticks": 2384
+      },
+      {
+        "pid": 2222,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 7685
+      },
+      {
+        "pid": 321874,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 321874,
+        "sid": 321874,
+        "start_ticks": 6772743
+      },
+      {
+        "pid": 321877,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 321877,
+        "sid": 321877,
+        "start_ticks": 6772744
+      },
+      {
+        "pid": 322321,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 6772786
+      },
+      {
+        "pid": 322323,
+        "state": "S",
+        "ppid": 322321,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 6772786
+      },
+      {
+        "pid": 322520,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322519,
+        "sid": 322519,
+        "start_ticks": 6773047
+      },
+      {
+        "pid": 322521,
+        "state": "S",
+        "ppid": 322520,
+        "pgid": 322519,
+        "sid": 322519,
+        "start_ticks": 6773047
+      },
+      {
+        "pid": 322867,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 322867,
+        "sid": 322867,
+        "start_ticks": 6773472
+      },
+      {
+        "pid": 322878,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 6773477
+      },
+      {
+        "pid": 324262,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 324262,
+        "sid": 324262,
+        "start_ticks": 6775168
+      },
+      {
+        "pid": 326011,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326011,
+        "sid": 326011,
+        "start_ticks": 6777526
+      },
+      {
+        "pid": 326030,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326030,
+        "sid": 326030,
+        "start_ticks": 6777529
+      },
+      {
+        "pid": 326036,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326036,
+        "sid": 326036,
+        "start_ticks": 6777530
+      },
+      {
+        "pid": 326053,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326053,
+        "sid": 326053,
+        "start_ticks": 6777531
+      },
+      {
+        "pid": 326057,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 326057,
+        "sid": 326057,
+        "start_ticks": 6777533
+      },
+      {
+        "pid": 327715,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 327715,
+        "sid": 327715,
+        "start_ticks": 6788768
+      },
+      {
+        "pid": 562195,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 562195,
+        "sid": 562195,
+        "start_ticks": 9520285
+      },
+      {
+        "pid": 562196,
+        "state": "S",
+        "ppid": 562195,
+        "pgid": 562195,
+        "sid": 562195,
+        "start_ticks": 9520286
+      },
+      {
+        "pid": 562271,
+        "state": "S",
+        "ppid": 562195,
+        "pgid": 562271,
+        "sid": 562271,
+        "start_ticks": 9520352
+      },
+      {
+        "pid": 814705,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 814705,
+        "sid": 814705,
+        "start_ticks": 15102610
+      },
+      {
+        "pid": 814706,
+        "state": "S",
+        "ppid": 814705,
+        "pgid": 814706,
+        "sid": 814706,
+        "start_ticks": 15102610
+      },
+      {
+        "pid": 831449,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 831449,
+        "sid": 831449,
+        "start_ticks": 16743671
+      },
+      {
+        "pid": 2602007,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602007,
+        "sid": 2602007,
+        "start_ticks": 75730002
+      },
+      {
+        "pid": 2602016,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602016,
+        "sid": 2602016,
+        "start_ticks": 75730006
+      },
+      {
+        "pid": 2602339,
+        "state": "S",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 75730311
+      },
+      {
+        "pid": 2602359,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 2602359,
+        "sid": 2602359,
+        "start_ticks": 75730323
+      },
+      {
+        "pid": 3193504,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99390283
+      },
+      {
+        "pid": 3212003,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99548823
+      },
+      {
+        "pid": 3216856,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 99667238
+      },
+      {
+        "pid": 3276068,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 100988824
+      },
+      {
+        "pid": 3277370,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 101047726
+      },
+      {
+        "pid": 3314477,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3314477,
+        "sid": 3314477,
+        "start_ticks": 101674894
+      },
+      {
+        "pid": 3314478,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 101674895
+      },
+      {
+        "pid": 3314492,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3314492,
+        "sid": 3314492,
+        "start_ticks": 101674898
+      },
+      {
+        "pid": 3336233,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102248821
+      },
+      {
+        "pid": 3343471,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102308822
+      },
+      {
+        "pid": 3344924,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102402053
+      },
+      {
+        "pid": 3344959,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102407827
+      },
+      {
+        "pid": 3345805,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102440747
+      },
+      {
+        "pid": 3346614,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102487901
+      },
+      {
+        "pid": 3353885,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102548821
+      },
+      {
+        "pid": 3360744,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102608820
+      },
+      {
+        "pid": 3362192,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102620459
+      },
+      {
+        "pid": 3367634,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102667878
+      },
+      {
+        "pid": 3367954,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102670740
+      },
+      {
+        "pid": 3368544,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102714986
+      },
+      {
+        "pid": 3368736,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102728821
+      },
+      {
+        "pid": 3370085,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102788822
+      },
+      {
+        "pid": 3370087,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102791888
+      },
+      {
+        "pid": 3371172,
+        "state": "S",
+        "ppid": 322321,
+        "pgid": 322321,
+        "sid": 322321,
+        "start_ticks": 102838470
+      },
+      {
+        "pid": 3372577,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102846347
+      },
+      {
+        "pid": 3373729,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102882321
+      },
+      {
+        "pid": 3373870,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102896826
+      },
+      {
+        "pid": 3373882,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102896859
+      },
+      {
+        "pid": 3373883,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102899920
+      },
+      {
+        "pid": 3373963,
+        "state": "S",
+        "ppid": 1,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102905936
+      },
+      {
+        "pid": 3373964,
+        "state": "S",
+        "ppid": 3373963,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102905938
+      },
+      {
+        "pid": 3373965,
+        "state": "S",
+        "ppid": 3373964,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102905938
+      },
+      {
+        "pid": 3373982,
+        "state": "S",
+        "ppid": 3373965,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102905948
+      },
+      {
+        "pid": 3373983,
+        "state": "S",
+        "ppid": 3373982,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102905948
+      },
+      {
+        "pid": 3373999,
+        "state": "S",
+        "ppid": 3373983,
+        "pgid": 3373963,
+        "sid": 3373963,
+        "start_ticks": 102906203
+      },
+      {
+        "pid": 3374014,
+        "state": "S",
+        "ppid": 3373999,
+        "pgid": 3374014,
+        "sid": 3374014,
+        "start_ticks": 102906407
+      },
+      {
+        "pid": 3374015,
+        "state": "S",
+        "ppid": 3373999,
+        "pgid": 3374015,
+        "sid": 3374015,
+        "start_ticks": 102906407
+      },
+      {
+        "pid": 3374016,
+        "state": "S",
+        "ppid": 3373999,
+        "pgid": 3374016,
+        "sid": 3374016,
+        "start_ticks": 102906407
+      },
+      {
+        "pid": 3374017,
+        "state": "S",
+        "ppid": 3373999,
+        "pgid": 3374017,
+        "sid": 3374017,
+        "start_ticks": 102906407
+      },
+      {
+        "pid": 3374164,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102907835
+      },
+      {
+        "pid": 3374588,
+        "state": "I",
+        "ppid": 2,
+        "pgid": 0,
+        "sid": 0,
+        "start_ticks": 102968823
+      },
+      {
+        "pid": 3375892,
+        "state": "S",
+        "ppid": 327715,
+        "pgid": 3375892,
+        "sid": 3375892,
+        "start_ticks": 102988187
+      },
+      {
+        "pid": 3375984,
+        "state": "S",
+        "ppid": 3375892,
+        "pgid": 3375892,
+        "sid": 3375892,
+        "start_ticks": 102988469
+      },
+      {
+        "pid": 3375997,
+        "state": "R",
+        "ppid": 3375984,
+        "pgid": 3375997,
+        "sid": 3375997,
+        "start_ticks": 102988562
+      }
+    ],
+    "files": {
+      "operator-preflight.json": {
+        "bytes_on_host": 3074,
+        "captured_bytes": 3074,
+        "tail_only": false,
+        "sha256": "219df694af9afbb3d31334f0c28b776068dd4ba1d34ed1d71f3d207184aea698",
+        "text": "{\n  \"started_utc\": \"2026-09-26T09:30:00.076740+00:00\",\n  \"utc\": \"2026-09-26T09:30:00.147888+00:00\",\n  \"host\": \"trn22\",\n  \"label\": \"fs-20260926-sprint-clean-batch-lr14-trn22-r1\",\n  \"original_lock\": {\n    \"device\": 66305,\n    \"inode\": 832589,\n    \"held_during_preflight\": true\n  },\n  \"free_bytes\": 170075725824,\n  \"mem_available_bytes\": 129080971264,\n  \"resource_reserve\": {\n    \"runtime_floor_bytes\": 11274289152,\n    \"projected_new_footprint_bytes\": 3221225472,\n    \"initial_floor_bytes\": 14495514624,\n    \"basis\": \"Unchanged prepared per-job13.5GiB initial/10.5GiB runtime floor; pair admission additional and explicit.\"\n  },\n  \"source_sha256\": \"8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"files\": {\n    \"host_driver.py\": \"6beaab129137a6bea3ebb23a4dff52192aac3c98aaba6c7548223c1bc77f1847\",\n    \"dispatch_driver.py\": \"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a\",\n    \"idle_guard.py\": \"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737\",\n    \"lifetime_guard.py\": \"5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e\",\n    \"package/train.py\": \"8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee\",\n    \"package/launch-command.txt\": \"c74a4cc45690d395827ae95fe12bb21f628adb4a83ab2cf0c15f7445bdb15b5a\",\n    \"package/provenance.json\": \"cd6aa090631c86bfffa957df03bc91ecf140ac017fc2b48f84118885ee5fa6dd\",\n    \"EXPERIMENT_PROPOSAL.json\": \"785bfe4ea42bd8c82cacfeabf874de39bb7f253bc5bf1b23e2f7b112e6db8aef\",\n    \"NATIVE_BINDING.json\": \"366fdb46f93a90604227ceb5adf101a1b4018fa3f6aa123df28c97f5f772ed71\",\n    \"RELEASE.json\": \"e8206d189bb0e8415f398fc38d5bc57360f31c28503da7cc8371d9faf9967e9b\"\n  },\n  \"fresh_cache_absent_then_created_empty\": [],\n  \"ps_job_rows\": [],\n  \"ps_sha256\": \"d7a822315eb9a4a36e345f6665535fedf56bde7be98bb7f392ba226101ee16bb\",\n  \"neuron_ls\": [\n    {\n      \"instance_type\": \"trn2.3xlarge\",\n      \"instance_id\": \"i-0673e54d9d66e6a1e\",\n      \"neuron_device\": 0,\n      \"bdf\": \"0000:33:00.0\",\n      \"cpu_affinity\": \"0-11\",\n      \"numa_node\": \"0\",\n      \"connected_to\": null,\n      \"nc_count\": 4,\n      \"logical_neuroncore_config\": 2,\n      \"memory_size\": 103079215104,\n      \"neuroncore_ids\": [\n        0,\n        1,\n        2,\n        3\n      ],\n      \"neuron_processes\": []\n    }\n  ],\n  \"fuser\": {\n    \"returncode\": 1,\n    \"stdout\": \"\",\n    \"stderr\": \"\"\n  },\n  \"controller\": {\n    \"utc\": \"2026-09-26T09:29:54.038543+00:00\",\n    \"controller_state_sha256\": \"cc3ee8d8de77574d85b1baf21e39589a1fc89a213d3d74de2ff5404b6bfa36b5\",\n    \"launch_authorized\": false,\n    \"host_launch_allowed\": {\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"breaker_tripped\": {\n      \"global_correctness\": false,\n      \"trn21\": false,\n      \"trn22\": false\n    },\n    \"local_stops_present\": []\n  },\n  \"old_queue_pids_absent\": [\n    3050509,\n    3053905\n  ],\n  \"eval_cache_mode\": \"EXISTING_SHARED_RESEARCH_CACHE_PRESERVED\"\n}\n"
+      },
+      "operator-launch.json": {
+        "bytes_on_host": 454,
+        "captured_bytes": 454,
+        "tail_only": false,
+        "sha256": "917b3b01fbc03e40e686a93096f318f7c6cf67d65207f5cc3cd5750bd18837e4",
+        "text": "{\n  \"utc\": \"2026-09-26T09:30:00.148440+00:00\",\n  \"host\": \"trn22\",\n  \"label\": \"fs-20260926-sprint-clean-batch-lr14-trn22-r1\",\n  \"root\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet\",\n  \"dispatch_pid\": 3373963,\n  \"status\": \"DETACHED_DISPATCH_STARTED\",\n  \"source_sha256\": \"8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee\",\n  \"automatic_next_job\": false\n}\n"
+      },
+      "training-launch.json": {
+        "bytes_on_host": 3247,
+        "captured_bytes": 3247,
+        "tail_only": false,
+        "sha256": "af32c6fcbedb177293728edf60ce7356214214e305bf2ca31873d71bf46eb3c1",
+        "text": "{\n  \"command\": [\n    \"/usr/bin/timeout\",\n    \"--foreground\",\n    \"--signal=TERM\",\n    \"--kill-after=60s\",\n    \"2730s\",\n    \"/home/ubuntu/workspace/native_venv/bin/python\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\",\n    \"--package\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/package\",\n    \"--sandbox\",\n    \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train\",\n    \"--mode\",\n    \"train\"\n  ],\n  \"environment\": {\n    \"HOME\": \"/home/ubuntu\",\n    \"NEURON_CC_FLAGS\": \"--optlevel=1 --auto-cast matmult --auto-cast-type bf16\",\n    \"NEURON_COMPETITION_R1_CACHE_DIR\": \"/home/ubuntu/.cache/neuron_competition_r1\",\n    \"NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS\": \"1800\",\n    \"NEURON_COMPETITION_R1_SEED\": \"42\",\n    \"NEURON_COMPILE_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler\",\n    \"NEURON_COMPILE_CACHE_URL\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/compiler\",\n    \"NEURON_LOGICAL_NC_CONFIG\": \"2\",\n    \"NKI_VENV_PATH\": \"/home/ubuntu/workspace/native_venv\",\n    \"PATH\": \"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin\",\n    \"PYTHONDONTWRITEBYTECODE\": \"1\",\n    \"PYTHONUNBUFFERED\": \"1\",\n    \"TORCHINDUCTOR_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/inductor\",\n    \"TORCH_NEURONX_DEBUG_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/debug\",\n    \"TORCH_NEURONX_ENABLED_METRIC_TABLES\": \"graph_stats\",\n    \"TORCH_NEURONX_HLO_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/hlo\",\n    \"TORCH_NEURONX_METRICS_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/metrics-training\",\n    \"TORCH_NEURONX_NEFF_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/neff\",\n    \"TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr1-trn22-r1-packet/cold-training-caches/local\",\n    \"TRN_EXP_LABEL\": \"fs-20260926-sprint-clean-batch-lr14-trn22-r1\"\n  },\n  \"harness_sha256\": \"7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b\",\n  \"label\": \"fs-20260926-sprint-clean-batch-lr14-trn22-r1\",\n  \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\",\n  \"source_sha256\": \"8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee\",\n  \"utc\": \"2026-09-26T09:30:00.272625+00:00\"\n}\n"
+      },
+      "under-lock-idle.json": {
+        "bytes_on_host": 1418,
+        "captured_bytes": 1418,
+        "tail_only": false,
+        "sha256": "39bf9ebd40cce33980dddebfacf3fc86fddf5fdc7de76738181f9ed9c4f06080",
+        "text": "{\n  \"ended_utc\": \"2026-09-26T09:30:00.264030+00:00\",\n  \"lock\": {\n    \"device\": 66305,\n    \"driver_pid\": 3373965,\n    \"fd\": 3,\n    \"inode\": 832589,\n    \"lifetime\": \"Outer flock remains through driver and all synchronous phases.\",\n    \"parent_pid\": 3373964,\n    \"path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n    \"verified_existing_exclusive_lock\": true\n  },\n  \"lock_path\": \"/home/ubuntu/.cache/trainium_freshstart/device0.lock\",\n  \"neuron_ls\": {\n    \"command\": [\n      \"/opt/aws/neuron/bin/neuron-ls\",\n      \"--json-output\"\n    ],\n    \"cores\": [\n      0,\n      1,\n      2,\n      3\n    ],\n    \"device\": 0,\n    \"lnc\": 2,\n    \"process_pids\": [],\n    \"returncode\": 0,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"1b543c66ae3a6b3938f118f0b7d8f4d71d2702405afba2bf315e8a5f078612b1\"\n  },\n  \"ps\": {\n    \"busy\": [],\n    \"command\": [\n      \"/usr/bin/ps\",\n      \"-eo\",\n      \"pid=,ppid=,comm=,args=\"\n    ],\n    \"excluded_pids\": [\n      3373965,\n      3373964\n    ],\n    \"returncode\": 0,\n    \"row_count\": 259,\n    \"stderr\": \"\",\n    \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"stdout_sha256\": \"8d313240f1da2a5e063d33775d09b003d878019da6c20ad0a9c805794d80e41f\"\n  },\n  \"schema\": \"same-host-lifetime-lock-idle-v1\",\n  \"started_utc\": \"2026-09-26T09:30:00.202444+00:00\",\n  \"status\": \"PASS\"\n}\n"
+      },
+      "training-preflight-fuser.json": {
+        "bytes_on_host": 54,
+        "captured_bytes": 54,
+        "tail_only": false,
+        "sha256": "e9be039e4c2a3716d8b4bf87a504ed87a289fb1542232733d1f4e11120076d0f",
+        "text": "{\n  \"returncode\": 1,\n  \"stderr\": \"\",\n  \"stdout\": \"\"\n}\n"
+      },
+      "terminal.json": {
+        "absent": true
+      },
+      "outer-flock-exit.json": {
+        "absent": true
+      },
+      "lifetime-events.jsonl": {
+        "bytes_on_host": 55090,
+        "captured_bytes": 55090,
+        "tail_only": false,
+        "sha256": "8a9bf641489fdd9cd8c69e208158cca69a37f809e605e531b0c1ffe7a3068c3b",
+        "text": "{\"event\": \"guardian_started\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373965, \"ppid\": 3373964, \"sid\": 3373963, \"start_ticks\": 102905938, \"state\": \"R\"}, \"lock_device\": 66305, \"lock_held\": true, \"lock_inode\": 832589, \"monotonic\": 1029059.414597711, \"subreaper\": true}\n{\"command\": [\"/usr/bin/timeout\", \"--foreground\", \"--signal=TERM\", \"--kill-after=60s\", \"2730s\", \"/home/ubuntu/workspace/native_venv/bin/python\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/research/scratch/submission_rehearsal.py\", \"--package\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/package\", \"--sandbox\", \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train\", \"--mode\", \"train\"], \"event\": \"phase_spawned\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373982, \"ppid\": 3373965, \"sid\": 3373963, \"start_ticks\": 102905948, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029059.485585467, \"pid\": 3373982}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373982, \"ppid\": 3373965, \"sid\": 3373963, \"start_ticks\": 102905948, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029059.485746352}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373983, \"ppid\": 3373982, \"sid\": 3373963, \"start_ticks\": 102905948, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029059.53639616}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373984, \"ppid\": 3373983, \"sid\": 3373963, \"start_ticks\": 102905951, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029059.536569397}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373984, \"ppid\": 3373983, \"sid\": 3373963, \"start_ticks\": 102905951, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029062.076256043}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3373963, \"pid\": 3373999, \"ppid\": 3373983, \"sid\": 3373963, \"start_ticks\": 102906203, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029062.076642354}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374014, \"pid\": 3374014, \"ppid\": 3373999, \"sid\": 3374014, \"start_ticks\": 102906407, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029064.108256302}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374015, \"pid\": 3374015, \"ppid\": 3373999, \"sid\": 3374015, \"start_ticks\": 102906407, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029064.108421224}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374016, \"pid\": 3374016, \"ppid\": 3373999, \"sid\": 3374016, \"start_ticks\": 102906407, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029064.108540704}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374017, \"ppid\": 3373999, \"sid\": 3374017, \"start_ticks\": 102906407, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029064.108663162}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374067, \"pid\": 3374067, \"ppid\": 3374016, \"sid\": 3374067, \"start_ticks\": 102907190, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029071.937200831}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374067, \"pid\": 3374067, \"ppid\": 3374016, \"sid\": 3374067, \"start_ticks\": 102907190, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029071.987890505}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374081, \"pid\": 3374081, \"ppid\": 3374017, \"sid\": 3374081, \"start_ticks\": 102907194, \"state\": \"D\"}, \"lock_held\": true, \"monotonic\": 1029071.989036888}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374081, \"pid\": 3374081, \"ppid\": 3374017, \"sid\": 3374081, \"start_ticks\": 102907194, \"state\": \"D\"}, \"lock_held\": true, \"monotonic\": 1029072.040103865}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374205, \"pid\": 3374205, \"ppid\": 3374015, \"sid\": 3374205, \"start_ticks\": 102908522, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029085.244045549}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374208, \"pid\": 3374208, \"ppid\": 3374014, \"sid\": 3374208, \"start_ticks\": 102908522, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029085.244766607}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374205, \"pid\": 3374205, \"ppid\": 3374015, \"sid\": 3374205, \"start_ticks\": 102908522, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029085.295384372}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374208, \"pid\": 3374208, \"ppid\": 3374014, \"sid\": 3374208, \"start_ticks\": 102908522, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029085.29549072}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374414, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102915231, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029152.364297573}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374415, \"ppid\": 3374414, \"sid\": 3374017, \"start_ticks\": 102915244, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029152.474250572}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374416, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915265, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029152.694157698}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374416, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915265, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029152.802930593}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374429, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029153.968734384}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374430, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029153.968838301}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374431, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029153.96890635}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374432, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915396, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029153.968969883}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374429, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029166.919724582}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374430, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029166.919820458}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374431, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915395, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029166.919859647}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374432, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102915396, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029166.919892124}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374435, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102916698, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029167.027315064}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374435, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102916698, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029352.392470975}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374501, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102935235, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029352.393876173}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374501, \"ppid\": 3374415, \"sid\": 3374017, \"start_ticks\": 102935235, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029352.498674793}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374415, \"ppid\": 3374414, \"sid\": 3374017, \"start_ticks\": 102915244, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029353.185263886}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374414, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102915231, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029353.238267714}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374522, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102936629, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029366.306807828}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374524, \"ppid\": 3374522, \"sid\": 3374017, \"start_ticks\": 102936647, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029366.526690501}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374525, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029366.691482803}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374525, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936668, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029366.854155443}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374539, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936730, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029367.349765405}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374540, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029367.34990959}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374541, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029367.350036336}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374542, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029367.350146723}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374540, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029406.345697859}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374541, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029406.345808806}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374542, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936731, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029406.345847601}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374539, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102936730, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029406.398985896}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374569, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102940658, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029406.612915604}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374569, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102940658, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029835.995661744}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374634, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102983597, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029835.997082017}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374634, \"ppid\": 3374524, \"sid\": 3374017, \"start_ticks\": 102983597, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029836.207364693}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374524, \"ppid\": 3374522, \"sid\": 3374017, \"start_ticks\": 102936647, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029837.472856031}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3374522, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102936629, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029837.525742159}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375020, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985044, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.462596616}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375023, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985056, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.568580335}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375025, \"ppid\": 3375020, \"sid\": 3374017, \"start_ticks\": 102985066, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.674575984}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375026, \"ppid\": 3375023, \"sid\": 3374017, \"start_ticks\": 102985076, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.78170845}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375028, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985086, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.892144628}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375028, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985086, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029850.945309466}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375035, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985094, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.00173449}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375036, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985098, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.002162303}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375036, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985098, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.053955707}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375043, \"ppid\": 3375035, \"sid\": 3374017, \"start_ticks\": 102985115, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.165020007}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375053, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985141, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.441312302}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375054, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.441468166}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375055, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.441574779}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375056, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.441671032}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375057, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.441768198}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375058, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.44186205}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375059, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.44195159}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375060, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.442072392}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375061, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.498607555}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375062, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.498776957}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375063, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029851.498908666}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375066, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985158, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.6312434}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375067, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985158, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631349517}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375068, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985159, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.63141732}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375069, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985159, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631477423}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375070, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985160, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631545793}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375071, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985160, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631605432}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375072, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631663947}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375073, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.63172164}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375074, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631778195}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375075, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985162, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631838023}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375076, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985162, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029851.631895064}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375053, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985141, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.01784733}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375054, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.017936346}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375055, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.017975088}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375056, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985142, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.018035763}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375057, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.018074362}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375058, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.018103982}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375059, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.018132202}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375060, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985143, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.018159567}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375061, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029853.018187331}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375062, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029853.018214826}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375063, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985144, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029853.018241841}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375066, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985158, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072206882}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375067, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985158, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072283331}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375068, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985159, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072322244}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375069, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985159, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072360571}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375070, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985160, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072389855}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375071, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985160, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072419974}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375072, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072448548}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375073, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072475605}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375074, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985161, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072503782}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375075, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985162, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072530966}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375076, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985162, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029853.072557216}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375079, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985309, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029853.128187349}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375093, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985316, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029853.183962628}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375107, \"ppid\": 3375043, \"sid\": 3374017, \"start_ticks\": 102985408, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029854.125147545}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375107, \"ppid\": 3375043, \"sid\": 3374017, \"start_ticks\": 102985408, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029854.237268956}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375043, \"ppid\": 3375035, \"sid\": 3374017, \"start_ticks\": 102985115, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029854.355881625}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375035, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985094, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029854.411634162}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375173, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985503, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.078105556}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375079, \"ppid\": 3375025, \"sid\": 3374017, \"start_ticks\": 102985309, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.238271507}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375199, \"ppid\": 3375173, \"sid\": 3374017, \"start_ticks\": 102985525, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.293929883}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375020, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985044, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.346764391}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375025, \"ppid\": 3375020, \"sid\": 3374017, \"start_ticks\": 102985066, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.346861018}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375256, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985547, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.509625607}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375093, \"ppid\": 3375026, \"sid\": 3374017, \"start_ticks\": 102985316, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.561851117}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375256, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985547, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.561939479}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375023, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985056, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.668176559}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375026, \"ppid\": 3375023, \"sid\": 3374017, \"start_ticks\": 102985076, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029855.668262278}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375273, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985599, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.04206435}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375274, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985602, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042295765}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375275, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985602, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042364132}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375276, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042424745}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375277, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042482618}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375278, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042539191}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375279, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.042595114}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375280, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.10097664}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375281, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.101163541}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375282, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.101282615}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375283, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985605, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.101388655}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375284, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985605, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.101494687}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375287, \"ppid\": 3375273, \"sid\": 3374017, \"start_ticks\": 102985628, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.288145255}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375297, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985650, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.543347603}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375298, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985664, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.659765089}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375298, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985664, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029856.712291438}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375305, \"ppid\": 3375297, \"sid\": 3374017, \"start_ticks\": 102985673, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.769973297}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375306, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985694, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029856.985904938}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375306, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985694, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.038698858}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375313, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.202950532}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375314, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.270685473}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375315, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.270876092}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375316, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271033768}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375317, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271195755}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375318, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271331799}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375319, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271445236}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375320, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271547818}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375321, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.271656997}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375322, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985723, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.27175871}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375323, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985723, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.27185895}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375274, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985602, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403238481}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375275, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985602, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403353013}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375276, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403419177}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375277, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403477439}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375278, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985603, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403530315}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375279, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.403581126}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375280, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.403633991}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375281, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.403683459}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375282, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985604, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.403738983}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375283, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985605, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.403786778}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375284, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985605, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.403833685}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375326, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985757, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.596699584}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375340, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985765, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.662644949}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375341, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985767, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.737776092}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375342, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985768, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.737915122}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375343, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985769, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741189064}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375344, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985771, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741386718}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375345, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985771, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741514134}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375346, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985772, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741630801}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375347, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985773, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741724241}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375348, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985773, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029857.741831328}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375349, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985774, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.814253206}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375350, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985774, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029857.814438743}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375313, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.048084867}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375314, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048213971}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375315, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985720, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048275026}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375316, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048325409}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375317, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048373969}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375318, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985721, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048429338}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375319, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048486933}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375320, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048551407}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375321, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985722, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048607941}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375322, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985723, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.04865447}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375323, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985723, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.048700628}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375353, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985909, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.107379919}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375340, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985765, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272254048}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375341, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985767, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272370519}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375342, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985768, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272429582}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375343, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985769, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272481756}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375344, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985771, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272530265}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375345, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985771, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272577826}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375346, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985772, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.27262516}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375347, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985773, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272669728}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375348, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985773, \"state\": \"S\"}, \"lock_held\": true, \"monotonic\": 1029859.272715152}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375349, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985774, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.272760764}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375350, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985774, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.27280631}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375415, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985937, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.395541898}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375326, \"ppid\": 3375199, \"sid\": 3374017, \"start_ticks\": 102985757, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.504944834}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375173, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985503, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.687294765}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375199, \"ppid\": 3375173, \"sid\": 3374017, \"start_ticks\": 102985525, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029859.6874267}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375415, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102985937, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029861.461762688}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375486, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102986146, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029861.463594533}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375486, \"ppid\": 3375305, \"sid\": 3374017, \"start_ticks\": 102986146, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029861.515683434}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375297, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985650, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029861.629325782}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375305, \"ppid\": 3375297, \"sid\": 3374017, \"start_ticks\": 102985673, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029861.629442327}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375506, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102986231, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.337315853}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375514, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102986251, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.553174589}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375515, \"ppid\": 3375506, \"sid\": 3374017, \"start_ticks\": 102986254, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.55390554}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375516, \"ppid\": 3375514, \"sid\": 3374017, \"start_ticks\": 102986273, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.773906417}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375517, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986275, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.775056428}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375517, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986275, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.8277185}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375548, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986294, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029862.993320368}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375548, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986294, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.045833618}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375353, \"ppid\": 3375287, \"sid\": 3374017, \"start_ticks\": 102985909, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.266627252}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375580, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380151524}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375581, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380356417}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375582, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.38047852}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375583, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380585828}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375584, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380684635}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375585, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380781442}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375586, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380884469}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375587, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.380982526}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375588, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.381107562}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375589, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.381207173}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375590, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986336, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.381302721}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375287, \"ppid\": 3375273, \"sid\": 3374017, \"start_ticks\": 102985628, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.438233928}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375273, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102985599, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.501211979}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375593, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986362, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.630504643}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375594, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986363, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.693605353}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375595, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986364, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.69374179}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375596, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986364, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.693847888}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375597, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986365, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.693944797}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375598, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986365, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.70325306}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375599, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986366, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.703455889}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375600, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986366, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.703588358}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375601, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986367, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.703711851}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375602, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986367, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.703830513}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375603, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986368, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029863.703943911}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375580, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.872170584}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375581, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.872735288}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375582, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986333, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.87283165}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375583, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.872895955}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375584, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.872954342}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375585, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986334, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.87303675}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375586, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.873100133}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375587, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.873151414}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375588, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.873199324}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375589, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986335, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.87324524}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375590, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986336, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.87328834}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375614, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986492, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029864.933578919}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375593, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986362, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.153852691}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375594, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986363, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.153964745}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375595, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986364, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154047224}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375596, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986364, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154104951}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375597, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986365, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154157496}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375598, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986365, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154207777}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375599, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986366, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154257139}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375600, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986366, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154304907}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375601, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986367, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154351721}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375602, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986367, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154399061}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375603, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986368, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.154446279}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375628, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986521, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029865.267289997}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375614, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986492, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029867.839142135}\n{\"event\": \"owned_identity\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375690, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986782, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029867.840946022}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375690, \"ppid\": 3375515, \"sid\": 3374017, \"start_ticks\": 102986782, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029867.892597686}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375506, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102986231, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029867.945913637}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375515, \"ppid\": 3375506, \"sid\": 3374017, \"start_ticks\": 102986254, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029867.946027814}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375628, \"ppid\": 3375516, \"sid\": 3374017, \"start_ticks\": 102986521, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029869.06567955}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375516, \"ppid\": 3375514, \"sid\": 3374017, \"start_ticks\": 102986273, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029869.118698003}\n{\"event\": \"owned_exited\", \"identity\": {\"pgid\": 3374017, \"pid\": 3375514, \"ppid\": 3374017, \"sid\": 3374017, \"start_ticks\": 102986251, \"state\": \"R\"}, \"lock_held\": true, \"monotonic\": 1029869.171639742}\n"
+      },
+      "training.log": {
+        "bytes_on_host": 7122,
+        "captured_bytes": 7122,
+        "tail_only": false,
+        "sha256": "fd7885ac009667b4760b396bfc048e2246c6629a823272229b0ef34f92c4c020",
+        "text": "TRAINING_START_UTC=2026-09-26T09:30:00.272745+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-sprint-clean-batch-lr14-trn22-r1-packet/train\", \"files\": [\"prepare.py\", \"train.py\"], \"train_sha256\": \"8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021\", \"fresh_empty_sdk_caches\": {}}\n[W926 09:30:02.496547003 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--total-batch-size\", \"262144\", \"--matrix-lr\", \"0.021\"]\n[W926 09:30:04.005563236 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 09:30:04.814000 3373999 torch/distributed/run.py:851] \nW0926 09:30:04.814000 3373999 torch/distributed/run.py:851] *****************************************\nW0926 09:30:04.814000 3373999 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 09:30:04.814000 3373999 torch/distributed/run.py:851] *****************************************\n[W926 09:30:06.054408110 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:30:06.055018550 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:30:06.055875619 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 09:30:06.055883756 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\ndevice=neuron dtype=torch.bfloat16 world_size=4\ntraining target=1000000 steps max_seconds=1800 official_budget=1800s\ngradient_clip=1 clip_after_reduce=True\nmodel_config={\n  \"sequence_len\": 1024,\n  \"vocab_size\": 8192,\n  \"n_layer\": 8,\n  \"n_head\": 8,\n  \"n_embd\": 1024,\n  \"mlp_ratio\": 4,\n  \"attn_scale\": 0.0,\n  \"n_kv_heads\": 0\n}\nnum_params=113,256,724 flops_per_token=6.921232e+08\ntorch.compile enabled (backend=neuron)\nmicro_tokens=131,072 grad_accum_steps=2 pack_factor=32\nmuon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]\nmuon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]\nmuon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]\nstep 00000 | loss 9.0109 | lrm 1.000 | dt 782.72s | tok/s 335 | remaining_steps 999999 | remaining_time 1017s | epoch 1\nstep 00001 | loss 8.7639 | lrm 1.000 | dt 0.93s | tok/s 281,630 | remaining_steps 999998 | remaining_time 1016s | epoch 1\nstep 00002 | loss 8.3233 | lrm 1.000 | dt 0.93s | tok/s 281,367 | remaining_steps 999997 | remaining_time 1015s | epoch 1\nstep 00003 | loss 8.0217 | lrm 1.000 | dt 0.93s | tok/s 282,695 | remaining_steps 999996 | remaining_time 1014s | epoch 1\nstep 00004 | loss 7.6355 | lrm 1.000 | dt 0.93s | tok/s 282,425 | remaining_steps 999995 | remaining_time 1800s | epoch 1\nstep 00010 | loss 6.4451 | lrm 1.000 | dt 0.93s | tok/s 282,288 | remaining_steps 999989 | remaining_time 1794s | epoch 1\n"
+      },
+      "dispatch.log": {
+        "bytes_on_host": 0,
+        "captured_bytes": 0,
+        "tail_only": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "outer-flock.log": {
+        "bytes_on_host": 0,
+        "captured_bytes": 0,
+        "tail_only": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "train/rehearsal.json": {
+        "absent": true
+      },
+      "run-exit-code.txt": {
+        "absent": true
+      },
+      "checkpoint.json": {
+        "absent": true
+      },
+      "fresh-public20m-launch.json": {
+        "absent": true
+      },
+      "fresh-public20m.log": {
+        "absent": true
+      },
+      "eval/rehearsal.json": {
+        "absent": true
+      },
+      "eval-exit-code.txt": {
+        "absent": true
+      },
+      "eval-under-lock-idle.json": {
+        "absent": true
+      },
+      "eval-preflight-fuser.json": {
+        "absent": true
+      },
+      "postflight-under-lock-idle.json": {
+        "absent": true
+      },
+      "postflight-fuser.json": {
+        "absent": true
+      },
+      "checkpoint-after-postflight.json": {
+        "absent": true
+      },
+      "independent-release-idle.json": {
+        "absent": true
+      }
+    },
+    "actual_train_source": {
+      "exists": true,
+      "sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+      "bytes": 88432
+    },
+    "original_lock": {
+      "device": 66305,
+      "inode": 832589,
+      "held": true
+    },
+    "neuron_ls": {
+      "returncode": 0,
+      "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0673e54d9d66e6a1e\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": [\n            {\n                \"pid\": 3374014,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3374015,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3374016,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            },\n            {\n                \"pid\": 3374017,\n                \"command\": \"/home/ubuntu/workspace/native_venv/bin/python3 -u train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021\",\n                \"neuron_runtime_version\": \"2.34.10\"\n            }\n        ]\n    }\n]",
+      "stderr": ""
+    },
+    "free_bytes": 169072717824,
+    "elapsed_seconds": 0.0927705760113895,
+    "read_only": true
+  },
+  "stdout_if_error": null
+}
