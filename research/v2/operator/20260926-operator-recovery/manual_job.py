@@ -37,7 +37,11 @@ def checked_packet(key):
     for name, item in p['files'].items():
         assert sha(base64.b64decode(item['b64'], validate=True)) == item['sha256'], name
     assert p['binding']['label'] == entry['label']
-    assert p['binding']['source_sha256'] == '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d'
+    assert p['binding']['source_sha256'] == entry['source_sha256']
+    assert entry['source_sha256'] in (
+        '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d',
+        '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020')
+    assert p['files']['package/train.py']['sha256'] == entry['source_sha256']
     assert p['binding']['budget']['source_seconds'] == 1800
     return entry, p
 
@@ -70,7 +74,7 @@ def remote(host, payload, body, archive):
 def stage(key, execute=False, previous=None):
     entry, packet = checked_packet(key)
     queue = json.loads((REPO / 'research/v2/queue.json').read_bytes())['current_low_usage_queue']
-    assert key in queue[entry['host']], 'JOB_REMOVED_FROM_CURRENT_QUEUE'
+    assert key in queue[entry['host']] or key == queue.get('running', {}).get(entry['host']), 'JOB_REMOVED_FROM_CURRENT_QUEUE'
     if entry['order'] == 1:
         # Keep the already released first jobs byte-for-byte on their existing path.
         return subprocess.call([sys.executable, str(HERE / 'stage_warmdown.py'), key,
@@ -95,6 +99,9 @@ def stage(key, execute=False, previous=None):
     prior_raw = Path(previous).read_bytes()
     prior = json.loads(prior_raw)
     expected_key = (b['host'] + ('-warmdown060' if b['host'] == 'trn21' else '-warmdown085')) if entry['order'] == 2 else (b['host'] + ('-warmdown085' if b['host'] == 'trn21' else '-warmdown060'))
+    if entry['order'] == 4:
+        expected_key = b['host'] + '-lr0168'
+    expected_key = queue.get('predecessors', {}).get(key, entry.get('predecessor', expected_key))
     prior_entry, prior_packet = checked_packet(expected_key)
     assert prior['root'] == prior_packet['binding']['root'], 'WRONG_PREDECESSOR'
     for name, item in prior['files'].items():

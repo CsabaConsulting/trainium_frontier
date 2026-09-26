@@ -40,8 +40,10 @@ def write_once(path, raw):
             stream.write(raw)
 
 
-assignment = (REPO / 'research/v2/LOW_USAGE_CONTROLLER.md').read_bytes()
-entries = {}
+frozen = DEST / 'trn21-warmdown060/packet.json'
+assignment = (base64.b64decode(json.loads(frozen.read_bytes())['files']['SUPERVISOR_ASSIGNMENT.md']['b64'])
+              if frozen.exists() else (REPO / 'research/v2/LOW_USAGE_CONTROLLER.md').read_bytes())
+entries = json.loads((DEST / 'manifest.json').read_bytes()) if (DEST / 'manifest.json').exists() else {}
 for host in PARENTS:
     filename, expected = PARENTS[host]
     raw = (HERE / filename).read_bytes()
@@ -55,10 +57,12 @@ for host in PARENTS:
     assert sha(originals['EXACT_SOURCE_REVIEW.md']) == 'b8b22eb3c8384fc34ff18a8f04c012ddcb2f1ce6671dbba26a5077f8d4ceab68'
     assert sha(originals['CPU_RECEIPT.json']) == '28799a7ac2fd3cd89fea92712fd42823db20df9fdf7320f3d452e9d71e998f67'
     ratios = ('0.60', '0.85') if host == 'trn21' else ('0.85', '0.60')
-    for pos, (ratio, lr) in enumerate([(ratios[0], '0.021'), (ratios[1], '0.021'), ('0.75', '0.0168')], 1):
-        suffix = 'warmdown' + ratio.replace('.', '') if pos < 3 else 'lr0168'
+    for pos, (ratio, lr) in enumerate([(ratios[0], '0.021'), (ratios[1], '0.021'), ('0.75', '0.0168'), ('0.75', '0.021')], 1):
+        suffix = 'warmdown' + ratio.replace('.', '') if pos < 3 else 'lr0168' if pos == 3 else 'control'
         key = host + '-' + suffix
         label = 'fs-20260926-batch-lr021-' + suffix + '-' + host + '-r1' if pos < 3 else 'fs-20260926-batch262144-lr0168-' + host + '-r1'
+        if pos == 4:
+            label = 'fs-20260926-batch262144-lr021-control-' + host + '-r1'
         root = str(Path(old['root']).parent / (label + '-packet'))
         proposal = json.loads(originals['EXPERIMENT_PROPOSAL.json'])
         command = proposal['candidate']['launch_command'].rsplit('--matrix-lr', 1)[0] + '--matrix-lr ' + lr + ' --warmdown-ratio ' + ratio
@@ -77,6 +81,10 @@ for host in PARENTS:
                                     operator='Current single root/host Operator or Poojith manual fallback',
                                     order='Fallback order per MANUAL_NEXT_JOBS; qualified replicate/new measured base takes priority.')
         proposal['kind'] = 'schedule_arm' if pos < 3 else 'lr_arm'
+        if pos == 4:
+            proposal.update(kind='control', arm_id='batch262144-lr021-prospective-control',
+                            single_causal_change='None: genuine prospectively labelled control for adopted8c6, using reviewed default-preserving4ec8 source.',
+                            hypothesis='Supply a genuine current-base control for unchanged decide.py; never retrospectively relabel previous batch-arm records.')
         proposal['control']['comparison'] = 'Actual same-host confirmed batch262144/LR.021/ordinary warmdown.75; existing ledger roles retained.'
         proposal['success_criteria']['submission'] = 'Research-only; final candidate needs genuine cold replay, fresh20M and Claude audit; Poojith uploads.'
         proposal['selected_cache_policy'] = 'Inherited original host full-run cache policy; see binding and actual startup. No warm submission claim.'

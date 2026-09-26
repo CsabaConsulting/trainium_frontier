@@ -20,6 +20,13 @@ This is the latest direct human instruction. Conflicting older agent counts,
 
 ## Each scheduled wake
 
+Latest scalar-arm order (26 September): after the two running warmdowns,
+run batch/LR base with MUON_MOMENTUM_WARMUP_STEPS=150, not300. This replaces
+the opposite-warmdown fallback as the next job on each host. No Recursive
+stack or additional simultaneous scientific change. Audit other step-based
+settings but do not rescale them silently. Confirmed8c6 batch/LR remains the
+final-package candidate unless a measured, confirmed arm beats it.
+
 Latest follow-up: root launches warmdown.60/trn21 and.85/trn22 directly after
 their current evals and fresh terminal/idle checks, before starting the K2
 rescue implementation. This first-slot order overrides the earlier conditional

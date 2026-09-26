@@ -1,5 +1,34 @@
 # Workflow installation and incremental launch status
 
+## Current: direct warmdowns live, human momentum arm next
+
+trn21 .60 launched17:05:44IST; trn22 .85 launched17:13:51IST. Actual four
+workers and original lifetime locks verified on both. No restart/preemption.
+Completed LR.02625 public20M=.98700275907, raw same-host delta+.00022969122;
+schedule stack=.98878290063, delta+.00179742717. Neither adopted. Original
+formal selector returns INSUFFICIENT for current-base control roles; not a win.
+Poojith selects momentum warmup300 ->150 next on each host, unchanged8c6
+batch262144/LR.021/ordinary.75. Sole-literal source4b0641db passes28,308CPU
+scalar/reference cases and byte/AST identity. New packets prepared, not launched;
+no independent-session review of newbytes claimed. Manual next3 updated.
+Confirmed8c6 mean.986879270651192 remains final-package candidate. Cold final
+replay/Claude still required; no new official result. Scheduler tick unobserved.
+One main only, no newagents; K2 rescue local work follows launch preparation.
+
+## Direct handoff — 26 September17:06 IST
+
+trn21 schedule stack completed fresh20M .9887829006311571; raw same-host delta
++.0017974271741673 versus adopted batch/LR control.1919steps, cold startup
+847.374273311s, zero startup excess, total charged1789.260307383s, withinbudget.
+42 rawfiles/checkpoint/source/argv/prepare/harness and519absentIDs authenticated.
+No schedule adoption; unchanged formal selectorINSUFFICIENT because original
+comparator ledger roles are not retrospectively relabelled as base8c6controls.
+Direct warmdown.60 launched11:35:44.528272UTC, fourworkers3314740–43/original
+596823 held verified11:36:05. No schedulerdependency or duplicatejob.
+trn22 LR arm1920steps/818.874s warm startup/1788.913charged, attached20M still
+active11:35UTC. Never treat its warm startup as cold qualification.
+Manual guide and sixfallbackpackets are committed; one main/no newsubagents.
+
 ## Takeover observation — 26 September16:50 IST
 
 Both existing jobs survive; no restart or host mutation. trn21 stack step1810,

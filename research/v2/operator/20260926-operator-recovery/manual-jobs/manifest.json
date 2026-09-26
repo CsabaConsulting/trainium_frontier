@@ -38,6 +38,19 @@
     "status": "READY_FALLBACK_NOT_LAUNCHED",
     "priority_rule": "Qualifying cross-host replica first; do not continue old-base fallback after new-base adoption."
   },
+  "trn21-control": {
+    "host": "trn21",
+    "order": 4,
+    "label": "fs-20260926-batch262144-lr021-control-trn21-r1",
+    "packet": "trn21-control/packet.json",
+    "packet_sha256": "fa2f61cc0963276805348350cee8d540acef6082314a549ae45aa7a3e56c7db1",
+    "source_sha256": "4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --warmdown-ratio 0.75",
+    "source_review": "PASS_SHARED_PATCH",
+    "machine_admission": "PENDING",
+    "status": "READY_FALLBACK_NOT_LAUNCHED",
+    "priority_rule": "Qualifying cross-host replica first; do not continue old-base fallback after new-base adoption."
+  },
   "trn22-warmdown085": {
     "host": "trn22",
     "order": 1,
@@ -76,5 +89,44 @@
     "machine_admission": "PENDING",
     "status": "READY_FALLBACK_NOT_LAUNCHED",
     "priority_rule": "Qualifying cross-host replica first; do not continue old-base fallback after new-base adoption."
+  },
+  "trn22-control": {
+    "host": "trn22",
+    "order": 4,
+    "label": "fs-20260926-batch262144-lr021-control-trn22-r1",
+    "packet": "trn22-control/packet.json",
+    "packet_sha256": "dcf0ecd68ab42fd8e8fa368aec4f79fada8e325a212f54512ce157c9e9c64dea",
+    "source_sha256": "4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --warmdown-ratio 0.75",
+    "source_review": "PASS_SHARED_PATCH",
+    "machine_admission": "PENDING",
+    "status": "READY_FALLBACK_NOT_LAUNCHED",
+    "priority_rule": "Qualifying cross-host replica first; do not continue old-base fallback after new-base adoption."
+  },
+  "trn21-muon150": {
+    "host": "trn21",
+    "order": 5,
+    "predecessor": "trn21-warmdown060",
+    "label": "fs-20260926-batch-lr021-muon150-trn21-r1",
+    "packet": "trn21-muon150/packet.json",
+    "packet_sha256": "461f075423f87dd0bf54b3f29f70be2860b9ca1594582da1d946c2b5fa83d240",
+    "source_sha256": "4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021",
+    "source_review": "PARENT_LOGIC_UNCHANGED_HUMAN_SCALAR_CPU_PASS",
+    "machine_admission": "PENDING",
+    "status": "READY_NOT_LAUNCHED"
+  },
+  "trn22-muon150": {
+    "host": "trn22",
+    "order": 5,
+    "predecessor": "trn22-warmdown085",
+    "label": "fs-20260926-batch-lr021-muon150-trn22-r1",
+    "packet": "trn22-muon150/packet.json",
+    "packet_sha256": "ddf42b4b99f9990cdb4afd0efc095a0a064a524087d6dc9af7aef653fffcc25d",
+    "source_sha256": "4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021",
+    "source_review": "PARENT_LOGIC_UNCHANGED_HUMAN_SCALAR_CPU_PASS",
+    "machine_admission": "PENDING",
+    "status": "READY_NOT_LAUNCHED"
   }
 }

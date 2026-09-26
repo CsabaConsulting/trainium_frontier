@@ -1,5 +1,16 @@
 # Current state
 
+## Current: warmdowns running; human momentum150 arm next
+
+Use current top research/v2/STATUS.md, queue.current_low_usage_queue and
+MANUAL_NEXT_JOBS.md. trn21 .60 launched17:05:44IST; trn22 .85 launched17:13:51.
+Both actual fourworkers/original locks verified. Schedule stack.9887829006 and
+LR.02625 .9870027591 failed to improve their raw matched comparators.
+Next on both hosts: user-selected momentum warmup300 ->150 only, on confirmed
+batch262144/LR.021/ordinary.75. Current final-package candidate stays8c6, mean
+.986879270651192. No submission-ready claim. Scheduler tick unverified; main
+handles launches directly, original locks/ps/device guards unchanged. Noagents.
+
 ## Current takeover — 26 September16:50 IST
 
 Use research/v2/LOW_USAGE_CONTROLLER.md and top research/v2/STATUS.md.

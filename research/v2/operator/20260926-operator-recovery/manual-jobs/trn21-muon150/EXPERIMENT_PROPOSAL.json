@@ -1,0 +1,195 @@
+{
+  "proposal_id": "20260926-trn21-muon150",
+  "status": "COMPLETE_HUMAN_SCALAR_CPU_PASS_PENDING_MACHINE",
+  "owner_role": "human_selected_scalar_packaged_by_main",
+  "prepared_utc": "2026-09-26T11:58:22Z",
+  "authority": "Poojith direct MUON_MOMENTUM_WARMUP_STEPS=150 instruction,26 September",
+  "arm_id": "batch262144-lr021-muon150",
+  "kind": "schedule_arm",
+  "run_purpose": "quality",
+  "mechanism_class": "momentum_warmup_token_length",
+  "hypothesis": "Restore pre-batch-doubling token-length of momentum warmup; final-BPB effect unknown.",
+  "single_causal_change": "MUON_MOMENTUM_WARMUP_STEPS300 ->150; ordinary warmdown.75 and batch262144/LR.021 unchanged",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "prediction_note": "Unknown; no numerical benefit prediction or transferred old-base result.",
+  "estimated_host_hours": 1.25,
+  "implementation_spec": "research/v2/proposals/20260926-batch-lr021-muon150/SPEC.md",
+  "implementation_spec_sha256": "27b332755f1da3db3895d5fdc32ddac2f7c17dd1289cd0675e6a5b25c794773a",
+  "parent": {
+    "source": "research/v2/proposals/20260926-sprint-p0-clean-batch/train.py",
+    "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+    "source_commit": "7117d57b92e19e8437158164dbce94495389d7b6",
+    "current_default_warmdown_ratio": 0.75,
+    "has_warmdown_cli": false,
+    "site_evidence": "Only line62 constant changes; momentum function1320-1328 and all other functions byte-identical"
+  },
+  "candidate": {
+    "source": "research/v2/proposals/20260926-batch-lr021-muon150/train.py",
+    "source_sha256": "4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020",
+    "source_commit": null,
+    "source_status": "CPU_SCALAR_AND_BYTE_IDENTITY_PASS",
+    "files_allowed": [
+      "train.py"
+    ],
+    "source_edit": "Only default-preserving --warmdown-ratio float/global/finite0<r<=1 validation/assignment in main; keep .75 constant and lr_multiplier body unchanged.",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021",
+    "launch_string_sha256": "60a64436ef8fc2be8cca044c12c04a8e288eca32dad97ed0064144c73ac6b7ea",
+    "launch_command_sha256": "c74a4cc45690d395827ae95fe12bb21f628adb4a83ab2cf0c15f7445bdb15b5a",
+    "hash_encoding": "String hash excludes LF; command-file hash includes one LF.",
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--total-batch-size",
+      "262144",
+      "--matrix-lr",
+      "0.021"
+    ],
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "warmdown_ratio": 0.75,
+    "total_batch_size": 262144,
+    "matrix_lr": 0.021,
+    "shape": "Accepted eight layers x1024, accumulation2/pack32/context1024, full-chip LNC2/four ranks, ordinary schedule",
+    "muon_momentum_warmup_steps": 150
+  },
+  "control": {
+    "selected_host": "trn21",
+    "selected_label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+    "public_20m": 0.9869854734569898,
+    "bound": true,
+    "type": "actual_same_host_scientific_comparator_original_roles_retained",
+    "base_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+    "alternatives": [
+      {
+        "host": "trn21",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+        "public_20m": 0.9869854734569898
+      },
+      {
+        "host": "trn22",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+        "public_20m": 0.9867730678453942
+      }
+    ],
+    "comparison": "Actual same-host confirmed batch262144/LR.021 ordinary warmdown.75 and momentum300; old ledger roles unchanged",
+    "role_integrity": "Existing comparator rows stay batch_arm/base=e1e2, no retrospective relabel or duplicate. Candidate future row is schedule_arm/base8c6. Formal unchanged decide.py may INSUFFICIENT absent genuine prospective kind=control/base8c6; report raw scientific delta separately, no invented adoption or extra control allocation."
+  },
+  "host_alternatives": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-batch-lr021-muon150-trn21-r1"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-batch-lr021-muon150-trn22-r1"
+    }
+  ],
+  "dispatch": {
+    "selected_host": "trn21",
+    "selected_label": "fs-20260926-batch-lr021-muon150-trn21-r1",
+    "ready": true,
+    "stage_authorized": true,
+    "launch_authorized": true,
+    "order": "Next after current warmdown and attached20M; no preemption",
+    "operator": "/root current sole Operator",
+    "mechanics": "Reuse proven full1800+fresh20M original-guardian transport only after exactsource/argv/proposal/label binding. No extra smoke or duplicate control.",
+    "preserve": "Preserve current trn21 Recursive stack and trn22 LR.02625 when running; this is not a change to either job."
+  },
+  "gates": {
+    "source_frozen": true,
+    "single_literal_byte_ast_identity": true,
+    "cpu_reference_pass": true,
+    "human_selected_scalar": true,
+    "fresh_independent_session_review": false,
+    "actual_selected_host_comparator_bound": true,
+    "fresh_machine_admission": false,
+    "native_passed": false,
+    "full_result": false,
+    "formal_selector_control_bound": false,
+    "submission_authorized": false
+  },
+  "evidence_contract": {
+    "source": "SPEC.md and SCALAR_SCOPE.md; all parent bytes recovered by one-literal reversal",
+    "cpu": "28,308 actual scalar/reference cases, normal and -O; not native/model training",
+    "native": "Initial execution of full run, no extra smoke or native PASS claimed"
+  },
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "policy": "Capture actual nonsecret effective runtime; no short-step override or alternate schedule flags."
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "mode": "Unchanged prepare.py eval-public on actual checkpoint",
+    "tokens": 20971520,
+    "context": 1024,
+    "batch_size": 1,
+    "checkpoint_required": true
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "term_grace_seconds": 60,
+    "policy": "Measure startup, min900 allowance, excess and charged-through-exit. Preserve source predictor/checkpoint reserve/clock, require over_budget=false. Step counts/speed are diagnostics, not BPB gates."
+  },
+  "cache_policy": "Research reuse only after actual prior cache owner exit, with exact source/path/rank-environment and measured startup evidence. Do not infer hits, identical cache keys or cold proof from unchanged tensor shapes. If selected cold, create unique empty private paths and authenticate them. Exact future submission still needs genuine cold full/fresh20M/Claude.",
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "memory_available_minimum_bytes": 68719476736,
+    "prospective_new_footprint_bytes": 3221225472,
+    "policy": "Fresh measured resources and original protections; increase reserve for actual needs, no lowered floors/AWS/deletion authority."
+  },
+  "machine_protocol": "Existing sole Operator, original exclusive host device0.lock held through train/attached eval/owned descendants. Fresh ps AND neuron-ls plus fuser/STOP/source/argv/runtime/resources/unused-label checks underlock. Preserve protected data.",
+  "success_criteria": {
+    "quality": "Actual full1800 correct/finite loadable checkpoint plus fresh20M/context1024; honest raw same-host delta. Formal selection remains unchanged including INSUFFICIENT for missing proper control; no synthetic/relabelled rows.",
+    "adoption": "Not automatic; no observed result/native PASS exists at preparation. No presumed schedule benefit.",
+    "submission": "Research-only; final candidate needs genuine cold replay, fresh20M and Claude audit; Poojith uploads."
+  },
+  "abort_conditions": [
+    "Incomplete exact source/evidence/selected comparator binding",
+    "Existing machine/provenance/original-lock/STOP/resource/label check fails",
+    "Actual crash/nonfinite/budget/checkpoint/evaluation failure"
+  ],
+  "prior_evidence": {
+    "current_base": "Confirmed two-host public mean.986879270651192",
+    "schedule_stack": "Actual .9887829006, raw delta+.0017974; do not stack",
+    "warmup": "300*262144=78.6Mtokens;150 restores39.3M; quality unknown"
+  },
+  "artifacts": "Exact source/CPU/scalar scope, proposal/command, same-host comparator, actual host/lock/runtime/startup/accounting/fresh20M/checkpoint; no new independent review claimed",
+  "local_scope": "Human-selected scalar, byte reversal proves unchanged parent; no fresh independent-session review claimed.",
+  "human_approved_by": "Poojith direct instruction: next arm after warmdowns is MUON_MOMENTUM_WARMUP_STEPS150",
+  "submission_authorized": false,
+  "verdict": null,
+  "bound_evidence": {
+    "source_sha256": "4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020",
+    "source_commit": null,
+    "cpu_receipt": "research/v2/proposals/20260926-batch-lr021-muon150/CPU_RECEIPT.json",
+    "cpu_receipt_sha256": "accb046d7f6eb2e8540d9c44e7bad7528530a18ae4828faa1e428af47da18db5",
+    "scope_receipt": "research/v2/proposals/20260926-batch-lr021-muon150/SCALAR_SCOPE.md",
+    "scope_sha256": "0a2a17b79074d2c1df566d499fa56a4fbddde14e506701b830360061b775dec9",
+    "fresh_independent_review": false
+  },
+  "selected_cache_policy": "Inherited original host full-run cache policy; see binding and actual startup. No warm submission claim.",
+  "review": {
+    "scope": "Human-selected scalar; unchanged functions covered by parent evidence",
+    "fresh_independent_session": false,
+    "receipt": "research/v2/proposals/20260926-batch-lr021-muon150/SCALAR_SCOPE.md"
+  }
+}
