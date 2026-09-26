@@ -1,5 +1,40 @@
 # Current state
 
+## 00:45 UTC / 06:15 IST: both full jobs live; exact36 replica prepared
+
+trn22 genuine6ef7 control actually launched00:38:13.646155UTC, all4workers
+3218102–105 under torchrun3218087 and original832589 lock. Fresh20M attached;
+26.803GB free. Raw2397f0aa/canonical759ee11c and launch note596e1aed authenticate
+actual start, not just assignment. Preceding idle249.412520s. Top-level host
+state is now running, launch_allowed=false to prevent duplicate launch.
+
+trn21 bcbd full and attachedfresh20M remain protected; last00:37:06 step1770,
+266965tok/s,931s source remaining,18.664GB free. Exact36 cross-host replica
+f4fe5d8e is conditionally released18727a55 AFTER terminal/retrieval/explicit
+quiescence and top-level assignment advance. Independent268 mechanics checks
+and root normal/-O replays pass; source36a862/argv exactly match the trn22
+0.988382 result, no Recursive. No current job interruption or new source gate.
+
+W1 independent351 checks and root replays authenticate actual fifth
+120.337941682s versus S1 845.593622510s: target120 MISSED by0.338s, large
+observed startup reduction, no cache-hit/path-only proof. Diagnostic-only row
+added to ledger. Old source's recorded LR/loss trajectory differs with startup,
+so byte-identical source does not imply update identity. Final36 closed-CSV
+join maps captured forward/backward inputs to actual201.175/472.263 compile
+seconds on specified ranks; these are not rank-summed wall-time accounting.
+
+K2 FP32-first failed all4 custom-compiled gradients again, while ordinary
+compiled forward/gradient and direct/eager paths match. Raw015bacec/8307a086
+and explicit9PID/256row quiescence retrieved; separate outcome audit running.
+Original20-case gate stays failed. Registered-operator proposal60070dee is
+design-only; one exact six-file SDK source inventory is now authorized on
+trn21, stdlib/no tensors/device/cache/writes,15s/2CPU/128MiB, no source launch.
+
+Confirmed mean remains0.9901674436550496; raw .9883821509811542 awaits formal
+control/cross-host confirmation. .986340 did not confirm. No new submission
+file, adoption or six-ready-jobs claim. Goal ACTIVE; sole Operator/original
+locks and existing automated follow-ups remain. Historical snapshots follow.
+
 ## 00:34 UTC / 06:04 IST: promising score authenticated; no adoption yet
 
 Exact36a862 startup-clock architecture scored fresh20M/context1024
