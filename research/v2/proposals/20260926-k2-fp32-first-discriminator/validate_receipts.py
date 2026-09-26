@@ -23,7 +23,8 @@ def tensor(record, shape, dtype):
 
 
 def exact(check):
-    require(check['exact'] is True and check['max_abs'] == 0 and check['actual'] == check['expected'], 'NONEXACT_COMPARISON')
+    require(check['exact'] is True and type(check['max_abs']) in (int, float)
+            and check['max_abs'] == 0 and check['actual'] == check['expected'], 'NONEXACT_COMPARISON')
     tensor(check['actual'], [256, 128], 'torch.float32')
 
 
@@ -42,7 +43,9 @@ def validate(root, label, environment, hashes, checker_args):
         receipt = json.loads((root/'receipts'/('rank%d.json' % rank)).read_text())
         env = json.loads((root/('rank-environment-r%d.json' % rank)).read_text())
         exited = json.loads((root/('rank-wrapper-exit-r%d.json' % rank)).read_text())
-        require(receipt['status'] == 'FP32_FIRST_DIAGNOSTIC_OBSERVED_EXACT' and receipt['returncode'] == 0, 'DIAGNOSTIC_NOT_EXACT')
+        require(receipt['status'] == 'FP32_FIRST_DIAGNOSTIC_OBSERVED_EXACT'
+                and type(receipt['returncode']) is int and receipt['returncode'] == 0
+                and 'error' not in receipt, 'DIAGNOSTIC_NOT_EXACT')
         require(receipt['scope'] == 'FP32_FIRST_SOURCE_NEUTRAL_DIAGNOSTIC_ONLY', 'SCOPE')
         require(receipt['rank'] == rank and receipt['world_size'] == 4 and receipt['label'] == label, 'IDENTITY')
         require(receipt['shape'] == dict(V=256, T=256, C=128) and receipt['seed'] == 42, 'SHAPE_SEED')
@@ -68,7 +71,8 @@ def validate(root, label, environment, hashes, checker_args):
         require([r['name'] for r in case['routes']] == list(ROUTES), 'ALL_ROUTES')
         first_inputs = case['routes'][0]['inputs_before']
         for route in case['routes']:
-            require(route['status'] == 'EXACT' and route['inputs_unchanged'] is True, 'ROUTE_NOT_EXACT')
+            require(route['status'] == 'EXACT' and route['inputs_unchanged'] is True
+                    and 'error' not in route and 'post_observation_error' not in route, 'ROUTE_NOT_EXACT')
             before, after = route['inputs_before'], route['inputs_after']
             require(before == after == first_inputs and set(before) == set(expected_input_hashes) | {'weight'}, 'INPUT_MUTATION')
             for name, value in before.items():
