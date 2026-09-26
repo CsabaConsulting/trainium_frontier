@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium-clock36-checkpoint-mask-r3-20260926/research/v2/proposals/20260926-clock36-checkpoint-mask-r3/test_packet.py", line 108, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/poojith-devan/Desktop/Trainium-clock36-checkpoint-mask-r3-20260926/research/v2/proposals/20260926-clock36-checkpoint-mask-r3/test_packet.py", line 75, in main
+    refuse('replaced_fd_refused',lambda:d.check_original_lock(7),'ORIGINAL_LOCK_FD')
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/Desktop/Trainium-clock36-checkpoint-mask-r3-20260926/research/v2/proposals/20260926-clock36-checkpoint-mask-r3/test_packet.py", line 25, in refuse
+    try:fn()
+        ~~^^
+  File "/home/poojith-devan/Desktop/Trainium-clock36-checkpoint-mask-r3-20260926/research/v2/proposals/20260926-clock36-checkpoint-mask-r3/test_packet.py", line 75, in <lambda>
+    refuse('replaced_fd_refused',lambda:d.check_original_lock(7),'ORIGINAL_LOCK_FD')
+                                        ~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/poojith-devan/Desktop/Trainium-clock36-checkpoint-mask-r3-20260926/research/v2/proposals/20260926-clock36-checkpoint-mask-r3/host_driver.py", line 51, in check_original_lock
+    opened=os.fstat(fd);named=Path(LOCK).lstat()
+                              ~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 662, in lstat
+    return os.lstat(self)
+           ~~~~~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ubuntu/.cache/trainium_freshstart/device0.lock'

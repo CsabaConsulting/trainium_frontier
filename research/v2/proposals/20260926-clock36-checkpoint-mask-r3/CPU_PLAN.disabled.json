@@ -1,0 +1,150 @@
+{
+  "schema": "checkpoint-mask-r3-disabled-one-child-binding-v1",
+  "status": "DISABLED_PENDING_INDEPENDENT_HELPER_AND_BINDING_REVIEW",
+  "proposal_first_commit": "d8683fff",
+  "helper_first_commit": "b7650cfca279c89fac7693f972539db17cf837b1",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "host_reserved": false,
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "label": "fs-20260926-clock36-recursive-checkpoint-trn22-r3",
+  "root": "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3",
+  "old_readonly_root": "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2",
+  "driver_sha256": "f15220ab890b4219c6eaa26b13f3e73fe6b6de1f169a413b77a420e873ba8f2a",
+  "helper_sha256": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c",
+  "inputs_sha256": "b1654bcc207cce36324f7f4e4ad8ca6594445c2bd0cc68414e399d6dde1494de",
+  "prepare_path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/prepare.py",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+  "command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-B",
+    "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3/compare_checkpoints.py",
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2"
+  ],
+  "outer_command": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3/host_driver.py"
+  ],
+  "detached_command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_clock36_recursive_checkpoint_20260926_trn22_r3/dispatch_driver.py"
+  ],
+  "original_lock": {
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "device": 66305,
+    "inode": 832589,
+    "lifetime": "Same original authenticated live FD through sole synchronous600+60 timeout/helper and post-child checks; no unlock gap"
+  },
+  "resources": {
+    "threads": 1,
+    "minimum_available_ram_bytes": 68719476736,
+    "minimum_free_disk_bytes": 11274289152,
+    "child_timeout_seconds": 600,
+    "kill_grace_seconds": 60,
+    "full_model_local_allowed": false
+  },
+  "input_pins": {
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/request.json": {
+      "sha256": "e477d0beb73bb912593447bab1f714ee6546ce5eef28cb70998bae225e20f268",
+      "bytes": 2712
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/checkpoint-identity.json": {
+      "sha256": "9ba0ccdb844f24ec380ea8d73a3b944d268e14265a7017a86184e14c6f22e785",
+      "bytes": 281
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/train.py": {
+      "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "bytes": 324457
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/reference/tmp/g2-t650_0z_/out/final.pt": {
+      "sha256": "623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762",
+      "bytes": 453048594
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/request.json": {
+      "sha256": "6d4254515d284ac30655f4cb050581d34bca8ba7c884baeddffa48b98d410b38",
+      "bytes": 2698
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/checkpoint-identity.json": {
+      "sha256": "e35cc9efc4e72620b0253b4e43424d01161242107db845ebb35178e3659ee426",
+      "bytes": 279
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/train.py": {
+      "sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "bytes": 326371
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/default/tmp/g2-vi7085z9/out/final.pt": {
+      "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7",
+      "bytes": 453048658
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/request.json": {
+      "sha256": "e389ff5f25d3d0be87b35592e64e41cb3c3740c66143dfc69f8e98e5f54c9147",
+      "bytes": 2732
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/checkpoint-identity.json": {
+      "sha256": "c4a79a81e33c5edab16f5e2c8c0bf62f67b3e52489dc8c3a4a997cc63cc637d0",
+      "bytes": 275
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/train.py": {
+      "sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "bytes": 326371
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/off/tmp/g2-j8pqv5eh/out/final.pt": {
+      "sha256": "b5b4c3ab997f451f25608f4d55a42ca6680069320068162214bfd293b5bc41a7",
+      "bytes": 453048658
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/request.json": {
+      "sha256": "28e39a93a8bea7ab43b4e0c854007f0722943fa030f42d0ba881bda99bd7d244",
+      "bytes": 2719
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/checkpoint-identity.json": {
+      "sha256": "e62b0f17f95869686e131848ed9877059c37f0648e0bbcf7fd85080e557b8580",
+      "bytes": 274
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/train.py": {
+      "sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+      "bytes": 326371
+    },
+    "/home/ubuntu/trainium_clock36_recursive_cpu_20260926_trn22_r2/on/tmp/g2-jwnj1q6g/out/final.pt": {
+      "sha256": "b006932d75820d40038068335c93fd1690788c444de42f877422ef6f0bac0f17",
+      "bytes": 453048658
+    }
+  },
+  "scope": {
+    "g2_rerun": false,
+    "new_checkpoint": false,
+    "train_py_edit": false,
+    "evaluator_edit": false,
+    "native_device_dispatch": false,
+    "model_dtype_or_forward_wrapper_added": false,
+    "preexisting_bf16_comparison": "Preserved separately labeled three-arm reference/default/OFF comparison only, not four-arm ordinary-loader qualification",
+    "old_root_writes": false,
+    "artifact_cleanup": false,
+    "quality_or_adoption": false
+  },
+  "remaining_gates": [
+    "Fresh input-only independent helper review with own tiny reference",
+    "Independent packet mechanics review",
+    "Separate Supervisor assignment and sole Operator exact-byte staging/preflight after current job retrieval/quiescence",
+    "Actual checkpoint-only result plus independent outcome audit; original r2 FAIL remains",
+    "Any child cold/full run remains separately gated and not automatic"
+  ],
+  "postflight": "On every outcome Operator must independently enumerate actually observed dispatch/flock/driver/timeout/helper and any descendants/compiler with PID/starttime/PPID/PGID/SID, retain raw ps/neuron-ls/device holders and original inode evidence. Immediate timeout exit/post guard is not proof that all descendants exited. Missing/ambiguous/alive=>HOLD/no next job; no deletion/cleanup or second retry.",
+  "execution": "Only after explicit release, sole Operator stages new root helper,host_driver,INPUTS and unchanged guard/dispatch; verifies every support/source/checkpoint hash and unique root. Existing retained r2 source/request/checkpoint files are read only, never copied over or regenerated. PYTHONDONTWRITEBYTECODE and -B, private new tmp; no toolkit install.",
+  "result": "Requires exit0, four ordinary loader qualifications, strict parameter/non-mask finiteness and mask semantics/raw-state checks, unchanged three-arm checkpoint/BF16 identity, pre/post exact input hashes. Tiny tests do not imply actual qualification; combine authenticated original G2 successes with new separately audited result only."
+}
