@@ -1,5 +1,31 @@
 # Current state
 
+## 01:02 UTC / 06:32 IST: first quality evaluation finishing; second host training
+
+trn21 bcbd completed training at00:52:25.092579UTC:3635steps,
+452.919122735s observed fifth,1788.375545479s charged through exit,
+over_budget=False. Its attached fresh20M started00:52:25.160085UTC,
+evaluator3125130 under the original lifetime lock. Final score is pending;
+do not infer a win from clean training. Raw trainingecef640c/canonicalded66826.
+Exact36 cross-host replica remains next after final retrieval, explicit
+quiescence and authoritative top-level state advance; transport is prepared.
+
+trn22 genuine6ef7 control is training: last00:54:34UTC step290,
+266782tok/s,1660s source-reported remaining. Actual first-five records are
+fc24dc8d/canonical0c4be9c5. Retained-cache directories are not cache-hit proof;
+precise startup/charged budget await the final harness. Fresh20M is attached.
+
+Installed SDK source observations now resolve automatic HOP/LNC mapping.
+The next K2 proposal isolates one registered forward plus explicit autograd,
+keeping the original backward callable, exact kernel and strict oracle.
+This is preparation only; the prior all-rank zero-gradient failure remains
+failed. Both running quality jobs contain no experimental K2 code.
+
+Confirmed mean remains0.9901674436550496; raw architecture0.9883821509811542
+awaits formal control/cross-host confirmation. Earlier0.986340 failed its
+confirmation and is not upload-ready. Goal ACTIVE; no new adoption, official
+score, submission package or six-ready-jobs claim. Historical snapshots follow.
+
 ## 00:45 UTC / 06:15 IST: both full jobs live; exact36 replica prepared
 
 trn22 genuine6ef7 control actually launched00:38:13.646155UTC, all4workers
