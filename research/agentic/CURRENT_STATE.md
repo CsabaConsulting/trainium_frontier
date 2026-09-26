@@ -7,8 +7,11 @@ FinalSprint remains; read workflow/SCORED_BASE_2026-09-26.md for rollingquota
 and planning corrections. No resubmission ofcurrentfile; nextupload needs
 confirmed>=.003 officialgain, coldreplay/fresh20M andClaudeaudit. Targetpublic
 <=.973 byfreeze; estimateoffset-.0006..-.0014, notofficialscoreguarantee.
-FirstP0ports7117d57b in ONEfreshreview; K2completeproducer/integrationbuilder
-active. Hostcleanup done safely, neither P0 launched yet. SeeSTATUStop.
+First P0 ports7117d57b passed ONE fresh review. Both launched12:35:49IST:
+trn21 Recursive, trn22 batch262144/LR.015, four workers each, cold compilation.
+K2 integrated patch delivered; single-file packaging precedes its one review.
+Current utilization percentages unknown; both hosts occupied at07:06:43UTC.
+See research/v2/STATUS.md and operator/20260926-final-sprint-p0/LAUNCH.md.
 
 ## 06:47 UTC / 12:17 IST: Final Sprint controls; prior hold/gates superseded
 

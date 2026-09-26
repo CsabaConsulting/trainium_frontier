@@ -1,5 +1,27 @@
 # Workflow installation and incremental launch status
 
+## Latest: P0 launched on both hosts — 26 September 12:35:49 IST
+
+trn21 runs the clean e1e2-derived Recursive schedule; trn22 runs batch262144
+at matrix LR0.015. Four actual workers per host and original lifetime locks
+confirmed07:06:43UTC. Both are in cold compilation; no first-step or score
+claim. Exact receipt: operator/20260926-final-sprint-p0/LAUNCH.md.
+One fresh independent review passed both source ports and local guardian
+mechanics. Full runs retain the fixed1800s accounting and attached fresh20M.
+Current busy percentages are unknown; both hosts are occupied at observation.
+
+K2 integrated device producer, registered backward and own CPU/OFF tests
+delivered9b6f2d6c. Inlining into the train.py-only vehicle before its ONE fresh
+review; native support/speed remain unmeasured. Timing deadline16:00IST.
+Pending P0 variants are source-reviewed, not three genuinely ready jobs/host:
+first native timing, qualified results and fresh resource checks still apply.
+No second launcher or automatic host-resident successor has been installed.
+The existing heartbeat/sole Operator owns next dispatch, with K2 preemption.
+
+New official base remains0.9878, sub-86d307b4/e1e2. Five rolling-week uploads
+used; next package must target<=0.9848 official with cold20M+Claudeaudit.
+All older contradictory status below is historical, not current authority.
+
 ## Latest human score update — 26 September12:30 IST
 
 sub-86d307b4 SCORED0.9878 official on auditede1e2, reported by Poojith.
