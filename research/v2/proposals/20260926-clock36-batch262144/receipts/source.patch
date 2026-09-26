@@ -1,0 +1,22 @@
+--- exact36/train.py
++++ batch-port/train.py
+@@ -3475,6 +3475,7 @@
+     return (lr_mult, mom_mult)
+ 
+ def main() -> None:
++    global TOTAL_BATCH_SIZE
+     global NGRAM_VE_FREEZE_EPOCH, FRESH_TAIL_FRAC, REQUEUE_IDENTITY
+     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
+     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
+@@ -3662,7 +3663,11 @@
+     _hp('--pack-factor', PACK_FACTOR, int, 'T1.5: dataloader packing-bin multiplier. The loader fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed). Only ever set by editing this constant before; a flag so the T1.5 re-test is reproducible from the launch command alone.')
+     _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
+     parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
++    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE, help='Global tokens per optimizer step; positive and divisible by per-microbatch world tokens. Changes gradient accumulation only; no automatic LR scaling. Default 131072.')
+     args = parser.parse_args()
++    if args.total_batch_size <= 0:
++        parser.error('--total-batch-size must be positive')
++    TOTAL_BATCH_SIZE = args.total_batch_size
+     if args.unet_8x1024:
+         args.depth, args.n_embd = 8, 1024
+         args.unet_skip = args.partial_attn_8 = True
