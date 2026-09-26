@@ -1,5 +1,35 @@
 # Current state
 
+## 03:56 UTC / 09:26 IST: clean checkpoint test live; schedule stack scoring
+
+Confirmed public20M/context1024 mean remains0.9883066128526815. LR.012 final
+0.9880655476948598 is valid but only-0.000165527 versus its historical same-host
+base; not adopted. Actual70-check audit635a036f and ledger preserve the unchanged
+selectorINSUFFICIENT result pending genuine prospective base36 controls.
+
+trn21 clean/reference full113M CPU pair completed at03:43:47. Fresh independent
+134-check actual-result review/root replay accepted only synthetic G2 evidence,
+not ordinary loading. All65 digest prefixes and12 paired losses match. Exact
+retained-checkpoint helper now actually launched03:53:46.621203 under original
+66305:596823; five live identities and17 pinned inputs authenticated89c69530.
+Result pending. a72617ec release prose03:55 header was rounded ahead; actual
+dispatch/provenance times govern (release effective before03:53:40 staging).
+
+trn22 Recursive-on-clock36 training finished03:44:52 with3625steps, observed
+startup824.524640s/charge1789.286807s. Fresh20M live at03:47:58, no quality result
+yet. Rawdbdc1fcd/canonicalebfec069; original832589 lock protected.
+
+Next clean cold-five moves to trn22's next eligible slot: trn21 free14,362,181,632B
+is133,332,992B below the unchanged10.5GiB+3GiB reserve. No cleanup or floor waiver.
+Completed hostvariantfcbf3e46 awaits mechanical rebind, helper acceptance and
+trn22 eval retrieval/quiescence. Fullcold and ClaudeviaPoojith still required;
+no upload-ready file. trn21 anchored same-source-path control3170c0bf is under
+fresh mechanics review after exact-integer correction; original refused binding
+preserved. K2 production-shape consumer-only prototypea4da4822 is under fresh
+source review; defaultOFF, metadata producer/native behavior/speed unproved.
+No six-ready-jobs or guaranteed cache-hit claim. Exact assignments/top-level
+state.hosts govern; one sole Operator and original locks remain in force.
+
 ## 03:36 UTC / 09:06 IST: LR training complete, final eval live; clean checks advancing
 
 Confirmed best remains0.9883066128526815 public20M/context1024. LR.012 on

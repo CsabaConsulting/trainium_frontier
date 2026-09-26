@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 09:26 IST
+
+Confirmed mean0.9883066129 unchanged. LR.012 scored0.9880655477, not enough to
+adopt. Clean fullCPU actual pair independently accepted; ordinary checkpoint
+helper launched09:23:46 on trn21, result pending. trn22 schedule stack finished
+3625steps within1789.286807 charged seconds; fresh20M live at09:17:58.
+Move clean cold-five preparation to trn22 because trn21 is133MB short of the
+unchanged cold disk reserve; no deletion/guard lowering. Anchored warm control
+and K2 consumer prototype are under separate fresh reviews, not qualified runs.
+Submission remains HOLD until ordinary/native/coldfull/fresh20M/Claude audit.
+
 ## Current — 26 September 09:06 IST
 
 Confirmed mean0.9883066129 unchanged. trn21 LR.012 training finished3632steps,
