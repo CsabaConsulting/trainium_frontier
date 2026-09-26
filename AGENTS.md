@@ -2,10 +2,27 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
-Latest score/quota correction: `workflow/SCORED_BASE_2026-09-26.md` records
-Poojith's sub-86d307b4 SCORED0.9878 on auditede1e2, five rolling-week uploads,
-planning offset-0.0006..-0.0014, targetpublic<=0.973 and next-upload>=.003
-confirmed official gain. No agent upload. Final Sprint below otherwise stays.
+## CONTROLLING NOW: pinned FINAL SPRINT — 26 September, 13:26 IST
+
+Read `workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md` FIRST after every
+restart. The actual app goal is ACTIVE and matches it. It overrides ALL older
+conflicting missions, headings saying "controlling/latest", queue priorities,
+dates, quota assumptions and gates below. Base e1e2f686 = 0.9878 official.
+Order: K2 native timing/full; last-layer hashed tables on eight layers with
+FP32 gradient accumulation; stack schedule/batch/LR winners; profile kernels.
+FP32 table accumulation is DECIDED; CPU reference is FP32, not historical BF16.
+K1, bigger models, gates and FP8 are CLOSED, without the older FP8 exception.
+Quota UNCONFIRMED (README says 5/week; Csaba checking); do not rely on earlier
+reset-slot estimates. Next upload confirmed >=0.003 official gain, <=0.9848,
+cold replay/fresh20M plus Claude audit, human only. Freeze Sep29 18:00 IST;
+upload by Sep30 noon IST. Sat16:00 K2 timing, Sat night K2+tables full runs.
+Ask only uploads/AWS spend/legality; log other in-scope decisions and continue.
+One <=30min review, CPU exactness/OFF identity/one native timing; preserve
+scientific, official-budget, original-lock, resource and protected-data rules.
+All sections below are historical or subordinate where consistent.
+
+Latest score record: `workflow/SCORED_BASE_2026-09-26.md`; planning offsets
+are estimates, not guaranteed official results. No agent upload.
 
 ## CONTROLLING: Final Sprint — 26 September, 12:17 IST
 

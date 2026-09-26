@@ -1,5 +1,35 @@
 # Current state
 
+## Controlling goal after restart — FINAL SPRINT, 26 September13:26 IST
+
+Actual pinned app goal is ACTIVE FINAL SPRINT. Read
+workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md first. It overrides all older
+MOONSHOT/S0/15-week/old-deadline priorities below. Base e1e2, official0.9878;
+K2 -> tables with FP32 gradients -> schedule/batch/LR stacks -> profile kernels.
+K1/bigger models/gates/FP8 closed. Quota UNCONFIRMED; do not act on old slot
+estimates. Next upload confirmed>=.003 gain, cold20M+Claude, human only.
+FP32 table reference/master/grad/RMS is now decided. Historical BF16 test is
+not a preservation gate. Separate Implementer is preparing P2 off-host now;
+native/full awaits K2 and normal checks. Target first full tables20:00–22:00
+tonight, conditional, not launch promise. K2 timing deadline16:00 unchanged.
+Existing P0 attached evaluations remain running at latest13:21 observation.
+Whole-pair K2 reserves retained; Operator resolves exact eligible cleanup and
+uses qualified fallback if resources fail, never weakens disk or idle guards.
+
+## 13:21:15 IST observation: both P0 trainings finished within budget
+
+trn21schedule3633steps, coldstartup825.413s, charged1789.552s;
+trn22batch262144/.0151919steps, coldstartup853.742s, charged1788.870s.
+Fresh20M actually running as3229821/3343136 under original guardians/locks.
+No newBPB; official0.9878/e1e2 remains the base. Estimatedscores13:31–13:36,
+not guaranteed. Occupied-job window12:35:49–13:21:15 is99.9967%/99.9869%,
+including compilation/eval, not device utilization. See top research/v2/STATUS.md.
+
+Next-job/cleanup assignments committed980ab5c9; Operator continues after actual
+eval completion without new human/review wait. K2 pair first qualified host,
+batch/.021 otherhost, control/P3 fallbacks. P2 BF16 rounding feasibility is
+resolved for tinyCPU witnesses only; implementation still awaits nativeK2.
+
 ## 13:08 IST: P0 training after cold start; reviewed K2 timing next
 
 Latest authenticated07:22:13UTC: trn21step320/265338tok/s and

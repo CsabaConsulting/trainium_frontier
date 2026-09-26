@@ -1,15 +1,21 @@
 {
   "final_sprint_20260926": {
-    "authority": "workflow/FINAL_SPRINT_2026-09-26.txt",
+    "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+    "precedence": "K2 > FP32 tables > winner stacks > profile; preserve already-running P0; older conflicting entries are historical",
+    "table_gradient_dtype": "float32",
+    "table_implementation": "Separate off-host implementation active; native/full conditional on K2 and table patch checks",
+    "first_full_tables_target_ist": "2026-09-26 20:00–22:00 conditional, not launch guarantee",
+    "quota_status": "UNCONFIRMED; README5/week; Csaba checking",
+    "closed": ["K1", "bigger models", "gates", "FP8"],
     "base": "e1e2f686",
     "trn21": [
-      {"label": "fs-20260926-sprint-clean-recursive-trn21-r1", "change": "Recursive schedule", "status": "TRAINING_AFTER_COLD_STARTUP", "started_utc": "2026-09-26T07:05:49.019276Z", "observed_utc": "2026-09-26T07:22:13Z", "printed_step": 320},
+      {"label": "fs-20260926-sprint-clean-recursive-trn21-r1", "change": "Recursive schedule", "status": "FRESH_PUBLIC20M_RUNNING", "started_utc": "2026-09-26T07:05:49.019276Z", "observed_utc": "2026-09-26T07:51:15Z", "training_steps": 3633, "evaluator_pid": 3229821},
       {"label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1", "change": "batch262144 and matrixLR0.021 prescribed joint arm", "status": "SOURCE_REVIEW_PASS_PENDING_FIRST_TIMING_AND_FRESH_PREFLIGHT"},
       {"label": "fs-20260926-sprint-clean-batch-lr1-trn21-r1", "change": "cross-host batch262144 replicate if qualified", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
       {"label": "fs-20260926-sprint-e1e2-control-trn21-r1", "change": "unchanged audited e1e2 prospective same-host control", "status": "SOURCE_PREQUALIFIED_BINDING_PREPARED_FRESH_PREFLIGHT_PENDING"}
     ],
     "trn22": [
-      {"label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1", "change": "batch262144 matrixLR0.015", "status": "TRAINING_AFTER_COLD_STARTUP", "started_utc": "2026-09-26T07:05:49.285254Z", "observed_utc": "2026-09-26T07:22:13Z", "printed_step": 140},
+      {"label": "fs-20260926-sprint-clean-batch-lr1-trn22-r1", "change": "batch262144 matrixLR0.015", "status": "FRESH_PUBLIC20M_RUNNING", "started_utc": "2026-09-26T07:05:49.285254Z", "observed_utc": "2026-09-26T07:51:15Z", "training_steps": 1919, "evaluator_pid": 3343136},
       {"label": "fs-20260926-sprint-clean-recursive-trn22-r1", "change": "clean Recursive cross-host replicate", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
       {"label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1", "change": "cross-host batch262144 matrixLR0.021 replicate if qualified", "status": "SOURCE_REVIEW_PASS_CONDITIONAL_REPLICATE"},
       {"label": "fs-20260926-sprint-e1e2-control-trn22-r1", "change": "unchanged audited e1e2 prospective same-host control", "status": "SOURCE_PREQUALIFIED_BINDING_PREPARED_FRESH_PREFLIGHT_PENDING"}
@@ -20,7 +26,9 @@
     "k2_full_proposal": "research/v2/proposals/20260926-k2-final-sprint-full/EXPERIMENT_PROPOSAL.json",
     "k2_full_status": "COMPLETE_PROPOSAL_PREPARED_BINDINGS_NATIVE_TIMING_PREREQUISITE_PENDING",
     "k2_disk_rule": "Whole OFF/ON pair must fit preserving both short unscored checkpoints/caches and original admission floors; no fake eval for deletion eligibility",
-    "p3_fallback": "Source3637166b one independent review PASS; direct diagnostic binding in preparation, no native assignment; after P0/K2",
+    "p3_fallback": "Source3637166b one independent review PASS; direct diagnostic alternatives preparedbe31e02d and conditionally assigned in20260926-sprint-next-dispatch; after P0/K2",
+    "next_dispatch_assignment": "research/v2/assignments/20260926-sprint-next-dispatch.md",
+    "cleanup_assignment": "research/v2/assignments/20260926-scored-lr-checkpoint-cleanup.md",
     "control_bindings": "research/v2/operator/20260926-e1e2-prospective-controls/PREPARED.json",
     "successor_bindings": "research/v2/operator/20260926-final-sprint-p0/successors-prepared.json",
     "controls_proposal": "research/v2/proposals/20260926-e1e2-prospective-controls/EXPERIMENT_PROPOSAL.json",

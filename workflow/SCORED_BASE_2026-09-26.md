@@ -14,7 +14,14 @@ with cold replay/fresh20M and Claude audit. The public planning band for this
 threshold is roughly0.9854 conservative to0.9862 optimistic; measured official
 score cannot be guaranteed from that band. Don't upload a small win alone.
 
-## Quota supplied by Poojith
+## Current quota status — corrected 26 September 13:26 IST
+
+UNCONFIRMED. The newest pinned FINAL SPRINT goal says README 5/week and
+Csaba is checking. Neither the number of available slots nor reset times is
+confirmed. Do not schedule an upload based on the historical estimates below.
+See `workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md` for active priorities.
+
+## Historical quota supplied by Poojith — no longer authoritative
 
 Assume rolling7days,5 uploads currently used. Known ids are sub-b18271c7,
 sub-a7629c90, sub-7be49b6b, sub-452d2ae4 and now sub-86d307b4.
@@ -26,10 +33,8 @@ No queued upload is resubmitted. Human-provided future openings:
 | Sep29 about18:54 | Final frozen stack after cold replay and audit |
 | Sep30 about13:43 | Before competition deadline but AFTER our Sep30noon internal upload cutoff |
 
-Plan around the first TWO openings under the unchanged internal cutoff.
-Third opening is contingency only if Poojith changes that cutoff; no silent
-deadline extension. These are approximate human-supplied reset times, not
-live quota guarantees. Official competition deadline remains separate.
+Those earlier planning assumptions are superseded by UNCONFIRMED quota.
+No silent deadline extension. Official competition deadline remains separate.
 
 Final Sprint remains controlling; no new source gate, reviewer or launch
 ceremony is introduced by recording official acceptance.

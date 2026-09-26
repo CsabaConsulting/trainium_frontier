@@ -1,5 +1,55 @@
 # Workflow installation and incremental launch status
 
+## Controlling FINAL SPRINT goal — confirmed13:26 IST, 26 September
+
+Active app goal matches workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md.
+Every contradictory old priority, quota certainty, deadline or FP8 exception
+below is superseded. e1e2 official0.9878; K2 then FP32 tables then winner
+stacks then measured kernels. Quota unconfirmed, README5/week; no upload by
+agents. Next upload needs confirmed>=.003 official gain, cold20M+Claude audit.
+
+Table precision is decided: FP32 master Parameters/gradients/RMS, BF16
+gathered activations, reference F.embedding(FP32_master, rows).to(BF16).
+No requirement to preserve historical BF16 collision rounding. P2 off-host
+Implementer is active, first local candidate/tests estimated around14:10IST;
+no native/full readiness inferred. Target first full tables20:00–22:00 tonight
+after K2 qualification and one table patch review/native check. K2 by16:00.
+
+At latest13:21 actual snapshot both P0 fresh20M evals live. Original locks
+retained. Operator checks terminal around13:31–13:34 and dispatches qualified
+next work without new permission. K2 pair requires17,716,740,096B initial
+headroom, preserving both3GiB allocations; projected trn22 shortfall~0.70GB
+after the two already-assigned deletions. Those deletions are still pending.
+No hidden resource-floor reduction or protected-candidate deletion; bounded
+discarded-scored provenance search in parallel. Fall back rather than idle.
+
+## Latest: both P0 trainings complete; fresh20M live — observed 13:21:15 IST
+
+trn21 schedule:3633steps, cold fifth boundary825.413010505s,
+through-exit charge1789.551823528s. trn22 batch262144/.015:1919steps,
+cold fifth853.742274409s, charge1788.870317607s. Both exit0 and
+over_budget=false, zero cold-start excess beyond the900s allowance. Each
+checkpoint453044626B, still protected. Exact operator/20260926-final-sprint-p0-handoff/HANDOFF.md.
+
+Fresh public20M/context1024 evaluators3229821 and3343136 are actually live,
+original guardians/locks retained. Whole-job completion and BPB still pending.
+Measured occupied-job fractions07:05:49→07:51:15UTC are99.9967%/99.9869%,
+including compilation and evaluation, not accelerator/daily utilization.
+Free14.184GB/16.561GB before later cleanup. Expected score around08:01–08:06UTC
+if previous evaluation timing holds; no restart on an observation timeout.
+
+Next dispatch is authorized under assignments/20260926-sprint-next-dispatch.md:
+K2 OFF/ON pair on first whole-pair-resource-qualified host, batch/.021 on the
+other; exact e1e2 control and reviewed P3 diagnostic are eligible fallbacks.
+Two individually identified discarded-scored LR checkpoints may be removed
+after P0+eval/quiescence under the narrow cleanup assignment; nothing removed
+yet. Current checkpoints/caches, accepted submission, logs and verdicts stay.
+
+P2 design and tiny BF16 falsifier are archived: table[rows] backward rounds at
+each addition and preserves microstep grouping in the tested CPU cases; the
+current FP32 K2 recurrence cannot be reused unchanged for those BF16 tables.
+No P2 candidate or native result is implied. K2/P3 source hashes unchanged.
+
 ## Latest: steady P0 training; K2 next — 26 September 13:08 IST
 
 Authenticated 07:22:13UTC snapshot: trn21 Recursive step320 at265338tok/s;
