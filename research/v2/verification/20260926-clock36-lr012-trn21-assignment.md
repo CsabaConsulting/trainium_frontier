@@ -1,6 +1,6 @@
 # Exact36 LR0.012 one-run release — trn21
 
-Supervisor assignment 2026-09-26 02:38 UTC, sole Operator /root/trn22_queue_operator.
+Supervisor assignment 2026-09-26 approximately02:37 UTC, sole Operator /root/trn22_queue_operator.
 Frozen proposal079133be/canonical3902c289 and packetd0963aef/canonical663293d9.
 Path research/v2/proposals/20260926-clock36-lr012-trn21/.
 Label fs-20260926-clock36-lr012-trn21-r1.
@@ -37,4 +37,3 @@ Scientific comparator is same-host exact36 LR0.015 BPB0.9882310747242088.
 Its historical row is NOT a formal base36 control: do not relabel it. Report
 candidate-parent delta but unchanged decide.py remains INSUFFICIENT until a
 genuine prospective base36 control exists. No automatic adoption/submission.
-
