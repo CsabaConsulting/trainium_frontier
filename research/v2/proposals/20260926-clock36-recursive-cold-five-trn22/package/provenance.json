@@ -1,0 +1,8 @@
+{
+  "label": "fs-20260926-ct-clock36-recursive-cold-trn22-r1",
+  "train_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+  "launch_command": "/home/ubuntu/workspace/native_venv/bin/torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015 --seed 42 --max-train-seconds 1800 --num-steps 5 --out-dir out --unet-8x1024 --attention-layers 0,2,4,6,7 --initial-cache-refresh --startup-adjusted-schedule --recursive-schedule",
+  "source_commit": "44926a6f35b7c221bb6cb6652eda3c77e9f10efd",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "scope": "DISABLED_CHILD_COLD_FIVE_ONLY_NO_EVAL_NO_AUTOMATIC_FULL"
+}

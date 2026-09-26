@@ -1,0 +1,11 @@
+{
+  "scope": "Local Implementer stdlib test fixture only; no host or driver execution",
+  "attempt": 1,
+  "commands": ["python3 -B test_binding.py", "python3 -B -O test_binding.py"],
+  "outcomes": ["KeyError: 'source_sha256'", "KeyError: 'source_sha256'"],
+  "location": "test_binding.py package_source_provenance fixture",
+  "cause": "Own test read source_sha256 instead of the unchanged rehearsal provenance schema key train_sha256",
+  "repair": "Corrected only the local test to read train_sha256. Package, driver, scientific source, proposal and guard unchanged.",
+  "native_execution": false,
+  "qualification": "No scientific or CPU outcome inferred"
+}
