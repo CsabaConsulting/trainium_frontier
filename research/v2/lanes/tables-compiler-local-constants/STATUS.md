@@ -1,5 +1,25 @@
 # P2 local-constants candidate — READY FOR SEQUENTIAL TESTS, NOT PASS
 
+## Actual sequential checks — 26 September, approximately15:28 IST
+
+Supervisor granted the local process slot. FP32 reference and both int32/int64
+CPU suites passed, including OFF3 identity and interpreted ON2 table/RMS
+behavior. Exact production embedding parser passed. The exact table parser
+FAILED before backend at line257 `first = group * partition`:
+
+```
+'mul' expected (int, int) or (float, float) or (list, int) or (int, list)
+or (tuple, int) or (int, tuple) or (str, int) or (int, str), got (object, int)
+```
+
+`nl.dynamic_range` returns a runtime VirtualRegister, not a Python arithmetic
+integer. CPU interpretation did not model that compiler type restriction.
+`parser-result-table.json` retains the actual failure; no backend, NEFF,
+simulator or native table PASS is claimed. Source4079 remains frozen and is
+NOT LAUNCHABLE. Supervisor authorized one minimal derivative using the SDK's
+explicit dynamic HBM selection, without unrolling4096 groups or changing
+FP32 arithmetic. That work is separate; this failure is not erased.
+
 26 September 2026, Implementer packaging only.
 
 Source SHA-256:

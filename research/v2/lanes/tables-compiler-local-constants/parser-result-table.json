@@ -1,0 +1,64 @@
+{
+  "scope": "EXACT_CANDIDATE_REAL_NKI_PARSER_ONLY",
+  "source_sha256": "4079e8e6bff1f8438e0430a8b8b2099085da5d6f908149268ac17e8b318fdbff",
+  "test_parser_sha256": "19d4500b6f2fc94edbe804c999325e297b26cb69d1023e6509962e3cfa997aa2",
+  "command": [
+    "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-parser-failure/.venv/bin/python",
+    "-B",
+    "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/tables-compiler-local-constants/test_parser.py",
+    "--kernel",
+    "table"
+  ],
+  "kernel": "table",
+  "backend_executed": false,
+  "simulator_executed": false,
+  "device_executed": false,
+  "training_forward_compiled": false,
+  "nki_version": "0.5.0+28631259367.ga768afa6",
+  "python": "3.12.13",
+  "target": "trn2",
+  "lnc": 2,
+  "closure": {},
+  "exact_unmodified_factory_ast": true,
+  "production_geometry": {
+    "gradient": {
+      "shape": [
+        32768,
+        128
+      ],
+      "dtype": "bfloat16"
+    },
+    "counts": {
+      "shape": [
+        524288,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "starts": {
+      "shape": [
+        524288,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "positions": {
+      "shape": [
+        32768,
+        1
+      ],
+      "dtype": "int32"
+    },
+    "group_maximums": {
+      "shape": [
+        4096,
+        1
+      ],
+      "dtype": "int32"
+    }
+  },
+  "status": "PARSER_FAIL",
+  "exception_type": "RuntimeError",
+  "error": "error: failed to compile NKI kernel:\nCollected 1 different diagnostics:\n- [x2] error: 'mul' expected (int, int) or (float, float) or (list, int) or (int, list) or (tuple, int) or (int, tuple) or (str, int) or (int, str), got (object, int)\n",
+  "elapsed_s": 0.1704307420004625
+}
