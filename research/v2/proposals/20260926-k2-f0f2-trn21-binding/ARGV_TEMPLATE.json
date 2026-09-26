@@ -1,0 +1,31 @@
+{
+  "not_authorized": true,
+  "outer": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/k2-f0f2-trn21-r1-packet/host_driver.py"
+  ],
+  "coordinator": [
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-B",
+    "/home/ubuntu/k2-f0f2-trn21-r1-packet/coordinator.py",
+    "/home/ubuntu/k2-f0f2-trn21-r1-output",
+    "<same monotonic t0>"
+  ],
+  "workers": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/k2-f0f2-trn21-r1-packet/worker.py",
+    "/home/ubuntu/k2-f0f2-trn21-r1-output"
+  ],
+  "runtime_substitutions_only": [
+    "authenticated inherited lock FD in K2_LOCK_FD",
+    "same monotonic t0"
+  ],
+  "control_socket": "/home/ubuntu/k2-f0f2-trn21-r1-output/control.sock"
+}
