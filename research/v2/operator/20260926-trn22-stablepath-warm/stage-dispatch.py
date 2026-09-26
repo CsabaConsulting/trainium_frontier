@@ -52,6 +52,9 @@ spec.loader.exec_module(transport)
 state = transport.local_state()
 assert not state['local_stops_present'] and not any(state['breaker_tripped'].values())
 assert state['host_launch_allowed']['trn22'] is True
+host_state = json.loads((REPO / 'research/v2/state.json').read_text())['hosts']['trn22']
+assert host_state['label'] == binding['phases'][0]['label'], 'STATE_SCOPE_LABEL_MISMATCH'
+assert host_state['active_assignment'] == ASSIGNMENT, 'STATE_ASSIGNMENT_MISMATCH'
 payload = {'binding': binding, 'files': {name: {'b64': base64.b64encode(raw).decode(), 'sha256': sha(raw)} for name, raw in files.items()}, 'local_state': state, 'prior_postflight': prior}
 remote = r'''
 import base64, datetime, hashlib, json, os, socket, stat, subprocess
