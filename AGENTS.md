@@ -2,6 +2,18 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Latest direct human amendment — 26 September approximately12:10 IST
+
+Read `workflow/CONTROLLER_AMENDMENT_2026-09-26_1210_IST.md` first for current
+priorities and narrowly superseded gates: Claude source audit accepted e1e2;
+native B1/B2 is no longer this upload's gate; one full8layer schedule replicate;
+K2 CPU exactness/OFF identity/native timing and16:00IST deadline;5 submissions
+per week, not15. Human grants standing stale-lock recovery after independent
+ps/device-idle checks and requires automatic safe release on failed jobs.
+Conflicting older gate/hold sections are overridden only to those extents.
+Legality, official budget, one original lock/sole Operator, protected artifacts,
+no inferred cleanup/AWS authority and human-only uploads remain unchanged.
+
 ## Mandatory single launcher (26 September IST)
 
 Read `workflow/SINGLE_LAUNCHER_2026-09-26.md` before any launch. Every controller,
