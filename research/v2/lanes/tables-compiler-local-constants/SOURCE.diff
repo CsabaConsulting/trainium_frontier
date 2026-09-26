@@ -1,0 +1,28 @@
+--- k2-last-layer-tables-index-repair/train.py
++++ tables-compiler-local-constants/train.py
+@@ -87,9 +87,8 @@
+-    # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
+-    vocab, tokens, channels = 8192, 32768, 1024
+-    partition, features, groups = 128, 512, 64
+-
+     @nki.jit
+     def resident_consumer(gradient, counts, starts, positions, group_maximums):
++        # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
++        vocab, tokens, channels = 8192, 32768, 1024
++        partition, features, groups = 128, 512, 64
+         assert gradient.shape == (tokens, channels)
+         assert counts.shape == starts.shape == (vocab, 1)
+         assert positions.shape == (tokens, 1)
+@@ -225,9 +224,8 @@
+-    # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
+-    vocab, tokens, channels = 524288, 32768, 128
+-    partition, features, groups = 128, 64, 4096
+-
+     @nki.jit
+     def resident_consumer(gradient, counts, starts, positions, group_maximums):
++        # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
++        vocab, tokens, channels = 524288, 32768, 128
++        partition, features, groups = 128, 64, 4096
+         assert gradient.shape == (tokens, channels)
+         assert counts.shape == starts.shape == (vocab, 1)
+         assert positions.shape == (tokens, 1)
