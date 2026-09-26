@@ -1,0 +1,112 @@
+{
+  "status": "CPU_REFERENCE_ONLY_PASS",
+  "torch": "2.13.0+cpu",
+  "checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+  "wrapper_ast_unchanged": true,
+  "backend_substitution": "neuron -> aot_eager via compile proxy",
+  "kernel_substitution": "explicit small unique-row CPU gather; NOT native NKI",
+  "shape": [
+    8,
+    4
+  ],
+  "tensor_data_under_bytes": 1048576,
+  "cases": [
+    {
+      "dtype": "torch.bfloat16",
+      "input": "zero_first",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 0
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "input": "zero_first",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 0
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "input": "nonzero_after_zero",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 31
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "input": "nonzero_after_zero",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 31
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "input": "different_nonzero",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 32
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "input": "different_nonzero",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 32
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "zero_first",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 0
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "zero_first",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 0
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "nonzero_after_zero",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 31
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "nonzero_after_zero",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 31
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "different_nonzero",
+      "mode": "eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 32
+    },
+    {
+      "dtype": "torch.float32",
+      "input": "different_nonzero",
+      "mode": "aot_eager",
+      "forward_exact": true,
+      "backward_byte_exact": true,
+      "grad_nonzero": 32
+    }
+  ],
+  "meaning": "No generic wrapper/dtype-history failure reproduced with this CPU substitute; cannot distinguish native capture, lowering, cache or device effects."
+}
