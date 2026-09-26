@@ -1,0 +1,98 @@
+{
+  "schema": "trn-research-adoption-v1",
+  "status": "ADOPTED_CONFIRMED_RESEARCH_BASE",
+  "timestamp_utc": "2026-09-26T02:04:00Z",
+  "arm_id": "L2-architecture-startup-clock-36a862",
+  "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "source_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+  "source_git_path": "workflow/proposals/research-v2/train.py",
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--seed",
+    "42",
+    "--max-train-seconds",
+    "1800",
+    "--num-steps",
+    "1000000",
+    "--out-dir",
+    "out",
+    "--unet-8x1024",
+    "--attention-layers",
+    "0,2,4,6,7",
+    "--initial-cache-refresh",
+    "--startup-adjusted-schedule"
+  ],
+  "authority": [
+    "workflow/ALL_IN_FOR_FIRST_2026-09-26.txt",
+    "workflow/NEXT_12_HOURS_2026-09-26.md",
+    "workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md",
+    "workflow/FIXED_BUDGET_SELECTION_2026-09-25.md"
+  ],
+  "selector_verdict": "ADOPT_PENDING_HUMAN_ACK",
+  "ack_resolution": "Research-base adoption is human pre-approved; unchanged selector's legacy acknowledgement string does not require a new prompt. Submission remains human-only.",
+  "selector_rules": "v2-2026-09-25-general-fixed-budget",
+  "selector_sha256": "fa4a3d3dd3697093f93ac73b5c95335a7c1efa12534589ed3c3e2b64940ca0ac",
+  "result_labels": [
+    "fs-20260926-arch36a8-startup-clock-trn21-r2-full",
+    "fs-20260926-arch36a8-startup-clock-trn22-r1-full"
+  ],
+  "hosts": [
+    "trn21",
+    "trn22"
+  ],
+  "public_20m": [
+    0.9882310747242088,
+    0.9883821509811542
+  ],
+  "public_20m_mean": 0.9883066128526815,
+  "same_host_control_bpb": [
+    0.9899528600562257,
+    0.9912010195941572
+  ],
+  "same_host_deltas": [
+    -0.0017217853320169452,
+    -0.002818868613002956
+  ],
+  "mean_delta_unrounded": -0.0022703269725099506,
+  "previous_confirmed_schedule_mean": 0.9901674436550496,
+  "delta_vs_previous_confirmed_schedule_mean": -0.0018608308023680964,
+  "seed": 42,
+  "selection_context": 1024,
+  "eval_tokens": 20971520,
+  "steps": [
+    3630,
+    3630
+  ],
+  "charged_through_exit_seconds": [
+    1788.9553176789777,
+    1789.505140539026
+  ],
+  "startup_measured_seconds": [
+    793.9313555649715,
+    807.6938910679892
+  ],
+  "research_runs_cold_full_proven": false,
+  "prior_separate_cold_five_seconds": 845.6273377500474,
+  "prior_cold_not_a_submission_replay": true,
+  "decision_evidence": "research/v2/analysis/20260926-clock36-trn21-final-audit/actual-selector.json",
+  "new_default_for_future_proposals": "Exact36 8x1024/U-Net/attention0,2,4,6,7 + initial-cache + startup-adjusted schedule, LR.015 seed42. No Recursive flag in this source. Child4bfaec is separately reviewed, NOT adopted until new full results. Preserve explicitly frozen jobs and historical row roles.",
+  "source_train_py_mutated": false,
+  "submission_eligible": false,
+  "official_score_unchanged_user_report": 0.9901,
+  "remaining_submission_gates": "Clean proven116188 port with trained/loaded model identity and no eval-only adapters; whole cold1800 replay, fresh20M and human-mediated Claude compliance audit, then Poojith upload. No Downloads overwrite.",
+  "rollback": "If later evidence contradicts qualification, quarantine this adoption and return to immutable6ef7; preserve all raw results and historical withdrawn3e79 result."
+}

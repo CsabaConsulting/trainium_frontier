@@ -128,7 +128,7 @@ def main(argv=None):
             if name in prefix:require(f[name].startswith(prefix[name]),'final preserves actual observed prefix '+name)
     require(f['fresh-public20m-launch.json']==of['fresh-public20m-launch.json'],'final equals actually observed evaluation launch')
     require(datetime.datetime.fromisoformat(obs['utc'])<=datetime.datetime.fromisoformat(parse(f['terminal.json'])['utc']),'live evaluation observed before final terminal')
-    pr=git(a.raw_commit,root+'explicit-process-postflight.json');cr=git(a.raw_commit,root+'post-eval-checkpoint-hash.json')
+    pr=git(a.raw_commit,root+'postflight-explicit-pids.json');cr=git(a.raw_commit,root+'post-eval-checkpoint-hash.json')
     required=KNOWN_PIDS|actual_ids;post=parse(pr);known_postflight(post,required)
     facts=closed_result(bundle,f,b,post,parse(cr),596823,required)
     row=dict(schema='trn-run-record-v2',label=LABEL,arm_id='L2-architecture-startup-clock-36a862',kind='architecture_startup_clock_arm',run_purpose='quality',host='trn21',timestamp_utc=facts['terminal_utc'],base_sha256=BASE,train_py_sha256=SOURCE,source_commit=b['source_commit'],status='evaluated',git_dirty=False,git_dirty_scope='Authenticated frozen scientific bytes, not globally clean host checkout',argv=b['training_command'][4:],env=b['training_environment'],training_budget_seconds=1800,over_budget=False,steps=facts['steps'],charged_through_exit_seconds=facts['charged_through_exit_seconds'],startup_measured_seconds=facts['fifth_seconds'],cold_startup_proven=False,causality_passed=None,eval_tokens=20971520,eval_seq_len=1024,public_20m=facts['evaluation']['val_bpb'],checkpoint_sha256=facts['checkpoint']['sha256'],raw_archive_commit=a.raw_commit,raw_archive_sha256=a.bundle_sha,submission_eligible=False)

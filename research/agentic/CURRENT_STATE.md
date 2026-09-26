@@ -1,5 +1,30 @@
 # Current state
 
+## 02:04 UTC / 07:34 IST: clock36 architecture CONFIRMED research base
+
+trn21 fresh20M0.9882310747242088, trn22 0.9883821509811542; mean
+**0.9883066128526815**. Both negative against genuine same-host6ef7 controls;
+unrounded mean delta-0.00227032697250995. Unchanged selector returns
+ADOPT_PENDING_HUMAN_ACK; prior human pre-approval resolves research adoption.
+This is0.0018608308023681 below the old confirmed schedule mean, not a new
+official score. Seed42 only. Record:adoptions/20260926-clock36-confirmed.json.
+
+Root389 immutable checks normal/-O accept exact36 trn21 finalcc1fa225:
+3630steps,1788.955318charged seconds, checkpoint unchanged, all22 actual IDs
+gone/deviceidle/original596823free. Literal auditor filename mismatch was
+fixed and its failure retained; no criterion/raw changed. Both hosts idle now;
+trn22>15min incident reported, trn21 threshold02:15:51UTC.
+
+Future research uses frozen7419927c/SHA36a862 with its exact8x1024/initial-cache/
+startup-clock flags. It does NOT yet include Recursive; new4bfaec source is
+not adopted. No active train.py or old result labels changed. Submission still
+HOLD: clean116188 port, cold full replay and ClaudeviaPoojith audit required.
+Earlier0.986340 nonconfirmation remains a withdrawn result, not our best base.
+
+Next: r2 full-size CPU packet adds missing trained-checkpoint causality/state
+invariance before child cold gate ontrn22. Ordinary-only K2 control diagnostic
+is in separate implementation fortrn21; no candidate retry/threshold change.
+
 ## 01:59 UTC / 07:29 IST: confirmation is evaluating; K2 required control failed
 
 Exact36 trn21 finished3630steps,793.931355565s startup and1788.955317679s

@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 07:34 IST
+
+Confirmed research base is now exact36 architecture:0.9882310747 and0.9883821510,
+mean0.9883066129 public20M. Same-host mean delta-0.002270327; unchanged selector
+qualifies pre-approved research adoption. Official score remains user-reported
+0.9901. Clean port/cold full/human Claude audit still missing; no upload file.
+Both hosts are quiescent;trn22 idle incident reported. Next checked CPU/native
+diagnostics are prepared, not falsely claimed running or six-ready perhost.
+
 ## Current — 26 September 07:29 IST
 
 trn21 confirmation training completed3630steps within1788.955318charged seconds;
