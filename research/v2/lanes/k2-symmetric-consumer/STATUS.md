@@ -1,5 +1,19 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 05:45 IST: native exactness failed; parked
+
+Actual native run00:08:48–00:09:18UTC completed13/20cases on each of four ranks.
+All four fail `EXACTNESS_FALSIFIED: unique/fp32`: compiled enclosing backward
+produces zero gradients versus32709 nonzeros/max_abs8.0, while the same-case
+direct and eager paths are exact. This is a correctness failure, not a
+compiler error, accepted kernel, speedup or quality result. No retry assigned.
+Rawc087cbb7/canonical7f0fbbde contains31files556014bytes rehashed by root.
+00:10:44 explicit postflight records all8 observed identities absent, full
+261-row census without related workers/compiler, deviceidle/original596823
+lockfree. Short-lived compiler/timeout PIDs were not observed; no IDs invented.
+Independent diagnosis is read-only. Separate qualifiedbcbd full fallback is
+released ontrn21 with fresh checks; this failed kernel is never part of it.
+
 ## 05:38 IST: new-evidence source gate passed; native actually dispatched
 
 Fresh input-only Astra with NEW versioned primary API documentation plus exact

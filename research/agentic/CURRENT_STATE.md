@@ -1,5 +1,35 @@
 # Current state
 
+## 00:17 UTC / 05:47 IST: fallback launched; architecture evaluation running
+
+trn21's exact bcbd base-cache full run launched at 00:15:00.993796 UTC.
+Four workers 3102368–71 and the original lifetime lock are authenticated in
+5546b39e/canonical7aa13bd0. Its only change versus confirmed 6ef7 is initial
+cache refresh; final fresh-20M evaluation is attached. Disk 19.625 GB passes
+the 10.5 GiB gate; no cleanup. The preceding idle gap was 5m42s, not hidden
+as hardware work. A local stale assignment error was corrected in 5f7c2b19;
+the Operator refused before staging, and no checks or breakers were bypassed.
+
+trn22 full36 training completed 3,630 steps at 00:13:13 UTC. Actual fifth
+807.693891s, charged through exit 1789.505141s, median printed 266,937 tok/s.
+Root 65 checks normal/-O authenticate exact source, command, accounting,
+checkpoint f22d8287 and fresh evaluation handoff. Evaluator 3213931 is active
+under the same lock; BPB is pending. W1 retained-cache five-step observation
+remains conditionally released only after evaluation, retrieval and explicit
+quiescence. All four closed graph CSVs are locally available for input-hash join.
+
+K2 symmetric native failed all four ranks at unique/fp32: compiled backward
+is all zero versus 32,709 nonzeros/max_abs 8. Direct and eager paths pass but
+do not waive the compiled failure. Raw c087cbb7, 31 files/556,014 bytes, plus
+explicit 00:10:44 process/device/lock quiescence authenticate. K2 is parked,
+read-only diagnosis ongoing, no retry/speed or quality claim. P r2 is also
+parked after scratch cap failure; its 248-check outcome audit was replayed.
+
+Confirmed mean remains 0.9901674436550496. Latest 75b9 result 0.989662 is
+DISCARD under unchanged thresholds; 0.986340 failed confirmation. No new
+upload-ready candidate, no six-ready-jobs claim. Goal ACTIVE; these current
+host facts supersede historical snapshots below, not scientific evidence.
+
 ## 00:08 UTC / 05:38 IST: K2 native dispatched; P parked, quality run continuing
 
 Exact symmetric K2 qualification ACTUAL dispatch00:08:48.310143UTC,PID3101403,

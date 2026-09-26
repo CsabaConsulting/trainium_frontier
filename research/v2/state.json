@@ -1010,20 +1010,20 @@
   "hosts": {
     "trn21": {
       "label": "fs-20260926-basebcbd-initial-cache-trn21-r1-full",
-      "status": "QUALIFIED_FULL_FALLBACK_RELEASED_DISPATCH_PENDING",
-      "started_utc": null,
-      "dispatch_pid": null,
-      "last_process_check_utc": "2026-09-26T00:10:44.858629+00:00",
-      "idle_since_utc": "2026-09-26T00:09:18.571653+00:00",
-      "idle_alert_due_utc": "2026-09-26T00:24:18.571653+00:00",
+      "status": "FULL_RESEARCH_FOUR_WORKERS_LIVE_STARTUP",
+      "started_utc": "2026-09-26T00:15:00.993796+00:00",
+      "dispatch_pid": 3102316,
+      "last_process_check_utc": "2026-09-26T00:15:39.802520+00:00",
+      "idle_since_utc": null,
+      "idle_alert_due_utc": null,
       "original_lock_inode": 596823,
       "original_lock_device": 66305,
       "launch_allowed": true,
       "active_assignment": "research/v2/verification/20260926-basebcbd-full-trn21-assignment.md",
       "launch_scope": "Only exact7da2559f bcbd full packet: seed42/6x1024 Recursive plus initial-cache-refresh, official1800 and attachedfresh20M; no general launcher",
-      "next_requires": "Fresh exact packet and original-lock ps AND neuron-ls, STOP/breakers/disk checks; no K2 retry",
-      "receipt": "research/v2/operator/20260926-trn21-k2-symmetric-native/completed/postflight-explicit-pids.json",
-      "free_disk_gb_decimal": 19.76,
+      "next_requires": "Preserve exact running train and attached eval. No new launch until terminal/retrieval/explicit quiescence and separate successor assignment.",
+      "receipt": "research/v2/operator/20260926-trn21-basebcbd-full/launch/first-native-evidence.json",
+      "free_disk_gb_decimal": 19.624853504,
       "last_full_result": {
         "public20m": 0.9896621160468637,
         "steps": 3629,
@@ -1044,14 +1044,25 @@
         "max_abs": 8.0,
         "raw_commit": "c087cbb7",
         "retry_authorized": false
-      }
+      },
+      "source_sha256": "bcbd148dd51b5a014289cbecf3f0e684e35cf537e9588c878e15b265fcbfd522",
+      "driver_pid": 3102318,
+      "torchrun_pid": 3102353,
+      "worker_pids": [
+        3102368,
+        3102369,
+        3102370,
+        3102371
+      ],
+      "preceding_idle_seconds": 342.422143,
+      "fresh_public20m": "ATTACHED_PENDING"
     },
     "trn22": {
       "label": "fs-20260926-arch36a8-startup-clock-trn22-r1-full",
-      "status": "FULL_RESEARCH_FOUR_WORKERS_LIVE_TRAINING",
+      "status": "TRAINING_COMPLETE_FRESH20M_RUNNING",
       "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
       "started_utc": "2026-09-25T23:29:53.434078+00:00",
-      "last_process_check_utc": "2026-09-26T00:01:10Z",
+      "last_process_check_utc": "2026-09-26T00:13:13.551131+00:00",
       "driver_pid": 3191010,
       "torchrun_pid": 3191041,
       "worker_pids": [
@@ -1066,13 +1077,18 @@
       "scope": "Exact36a862 startup-adjusted only;1800s+attachedfresh20M,noRecursive,reused acceptedcold caches; notcoldfull",
       "receipt": "research/v2/operator/20260926-trn22-startup-clock-full/launch/first-four-rank-evidence.json",
       "qualified_cold_fifth_seconds": 845.6273377500474,
-      "last_observed_step": 2160,
-      "reported_tokens_per_second": 265354,
-      "source_reported_seconds_remaining": 738,
+      "last_observed_step": 3630,
+      "reported_tokens_per_second": 266937,
+      "source_reported_seconds_remaining": 0,
       "free_disk_gb_decimal": 28.56,
       "early_evidence": "research/v2/operator/20260926-trn22-startup-clock-full/early-training-compact-snapshot.json",
-      "fresh_public20m": "ATTACHED_PENDING",
-      "submission_eligible": false
+      "fresh_public20m": "RUNNING",
+      "submission_eligible": false,
+      "evaluator_pid": 3213931,
+      "training_end_utc": "2026-09-26T00:13:13.482125+00:00",
+      "observed_fifth_seconds": 807.6938910679892,
+      "charged_through_exit_seconds": 1789.505140539026,
+      "training_result_review": "research/v2/verification/20260926-startup-clock-full-result/training-audit.json"
     }
   },
   "latest_runtime_20260925_2258z": {

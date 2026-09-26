@@ -1,5 +1,14 @@
 # Startup optimizer-clock diagnostic — 26September04:10IST
 
+05:45IST: full36 training ended00:13:13UTC,3630steps, observedfifth807.693891s,
+charged-through-exit1789.505141s, over_budgetFalse, checkpointf22d8287 retained.
+Root65checks normal/-O authenticate raw6b292621 and exactsource/argv/guards.
+Medianprintedsteady266937tok/s; this is a valid training phase, not a BPB win.
+Fresh20M/context1024/B1 evaluator3213931 started00:13:13.551 under same held
+original lock. Finalscore/checkpointposthash/quiescence still pending.
+Allfour closedgraphCSV files retrieved for offlinecompiler-input hashjoin.
+
+
 05:17IST: full36a862 live atstep80/266815tok_s at05:14:02IST, fourworkers
 and original lock. First-five printedlosses equal qualified cold-five with
 lrm1.000; actual full uncappedfifth/chargedtime deferred to terminal. Attached

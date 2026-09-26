@@ -1,5 +1,11 @@
 # P status — 2026-09-26 IST
 
+05:45IST: outcome audit07347370/canonical6081a761 passes248checks normal/-O,
+replayed by root. This is raw-outcome authentication, not independent source
+approval by the r2 repair author. P remains parked; no summary or completed
+posthash, no third attempt/capraise. K2 subsequently failed a separate gradient
+gate; checkedbcbd full-quality fallback is next with fresh host guards.
+
 ## 05:38 IST: parked after diagnosed retry, no decoded attribution
 
 Original r1 failed initial Go readiness under inherited512MiB before copying.
