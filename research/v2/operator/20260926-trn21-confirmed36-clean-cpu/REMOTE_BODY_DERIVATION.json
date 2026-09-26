@@ -1,0 +1,56 @@
+{
+  "parent_path": "research/v2/operator/20260926-trn22-clock36-recursive-cpu-r2/stage-dispatch.py",
+  "parent_commit": "ca70b38096bdfea68452b4951a4b8086d3573248",
+  "parent_sha256": "fcb12b76e21b63ab4a063e480e959867d7b6ac03881d2bc9e041083f554e176f",
+  "replacements": [
+    [
+      "previous=project/'out/fs-20260926-k2-registered-forward-trn22-r1-packet'",
+      "previous=project/'out/fs-20260926-clock36-lr012-trn21-r1-packet'"
+    ],
+    [
+      "assert json.loads((previous/'terminal.json').read_text())['status']=='DIAGNOSTIC_CHILD_FAILED','PRIOR_STATUS_CHANGED'",
+      "assert hashlib.sha256((previous/'terminal.json').read_bytes()).hexdigest()==P['previous_terminal_sha256'],'PRIOR_TERMINAL_CHANGED'\nassert hashlib.sha256((previous/'outer-flock-exit.json').read_bytes()).hexdigest()==P['previous_outer_sha256'],'PRIOR_OUTER_CHANGED'\nassert json.loads((previous/'terminal.json').read_text())['status']=='COMPLETE_PENDING_INDEPENDENT_REVIEW','PRIOR_STATUS_CHANGED'\nassert json.loads((previous/'terminal.json').read_text())['eval_exit_code']==0 and json.loads((previous/'outer-flock-exit.json').read_text())['returncode']==0,'PRIOR_NOT_SUCCESSFUL'"
+    ],
+    [
+      "*P['previous_pids'],3050509,3053905",
+      "*P['previous_pids'],2983496"
+    ],
+    [
+      "(66305,832589)",
+      "(66305,596823)"
+    ],
+    [
+      "# Four retained ~453MB checkpoints plus a conservative log/support/scratch allowance.\nprojected=4*512*1024**2+1024**3",
+      "# Two retained ~453MB checkpoints plus exact approved2GiB scratch/log footprint.\nprojected=2*1024**3"
+    ],
+    [
+      "/home/ubuntu/trainium_finalpush_queue_20260925_trn22_wait_r1/runs/PAUSE_NEXT",
+      "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/runs/PAUSE_NEXT"
+    ],
+    [
+      "assert Path('/home/ubuntu/workspace/native_venv/bin/python').is_file()",
+      "nodes=sorted(str(p) for p in Path('/dev').glob('neuron[0-9]*'));assert nodes,'NO_NEURON_DEVICE'\nholders=subprocess.run(['/usr/bin/fuser',*nodes],capture_output=True,text=True,timeout=10)\nassert holders.returncode==1 and not holders.stdout.strip(),'DEVICE_HOLDERS:'+holders.stdout\nassert Path('/home/ubuntu/workspace/native_venv/bin/python').is_file()"
+    ],
+    [
+      "('reference','default','off','on')",
+      "('reference','candidate')"
+    ],
+    [
+      "'host':'trn22'",
+      "'host':'trn21'"
+    ],
+    [
+      "'scope':'Four serial full-size synthetic CPU arms and checkpoint tests only; no cold/native/full/eval/autonext'",
+      "'scope':'Two serial full-size standard synthetic CPU G2 arms plus unchanged standard comparison only; no ordinary-loader/cold/native/full/eval/autonext'"
+    ],
+    [
+      "'ps_rc':ps.returncode,'job_lines':jobs,'neuron_ls':devices",
+      "'ps_rc':ps.returncode,'job_lines':jobs,'neuron_ls':devices,'fuser_rc':holders.returncode,'fuser_stdout':holders.stdout,'fuser_stderr':holders.stderr"
+    ],
+    [
+      "'status':'DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING'",
+      "'label':plan['label'],'status':'DETACHED_DISPATCH_STARTED_UNDER_LOCK_DRIVER_PENDING'"
+    ]
+  ],
+  "scope": "Existing exact-byte CPU staging body only: two-role/host/root/prior-success/resource scope plus supplementary fuser from proven full preflight. Scientific/driver/tool/guard bytes unchanged. No launch authority."
+}
