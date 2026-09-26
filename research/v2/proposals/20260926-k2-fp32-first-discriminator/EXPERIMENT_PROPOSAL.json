@@ -1,0 +1,63 @@
+{
+  "proposal_id": "20260926-k2-fp32-first-discriminator",
+  "status": "SELECTED_PREPARATION_ONLY_NO_NATIVE_AUTHORITY",
+  "owner_role": "Supervisor selecting authenticated Analyst recommendation",
+  "hypothesis": "The FP32 compiled custom-autograd zero-gradient failure either persists without prior BF16/cancellation history or depends on that history; an ordinary compiled embedding control distinguishes a general backend failure from the custom NKI route.",
+  "single_causal_change": "Run the existing FP32 unique fixture first in a fresh diagnostic process with the unchanged kernel/reference/custom-wrapper semantics, rather than after BF16 and zero-expected FP32 cases. Add a separately identified ordinary compiled embedding control and input pre/post hashes as diagnostic observations, not a replacement correctness oracle.",
+  "mechanism_class": "correctness_localization",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "estimated_host_hours_upper_bound": 0.18333333333333332,
+  "quality_evidence": false,
+  "candidate_shortlist": [
+    {"idea": "FP32 unique first plus ordinary compiled control", "why_ranked": "One bounded native observation resolves whether previous dtype/zero history is necessary; original failure took only30seconds."},
+    {"idea": "Full identical20-case rerun", "why_ranked": "Not selected: duplicates failure without distinguishing a cause."},
+    {"idea": "Change kernel math or loosen tolerance", "why_ranked": "Not selected: direct/eager exactness localizes the issue and no evidence supports arithmetic change or relaxed checks."},
+    {"idea": "Fused BF16-only production embedding", "why_ranked": "Not selected: distinct unimplemented integration; production FP32 boundary and failed gate remain relevant."}
+  ],
+  "selection_rationale": "K2 is critical-path throughput research. This is a source-neutral causal diagnostic after an authenticated failure, not an attempt to turn the failed gate into a pass or a production retry.",
+  "control": {
+    "source_commit": "9ce2e6a037212aaa76bd85b9b4ab7d311a481757",
+    "kernel_sha256": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+    "checker_sha256": "89189024c54735338f2ff69f9f26a6ee025f2b3c48f0fe5fbd67438ba3290850",
+    "reference_sha256": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+    "run_label": "fs-20260926-k2-symmetric-consumer-trn21-r1",
+    "verdict": "FAILED_EXACTNESS_PARKED_UNCHANGED",
+    "public_val_bpb": null
+  },
+  "candidate": {
+    "files_allowed": ["new isolated diagnostic checker, tests, binding and receipts only"],
+    "run_label": "fs-20260926-k2-fp32-first-trn22-d1",
+    "host": "trn22 proposed only, after existing full/eval and W1 observation",
+    "shape": {"V": 256, "T": 256, "C": 128},
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "launch_command": "Pending frozen separate packet; no launch authorized by this proposal"
+  },
+  "design": [
+    "Preserve the exact kernel and reference files. Custom wrapper extracted or reproduced with AST identity to frozen make_wrapper; no clone/cast/math fix.",
+    "FP32 unique must be the first compiled custom fixture in this process; no BF16/cancellation warmup. Direct/eager references use the same input and metadata.",
+    "Record upstream, ids, weight and every metadata tensor hashes before and after each route, finite/nonzero/shape/dtype and exact output/gradient hashes. Hashing is a declared diagnostic observation, not proof of values inside compiled VJP.",
+    "Run one separately named ordinary compiled F.embedding control on a fresh leaf with the same nonzero upstream; separate graph identity and result, not a replacement for custom correctness.",
+    "Preserve all route results even when custom compiled comparison fails, then return a failing diagnostic verdict. No production adoption or whole-step timing. A diagnostic completion is not a native qualification pass.",
+    "Keep strict byte comparisons and all earlier failed20-case receipts unchanged; a successful unique-first result only supports further history-dependence investigation. Full20-case/four-rank gate still required for any production integration."
+  ],
+  "gates": {
+    "source_kernel_changed": false,
+    "checker_review": "PENDING independent source/CPU review and own reference",
+    "binding_review": "PENDING exact packet review",
+    "operator_assignment": "NONE",
+    "stage_authorized": false,
+    "launch_authorized": false
+  },
+  "trainium_feasibility": "Same tiny synthetic shapes and installed path as30-second failed run; one ordinary compiled control adds a small graph. Native behavior remains unknown. Hard600+60s limit, four ranks/LNC2 and fresh private caches; no model training/evaluation/data access.",
+  "cheapest_falsifier": "CPU tests for exact fixture/wrapper/input hashes and independent static refusal tests before any separately assigned native observation.",
+  "preflight": "Sole Operator, original device0 lifetimeflock, fresh ps AND neuron-ls, disk>=10.5GiB, clearSTOP/breakers, exact source/support/argv and unique absent targets. Preserve current jobs and never duplicate launcher.",
+  "postflight": "Retrieve complete raw outcomes/all ranks/all graph tables; explicit actual dispatch/worker/compiler PID/PPID/PGID/SID absence plus device and original-lock checks before later work. No automatic retry or next job.",
+  "abort_conditions": ["Any identity or containment failure", "Timeout or exception with retained error", "Missing or malformed result stays incomplete; never infer pass"],
+  "prior_result_refs": ["research/v2/verification/20260926-k2-symmetric-native-outcome/REVIEW.md", "c087cbb7:research/v2/operator/20260926-trn21-k2-symmetric-native/completed/results-bundle.json"],
+  "rollback": "Leave isolated packet disabled or decline before staging; production model, original failed gate, oracle, source and current host jobs remain unchanged.",
+  "results": null,
+  "verdict": null
+}
