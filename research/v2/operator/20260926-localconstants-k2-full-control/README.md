@@ -22,3 +22,13 @@ fresh original596823-lock admission checks. No extra native test/review is added
 
 The trn22 alternative is not prepared here: it has no actual same-source662 native
 cache owner. This preparation does not reserve or select either host.
+
+## Human amendment received 10:19 UTC — overrides speed-only continuation
+
+The still-disabled packet's earlier speed-only threshold is no longer sufficient.
+Continuation requires the actual measured cold fifth boundary and steady rate:
+`net_tokens = max(0, 1800 - max(0, cold_startup - 900)) * steady_tok_s`, at least
+1.03 times the matched base's net tokens (base startup859s has no charged excess).
+No launch may use the earlier speed-only text. Preserve the live native201 run;
+actual startup/charge/rate and net-token result are still unknown. The Supervisor
+owns the amended proposal/result selection and any eventual exact release.
