@@ -1,0 +1,141 @@
+{
+  "started_utc": "2026-09-26T05:24:12.396103+00:00",
+  "ended_utc": "2026-09-26T05:24:17.498077+00:00",
+  "returncode": 0,
+  "remote_source_sha256": "0cd1ef0dc9e3cce48c3231faf61d0dc212974bf5a3b71e8fee618d41a7479be2",
+  "prior_trn22_pins": [],
+  "stderr": "",
+  "remote": {
+    "utc": "2026-09-26T05:24:17.298318+00:00",
+    "host": "trn21",
+    "project": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+    "checks": {
+      "ps": {
+        "command": [
+          "/usr/bin/ps",
+          "-eo",
+          "pid,ppid,pgid,sid,comm,args"
+        ],
+        "returncode": 0,
+        "stdout": "[omitted unrelated process argv; matching workload rows retained separately]",
+        "stderr": ""
+      },
+      "neuron_ls": {
+        "command": [
+          "/opt/aws/neuron/bin/neuron-ls",
+          "--json-output"
+        ],
+        "returncode": 0,
+        "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0329acb9a6244986b\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+        "stderr": ""
+      },
+      "project_head": {
+        "command": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "rev-parse",
+          "HEAD"
+        ],
+        "returncode": 0,
+        "stdout": "e65a3097a5b00f6178188a935bb2acb9a5042c6c\n",
+        "stderr": ""
+      },
+      "project_status": {
+        "command": [
+          "/usr/bin/git",
+          "--no-optional-locks",
+          "-c",
+          "core.fsmonitor=false",
+          "-C",
+          "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2",
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=normal"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "project_clean": true,
+    "project_clean_known": true,
+    "source": {
+      "path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-arch36a8-startup-clock-trn21-r2-full-packet/train/train.py",
+      "expected_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "before": {
+        "device": 66305,
+        "inode": 3185544,
+        "mode": 33060,
+        "uid": 1000,
+        "gid": 1000,
+        "bytes": 324457,
+        "mtime_ns": 1790384766546681784,
+        "ctime_ns": 1790384766690781876
+      },
+      "after": {
+        "device": 66305,
+        "inode": 3185544,
+        "mode": 33060,
+        "uid": 1000,
+        "gid": 1000,
+        "bytes": 324457,
+        "mtime_ns": 1790384766546681784,
+        "ctime_ns": 1790384766690781876
+      },
+      "stable": true,
+      "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+      "matches_expected": true
+    },
+    "path_existence": {
+      "/home/ubuntu/k2-f0f2-trn21-r1-packet": {
+        "exists": false
+      },
+      "/home/ubuntu/k2-f0f2-trn21-r1-output": {
+        "exists": false
+      }
+    },
+    "lock": {
+      "device": 66305,
+      "inode": 596823,
+      "free_before_observation": true,
+      "held_for_readonly_checks": true
+    },
+    "job_rows": [],
+    "neuron_ls": [
+      {
+        "instance_type": "trn2.3xlarge",
+        "instance_id": "i-0329acb9a6244986b",
+        "neuron_device": 0,
+        "bdf": "0000:33:00.0",
+        "cpu_affinity": "0-11",
+        "numa_node": "0",
+        "connected_to": null,
+        "nc_count": 4,
+        "logical_neuroncore_config": 2,
+        "memory_size": 103079215104,
+        "neuroncore_ids": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "neuron_processes": []
+      }
+    ],
+    "device_idle": true,
+    "free_bytes": 13067235328,
+    "memory": {
+      "MemTotal_bytes": 133975027712,
+      "MemAvailable_bytes": 131438366720
+    },
+    "no_host_writes": true,
+    "no_reservation": true,
+    "no_launch": true,
+    "elapsed_seconds": 0.07251924194861203
+  },
+  "stdout_if_error": null
+}
