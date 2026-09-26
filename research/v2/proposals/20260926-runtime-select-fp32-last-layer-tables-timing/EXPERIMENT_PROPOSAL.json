@@ -1,0 +1,268 @@
+{
+  "proposal_id": "20260926-runtime-select-fp32-last-layer-tables-timing",
+  "status": "complete_exact_source_cpu_off_local_backend_simulator_pass_native_and_actual_control_pending",
+  "owner_role": "researcher",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "hypothesis": "Fixed last-layer bigram/trigram FP32 tables with ordered K2 backward can complete a legal full-budget eight-layer training run with useful final BPB; timing includes the full table cost.",
+  "single_causal_change": "Add only the fixed last-layer A1 table package with explicit FP32 masters/gradients/RMS and BF16 gathered activations to qualified K2 eight-layer base.",
+  "mechanism_class": "quality_and_throughput_tradeoff",
+  "predicted_bpb_delta": null,
+  "prediction_note": "Unknown: a timing falsifier, not a BPB quality test.",
+  "selection_rationale": "User-decided FP32 gradients on hashed rows; latest FINAL SPRINT tables next after qualified K2. No historical BF16 oracle.",
+  "trainium_feasibility": "Four ranks LNC2, batch131072/context1024/pack32. Tables524288x128 twice, layer7, extra1.5GiB state per rank and512MiB checkpoint before temporaries. Native dynamic row traversal/DMA/sort lowering unmeasured.",
+  "cheapest_falsifier": "One full-shape 45-step native table timing/cold startup check; finite/nonzero table updates, valid shape/correctness and official accounting. Tables need not themselves gain3% speed.",
+  "evidence": [
+    "research/v2/lanes/k2-last-layer-tables/SPEC.md",
+    "research/v2/lanes/k2-last-layer-tables/cpu-result.json",
+    "research/v2/lanes/k2-last-layer-tables/review/REVIEW.md",
+    "research/v2/lanes/k2-last-layer-tables/review/independent-result.json",
+    "research/v2/lanes/tables-runtime-select/SPEC.md",
+    "research/v2/lanes/tables-runtime-select/SOURCE.diff",
+    "research/v2/lanes/tables-runtime-select/REPRODUCE.md",
+    "research/v2/verification/20260926-k2-compiler-local-constants/REVIEW.md",
+    "workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md",
+    "research/v2/lanes/tables-runtime-select/STATUS.md",
+    "research/v2/lanes/tables-runtime-select/cpu-result-int32.json",
+    "research/v2/lanes/tables-runtime-select/cpu-result-int64.json",
+    "research/v2/lanes/tables-runtime-select/parser-result-table.json",
+    "research/v2/lanes/tables-runtime-select/compile-production-result-1790416485199864469.json",
+    "research/v2/lanes/tables-runtime-select/simulate-result-1790416504816097348.json",
+    "research/v2/lanes/tables-runtime-select/simulate-result-1790416657288176259.json"
+  ],
+  "control": {
+    "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "host": "Same host as table check when comparable K2 timing is available; otherwise retain limitations, not a new quality claim",
+    "run_label": null,
+    "native_qualified": false,
+    "full_control_proposal": null,
+    "full_control_role": "Prospectively bind first qualified662 full as kind=control/base662 before its launch/BPB under a separately completed role binding; never relabel a result or add a duplicate row. No control preempts K2 retry."
+  },
+  "candidate": {
+    "source": "research/v2/lanes/tables-runtime-select/train.py",
+    "source_sha256": "414cdd76df85450659375c0928b7f0c882b963088529ca049c19be32814fec34",
+    "files_allowed": [
+      "train.py"
+    ],
+    "run_label_template": "fs-20260926-runtime-select-fp32-tables-timing-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "submission_authorized": false,
+    "source_commit": "2a51d40c53da8b5707c499abc765f2d3d47ba500",
+    "source_commit_status": "Exact414c at2a51d40c5; author CPU/OFF, real table backward NEFF and both official production-shape simulators passed. K2 native201 result, table native execution and source/argv/environment preflight remain pending.",
+    "launch_command_sha256": "b1ca39b984c946d4f5bf54ef66c4b8ccc93c93c7676dfbcff98d5b1b4e408b0a",
+    "launch_command_hash_encoding": "SHA256 of exact UTF-8 launch_command without trailing newline"
+  },
+  "gates": {
+    "cpu_exactness_author": true,
+    "flag_off_three_step_identity_author": true,
+    "independent_review": "Existing P2/guard/constants reviews retained at exact original scopes; Root independently reads this minimal runtime-address delta and current receipts. Implementer does not self-review or claim Root acceptance. No extra review loop requested.",
+    "independent_review_limitations": "Fresh414c author int32/int64 suites pass. OFF3 uses K2=false in both parent/P2 with SGD, not production-optimizer K2-ON/table-OFF; ON2 uses actual table/RMS and interpreted backward at reduced geometry. Real production table parser/backend and official simulator separately pass. Cross-shape prefix discrepancy7.62939453125e-6 remains disclosed. No native/distributed/BPB evidence yet.",
+    "native_timing": false,
+    "native_cold_startup": false,
+    "k2_parent_valid_rate_ge_1_03": false,
+    "fresh_machine_preflight_passed": false,
+    "exact_source_argv_environment_binding_passed": false,
+    "exact_source_composition_bound": false,
+    "forward_local_compile_extra_gate": false
+  },
+  "timing": {
+    "startup_steps": 5,
+    "settling_steps": 5,
+    "steady_steps": 35,
+    "primary_statistic": "35*131072/(t44-t9), preselected before candidate run; use actual comparable K2 native control when available",
+    "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
+    "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
+    "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
+    "screen_pass": "45 finite steps, valid native execution, table gradients/updates, correct source/checkpoint and official budget; no minimum throughput gain for adding tables",
+    "quality_followup": "After exact662 native>=3% qualification and414c native validity, 20260926-runtime-select-fp32-last-layer-tables-full declares full1800/fresh20M against an actual same-host kind=control/base662. No table3% bar."
+  },
+  "abort_conditions": [
+    "Failed independent source test",
+    "Compile/runtime/nonfinite failure",
+    "Original flock, fresh ps/neuron-ls or measured resource check fails",
+    "Missing/untrustworthy timing observations"
+  ],
+  "retry_policy": "One diagnosed fresh-label repair/retry, then park; one review only unless a test fails",
+  "human_approved_by": "Poojith, Final Sprint standing development authorization",
+  "verdict": null,
+  "resource_admission": {
+    "fresh_measured_resources_required": true,
+    "existing_runtime_floor_bytes": 11274289152,
+    "minimum_initial_floor_bytes": 15032385536,
+    "additional_table_checkpoint_bytes": 536870912,
+    "note": "Preserve actual prepared Operator floors:15032385536 initial bytes =11274289152 runtime +3221225472 existing full-run footprint +536870912 extra FP32 checkpoint, and68719476736 host MemAvailable. Replaces only old unaugmented proposal field. Measure actual prospective needs and increase reservations if necessary; preserve all current/unscored artifacts. No cleanup/AWS action.",
+    "memory_available_minimum_bytes": 68719476736
+  },
+  "prepared_utc": "2026-09-26T10:12:25.941Z",
+  "superseded_proposal": "research/v2/proposals/20260926-compilerlocals-fp32-last-layer-tables-timing/EXPERIMENT_PROPOSAL.json",
+  "superseded_proposal_sha256": "2d75c0ad33dc30b7316dbd6a2e7469efdc6618d50921fbaef81e39cae5859071",
+  "supersession": "Mechanical rebind of unchanged Researcher-authored table timing/full design to repaired414c/base662 and actual source-bound CPU/compiler/simulator receipts. Failed4079 runtime-index parser receipt remains in parent lane1899d6ea0. No old source or launch metadata may be executed; no scientific change, extra gate or native qualification is implied.",
+  "host_alternatives": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-runtime-select-fp32-tables-timing-trn21-r1"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-runtime-select-fp32-tables-timing-trn22-r1"
+    }
+  ],
+  "dispatch": {
+    "selected_host": null,
+    "selected_label": null,
+    "launch_authorized": false,
+    "operator": "Existing sole Operator only",
+    "sequence": "Preserve live K2 native201 and batch confirmation. Tables are contingent on actual qualified trn21 K2 native201, source-bound table CPU/OFF evidence (complete), Root source-composition acceptance and fresh native admission. Full additionally retains actual same-host K2 full-control binding. One selected host only; no launch release here.",
+    "binding": "Sole Operator binds exact414c/2a51d40c5, this proposal/hash, unused selected label, effective argv/environment/cache/resources under the original lifetime guardian. Never execute old4079/0127/b472/a318/639 prepared bindings.",
+    "stage_authorized": false
+  },
+  "precision_contract": {
+    "reference": "F.embedding(rows, fp32_master_table).to(torch.bfloat16); actual PyTorch argument order for the unchanged FP32-master-gather/BF16-activation reference.",
+    "tables": "Two zero-initialized FP32 Parameters[524288,128], b7/t7 at absolute layer7 only; use the reviewed fixed signed-int32 hash formula and padding8192.",
+    "forward": "Gather from FP32 masters before converting only gathered activations to BF16. Never cast the whole table to BF16 before lookup.",
+    "gradients": "Ordered per-occurrence FP32 accumulation of BF16 tangents; FP32 Parameter.grad, cross-microstep accumulation, distributed AVG and optimizer input. Do not substitute the historical BF16 collision-rounding oracle.",
+    "rms": "FP32 master/state/update; beta1=0, beta2=0.999, epsilon1e-10, weight_decay0, bias correction and no_lr_decay, LR=0.3*(1024/768)^(-0.5)=0.2598076211353316.",
+    "ownership_and_clip": "Tables are excluded from packed ownership/all-gather and receive one replicated RMS update per rank after AVG and joint table norm1 clipping. Ordinary parameters, projections and gates retain their separate main norm1 clip and original optimizer behavior.",
+    "checkpoint_and_eval": "Production model-only checkpoint persists FP32 tables and the config flag; ordinary load_for_eval reconstructs the trained model and strict state. No evaluator adapter, optimizer resume, alternate model, validation training, tokenizer/data/scoring change or external weights."
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "source_checkpoint_reserve_seconds": 15,
+    "source_startup_launch_margin_seconds": 30,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "existing_timeout_term_grace_seconds": 60,
+    "official_budget": "Use unchanged proven full-run harness/guardian and prepare accounting, including first-five startup boundaries, capped allowance, source predictor, checkpoint reserve and through-exit charge. Outer timeouts are containment ceilings, not permission to exceed1800 charged seconds; preserve all existing full-run guards.",
+    "startup": "Record uncapped actual fifth boundary, capped allowance, startup excess and source-native estimates distinctly. Actual startup above900 seconds is charged against1800; retain the source's existing30-second predictor margin. Around870 seconds is a planning warning, not an invented exemption or altered allowance.",
+    "steps": "Report steps and tokens. Below60% of the same-host control, timing spikes or stalls trigger diagnosis; step count is not an adoption gate. A crash, truncated run or over-budget result remains invalid.",
+    "cache_provenance": "Fresh unused private six-cache namespace for exact414c native check; record created-empty evidence and actual rank environments, owner/source/paths. Old0127/b472 namespaces are not cold proof. No quality selection on native45.",
+    "cold_startup": "Retain the P2 short check's genuine cold-start measurement and all charged excess. A warm full run does not certify cold final quality. Before submission eligibility, measure a genuinely cold full candidate replay and fresh20M with the same official accounting, then obtain the required Claude audit and human upload decision."
+  },
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "short_step_override": "Exactly --num-steps45 as in launch string; no conflicting environment override. This is timing, not a full1800-second quality result.",
+    "binding_requirement": "Archive the actual allowlisted effective worker environment and exact runtime/package pins. Other experimental environment overrides must not alter this source/argv contract; no secrets in receipts."
+  },
+  "machine_protocol": {
+    "reference": "research/experiment-protocol.md and workflow/SINGLE_LAUNCHER_2026-09-26.md",
+    "lock": "Sole Operator holds the same original exclusive nonblocking /home/ubuntu/.cache/trainium_freshstart/device0.lock through the entire training, attached evaluation and owned-child lifetime; never replace its inode or use a per-run alternative.",
+    "preflight": "Fresh successful ps AND neuron-ls under the lock, supplemental fuser idle, STOP/authority checks, clean exact source/commit/proposal/argv/runtime binding, unused label, measured disk and RAM. Preserve active jobs; busy, ambiguous, malformed or missing evidence is no launch.",
+    "completion": "Hold original lock through owned-child quiescence, retrieval and any declared attached activity under existing guardian release policy. Timing does not run a surrogate quality evaluation or authorize another launcher."
+  },
+  "local_scope": "Original hypothesis/design/argv/precision/thresholds authored by Researcher remain unchanged. Implementer mechanically rebound exact bytes and actual own test receipts only under Supervisor instruction; no self-verification, host access, queue/state/ledger/selector edit, launch assignment or launch.",
+  "authority_amendments": [
+    "workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md",
+    "Latest direct human gate correction conveyed by Supervisor: accepted existing native forward; CPU exactness/OFF identity plus one native timing; no inferred extra local-forward gate."
+  ],
+  "historical_repair_binding": {
+    "scope": "Only the two-line input guard changes: accept two-dimensional int32 or int64 token IDs, with matching error text. No cast, hash, layout, gather, backward, optimizer or FP32 precision change.",
+    "original_k2_source_sha256": "63925519ac6c0aab1a1d598e96fef3f4413fbd083d9b6d177901a2e972060db5",
+    "original_k2_review": "research/v2/verification/20260926-k2-sprint-independent/REVIEW.md",
+    "original_k2_review_sha256": "2ddb87ac3c38897abf306e323d06c747b0db41423e2f6126ede94e98cadcf502",
+    "repaired_k2_source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
+    "k2_repair_diff": "research/v2/lanes/k2-native-index-repair/SOURCE.diff",
+    "k2_repair_diff_sha256": "265a49010d7f9d3652ee157ebfa5581e44494637cef44fb9f0a840d2afe634c9",
+    "k2_repair_author_cpu_sha256": "d14080bf87211b0fc9dc19fa41634fc8fa34029be1c6518c27e1447fa2ba57fb",
+    "guard_review": "research/v2/verification/20260926-k2-native-index-repair/REVIEW.md",
+    "guard_review_sha256": "b689fb6ed0dd86b73bb945da2fb6bb31a3e8a524b15dc3c984624a5dea08c6dc",
+    "guard_review_input_diff_sha256": "a2735f824e6207217533c2a098e8992cd2176043626e956147651976ca8701e5",
+    "guard_review_executed_receipt_sha256": "e57f9e57ed09d6680e01ce154ef77d59c700642527084efdd89ab6f6cb963a32",
+    "guard_review_scope": "PASS_FOR_ONE_NATIVE_RETRY for the tiny supplied diff only; independent exact tensor-value metadata/reference checks for both index dtypes. Not full-source execution, native lowering, throughput, checkpoint or scientific qualification. Root binds the reviewed diff to full source; this proposal adds no review.",
+    "existing_k2_native_retry_proposal": "research/v2/proposals/20260926-k2-native-index-repair-timing/EXPERIMENT_PROPOSAL.json",
+    "existing_k2_native_retry_proposal_sha256": "0b2f56940734765e9a85e46b250fd3d1ed8a989fa701c5ef7bfa0d908bcb7e5c",
+    "existing_k2_native_retry_label": "fs-20260926-k2-indexrepair-on-parentcontrol-trn22-r1",
+    "failed_original_attempt": "fs-20260926-k2-sprint-on-parentcontrol-trn22-r1 failed before any step on the int64-only guard. Preserve it as failure; the existing diagnosed retry is not reset or duplicated by these proposals. If it fails, archive and park.",
+    "native_qualification": false,
+    "original_p2_source_sha256": "b4728d17d082b44018290d2f465b5956f99ecbebe61da8b81508365c7dc53190",
+    "original_p2_review": "research/v2/lanes/k2-last-layer-tables/review/REVIEW.md",
+    "original_p2_review_sha256": "c41e16d647658817b2456847d9e8221aeb1f8ff739f7d856577e406d99c5e435",
+    "repaired_p2_source_sha256": "0127d02dcaae0e6fdb70db693697caf02233db31d926dddd4649a1d496e6b543",
+    "p2_repair_diff": "research/v2/lanes/k2-last-layer-tables-index-repair/SOURCE.diff",
+    "p2_repair_diff_sha256": "d0a849bf4758906eb4530e518367ec13204adf9e49eef12036db8b8aee07b17d",
+    "p2_cpu_int32_receipt": "research/v2/lanes/k2-last-layer-tables-index-repair/cpu-result-int32.json",
+    "p2_cpu_int32_sha256": "169a30486ddeefb7821836a24771cc8e13c9370f326a90887a1274e04f3dd0af",
+    "p2_cpu_int64_receipt": "research/v2/lanes/k2-last-layer-tables-index-repair/cpu-result-int64.json",
+    "p2_cpu_int64_sha256": "b43f7fc7534b78013ae9f2c3ccb020ebf7f51ecf0f831e8190aaaa87ee30f3e8",
+    "composition": "Root/Analyst read-only composition is durably archived at source commit697c0d05: exact b472-to-0127 guard-only delta equals reviewed K2 repair; three shared K2 helper ASTs match a318, FP32/hash unchanged, actual int32 flows checked. This composes existing reviews without a second review or native pass.",
+    "composition_record": "research/v2/lanes/k2-last-layer-tables-index-repair/COMPOSITION.md",
+    "inherited_cpu_scope": "Both dtype receipts report OFF3 bit identity with K2=false in both parent and P2 and SGD, not production-optimizer K2-ON/table-OFF identity. ON2 uses interpreted lookup and actual RMS optimizer. Common initialization and strict checkpoint/same-shape causality checks pass. Cross-shape max_abs=7.62939453125e-6 diagnostic remains a failed tolerance, and native_executed=false.",
+    "original_p2_review_scope": "c41e16d6 is PASS_FOR_SHORT_NATIVE_CHECK on the original diff/spec/receipts, independently executed hash/kernel-interpreter/FP32-gradient/RMS reference, not full-source hash execution or a full model/native run. b689fb6e covers only the identical guard repair; do not expand either review's scope.",
+    "composition_record_sha256": "473627f4ebde31548f6c95cd1813360520f72cf29eee641f426d519618f8163a",
+    "status": "HISTORICAL0127/a318 ONLY; references, passed CPU fields and old native/control proposals below confer no current4079/662 readiness or authority."
+  },
+  "scope_binding": {
+    "source_sha256": "414cdd76df85450659375c0928b7f0c882b963088529ca049c19be32814fec34",
+    "source_commit": "2a51d40c53da8b5707c499abc765f2d3d47ba500",
+    "parent_source_sha256": "4079e8e6bff1f8438e0430a8b8b2099085da5d6f908149268ac17e8b318fdbff",
+    "spec": "research/v2/lanes/tables-runtime-select/SPEC.md",
+    "spec_sha256": "a472cb85d1ce9fbcd02e3830549c2209c2eb288d837b04d224ffaccf5d74789b",
+    "diff": "research/v2/lanes/tables-runtime-select/SOURCE.diff",
+    "diff_sha256": "e95f4725114bdb087898934497337547e6ea908ebba8c28c40c1baed17cf4788",
+    "test_commands": "research/v2/lanes/tables-runtime-select/REPRODUCE.md",
+    "test_commands_sha256": "3e7c5a2aaecbe7186316df93086c115d1052671220d04e1f9047817b7cc26db5",
+    "status_report": "research/v2/lanes/tables-runtime-select/STATUS.md",
+    "status_report_sha256": "655e5438b4ba22b5e5b2daa01b0f2743470edde8779b3d8787513591887c2126",
+    "scope": "Only four table HBM group access expressions become reshape/select dynamic views, removing invalid VirtualRegister multiplication. Runtime4096 loop, FP32 order, metadata, forward, optimizer and all model/eval/budget code unchanged. K2 helpers AST-equal to662c.",
+    "independent_composition_verified": false,
+    "active_k2_source": "research/v2/lanes/k2-compiler-local-constants/train.py",
+    "active_k2_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "active_k2_commit": "da34c88e90c0f7f281188315a3e63734a8d55521",
+    "execution_evidence": {
+      "cpu_int32": {
+        "path": "research/v2/lanes/tables-runtime-select/cpu-result-int32.json",
+        "sha256": "4e0874a36c6881fac54482b57cbcc57566098bc4ba4979f9c338f3f9bf7220b1",
+        "status": "AUTHOR_CPU_PASS",
+        "native_executed": false
+      },
+      "cpu_int64": {
+        "path": "research/v2/lanes/tables-runtime-select/cpu-result-int64.json",
+        "sha256": "3ec2fac569e226a748d7affadcdae7b3967aedbebb5544948d4152de6df8c43b",
+        "status": "AUTHOR_CPU_PASS",
+        "native_executed": false
+      },
+      "table_parser": {
+        "path": "research/v2/lanes/tables-runtime-select/parser-result-table.json",
+        "sha256": "f4e34a9889043f1f575114ecaa574434a01abb0c721598893ebdaee4f0706cd0",
+        "status": "PARSER_MLIR_PASS",
+        "native_executed": false
+      },
+      "backward_backend": {
+        "path": "research/v2/lanes/tables-runtime-select/compile-production-result-1790416485199864469.json",
+        "sha256": "ed008129f370becbccd76c30963e07cee9aeb3499b0ae654db3bb560e77a2d31",
+        "status": "FULL_BACKWARD_COMPILE_PASS",
+        "native_executed": false
+      },
+      "official_simulator_clustered": {
+        "path": "research/v2/lanes/tables-runtime-select/simulate-result-1790416504816097348.json",
+        "sha256": "c50d6ace2f35cc737dcfce9e8735cb6a9b8643d3b19e28124ac2614f163aaafb",
+        "status": "SIMULATOR_NUMERICS_PASS",
+        "native_executed": false
+      },
+      "official_simulator_all_groups": {
+        "path": "research/v2/lanes/tables-runtime-select/simulate-result-1790416657288176259.json",
+        "sha256": "8b3a4b995f2a06458dd8b2bb4e3793b47d844b678f362f8af587e58ad48e3c3f",
+        "status": "SIMULATOR_NUMERICS_PASS",
+        "native_executed": false
+      }
+    },
+    "native": "PENDING",
+    "gate_policy": "Existing native forward accepted by human. CPU exactness/OFF identity plus one native timing is the bar; no extra local-framework-forward prerequisite, OFF run or review cycle. Current receipts are real evidence, not native timing.",
+    "local_process_policy": "All author tests completed sequentially; no heavy process remains and local slot was released."
+  },
+  "author_session": "/root/p2_full_proposal_researcher",
+  "mechanical_binding_by": "/root/tables_scope_packaging, Implementer under direct Supervisor assignment; no new proposal/scientific-selection authority or self-review",
+  "k2_live_dependency": {
+    "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "host": "trn21",
+    "run_label": "fs-20260926-k2-localconstants-native201-trn21-r1",
+    "assignment": "research/v2/assignments/20260926-k2-native201-trn21.md",
+    "qualification": "PENDING_ACTUAL_NATIVE201_TERMINAL_AND_TIMING_RECEIPT",
+    "result": null,
+    "primary_statistic": "35*131072/(t44-t9), unchanged preselected window; rate>=1.03 versus actual same-host e1e2 control"
+  }
+}
