@@ -1,0 +1,78 @@
+{
+  "proposal_id": "fs-20260926-final-batch262144-lr021-cold-trn21-r1",
+  "arm_id": "final-batch262144-lr021-cold",
+  "kind": "submission_validation",
+  "run_purpose": "quality",
+  "status": "PREPARED_NOT_QUEUED_OR_RELEASED",
+  "authority": "Poojith: confirmed batch/LR is final candidate unless beaten; cold replay + Claude audit before human upload",
+  "hypothesis": "Clean two-constant port preserves confirmed research configuration under actual cold accounting.",
+  "single_causal_change": "No scientific change versus confirmed batch/LR; final clean source and cold-cache validation.",
+  "candidate": {
+    "source_sha256": "cd0c4aa59754f46705355d964fad4528cf1de77324469b0829bcc0de149b757d",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+    "launch_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "total_batch_size": 262144,
+    "matrix_lr": 0.021,
+    "warmdown_ratio": 0.75,
+    "muon_momentum_warmup_steps": 300
+  },
+  "control": {
+    "selected_host": "trn21",
+    "selected_label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+    "public_20m": 0.9869854734569898,
+    "bound": true,
+    "type": "actual_same_host_scientific_comparator_original_roles_retained",
+    "base_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+    "alternatives": [
+      {
+        "host": "trn21",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+        "public_20m": 0.9869854734569898
+      },
+      {
+        "host": "trn22",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+        "public_20m": 0.9867730678453942
+      }
+    ],
+    "comparison": "Clean-port validation versus confirmed batch/LR source8c6; no warmdown change.",
+    "role_integrity": "Existing comparator rows stay batch_arm/base=e1e2, no retrospective relabel or duplicate. Candidate future row is schedule_arm/base8c6. Formal unchanged decide.py may INSUFFICIENT absent genuine prospective kind=control/base8c6; report raw scientific delta separately, no invented adoption or extra control allocation."
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "mode": "unchanged prepare.py eval-public",
+    "tokens": 20971520,
+    "context": 1024,
+    "batch_size": 1
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "require_over_budget_false": true,
+    "record_cold_startup_and_charge": true
+  },
+  "cache_policy": "Unique empty private training caches proven by original preflight; warm eval cache does not waive fresh process.",
+  "source_evidence": {
+    "cpu_receipt_sha256": "3a243c335648c040a381e96c2b40590f4409466b622b33818d753ea23986d630",
+    "scope": "Synthetic reduced8-layer128wide, BF16 CPU fallback, actual Muon/AdamW, no distributed/native/full-size claim",
+    "fresh_independent_review": false,
+    "claude_audit_passed": false
+  },
+  "dispatch": {
+    "selected_host": "trn21",
+    "selected_label": "fs-20260926-final-batch262144-lr021-cold-trn21-r1",
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "order": "Final validation slot after selecting best stack; never preempt current warmdown/momentum work."
+  },
+  "submission_authorized": false,
+  "pending": [
+    "Final-source selection",
+    "Fresh locked machine admission",
+    "Actual cold full run and fresh20M result",
+    "Selected-stack second-seed confirmation",
+    "Claude audit"
+  ]
+}

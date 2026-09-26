@@ -1,7 +1,11 @@
 """CPU-only refusal tests for the unchanged remote staging body's launch guards."""
 import ast
+import base64
+import copy
 import datetime
 import fcntl
+import importlib.util
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -17,6 +21,38 @@ body = next(ast.literal_eval(n.value) for n in ast.parse(template.read_bytes()).
 
 
 class GuardRefusal(unittest.TestCase):
+    def test_rehashed_wrong_provenance_refused(self):
+        spec = importlib.util.spec_from_file_location('manual_job_under_test', HERE / 'manual_job.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        manifest_path = HERE / 'manual-jobs/manifest.json'
+        original_manifest = json.loads(manifest_path.read_bytes())
+        key = 'trn21-muon150'
+        packet_path = HERE / 'manual-jobs' / original_manifest[key]['packet']
+        original_packet = json.loads(packet_path.read_bytes())
+        real_read = Path.read_bytes
+        for field, error in [('train_sha256', 'PROVENANCE_SOURCE_MISMATCH'),
+                             ('label', 'PROVENANCE_LABEL_MISMATCH'),
+                             ('launch_command', 'PROVENANCE_COMMAND_MISMATCH')]:
+            with self.subTest(field=field):
+                manifest, packet = copy.deepcopy(original_manifest), copy.deepcopy(original_packet)
+                item = packet['files']['package/provenance.json']
+                provenance = json.loads(base64.b64decode(item['b64']))
+                provenance[field] = 'wrong-test-value'
+                data = json.dumps(provenance).encode()
+                item.update(b64=base64.b64encode(data).decode(), sha256=module.sha(data))
+                packet_raw = json.dumps(packet).encode()
+                manifest[key]['packet_sha256'] = module.sha(packet_raw)
+
+                def read(path):
+                    if path == packet_path: return packet_raw
+                    if path == manifest_path: return json.dumps(manifest).encode()
+                    return real_read(path)
+
+                with patch.object(Path, 'read_bytes', read), patch.object(module, 'remote', side_effect=AssertionError('NO_HOST_CALL')):
+                    with self.assertRaisesRegex(AssertionError, error):
+                        module.checked_packet(key)
+
     def run_case(self, mode):
         cache = Path('/home/poojith-devan/.cache')
         with tempfile.TemporaryDirectory(prefix='trainium-manual-guard-', dir=cache) as folder:

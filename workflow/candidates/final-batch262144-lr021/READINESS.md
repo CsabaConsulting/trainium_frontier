@@ -25,3 +25,11 @@ Claude audit via Poojith. A later confirmed winner replaces this fallback.
 User deadline Monday evening package, Tuesday29 September18:00IST freeze.
 This folder is local preparation only; no Downloads replacement or upload.
 Only Poojith uploads. No quota assumptions or guaranteed official BPB.
+
+Cold transport prepared locally: `prepare_cold_packet.py` mechanically derives
+`cold-packet.disabled.json` from the existing trn21 private-cache full-run
+transport. Driver reversal is exact and all three guardians are unchanged;
+six unique training caches, fixed1800 and fresh20M are retained. No RELEASE,
+live-manifest entry, queue insertion, SSH call or launch follows preparation.
+If a new stack wins, regenerate against its separately frozen source instead
+of running this fallback merely because a packet exists.

@@ -42,6 +42,10 @@ def checked_packet(key):
         '4ec8b1b46562612cdcbfe3d7f66b0c8d25666bdbac3516b30bd9149c2dc08d2d',
         '4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020')
     assert p['files']['package/train.py']['sha256'] == entry['source_sha256']
+    provenance = json.loads(base64.b64decode(p['files']['package/provenance.json']['b64'], validate=True))
+    assert provenance['train_sha256'] == entry['source_sha256'], 'PROVENANCE_SOURCE_MISMATCH'
+    assert provenance['label'] == entry['label'], 'PROVENANCE_LABEL_MISMATCH'
+    assert provenance['launch_command'] == entry['command'] == p['binding']['launch_command'], 'PROVENANCE_COMMAND_MISMATCH'
     assert p['binding']['budget']['source_seconds'] == 1800
     return entry, p
 

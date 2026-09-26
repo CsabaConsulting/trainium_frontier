@@ -32,7 +32,7 @@
     "files_allowed": [
       "train.py"
     ],
-    "source_edit": "Only default-preserving --warmdown-ratio float/global/finite0<r<=1 validation/assignment in main; keep .75 constant and lr_multiplier body unchanged.",
+    "source_edit": "Only MUON_MOMENTUM_WARMUP_STEPS300 ->150; all functions unchanged.",
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021",
     "launch_string_sha256": "60a64436ef8fc2be8cca044c12c04a8e288eca32dad97ed0064144c73ac6b7ea",
     "launch_command_sha256": "c74a4cc45690d395827ae95fe12bb21f628adb4a83ab2cf0c15f7445bdb15b5a",

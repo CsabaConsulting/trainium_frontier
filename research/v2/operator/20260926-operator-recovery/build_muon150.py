@@ -84,6 +84,7 @@ for host in ('trn21', 'trn22'):
     proposal['artifacts'] = 'Exact source/CPU/scalar scope, proposal/command, same-host comparator, actual host/lock/runtime/startup/accounting/fresh20M/checkpoint; no new independent review claimed'
     proposal['candidate'].update(source=str((SPEC / 'train.py').relative_to(REPO)), source_sha256=sha(source),
                                  source_commit=None, source_status='CPU_SCALAR_AND_BYTE_IDENTITY_PASS',
+                                 source_edit='Only MUON_MOMENTUM_WARMUP_STEPS300 ->150; all functions unchanged.',
                                  launch_command=command, launch_command_sha256=sha(command_raw),
                                  launch_string_sha256=sha(command.encode()), argv=command.split('train.py ',1)[1].split(),
                                  warmdown_ratio=0.75, matrix_lr=0.021, muon_momentum_warmup_steps=150)
@@ -100,6 +101,7 @@ for host in ('trn21', 'trn22'):
     proposal_raw = encode(proposal)
     provenance = json.loads(originals['package/provenance.json'])
     provenance.update(label=label, launch_command=command, kind='schedule_arm', source_sha256=sha(source),
+                      train_sha256=sha(source), same_host_scientific_comparator=proposal['control'],
                       source_commit=None, human_selected_scalar=True, submission_authorized=False)
     provenance_raw = encode(provenance)
     replacements = [(old['root'],root),(old['label'],label),(old['source_sha256'],sha(source)),
