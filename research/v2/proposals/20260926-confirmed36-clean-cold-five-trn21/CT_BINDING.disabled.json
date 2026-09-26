@@ -1,0 +1,219 @@
+{
+  "schema": "confirmed36-clean-cold-five-existing-rehearsal-binding-v1",
+  "status": "PREPARED_DISABLED_PENDING_FULLCPU_ORDINARY_CHECKPOINT_BINDING_AND_ASSIGNMENT",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "label": "fs-20260926-confirmed36-clean-cold-trn21-r1",
+  "host": "trn21",
+  "root": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1",
+  "package": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/package",
+  "sandbox": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train",
+  "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+  "prepare_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/prepare.py",
+  "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+  "harness_path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py",
+  "harness_sha256": "7a55cb87e6900cb6106090e3dba0ff28ca763892fb7a67218716d0c1e3dc105b",
+  "command": [
+    "/usr/bin/timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/research/scratch/submission_rehearsal.py",
+    "--package",
+    "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/package",
+    "--sandbox",
+    "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train",
+    "--mode",
+    "train",
+    "--fresh-caches"
+  ],
+  "training_command": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--num-steps",
+    "5"
+  ],
+  "training_environment": {
+    "HOME": "/home/ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_ENABLED_METRIC_TABLES": "graph_stats",
+    "TORCH_NEURONX_METRICS_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/metrics-training",
+    "TRN_EXP_LABEL": "fs-20260926-confirmed36-clean-cold-trn21-r1",
+    "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/compiler"
+  },
+  "harness_injected_environment": {
+    "NEURON_COMPETITION_R1_STEP_LOG": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/steps.jsonl",
+    "NEURON_COMPETITION_R1_OUT_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/out",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/hlo",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/inductor",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/compiler",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/caches/debug"
+  },
+  "cache_setup": "Pinned harness --fresh-caches creates six absent caches and asserts empty before training; URL supplied through clean env equals its newly created compiler directory. No existing cache reused. Data cache unchanged.",
+  "step_observation": "Pinned harness starts time.monotonic immediately before torchrun Popen, observes unchanged prepare append-only rank0 STEP_LOG every50ms, records observed_seconds for each step. observed[4].observed_seconds is uncapped actual observed startup, not source estimate. Raw polling arrival timestamps carry50ms nominal quantization plus scheduling delay; no invented exact UTC boundary.",
+  "result": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/rehearsal.json",
+  "boundary_log": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/train/steps.jsonl",
+  "queue_pause": "/home/ubuntu/trainium_final_push_conditional_20260925_trn21_r1/runs/PAUSE_NEXT",
+  "device_lock": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+  "no_eval": true,
+  "no_automatic_full": true,
+  "driver_path": "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/host_driver.py",
+  "driver_sha256": "1089c418fe15939807997adc6d6c0b6c9d8409a8797e27fd7790d5cbdf8a6bf2",
+  "idle_guard_source": "research/v2/operator/20260926-common-host-idle-guard/idle_guard.py",
+  "idle_guard_sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+  "dispatch_driver_sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+  "detached_entrypoint": "Stage shared dispatch_driver.py in this root and spawn /usr/bin/python3 -I -B <root>/dispatch_driver.py. It invokes the exact outer_command and always archives outer-flock-exit.json, including lock refusal before driver entry. No automatic retry.",
+  "under_lock_preflight": "Exact inherited lifetime flock descriptor and parent argv authenticated; fresh ps and neuron-ls --json-output immediately before spawn; unknown/busy/error refuses. Receipt under-lock-idle.json. No release/reacquire gap.",
+  "outer_command": [
+    "/usr/bin/flock",
+    "-n",
+    "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/host_driver.py"
+  ],
+  "source_commit": "7b9c20c696237fbb2abef57135bf777e6a801365",
+  "source_git_path": "workflow/candidates/confirmed-clock36-116188/train.py",
+  "source_adoption": false,
+  "expected_hostname": "ip-172-31-34-85",
+  "host_reserved": false,
+  "target_startup_seconds": 870,
+  "full_run_automatic": false,
+  "pending_gates": [
+    "Independent acceptance of actual full113M clean/reference G2 pair",
+    "Genuinely fresh ordinary-loader trained-checkpoint review and accepted actual receipt",
+    "Exact mechanical binding acceptance",
+    "Separate one-shot scoped Operator assignment after protected runs and CPU/checkpoint terminal/retrieval/explicit quiescence",
+    "Fresh exact host, original lifetime lock, ps/neuron-ls/fuser, STOP/breaker/resource/pins and six empty-cache proof"
+  ],
+  "harness_source_commit": "00f2ca7f79696e65ce52458f074dd13b871da90c",
+  "harness_source_git_path": "research/scratch/submission_rehearsal.py",
+  "driver_derivation": {
+    "commit": "fa4f8953917e0e076382a26d5ec0cbc5b8f8c0ff",
+    "path": "research/v2/proposals/20260926-clock36-recursive-cold-five-trn22/host_driver.py",
+    "sha256": "d5d48a9eded86f0222abde7798fa04d3eebb4a15ebe7039d5d86d76e38fa9415",
+    "replacements": [
+      [
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-ct-clock36-recursive-cold-trn22-r1-packet",
+        "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1"
+      ],
+      [
+        "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1",
+        "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2"
+      ],
+      [
+        "fs-20260926-ct-clock36-recursive-cold-trn22-r1",
+        "fs-20260926-confirmed36-clean-cold-trn21-r1"
+      ],
+      [
+        "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+        "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43"
+      ]
+    ],
+    "scope": "Exact whole-file literal path/label/source rebind only. No scientific or driver-flow edit."
+  },
+  "base_training_command": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "command_hash_definition": "SHA256 of UTF-8 json.dumps(argv,separators=(',',':'),ensure_ascii=True), no newline",
+  "observation_limits": [
+    "Fifth boundary is launch-to-first-observation of rank0 step4; 50ms nominal polling plus scheduler delay.",
+    "Harness wall/charge starts just before torchrun, excluding earlier sandbox/cache creation and prepare check; outer UTC logs retained separately.",
+    "No non-rank0 exact boundary clock; all4 worker exit/identity evidence required.",
+    "Late final log line can be missed if child exits before the next poll: incomplete evidence is HOLD, never inferred PASS.",
+    "Few postcompile intervals cannot establish robust steady throughput or full-run quality.",
+    "Source charged-time estimate is separately labeled; do not replace uncapped observation with min(startup,900)."
+  ],
+  "package_files": {
+    "package/launch-command.txt": "0ab06fa1737ed5e9f38beab6a651af3587752bbdbd2b65c1307802b43e0e05a0",
+    "package/provenance.json": "070e72af654c7b0c83e1a8b2efb19edef8094bbd3b0915992882b94c2ea19c0b"
+  },
+  "detached_command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/home/ubuntu/trainium_confirmed36_clean_cold_20260926_trn21_r1/dispatch_driver.py"
+  ],
+  "command_sha256": "1d6b841edee6db12630e0707bec31967f773c048422b0a676c67238cfcd266ab",
+  "training_command_sha256": "67796a459064a4de58fb7cd5a4e6bcaf9bdd5173510db1ba1517dd76c473123c",
+  "outer_command_sha256": "df7540b157087587a7a9c231a87ccd19afd05605414761e9cb5025efcaa7b691",
+  "detached_command_sha256": "05b9d74f939a8019f233e029b28a3b9ec3165df68bc90ed3d0daf8aa432f45be",
+  "source_gate": {
+    "fresh_source_tiny": "0b889d8c/c4464dca accepted only scoped source/tiny functional arithmetic; supplied tiny622records a35181b6",
+    "fullsize_cpu": "PENDING actual two-arm standard G2 from packet8cc56def / canonical312ec498 and separate independent raw-result acceptance",
+    "ordinary_loader_trained_checkpoint": "PENDING proposal0930f2ae implementation, genuinely fresh review and actual full113M two-arm CPU receipt; source-specific mask exception only, no loader patching",
+    "binding": "PENDING; reuse proven cold driver mechanically with exact host/source/label/argv pins, no new gate algorithm",
+    "operator_assignment": "NONE; do not stage or reserve a host"
+  },
+  "cold_decision": {
+    "maximum_seconds": 900,
+    "target_seconds": 870,
+    "measurement": "Uncapped observed fifth boundary, never min(boundary,900) for qualification",
+    "automatic_full": false
+  },
+  "host_identity": "Exact trn21 ip-172-31-34-85 and project/prepare/harness paths. Existing driver has no internal hostname assertion; Operator mandatory exact-host preflight refuses mismatch. No new guard or driver flow.",
+  "postflight": "Every outcome: explicit actual dispatch/flock/driver/harness/torchrun/worker/compiler PID/starttime/PPID/PGID/SID union absent, device idle, fresh ps/neuron-ls/fuser and original lock66305:596823 quiescent. Unknown or surviving descendants means HOLD. No cleanup or retry.",
+  "native_launch_authorized": false,
+  "proposal_first_commit": "e3dfe4c1e6d557dbbd2121bac08961c291f6245b",
+  "proposal_sha256": "3b2a3c73cb73d7e21fb90eec03f2ff1fb6d51781ca3b588cb5a5a0a6cd92ce41",
+  "source_availability": "Exact local Git blob at source_commit; no network publication claim. Operator verifies availability/pin before any separately authorized staging.",
+  "original_lock": {
+    "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock",
+    "device": 66305,
+    "inode": 596823,
+    "enforcement": "Mandatory Operator exact inode authentication; same inherited lock FD retained through immediate child. Never replace lock."
+  },
+  "resource_floors": {
+    "operator_preflight_disk_bytes": 11274289152,
+    "unchanged_inner_driver_disk_bytes": 6979321856,
+    "scope": "Higher Operator floor and actual compile/checkpoint headroom mandatory; no cleanup authorized"
+  },
+  "source_staging": "After explicit release only, stage exact source Git blob as package/train.py; no locally modified scientific file.",
+  "submission_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+  "submission_command_source": "7b9c20c696237fbb2abef57135bf777e6a801365:workflow/candidates/confirmed-clock36-116188/launch-command.txt",
+  "diagnostic_override": "Only --num-steps 5 appended to exact submission argv; absolute torchrun path is native transport binding."
+}
