@@ -1,5 +1,34 @@
 # Current state
 
+## 00:00 UTC / 05:30 IST: new full result, no adoption; one host training
+
+75b944 architecture+Recursive scored fresh20M **0.9896621160468637**,3629steps,
+startup795.609s, charged-through-exit1789.163s. Exact source/checkpoint/process
+evidence passed root64+65 checks and an additional77-check raw comparator audit,
+normal/-O. Genuine same-host6ef7 control-r2 .9899528600562257 gives delta
+-.0002907440093620206; unchanged selector DISCARD. Original schedule-arm delta
+-.000393974 remains separate. No adoption/immediate repeat or submission claim.
+
+P r1 then refused at23:53:10UTC: `NEURON_LS_COMMAND_FAILED`, Go `fatal error:
+failed to reserve page summary memory`. Its parent512MiB address-space limit
+was inherited by the readiness subprocess. No version/decode/profile copy ran.
+All dispatch/driver descendants absent, devices idle and original lock free at
+23:54:28; trn21 idle15min threshold00:08:10UTC. One narrow r2 repair99d7c261 is
+disabled pending independent review/release; temporary readiness use of already
+approved16GiB hard ceiling, parent512MiB restored, no other cap changed.
+
+trn22 full36a862 healthy23:57:01:step1660,267000tok/s,985s source remaining,
+fresh20M attached. Warm W1 conditionally releasedb7f56465 after full/eval and
+explicit quiescence; local transport prepared, no host stage. Fresh K2 source
+reassessment actually began23:59:56UTC with new primary AWS API evidence and
+unchanged native support, no previous conclusions/history. Original REFUSE
+preserved; native remains disabled. CPU/cold-qualifiedbcbd full fallback packet
+is independently reviewing behind P/K2. No six-ready-jobs claim.
+
+Confirmedmean remains0.9901674436550496; raw0.986340 failed confirmation.
+Official human-reported0.9901 remains; clean vehicle REFUSE/submissionHOLD unchanged.
+GoalACTIVE. State hosts and latest00:00 snapshot govern over older snapshots.
+
 ## 23:47 UTC: architecture training authenticated; score pending
 
 Full75b944+Recursive trn21 training ended23:40:01UTC with3629steps,

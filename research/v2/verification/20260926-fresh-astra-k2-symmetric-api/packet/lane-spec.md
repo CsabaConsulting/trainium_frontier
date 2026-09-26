@@ -1,0 +1,15 @@
+# Neutral tiny consumer contract for independent review
+
+This is a new isolated experimental consumer, not production training code. Review ONLY the explicit symmetric LNC2 feature-ownership change from d0f0d7fb consumer4939265b to the candidate source whose hashes accompany this packet.
+
+Shape V256/C128/T256; FP32 or BF16 input gradient, FP32 output. Metadata counts/starts/positions/group maxima is supplied by fixed synthetic fixtures, not built on device or timed. Stable per-row token positions are required. Each output element starts at positive zero and receives one FP32 addition for each occurrence in original token order. Inactive rows retain their prior bits. No cross-tile sums, reassociation, tolerance, routing or data change.
+
+Expected ownership: two programs via explicit grid[2]. Both visit groups0/1 and use the same dynamic bound for each group, including unequal group maxima. Program0 columns0:64, program1 columns64:128. Every output element must have one writer. The program index must not alter branches, row groups, loop counts, metadata or token ordering.
+
+Reference14572563 and checker89189024 are unchanged full files. Checker remains default-disabled; native opt-in requires four ranks and LNC2. Existing20 native cases/150 comparisons per rank are strict full-output bytes, including signed zero and subnormals; all four receipts must complete. Nonfinite metrics stay serializable and cannot count as exactness. No native acceptance follows from compilation alone.
+
+Original raw rank0 failure and compiler log are included without interpretation. Ranks1–3 terminal receipts were absent after torchrun termination; do not invent them. Old route remains parked. Actual old cache key includes [1]; cause of the compiler failure remains to be determined. Independent review should assess documented NKI0.5 support, actual changed source, output ownership, runtime-flow symmetry, offset semantics and CPU reference behavior. No host execution or adoption is requested.
+
+## Fresh independent-session constraints
+
+You receive only a full-context diff, this neutral lane contract, original raw gate receipts, versioned primary API documentation and exact unchanged gate support sources. No repository, prior session, implementation notes, prior tests or prior reviewer conclusions are available. No network, AWS, hosts, credentials, external data, weights, native execution or model training. Default REFUSE until evidence for this limited source/CPU gate is complete. Reconstruct the candidate and independently write and RUN a bounded stdlib CPU reference exactness test. Independently assess documented API use; do not treat documentation or source emulation as proof of installed compiler lowering, roundoff, performance or training. The support checker is evidence of intended native checks, not proof they passed. Use tiny synthetic inputs, no SDK import, installation or large allocations. Return REPORT.md plus your independently written test and raw outputs in /work, identifying limits and precise blockers. Do not edit the candidate.
