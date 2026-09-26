@@ -1,5 +1,38 @@
 # Current state
 
+## 02:43 UTC / 08:13 IST: both next jobs actually started; checkpoint gate recovered
+
+Confirmed research mean stays0.9883066128526815, no new quality score.
+trn21 exact36 LR0.012 full1800 started02:38:21.880129UTC; allfour workers and
+original596823 heldlock observed02:39:21.111663. Its attached fresh20M remains
+under the same lifetime lock. Raw5b559f9c/canonicald3352edc. Prior idle16m39.661s
+incident retained. A local timestamp-only assignment-pin assertion failed
+before SSH; corrected to immutable0367ae21, firstremoteattempt succeeded.
+
+trn22 corrected retained-checkpoint r3 completed02:31:55.620297,exit0. All16
+inputs unchanged, four ordinary113M CPU loaders repeat/state/causal checkspass.
+Fresh independent192checks and rootnormal/-O accept scopedCPU qualification,
+including independent8192 masks; originalr2 failure remains FAILED_PRESERVED.
+Raw0e1610ca/e07b23fd, acceptance dc74e0eb. Explicit five-PID/device/original
+lock postflight02:34:47.605284. This is not a new BPB or nativePASS.
+
+Child4bfaec Recursive cold-five then started02:40:58.291133UTC on trn22,
+allfourworkers/original832589heldlock observed02:41:34.166235. Raw5084b192/
+ddca6fab. Six absent privatecache paths and exactfreshcacheharness bound;
+actual cold qualification is PENDING. Uncappedfifth<=900 required beforefull.
+Prospective fullproposal4bd6290d is frozen; packet preparation is local-only,
+not a full release. Rootlaunch auditd78ed4bd passes normal/-O for bothstarts.
+No checkpoint/cache deletion, newAWS, evaluator/source mutation or upload.
+
+A new submission-proposal subagent failed immediately: "Quota exceeded.
+Check your plan and billing details." Completed independent reviews remain
+valid; remote detached jobs continue. Do not count this failed builder asactive.
+One old fp8_local_implementer remains pending_init, not a working lane.
+Submission vehicle is FILE SHA116188cf..., COMMAND SHA b75f844f... (different
+artifacts, not competing file hashes). Portal mapping is human-supported,
+not organizer-byte rehash. Clean port, cold full and ClaudeviaPoojith remain.
+
+
 ## 02:26 UTC / 07:56 IST: confirmed base unchanged; two diagnostic outcomes archived
 
 Confirmed public20M mean remains0.9883066128526815; official score unchanged.

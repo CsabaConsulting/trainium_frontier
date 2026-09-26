@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 08:13 IST
+
+Both next jobs are actually live: trn21 exact36 LR0.012 full1800 started08:08:21;
+trn22 Recursive-child cold-five started08:10:58. Four workers and original
+lifetime locks authenticated on each. No new BPB; confirmed mean0.9883066129.
+Corrected retained-checkpoint verification passed independently; original failed
+helper remains preserved. Fullschedulefollowup is prepared, not authorized
+before actual cold<=900. One new research subagent hit a quota error; jobs
+continue remotely. Clean submission port still HOLD. See current top-level
+state.hosts and CURRENT_STATE for immutable evidence and precise timestamps.
+
+
 ## Current — 26 September 07:56 IST
 
 Confirmed mean0.9883066129 unchanged. trn21 ordinary-only test failed exact
