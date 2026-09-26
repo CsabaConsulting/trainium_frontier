@@ -1,5 +1,12 @@
 # AGENTS.md: Trainium Frontier Phase-1 autonomous research workflow (v2)
 
+**CURRENT RESTART AUTHORITY:** Read the repository-root AGENTS.md and
+`FINAL_SPRINT_ACTIVE_GOAL.md` first. They supersede the older priorities and
+targets below. Human16:04IST correction: target<=.975official/~.9755public,
+not .970. Compact K2 failed native compilation and is closed; tables parked.
+Current adopted base is8c6 batch262144/LR.021. Preserve actual full jobs and
+use current state/queue; no automatic old S0/K2/table dispatch or agent upload.
+
 **MANDATORY SINGLE LAUNCHER:** Read `SINGLE_LAUNCHER_2026-09-26.md` first.
 All launchers must hold the same exclusive remote-host flock, then pass both
 `ps` and `neuron-ls` idle checks while holding it. Retain the lock through

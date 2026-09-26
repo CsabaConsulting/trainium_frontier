@@ -8,7 +8,10 @@ Read `workflow/FINAL_SPRINT_ACTIVE_GOAL.md` before older goal files.
 Top-ten target is<=.975 official, approximately<=.9755 public20M/context1024.
 Human reports current tenth.9775; older .970 cutoff/target prose is superseded.
 Official best.9878; gap.0128. Approved research base8c6 batch262144/LR.021 has
-two-host public mean.98687927065. Compact K2's actual result decides tonight.
+two-host public mean.98687927065. Compact K2 actually failed native compilation
+at10:37:58UTC with zero steps: K2 is CLOSED, tables PARKED under the human
+decision tree. trn21 runs the batch/LR+Recursive stack; trn22 LR.02625 full
+launched16:15:00IST. Do not restart K2 or follow older pending-native prose.
 The app API cannot edit an active goal objective; its old text is NOT the
 controlling target. Keep goal ACTIVE and do not falsely mark it complete.
 
