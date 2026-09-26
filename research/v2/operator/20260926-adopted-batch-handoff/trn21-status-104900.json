@@ -1,0 +1,66 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "payload_sha256": "562ec43ec1847e45152b594753451fc2af4bcf642d9a19f23b9e6e2be0f2a539",
+  "remote": {
+    "read_only": true,
+    "label": "fs-20260926-batch-lr021-recursive-stack-trn21-r1",
+    "utc_before": "2026-09-26T10:49:05.014363+00:00",
+    "utc_after": "2026-09-26T10:49:05.014685+00:00",
+    "monotonic_after": 960131.474528898,
+    "elapsed_seconds": 0.00032876001205295324,
+    "files": {
+      "train/steps.jsonl": {
+        "absent": true
+      },
+      "train/rehearsal.json": {
+        "absent": true
+      },
+      "training.log": {
+        "size_before": 6120,
+        "size_after": 6120,
+        "mtime_ns": 1790419103213432007,
+        "device": 66305,
+        "inode": 27788280,
+        "tail_only": false,
+        "sha256": "0c3b0f94487acc214d7c89f40235fabd9a03c22251999e7b9aeba226ddb9d095",
+        "text": "TRAINING_START_UTC=2026-09-26T10:37:56.413036+00:00\nISOLATED_SUBMISSION {\"mode\": \"train\", \"sandbox\": \"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-batch-lr021-recursive-stack-trn21-r1-packet/train\", \"files\": [\"prepare.py\", \"train.py\"], \"train_sha256\": \"c2e27ccde59e619d74102429e340716dbec16a6ba538ea9beca9c714d0d33f87\", \"prepare_sha256\": \"5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb\", \"launch_command\": \"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --recursive-schedule\", \"fresh_empty_sdk_caches\": {}}\n[W926 10:37:58.901477673 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\ncheck passed\nREHEARSAL_COMMAND [\"torchrun\", \"--standalone\", \"--nproc_per_node=4\", \"train.py\", \"--n-embd\", \"1024\", \"--no-ngram-ve\", \"--no-qk-shift\", \"--compile-sdpa-direct\", \"--nki-local-conv\", \"--bf16-norm-output\", \"--pack-factor\", \"32\", \"--clip-after-reduce\", \"--seq-len\", \"1024\", \"--no-eval-public\", \"--total-batch-size\", \"262144\", \"--matrix-lr\", \"0.021\", \"--recursive-schedule\"]\n[W926 10:38:00.389186477 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] \nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] *****************************************\nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \nW0926 10:38:00.951000 3283807 torch/distributed/run.py:851] *****************************************\n[W926 10:38:03.685277864 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.685767613 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.687170867 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n[W926 10:38:03.687951311 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.\n  Overriding a previously registered kernel for the same operator and the same dispatch key\n  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)\n    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6\n  dispatch key: PrivateUse1\n  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637\n       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())\n/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\ndevice=neuron dtype=torch.bfloat16 world_size=4\ntraining target=1000000 steps max_seconds=1800 official_budget=1800s\ngradient_clip=1 clip_after_reduce=True\nmodel_config={\n  \"sequence_len\": 1024,\n  \"vocab_size\": 8192,\n  \"n_layer\": 8,\n  \"n_head\": 8,\n  \"n_embd\": 1024,\n  \"mlp_ratio\": 4,\n  \"attn_scale\": 0.0,\n  \"n_kv_heads\": 0\n}\nnum_params=113,256,724 flops_per_token=6.921232e+08\ntorch.compile enabled (backend=neuron)\nmicro_tokens=131,072 grad_accum_steps=2 pack_factor=32\n"
+      },
+      "terminal.json": {
+        "absent": true
+      },
+      "outer-flock-exit.json": {
+        "absent": true
+      },
+      "fresh-public20m-launch.json": {
+        "absent": true
+      },
+      "fresh-public20m.log": {
+        "absent": true
+      },
+      "eval/rehearsal.json": {
+        "absent": true
+      },
+      "eval-exit-code.txt": {
+        "absent": true
+      }
+    },
+    "complete_live_boundary_count": null,
+    "fifth_complete": null,
+    "guardian": {
+      "pid": 3283774,
+      "state": "S",
+      "ppid": 3283773,
+      "pgid": 3283772,
+      "sid": 3283772,
+      "start_ticks": 95946276,
+      "original_fd3_identity": [
+        66305,
+        596823
+      ],
+      "fdinfo": "pos:\t0\nflags:\t0100000\nmnt_id:\t27\nino:\t596823\nlock:\t1: FLOCK  ADVISORY  WRITE 3283773 103:01:596823 0 EOF\n"
+    },
+    "exact_fifth_seconds_available_only_in_terminal_rehearsal": true
+  },
+  "stdout_if_error": null
+}
