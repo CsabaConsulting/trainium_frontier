@@ -1,5 +1,15 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 07:09 IST: native packet refused; validator-only repair in re-review
+
+Independent672b8a0c reproduced four false acceptances in54fd9a10 validation
+normal/-O: inconsistent forward output, contradictory upstream nonzero count,
+missing runtime versions and malformed old-route mismatch. Preserve REFUSE.
+Repair0009d9de/17832f0a leaves checker/adapter/kernel/reference and launcher
+executable behavior unchanged, updates validation/tests and bound hashes only.
+It is in packet-only independent re-review; no native release, no speed claim.
+trn22 genuine control finished; idle until a separately released safe successor.
+
 ## 06:54 IST: independent registered-adapter CPU pass, native packet in review
 
 AdapterA frozenaa3d4762/d761a727 retains exact2c8295 kernel and145725 reference.

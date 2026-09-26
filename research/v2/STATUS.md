@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 07:09 IST
+
+Formal trn22 control0.9912010195941572 authenticated and archived; exact36
+architecture0.9883821509811542 has delta-0.002818868613003 and selectorNOMINATE.
+Its trn21 confirmation is live at step2420, not a confirmed win yet.
+trn22 idle01:33:55UTC pending independent K2 validator repair review; original
+54fd9a10 packet REFUSE is retained.0009d9de is disabled, not a native PASS.
+No upload-ready package. Latest top-level state.hosts is authoritative.
+
 ## Current — 26 September 06:54 IST
 
 This supersedes the older current snapshots below. Confirmed mean remains

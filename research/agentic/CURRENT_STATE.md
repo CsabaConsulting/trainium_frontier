@@ -1,5 +1,28 @@
 # Current state
 
+## 01:39 UTC / 07:09 IST: genuine control scored; architecture nominated
+
+Formal trn22 genuine6ef7 control completed fresh20M:0.9912010195941572,
+3633steps,833.530617725s startup,1790.252498678s charged through exit.
+201 actual-archive checks identical normal/-O; checkpoint unchanged and all16
+observed process identities absent, device idle, original832589 lock free.
+Raw0e518f9b/canonical53c9c511; control appended without historical relabel.
+Unchanged selector NOMINATE for exact36 architecture0.9883821509811542,
+same-host delta-0.002818868613003; other-host confirmation remains required.
+
+trn21 actual01:39:15UTC: step2420,268953tok/s,611s remaining, epoch2;
+all4 workers live,17.188GB free,original596823 lock held, no errors.
+trn22 idle since01:33:55UTC, alert due01:48:55; no next release yet.
+Native K2 packet54fd9a10 was independently REFUSED: four synthetic false
+acceptances in its receipt validator. Source/CPU adapter PASS stays distinct.
+Narrow0009d9de repair changes only validator/checks/pins, not scientific bytes,
+and is back with the independent packet-only reviewer. No native/speed win.
+
+Exact36+Recursive has no existing flag-only combination; b84594f4 preserves
+that finding. A separate new-source-port proposal is being prepared, native
+disabled. Historical confirmed schedule mean0.9901674436550496 unchanged;
+no upload-ready file, no six-ready-jobs claim. Single Operator unchanged.
+
 ## 01:24 UTC / 06:54 IST: independent K2 CPU pass; control evaluation live
 
 trn21 exact36 confirmation is training: actual01:20:48UTC step170,
