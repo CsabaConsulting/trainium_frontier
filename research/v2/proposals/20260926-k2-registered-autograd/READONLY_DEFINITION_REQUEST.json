@@ -1,0 +1,41 @@
+{
+  "scope": "One proposed bounded installed-source read; not an executable, host assignment or kernel run",
+  "reason": "Resolve the single grid/indexed-callable bridge contract and complete registration semantics, without guessing APIs or changing the kernel.",
+  "prior_observation": "0770f22a / canonical5d91a0d2",
+  "already_known_root": "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx",
+  "requested_source": [
+    {
+      "file": "nki_hop.py",
+      "expected_sha256": "a8b7bffbf461378b54e6f5b4ad3406b80e069a3d89122712c40df79ebef08914",
+      "expected_bytes": 22473,
+      "ranges": "1..EOF, bounded by the known22473bytes",
+      "required_definitions": ["NKIHOPCaller full constructor, __getitem__, __call__ and grid handling; exact declaration line not present in earlier excerpts, within1..539", "wrap_nki545..568 including omitted562..563", "nki_op569..EOF including absent604..EOF", "imports identifying TorchNeuronNKIKernelV3 and functionalization helpers"]
+    },
+    {
+      "file": "nki_kernel.py",
+      "expected_sha256": "37b9c6f56388695fd5dd44a4638576461d8d075f9508cb80b0df9b04dfbd10a2",
+      "expected_bytes": 8598,
+      "ranges": "1..EOF, bounded by the known8598bytes",
+      "required_definitions": ["TorchNeuronNKIKernelV3 fields/constructor and grid ownership, or exact imported definition locator"]
+    },
+    {
+      "file": "Installed NKI0.5 jit factory and actual returned callable/indexed-callable class definitions",
+      "location_rule": "Resolve only through installed distribution metadata and the imports in the two pinned files. No SDK execution or arbitrary filesystem search. Record exact resolved origins, imports, lines, file hashes and stable identity.",
+      "ranges": "jit definition; returned class dataclass fields/constructor; __getitem__ and __call__; any directly invoked grid-normalization helper, complete AST definition ranges",
+      "required_question": "What exact object/fields does resident_consumer[2] return, and how do those fields combine with NKIHOPCaller grid selection?"
+    }
+  ],
+  "proposed_limits": {
+    "wall_seconds": 15,
+    "cpu_seconds": 2,
+    "address_space_bytes": 134217728,
+    "max_files": 6,
+    "max_single_file_bytes": 524288,
+    "max_total_read_bytes": 2097152,
+    "max_emitted_source_bytes": 196608,
+    "max_total_stdout_bytes": 262144
+  },
+  "constraints": ["Same prior stdlib-only read identity/symlink/race protections", "No SDK imports, tensors, compilation or device calls", "No installation, environment/secret read, files written remotely or lock/device interaction", "One read only after Supervisor assignment; do not overlap Operator device work with a new launcher", "Refuse or name missing definition if bounds prevent complete source; do not silently truncate a contract"],
+  "launch_authorized": false,
+  "source_or_native_gate_waiver": false
+}
