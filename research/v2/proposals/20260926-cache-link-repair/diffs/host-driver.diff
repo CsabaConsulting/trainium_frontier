@@ -1,0 +1,119 @@
+--- baseline/host-driver.diff
++++ candidate/host-driver.diff
+@@ -14,9 +14,9 @@
+ import threading
+ import time
+ 
+-ROOT = Path('/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r1')
++ROOT = Path('/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r2')
+ PROJECT = Path('/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2')
+-LABEL = 'fs-20260926-confirmed36-clean-native-consistency-trn21-r1'
++LABEL = 'fs-20260926-confirmed36-clean-native-consistency-trn21-r2'
+ HOST = 'ip-172-31-34-85'
+ LOCK = '/home/ubuntu/.cache/trainium_freshstart/device0.lock'
+ LOCK_ID = (66305,596823)
+@@ -28,7 +28,7 @@
+ PROBE = 'proposals/20260926-confirmed36-clean-native-consistency/probe.py'
+ FOUNDATION = 'proposals/20260926-confirmed36-clean-checkpoint-cpu/compare_checkpoints.py'
+ PINS = {
+-    PROBE:'937e2f239ad90b5aa61e0b40ccf067b19ac02febe246492735e948a35c6b86af',
++    PROBE:'48962e675ab15cefb1a7ea27b89b7ba26f039a9ba847d679d97bc4544d5e2a77',
+     FOUNDATION:'65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8',
+     'INPUTS.json':'0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e',
+     'lifetime_guard.py':'e461ec5c76c784fd51471c9e8c268cdde42fe1def68b31bfc9524480f980c312',
+@@ -200,26 +200,77 @@
+     return {'utc':utc(),'stage':'staging' if stage else 'inside_lifetime_lock',**observed,'retained_inputs':inputs}
+ 
+ 
++
++def accounted_entries(root, cache_link):
++    """Descriptor-relative census. Never open or resolve a symlink target."""
++    root = Path(root)
++    identity = lambda s: (s.st_dev, s.st_ino, s.st_mode)
++    stamp = lambda s: (*identity(s), s.st_size, s.st_mtime_ns, s.st_ctime_ns)
++    def walk(fd, relative):
++        with os.scandir(fd) as items:
++            for item in items:
++                name = item.name
++                rel = relative / name
++                before = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                if stat.S_ISDIR(before.st_mode):
++                    child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++                    try:
++                        require(identity(before) == identity(os.fstat(child)), 'SCAN_DIRECTORY_CHANGED')
++                        yield rel, before, None
++                        yield from walk(child, rel)
++                        require(identity(before) == identity(os.stat(name, dir_fd=fd, follow_symlinks=False)),
++                                'SCAN_DIRECTORY_CHANGED')
++                    finally:
++                        os.close(child)
++                else:
++                    target = None
++                    if stat.S_ISLNK(before.st_mode):
++                        require(cache_link(rel), 'NONCACHE_SYMLINK:' + str(rel))
++                        target = os.readlink(name, dir_fd=fd)
++                    else:
++                        require(stat.S_ISREG(before.st_mode), 'SCAN_NONREGULAR:' + str(rel))
++                    after = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                    require(stamp(before) == stamp(after), 'SCAN_ENTRY_CHANGED:' + str(rel))
++                    yield rel, before, target
++    before = root.lstat()
++    require(stat.S_ISDIR(before.st_mode), 'SCAN_ROOT_NOT_DIRECTORY')
++    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        require(identity(before) == identity(os.fstat(fd)), 'SCAN_ROOT_CHANGED')
++        yield from walk(fd, Path())
++        require(identity(before) == identity(root.lstat()), 'SCAN_ROOT_CHANGED')
++    finally:
++        os.close(fd)
++
++
++def link_record(st, target):
++    return dict(bytes=st.st_size, target=target, device=st.st_dev, inode=st.st_ino,
++                mode=st.st_mode, mtime_ns=st.st_mtime_ns, ctime_ns=st.st_ctime_ns)
++
++
++def compiler_link(relative):
++    return len(relative.parts) >= 3 and relative.parts[0] == 'caches' and relative.parts[1] in (
++        'neff', 'local', 'hlo', 'inductor', 'compiler', 'debug')
++
+ def sizes(root):
+-    def scan_error(error):
+-        raise error
+-    artifacts, caches = 0,0
++    artifacts, caches = 0, 0
++    links = {}
+     ranks = {str(rank):0 for rank in range(4)}
+-    for directory,dirs,files in os.walk(root,followlinks=False,onerror=scan_error):
+-        for name in dirs:
+-            require(not (Path(directory)/name).is_symlink(),'ARTIFACT_DIRECTORY_SYMLINK')
+-        for name in files:
+-            path = Path(directory)/name
+-            st = path.lstat()
+-            require(stat.S_ISREG(st.st_mode),'ARTIFACT_NONREGULAR:'+str(path))
+-            relative = path.relative_to(root)
+-            if relative.parts[0]=='caches': caches += st.st_size
+-            else: artifacts += st.st_size
+-            if relative.parts[0]=='receipts':
+-                for rank in ranks:
+-                    if name.startswith('rank'+rank+'.') or name.startswith('.rank'+rank+'.'):
+-                        ranks[rank] += st.st_size
+-    return {'artifact_bytes':artifacts,'cache_bytes':caches,'rank_receipt_bytes':ranks}
++    for relative, st, target in accounted_entries(root, compiler_link):
++        if stat.S_ISDIR(st.st_mode):
++            continue
++        if relative.parts[0] == 'caches':
++            caches += st.st_size
++            if target is not None:
++                links[str(relative)] = link_record(st, target)
++        else:
++            artifacts += st.st_size
++        if relative.parts[0] == 'receipts':
++            for rank in ranks:
++                if relative.name.startswith(('rank'+rank+'.', '.rank'+rank+'.')):
++                    ranks[rank] += st.st_size
++    return {'artifact_bytes':artifacts, 'cache_bytes':caches,
++            'cache_symlinks':links, 'rank_receipt_bytes':ranks}
+ 
+ 
+ def artifact_gate(observation):

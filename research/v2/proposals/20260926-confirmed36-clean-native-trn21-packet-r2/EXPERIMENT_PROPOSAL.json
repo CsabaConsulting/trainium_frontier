@@ -1,0 +1,152 @@
+{
+  "proposal_id": "20260926-confirmed36-clean-native-consistency",
+  "schema": "completed-researcher-native-ordinary-loader-proposal-v1",
+  "status": "COMPLETED_SPEC_DISABLED_PENDING_IMPLEMENTATION_FRESH_REVIEW_AND_LIFETIME_GUARD",
+  "owner_role": "researcher",
+  "evidence_base_commit": "5ace9b8cf0cb34f27c91872a0ec0b70ff5f55659",
+  "label": "fs-20260926-confirmed36-clean-native-consistency-trn21-r2",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "submission_authorized": false,
+  "source_adoption": false,
+  "host_reserved": false,
+  "quality_evidence": false,
+  "hypothesis": "On the authenticated identical full113M retained CPU-trained parameter state, the unmodified clean e1e2 ordinary GPT loader preserves exact native repeat, rowwise and research36 output consistency and the existing synthetic causal-prefix criterion for B1/B2/B3 at contexts256/257.",
+  "single_causal_change": "Observe the two already CPU-qualified ordinary loader routes on Neuron instead of CPU; neither scientific source, checkpoint, forward route, evaluator nor scoring changes.",
+  "mechanism_class": "correctness_diagnostic_only",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "estimated_host_hours": 0.2541666667,
+  "host_hours_interpretation": "900-second native child ceiling plus15-second termination grace, not an ETA or a bound on unresolved descendant quiescence. Preflight/hash/retrieval time is additional and reported.",
+  "candidate_shortlist": [
+    {"idea": "Native replay of the exact accepted CPU checkpoint pair, each with its own actual loader", "mechanism_class": "correctness_diagnostic_only", "predicted_bpb_delta": null, "why_ranked": "Selected: both files already exist together on trn21; their complete65 parameter states were independently accepted identical. Reuses65e7 qualification without a new checkpoint envelope, transfer or full-size CPU rerun."},
+    {"idea": "Give the research CPU checkpoint to both actual loaders", "mechanism_class": "correctness_diagnostic_only", "predicted_bpb_delta": null, "why_ranked": "Source-compatible candidate: clean ignores extra toggles metadata. Not selected because cross-loading this envelope is new while the separate accepted pair already supplies an exact state control; no meaningful device graph saving."},
+    {"idea": "Give the native clean cold-five checkpoint to both loaders", "mechanism_class": "correctness_diagnostic_only", "predicted_bpb_delta": null, "why_ranked": "Rejected for this packet: clean checkpoint has no research toggles; research36 restores incompatible defaults. No adding metadata, global override, adapter or checkpoint conversion is allowed here."},
+    {"idea": "Candidate-only native cold-five B1/B2/B3 diagnostic", "mechanism_class": "correctness_diagnostic_only", "predicted_bpb_delta": null, "why_ranked": "Useful only as separately proposed partial evidence. It cannot establish research36 cross-source consistency against CPU checkpoints with different trained weights."}
+  ],
+  "selection_rationale": "The required gap is native batch routing, not another training run. Preserve exactly the accepted paired state and ordinary loaders. T256 exercises native convolution lane parity; T257 explicitly exercises the source fallback boundary. Model instances are serial within each of four full-chip workers.",
+  "trainium_feasibility": "Four LNC2 ranks, actual native_venv and ordinary load_for_eval. The only model input shapes are B1/B2/B3 x T256/T257. Research internally calls B1, clean directly calls the supplied batch. This yields8 source/base-GPT shape signatures per rank, not a proven compiler graph count. Runtime, native memory, compile disk and900-second sufficiency remain unmeasured.",
+  "cheapest_falsifier": "Before native, fresh reviewer independently checks source/metadata/route predicates and executes tiny positive/negative CPU tests of the new helper. On host, authenticate exact17 retained inputs and compare every saved parameter's keys/dtype/shape/bytes before native inference. Any mismatch refuses the packet.",
+  "duplicate_search_terms": ["B1/B2", "batch consistency", "batch independence", "clean route", "ordinary loader", "checkpoint route diagnostic"],
+  "duplicate_search_result": "The prior d21d35c native probe is disabled, targets old3f5035/3e79, and covers only B1/B2 atT1024. Accepted65e7 and its actual result are CPU-only. No matching completed native e1e2/research36 result was found in decision log, experiment log or historical result index.",
+  "control": {
+    "git_commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+    "source_git_path": "workflow/proposals/research-v2/train.py",
+    "source_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+    "run_label": "fs-20260926-confirmed36-clean-checkpoint-trn21-r1",
+    "public_val_bpb": null,
+    "steps": 3,
+    "box_constraint": "Both arms in one trn21 full-chip diagnostic, serial models per rank, identical native environment and synthetic tokens.",
+    "checkpoint_path": "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/reference/tmp/g2-gsoipfis/out/final.pt",
+    "checkpoint_sha256": "623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762",
+    "checkpoint_bytes": 453048594
+  },
+  "candidate": {
+    "git_commit": "7b9c20c696237fbb2abef57135bf777e6a801365",
+    "source_git_path": "workflow/candidates/confirmed-clock36-116188/train.py",
+    "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
+    "branch": "codex/20260926-confirmed36-clean-native-consistency-implementation",
+    "files_allowed": ["new diagnostic helper, tests and disabled binding beneath research/v2/proposals/20260926-confirmed36-clean-native-consistency/"],
+    "expected_diff": "Narrow native adaptation of65e7 using the previous native probe's initialization, synchronization, all-rank receipts and bounded resource pattern. No scientific code or checkpoint changes; no general framework or launcher repair within this task.",
+    "run_label": "fs-20260926-confirmed36-clean-native-consistency-trn21-r2",
+    "checkpoint_path": "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1/candidate/tmp/g2-2xlf5hc1/out/final.pt",
+    "checkpoint_sha256": "3c7efed1e053cf7607e2099d52643cb368e8a1f14aebe2a36ba3f1444b63c9c9",
+    "checkpoint_bytes": 453044626,
+    "launch_command": ["/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone", "--nproc_per_node=4", "/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r2/probe.py", "--enable-native", "--label", "fs-20260926-confirmed36-clean-native-consistency-trn21-r2", "--inputs", "/home/ubuntu/trainium_confirmed36_clean_checkpoint_20260926_trn21_r1/INPUTS.json", "--inputs-sha256", "0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e", "--out-dir", "/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r2/receipts"]
+  },
+  "launch_command_status": "Prospective exact diagnostic child argv. No helper exists yet; its exact final hash, disabled binding, reviewed fixed-job guardian and source/CPU/mechanics receipts must be frozen before any separate Operator release. This document is not a launch packet.",
+  "retained_input_manifest": {
+    "repository_path": "research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/INPUTS.json",
+    "sha256": "0cc0569936b0b1653bcc946edcdedd1bf91d3f671fabbc205a0a7b883bf9a15e",
+    "files": 17,
+    "immutability": "Rehash all17 sources/support/requests/G2/terminal/compare/checkpoint files before and after, including on failure. Reject nonregular files, symlinks and path drift; no discovery/newest selection. Archive the independently accepted CPU source/result receipts as release prerequisites."
+  },
+  "native_clean_checkpoint_not_used_as_parity_control": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet/train/out/final.pt",
+    "sha256": "8e867c7a541f799e96502001e91ea06388e46fe0c2159a7c07c684d947b9dbde",
+    "bytes": 453044626,
+    "path_evidence": "Operator remote_snapshot.py line53 constructs root/'train/out/final.pt'; completed results-bundle root and checkpoint_after_terminal establish the path mapping and stable full hash. retained-input-identities.json contains only source/prepare/harness, NOT checkpoint identity. New native use would require an explicit fresh path+size+hash receipt.",
+    "evidence_bundle_sha256": "c03997f87f4bb95f539b0e4ac10bfeff012e1ac0dc12b3ead27b3dcc25aa9c87",
+    "cold_fifth_observed_seconds": 859.1679093550192,
+    "limitation": "Cold-five startup is neither inference compilation timing nor a cross-source load result. Its trained state is not claimed equal to the CPU pair."
+  },
+  "reuse": {
+    "cpu_helper": "research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/compare_checkpoints.py",
+    "cpu_helper_sha256": "65e7eb1a21b0e880ee2362461ff3664c4dbd52933816e5ec0684645c92cd75e8",
+    "native_pattern": "research/v2/proposals/20260926-clean-checkpoint-route-diagnostic/probe.py",
+    "native_pattern_sha256": "d21d35c68440e6a2b62abf5338603f0c8a4891a454bb61d3df0fdc420d7682a1",
+    "restriction": "Reuse small functions/patterns with an explicit diff. Previous native driver acceptance does not waive the newly demonstrated lifetime-lock defect."
+  },
+  "matrix": {
+    "training_seed": 42,
+    "synthetic_seed": 42,
+    "synthetic_seed_note": "One fixed private CPU generator per shape, seed42. Previous CPU helper used seed7; its accepted result is prior evidence, not native seed42 output evidence. No seed search.",
+    "shapes": [[1,256],[2,256],[3,256],[1,257],[2,257],[3,257]],
+    "token_range_inclusive": [1,8191],
+    "calls_each_shape": "original, repeat, each row independently, suffix reversed from cut=max(2,T//2)",
+    "top_level_calls_per_source_per_rank": 30,
+    "models_per_worker": "reference then candidate, never simultaneously resident; four workers remain active for full chip",
+    "no_backward_training_optimizer_or_real_data": true
+  },
+  "resources": {
+    "minimum_available_ram_bytes": 68719476736,
+    "minimum_free_disk_bytes": 11274289152,
+    "additional_projected_disk_bytes": 3221225472,
+    "staging_and_launch_disk_requirement_bytes": 14495514624,
+    "native_child_timeout_seconds": 900,
+    "termination_grace_seconds": 15,
+    "threads_per_worker": 1,
+    "max_receipt_bytes_per_rank": 16777216,
+    "max_emitted_artifact_bytes": 268435456,
+    "full_output_tensor_files": 0,
+    "reference_original_outputs_retained_bytes_per_rank_if_fp32": 100859904,
+    "limits_are_safety_caps_not_measured_cost": true,
+    "compiler_cache_cost": "Private caches are outside emitted-artifact cap; size and free disk must be monitored/reported. The3GiB reserve is inherited conservative planning, not a proven upper bound. Crossing the10.5GiB residual floor aborts through the reviewed guardian. No automatic cap increase or cleanup."
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "fresh_astra_own_reference_review": false,
+    "lifetime_guard_repaired_and_independently_fault_tested": false,
+    "separate_supervisor_operator_release": false
+  },
+  "success_criteria": {
+    "quality": "Not measured; no BPB, selection or adoption claim.",
+    "throughput": "Not measured; report elapsed/compilation/resource observations only.",
+    "correctness": "All four ranks complete every six-shape case with exact full-state/load/input purity, finite frozen ordinary models, exact repeat/rowwise/cross-source original output bytes and unchanged prepare synthetic causal-prefix<=1e-2. Complete input/output digest agreement across ranks outside forward; exact shape/dtype and complete expected case set; no missing/error/cleanup evidence.",
+    "decision": "Only NATIVE_SYNTHETIC_CONSISTENCY_COMPLETE_ON_CPU_TRAINED_STATE is permissible after independent result acceptance. Numeric differences mean REFUSE; timeout, compile/resource/receipt/incomplete/quiescence faults mean UNRESOLVED or REFUSE, never a partial PASS."
+  },
+  "abort_conditions": [
+    "Existing lifetime-guard REFUSE is unresolved, or fresh source/CPU/mechanics review or separate release is absent",
+    "STOP/breaker/host/original-lock/hash/path/resource check fails, or fresh in-lock ps AND neuron-ls/fuser is busy, failed or ambiguous",
+    "Any saved or loaded parameter/state/config mismatch, hook, gradient-enabled parameter, mode/input/tensor mutation, nonfinite value, shape/dtype mismatch, byte mismatch or causal-prefix error above0.01",
+    "Any missing rank/case, cross-rank mismatch, native synchronization/runtime failure, timeout, artifact cap or disk floor breach",
+    "Any owned descendant/compiler remains or quiescence is ambiguous: retain lifetime lock and failure receipts through the reviewed guardian; no successor or lock bypass"
+  ],
+  "prior_result_refs": [
+    "research/v2/verification/20260926-clean36-checkpoint-fresh/actual-full-g2/ACTUAL_G2_REPORT.md",
+    "research/v2/verification/20260926-clean36-checkpoint-fresh/actual-helper/ACTUAL_HELPER_REPORT.md",
+    "research/v2/operator/20260926-trn22-confirmed36-clean-cold-five-r2/completed/OPERATOR_RESULT.md"
+  ],
+  "evidence": [
+    "workflow/candidates/confirmed-clock36-116188/REVIEW_SPEC.md",
+    "research/v2/proposals/20260926-confirmed36-clean-checkpoint-cpu/EXPERIMENT_PROPOSAL.json",
+    "research/v2/proposals/20260926-clean-checkpoint-route-diagnostic/EXPERIMENT_PROPOSAL.json",
+    "research/v2/verification/20260926-clean-checkpoint-diagnostic-independent/NATIVE_REVIEW.md",
+    "research/v2/verification/20260926-clean-fullcold-mechanics-fresh/REPORT.md",
+    "workflow/FRESH_REVIEW_AND_CUTOFF_2026-09-26.md",
+    "workflow/SINGLE_LAUNCHER_2026-09-26.md"
+  ],
+  "rollback": "Do not stage or release the disabled packet. Preserve both CPU checkpoints, the native cold checkpoint, sources, old failures and all new receipts. No cleanup, retry, training, public eval, AWS, adoption or submission action.",
+  "human_approved_by": null,
+  "verdict": null
+}

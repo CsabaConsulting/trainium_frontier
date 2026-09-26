@@ -1,0 +1,142 @@
+--- baseline/r2-transport.diff
++++ candidate/r2-transport.diff
+@@ -13,14 +13,14 @@
+ import sys
+ import types
+ 
+-ROOT = Path('/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r1')
+-LABEL = 'fs-20260926-confirmed36-clean-native-consistency-trn21-r1'
++ROOT = Path('/home/ubuntu/trainium_confirmed36_clean_native_consistency_20260926_trn21_r2')
++LABEL = 'fs-20260926-confirmed36-clean-native-consistency-trn21-r2'
+ HOST = 'ip-172-31-34-85'
+ LOCK = '/home/ubuntu/.cache/trainium_freshstart/device0.lock'
+ LOCK_ID = (66305,596823)
+-MANIFEST_SHA = '905eb5fb73281c4058c52f6d16f4824dd1146929fa80b64a7b9d8d7d41d61f8f'
+-DRIVER_SHA = '4a062c97107e3afd9f0061824074e9f151644e204d2957dd28ddfd6b372e98f7'
+-BINDING_SHA = 'c29fe99533c21cae045a4cd7b5116f40808feda65bdab14e5ed38e1ab0b11760'
++MANIFEST_SHA = '0833adb1f4d4006ff485fdad45f6ff2488820b0cba0cba5b0045e64cbc84d9c0'
++DRIVER_SHA = '044729e6dec4ac1fd87e960c38d892180c0d4bd94403ec044cde1610ae813954'
++BINDING_SHA = 'd05b85bf08d921d2cdd59d0f8604d50f76dd68522f7119e4c96655bfa8aa9234'
+ CHECKPOINT_SHAS = {'623577bb7e6f60d183a1944b28a5624cd55767c16fcf03a9248fd4573f6a6762',
+                    '3c7efed1e053cf7607e2099d52643cb368e8a1f14aebe2a36ba3f1444b63c9c9'}
+ CHUNK = 256*1024
+@@ -144,15 +144,62 @@
+         os.close(fd)  # No job is spawned; synchronous preflight helpers have returned.
+ 
+ 
++
++def accounted_entries(root, cache_link):
++    """Descriptor-relative census. Never open or resolve a symlink target."""
++    root = Path(root)
++    identity = lambda s: (s.st_dev, s.st_ino, s.st_mode)
++    stamp = lambda s: (*identity(s), s.st_size, s.st_mtime_ns, s.st_ctime_ns)
++    def walk(fd, relative):
++        with os.scandir(fd) as items:
++            for item in items:
++                name = item.name
++                rel = relative / name
++                before = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                if stat.S_ISDIR(before.st_mode):
++                    child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++                    try:
++                        require(identity(before) == identity(os.fstat(child)), 'SCAN_DIRECTORY_CHANGED')
++                        yield rel, before, None
++                        yield from walk(child, rel)
++                        require(identity(before) == identity(os.stat(name, dir_fd=fd, follow_symlinks=False)),
++                                'SCAN_DIRECTORY_CHANGED')
++                    finally:
++                        os.close(child)
++                else:
++                    target = None
++                    if stat.S_ISLNK(before.st_mode):
++                        require(cache_link(rel), 'NONCACHE_SYMLINK:' + str(rel))
++                        target = os.readlink(name, dir_fd=fd)
++                    else:
++                        require(stat.S_ISREG(before.st_mode), 'SCAN_NONREGULAR:' + str(rel))
++                    after = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                    require(stamp(before) == stamp(after), 'SCAN_ENTRY_CHANGED:' + str(rel))
++                    yield rel, before, target
++    before = root.lstat()
++    require(stat.S_ISDIR(before.st_mode), 'SCAN_ROOT_NOT_DIRECTORY')
++    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        require(identity(before) == identity(os.fstat(fd)), 'SCAN_ROOT_CHANGED')
++        yield from walk(fd, Path())
++        require(identity(before) == identity(root.lstat()), 'SCAN_ROOT_CHANGED')
++    finally:
++        os.close(fd)
++
++
++def link_record(st, target):
++    return dict(bytes=st.st_size, target=target, device=st.st_dev, inode=st.st_ino,
++                mode=st.st_mode, mtime_ns=st.st_mtime_ns, ctime_ns=st.st_ctime_ns)
++
++
++def compiler_link(relative):
++    return len(relative.parts) >= 3 and relative.parts[0] == 'caches' and relative.parts[1] in (
++        'neff', 'local', 'hlo', 'inductor', 'compiler', 'debug')
++
+ def scan(root):
+-    def failed(error): raise error
+-    for directory,dirs,files in os.walk(root,followlinks=False,onerror=failed):
+-        for name in dirs:
+-            require(not (Path(directory)/name).is_symlink(),'RETRIEVAL_DIRECTORY_SYMLINK')
+-        for name in sorted(files):
+-            path = Path(directory)/name
+-            require(stat.S_ISREG(path.lstat().st_mode),'RETRIEVAL_NONREGULAR')
+-            yield path
++    for relative, st, target in accounted_entries(root, compiler_link):
++        if not stat.S_ISDIR(st.st_mode):
++            yield root / relative, st, target
+ 
+ 
+ def census(d):
+@@ -210,7 +257,7 @@
+ def retrieve(payload,source_sha,emit):
+     files,release_raw,release,d,g,idle = decode_payload(payload,source_sha)
+     require(ROOT.is_dir(),'RETRIEVAL_ROOT_MISSING')
+-    records = {}; caches = {}; artifact_bytes = 0; ranks = {str(i):0 for i in range(4)}
++    records = {}; caches = {}; links = {}; artifact_bytes = 0; ranks = {str(i):0 for i in range(4)}
+     before = census(d)
+     runtime_errors = {}
+     for path in d.RUNTIME_PATHS:
+@@ -220,10 +267,11 @@
+     input_error = None
+     try: before_inputs = d.retained_inputs(files['INPUTS.json'])
+     except Exception as error: before_inputs = {}; input_error = repr(error)
+-    for path in scan(ROOT):
++    for path, st, target in scan(ROOT):
+         name = str(path.relative_to(ROOT)); safe_name(name)
+         if path.relative_to(ROOT).parts[0]=='caches':
+-            caches[name] = path.stat().st_size
++            caches[name] = st.st_size
++            if target is not None: links[name] = link_record(st, target)
+             continue
+         pin = d.file_record(path)
+         require(pin['sha256'] not in CHECKPOINT_SHAS,'NO_CHECKPOINT_CONTENT_TRANSFER:'+name)
+@@ -243,8 +291,16 @@
+         require({'bytes':size,'sha256':digest.hexdigest()}==pin and d.file_record(path)==pin,'RETRIEVAL_FILE_CHANGED:'+name)
+         records[name] = pin; emit({'kind':'end_file','name':name,**pin})
+     # Reinventory and rehash: additions/removals and post-read changes fail completeness.
+-    after_records = {str(p.relative_to(ROOT)):d.file_record(p) for p in scan(ROOT) if p.relative_to(ROOT).parts[0]!='caches'}
++    after_records = {}; after_caches = {}; after_links = {}
++    for p, st, target in scan(ROOT):
++        name = str(p.relative_to(ROOT))
++        if p.relative_to(ROOT).parts[0] == 'caches':
++            after_caches[name] = st.st_size
++            if target is not None: after_links[name] = link_record(st, target)
++        else:
++            after_records[name] = d.file_record(p)
+     require(after_records==records,'RETRIEVAL_INVENTORY_CHANGED')
++    require(after_caches==caches and after_links==links,'RETRIEVAL_CACHE_CHANGED')
+     try:
+         after_inputs = d.retained_inputs(files['INPUTS.json'])
+         require(before_inputs==after_inputs,'RETAINED_INPUTS_CHANGED')
+@@ -257,6 +313,7 @@
+     receipt = {'kind':'complete','status':'COMPLETE_COPY_PENDING_INDEPENDENT_REVIEW' if gate and input_error is None and not runtime_errors and observations_ok else 'COMPLETE_COPY_FAILED_GATE',
+                'files':records,'artifact_bytes':artifact_bytes,'rank_receipt_bytes':ranks,
+                'artifact_gate_pass':gate,'cache_file_bytes':caches,'cache_bytes':sum(caches.values()),
++               'cache_symlinks':links, 'cache_targets_read':False,
+                'retained_inputs':after_inputs,'input_error':input_error,'runtime_errors':runtime_errors,'after':after,
+                'checkpoint_contents_copied':False,'native_acceptance':False}
+     emit(receipt)

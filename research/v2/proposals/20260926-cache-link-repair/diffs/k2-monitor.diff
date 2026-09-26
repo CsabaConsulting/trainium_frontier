@@ -1,0 +1,101 @@
+--- baseline/k2-monitor.diff
++++ candidate/k2-monitor.diff
+@@ -30,19 +30,68 @@
+     return rows
+ 
+ 
+-def tree_bytes(root, cap=65536):
+-    total, entries, pending = 0, 0, [Path(root)]
+-    while pending:
+-        for item in os.scandir(pending.pop()):
+-            entries += 1
+-            require(entries <= cap, 'ENTRY_CAP')
+-            s = item.stat(follow_symlinks=False)
+-            require(not stat.S_ISLNK(s.st_mode), 'SCRATCH_SYMLINK')
+-            if stat.S_ISDIR(s.st_mode):
+-                pending.append(Path(item.path))
+-            else:
+-                require(stat.S_ISREG(s.st_mode) and s.st_nlink == 1, 'SPECIAL_OR_HARDLINK')
+-                total += s.st_size
++
++def accounted_entries(root, cache_link):
++    """Descriptor-relative census. Never open or resolve a symlink target."""
++    root = Path(root)
++    identity = lambda s: (s.st_dev, s.st_ino, s.st_mode)
++    stamp = lambda s: (*identity(s), s.st_size, s.st_mtime_ns, s.st_ctime_ns)
++    def walk(fd, relative):
++        with os.scandir(fd) as items:
++            for item in items:
++                name = item.name
++                rel = relative / name
++                before = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                if stat.S_ISDIR(before.st_mode):
++                    child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++                    try:
++                        require(identity(before) == identity(os.fstat(child)), 'SCAN_DIRECTORY_CHANGED')
++                        yield rel, before, None
++                        yield from walk(child, rel)
++                        require(identity(before) == identity(os.stat(name, dir_fd=fd, follow_symlinks=False)),
++                                'SCAN_DIRECTORY_CHANGED')
++                    finally:
++                        os.close(child)
++                else:
++                    target = None
++                    if stat.S_ISLNK(before.st_mode):
++                        require(cache_link(rel), 'NONCACHE_SYMLINK:' + str(rel))
++                        target = os.readlink(name, dir_fd=fd)
++                    else:
++                        require(stat.S_ISREG(before.st_mode), 'SCAN_NONREGULAR:' + str(rel))
++                    after = os.stat(name, dir_fd=fd, follow_symlinks=False)
++                    require(stamp(before) == stamp(after), 'SCAN_ENTRY_CHANGED:' + str(rel))
++                    yield rel, before, target
++    before = root.lstat()
++    require(stat.S_ISDIR(before.st_mode), 'SCAN_ROOT_NOT_DIRECTORY')
++    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        require(identity(before) == identity(os.fstat(fd)), 'SCAN_ROOT_CHANGED')
++        yield from walk(fd, Path())
++        require(identity(before) == identity(root.lstat()), 'SCAN_ROOT_CHANGED')
++    finally:
++        os.close(fd)
++
++
++def link_record(st, target):
++    return dict(bytes=st.st_size, target=target, device=st.st_dev, inode=st.st_ino,
++                mode=st.st_mode, mtime_ns=st.st_mtime_ns, ctime_ns=st.st_ctime_ns)
++
++def tree_bytes(root, cap=65536, cache_metadata=None):
++    # Only sample() opts in for the job's private compiler cache/tmp trees.
++    cache = cache_metadata is not None
++    require(not cache or Path(root).name in ('cache', 'tmp'), 'CACHE_DOMAIN')
++    total, entries = 0, 0
++    for relative, s, target in accounted_entries(root, lambda rel: cache):
++        entries += 1
++        require(entries <= cap, 'ENTRY_CAP')
++        if stat.S_ISDIR(s.st_mode):
++            continue
++        if target is not None:
++            cache_metadata[str(relative)] = link_record(s, target)
++        else:
++            require(s.st_nlink == 1, 'SPECIAL_OR_HARDLINK')
++        total += s.st_size
+     return total, entries
+ 
+ 
+@@ -194,13 +243,13 @@
+     started = time.monotonic()
+     rows, rss = processes.observe()
+     paths = writable_paths(rows, root)
+-    sizes, counts = {}, {}
++    sizes, counts, links = {}, {}, {'cache':{}, 'tmp':{}}
+     for name in ('cache', 'tmp', 'artifacts', 'logs'):
+-        sizes[name], counts[name] = tree_bytes(root / name)
++        sizes[name], counts[name] = tree_bytes(root / name, cache_metadata=links.get(name))
+     require(sum(counts.values()) <= 65536, 'COMBINED_ENTRY_CAP')
+     return dict(at=started, duration=time.monotonic() - started,
+                 memavailable=memavailable(), rss=rss, processes=rows,
+-                observed_writable_paths=paths,
++                observed_writable_paths=paths, cache_symlinks=links,
+                 demonstrated_exits=processes.exits.copy(),
+                 free=[free_bytes(root / name) for name in sizes],
+                 cache=sizes['cache'] + sizes['tmp'], artifacts=sizes['artifacts'], logs=sizes['logs'])
