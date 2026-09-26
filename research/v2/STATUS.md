@@ -1,5 +1,20 @@
 # Workflow installation and incremental launch status
 
+## Latest verified live state — 26 September16:29:42IST
+
+Both original full jobs are training. trn21 c2e stack:494 completed boundaries,
+latest printedstep490/loss3.1521/280497tok/s. trn22 8c6 LR.02625:70 boundaries,
+lateststep60/loss4.6656/280867tok/s. Original guardians and lock identities held;
+no terminal/fresh20M result yet. Exact startup and charged time await terminal.
+Source: operator/20260926-operator-recovery/RECOVERED_LIVE.md and raw receipts.
+
+Only /root/operator_recovery is active as a subagent. Previous Operator errored
+twice with platform quota; main tools work. Muon analyst stopped byhuman and
+must not restart; existing findings preserved locally. Recovery monitor is
+bounded through11:15UTC,45s observations; no host restart or duplicate launcher.
+Warmdown.60/.85 transports are being prepared locally, not launched. K2 CLOSED,
+tables PARKED, officialbest.9878 unchanged, correctedtarget<=.975official.
+
 ## Latest16:14IST: compact K2 failed; use approved batch base
 
 Exactf804 failed native compilation10:37:58UTC before any completed step.

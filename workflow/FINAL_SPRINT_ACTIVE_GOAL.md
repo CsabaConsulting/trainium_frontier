@@ -25,10 +25,11 @@ all source/local evidence; no automatic retry. trn21 runs the batch/LR+Recursive
 stack; trn22 single-factor LR.02625 on adopted8c6 launched16:15:00IST.
 Both actual full runs include fresh20M; results pending. Official score unchanged.
 
-## Current execution and decision tree
+## Executed human decision tree (compact K2 branch is now closed)
 
-Stop old662c K2 ontrn21 safely and run one full batch/LR+Recursive stack there.
-Compactf804 K2 runs ontrn22. Report fifth-boundary startup promptly with honest
+The human ordered old662c K2 stopped safely and one full batch/LR+Recursive
+stack ontrn21; both actions occurred. For the compactf804 test, the rule was:
+report fifth-boundary startup promptly with honest
 measurement scope; exact official observer timing may only persist at terminal.
 Limit compact startup to1300s. Net=max(0,1800-max(0,cold_startup-900))*steady_tok/s.
 Net>=+3% versus declared same-host base permits source-bound table continuation.

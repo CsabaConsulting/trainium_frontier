@@ -1,5 +1,16 @@
 # Current state
 
+## Latest verified live state — 26 September16:29:42IST
+
+Both exact full jobs survived the monitoring-agent quota error. trn21 c2e
+batch/LR+Recursive:494 boundaries, printedstep490,280497tok/s. trn22 8c6
+LR.02625:70 boundaries, printedstep60,280867tok/s. Both original guardians
+and locks held; no terminal or final20M yet. Source:
+research/v2/operator/20260926-operator-recovery/RECOVERED_LIVE.md.
+Sole Operator is /root/operator_recovery, priorOperator revoked; no other
+active subagents, Muon analyst stopped. Main not quota-blocked. Current target
+and K2 closure in workflow/FINAL_SPRINT_ACTIVE_GOAL.md supersede older prose.
+
 ## Latest16:14IST: compact K2 failed; use approved batch base
 
 Exactf804 failed native compilation10:37:58UTC before any completed step.
