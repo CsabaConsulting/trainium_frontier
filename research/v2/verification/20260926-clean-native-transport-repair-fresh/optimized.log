@@ -1,0 +1,74 @@
+{
+  "verdict": "ACCEPT_NARROW_REPAIR",
+  "tests": [
+    {
+      "case": "valid_multichunk",
+      "first_error": null,
+      "receiver_error": null,
+      "read_bytes": 1228817,
+      "max_read": 9600,
+      "wire_bytes": 614417,
+      "retained_artifact_bytes": 614400
+    },
+    {
+      "case": "cap_failed_hidden_partial",
+      "first_error": null,
+      "receiver_error": null,
+      "read_bytes": 1228817,
+      "max_read": 9600,
+      "wire_bytes": 614417,
+      "retained_artifact_bytes": 614400
+    },
+    {
+      "case": "replace_before_open",
+      "first_error": "RETRIEVAL_CHUNK_CHANGED",
+      "receiver_error": "WIRE_INCOMPLETE",
+      "read_bytes": 32,
+      "max_read": 32,
+      "wire_bytes": 0,
+      "retained_artifact_bytes": 0
+    },
+    {
+      "case": "replace_header",
+      "first_error": "RETRIEVAL_FILE_CHANGED:artifact.log",
+      "receiver_error": "WIRE_INCOMPLETE",
+      "read_bytes": 32,
+      "max_read": 32,
+      "wire_bytes": 32,
+      "retained_artifact_bytes": 32
+    },
+    {
+      "case": "mutate_header",
+      "first_error": "RETRIEVAL_CHUNK_CHANGED",
+      "receiver_error": "WIRE_INCOMPLETE",
+      "read_bytes": 32,
+      "max_read": 32,
+      "wire_bytes": 0,
+      "retained_artifact_bytes": 0
+    },
+    {
+      "case": "mutate_after_read",
+      "first_error": "RETRIEVAL_FILE_CHANGED:artifact.log",
+      "receiver_error": "WIRE_INCOMPLETE",
+      "read_bytes": 32,
+      "max_read": 32,
+      "wire_bytes": 32,
+      "retained_artifact_bytes": 32
+    },
+    {
+      "case": "mutate_between",
+      "first_error": "RETRIEVAL_CHUNK_CHANGED",
+      "receiver_error": "WIRE_INCOMPLETE",
+      "read_bytes": 633600,
+      "max_read": 9600,
+      "wire_bytes": 9600,
+      "retained_artifact_bytes": 9600
+    },
+    {
+      "case": "deep_recursion",
+      "bytes": 175700,
+      "read_bytes": 702800,
+      "max_read": 32
+    }
+  ]
+}
