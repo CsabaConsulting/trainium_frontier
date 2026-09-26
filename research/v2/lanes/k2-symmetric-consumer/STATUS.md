@@ -1,5 +1,17 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 07:29 IST: diagnostic FAILED on required FP32-subnormal ordinary control
+
+Raw30630c8441249f7db894a80c19200f67003bd18d,31files/7682695bytes authenticated;
+root normal/-O report at analysis/20260926-k2-registered-failure. Candidate
+routes and tangent replays exact, but ordinary compiled embedding control
+has0 versus1408nonzero FP32-subnormal gradients/max_abs1.2611686178923354e-44
+on all4 ranks. Exit1/ChildFailedError is retained, not reclassified as PASS.
+Empty input cases deliberately have only direct/repeated routes; no fictitious
+compiled-empty claim. All11 observed PIDs absent/device idle/original lockfree.
+No native qualification, timing/full run, adoption, or automatic retry. Distinct
+independent interpretation of the failed control is the next CPU-only question.
+
 ## 07:19 IST: repaired packet launched; sentinel promising, suite pending
 
 Independent repair PASS9e1d7b12, one-use releasedddbe5dcc; actual01:46:24UTC

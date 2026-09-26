@@ -1,0 +1,19 @@
+Read-only audit construction failure, both normal and -O; no remote or source change.
+The first audit incorrectly expected five routes for the two empty-input cases.
+Actual checker records direct/repeated routes only for empty input. Corrected the
+local archive summarizer to require this exact case-specific set; native failure
+and its criteria stay unchanged. No rerun or native qualification.
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-registered-failure/audit.py", line 54, in <module>
+    require(len(routes) == 5, 'five distinct required routes')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-registered-failure/audit.py", line 16, in require
+    raise RuntimeError(message)
+RuntimeError: five distinct required routes
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-registered-failure/audit.py", line 54, in <module>
+    require(len(routes) == 5, 'five distinct required routes')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/analysis/20260926-k2-registered-failure/audit.py", line 16, in require
+    raise RuntimeError(message)
+RuntimeError: five distinct required routes

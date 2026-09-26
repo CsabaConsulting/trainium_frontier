@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 07:29 IST
+
+trn21 confirmation training completed3630steps within1788.955318charged seconds;
+fresh20M evaluation is live, no score yet. trn22 K2 diagnostic endedexit1:
+ordinary compiled FP32-subnormal control zero versus1408nonzeros. Candidate
+routes exact does not override its failed required gate. Raw/authentication
+and all11-PID quiescence archived; no automatic retry. trn22 idle since01:47:04UTC.
+Next source44926a6f clock+Recursive tiny checks are frozen and in fresh review;
+fullCPU/cold packets being prepared, not released. Top-level state.hosts controls.
+
 ## Current — 26 September 07:09 IST
 
 Formal trn22 control0.9912010195941572 authenticated and archived; exact36

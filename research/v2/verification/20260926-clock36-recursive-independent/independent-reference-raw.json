@@ -1,0 +1,60 @@
+{
+  "status": "PASS_SCOPED_SCALAR_CLOCK_ROUTING_AND_RAW_COMPARISON",
+  "source_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+  "base_sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb",
+  "changed_definitions": [
+    "MuonAdamW",
+    "lr_multiplier",
+    "muon_momentum",
+    "muon_beta2",
+    "main"
+  ],
+  "scalar_lr_cases": 2304,
+  "clock_routing_cases": 448,
+  "negative_controls": {
+    "raw_elapsed_nonmuon": true,
+    "freeze_charged_startup": true,
+    "adjust_again_after_five": true,
+    "ignore_flat_precedence": true,
+    "scalar_beta2": true
+  },
+  "raw_tensor_comparisons": "six arm pairs x four ranks x six updates; exact gradients, parameters and optimizer state digest structures",
+  "thread_environment": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "limitations": [
+    "No independently executed full model/update path in this scalar reference; actual updates are raw supplied evidence.",
+    "No independent organizer causality or eval state-invariance evidence.",
+    "No native capture, exact-size G2, cold or quality approval."
+  ],
+  "input_manifest": {
+    "review-input/EXPERIMENT_PROPOSAL.json": "bdda2c2d4409b766ed7d768e6c82fa5e66a96f7d139c44f80270c7ee046b6238",
+    "review-input/IMPLEMENTATION_SPEC.md": "07f6257b34fe1efffb1c6e3177b89997fad0ca6de7a6502def078f6c1015dc06",
+    "review-input/source-full-context.diff": "410ea7473dc3d61a55109499ef69a55cd867d271276cd7f8786276fea2c9a8ea",
+    "raw/checkpoint-normal.log": "6c21030e3da527a8916abcb184af25172149d93fd39e2717dc3c0e0f3f0d220c",
+    "raw/checkpoint-optimized.log": "6c21030e3da527a8916abcb184af25172149d93fd39e2717dc3c0e0f3f0d220c",
+    "raw/clock0-base.json": "540b3ed52bac3bc42ee76f310c50beb4bfd1e36cd377edee141db28ae15cf47a",
+    "raw/clock0-default.json": "c62fd1a9c411e808daf19cb86e3b22f811c2fd246a1a03abe8692d2b11f038ca",
+    "raw/clock0-off.json": "d3e3c813fb09adabed7c3ffdf47598e8601648b8d6b0daeb6f90d32bb6da5f65",
+    "raw/clock0-on.json": "265d5f90354416e968f02bd5736defb5bfa687d571e2650f97cc28c81b12033e",
+    "raw/clock0-reference.json": "c6113b0d422b07dea4fc0f16df310874f96c8da04da4519ee18651531d0dd720",
+    "raw/clock1-base.json": "910a0048cbd64774805758f0018036b736c541325f7b91ab98bbc738cd6f37c3",
+    "raw/clock1-default.json": "afd6d373e3ff5d473b78030b660dfedd4f648a9e657109fdfcd01b28453d871c",
+    "raw/clock1-off.json": "196ec690598b33ec6d2e813635349301c43a8ad4d63549bd9ce2cbabd821b687",
+    "raw/clock1-on.json": "f2dfa7cac7584454f2fd7d978391a5a6a9225a6b174f13efc1eccde827cf615f",
+    "raw/clock1-reference.json": "b7c5177df368f0db0225abaebe9f16869f73cc1ed040f316f9e040a51888daa7",
+    "raw/commands.json": "60b2c831273d1ee048320a40c418422a7f2304b5767cae04669d2cfef0b99fd7",
+    "raw/compare-normal.log": "bb05d8bf9a926d13b39f505448debc8e5cee861a615dbfa204d4c2dd919983a7",
+    "raw/compare-optimized.log": "bb05d8bf9a926d13b39f505448debc8e5cee861a615dbfa204d4c2dd919983a7",
+    "raw/failed-checkpoint-attempt1.txt": "9263cafd1c2cb52fc9cf9690d445d8b63e341589172729436295da908c7297e1",
+    "raw/failed-compare-attempt1.txt": "29a3e4a5a36926eaac542b5f296fa59111f0be41f3d5d7865edbacb43aee1d66",
+    "raw/failed-static-full-attempt1.txt": "4941f3d918c49ae90ff202d4f7906d2e7e6903dad130a7c678c38cd1b0c399ef",
+    "raw/failed-static-offset-attempt1.txt": "9cb9bf45321b5d8d6d6f3570c323a4c559fd64a00d94fb7f1cde013695fd884b",
+    "raw/static-normal.log": "cd79325dec8d9e7fdf46e8a778ad2b4886e6d2fda2043012c1c9e6df7c899f98",
+    "raw/static-optimized.log": "1662fbb34069c823a4eca775fd8886191525c80f590ed828c9526626d67124e2",
+    "raw/tiny-run.log": "d5c00325c1bc33fce7ff41a76df9c0ae02c53c6c1fd698d5043799efb0770c1f"
+  }
+}

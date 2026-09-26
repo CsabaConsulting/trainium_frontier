@@ -1,5 +1,28 @@
 # Current state
 
+## 01:59 UTC / 07:29 IST: confirmation is evaluating; K2 required control failed
+
+Exact36 trn21 finished3630steps,793.931355565s startup and1788.955317679s
+charged through exit, returncode0. Fresh20M began01:49:12UTC; actual01:52:59
+observation shows timeout3150111/harness3150112/evaluator3150126 under
+original596823 lock,16.734GB free. Raw30630c84/c5900f8a. Score still unknown.
+
+Registered K2 completed39.131408s,exit1 at01:47:04UTC. All4 rank receipts
+record the required ordinary compiled FP32-subnormal control gradient aszero
+versus1408nonzeros, max_abs1.2611686178923354e-44; actual ChildFailedError.
+Candidate direct/registered eager/compiled and changed-tangent observations
+were exact, but the full gate FAILED and has not been waived or retried.
+Root authenticated31files/7,682,695bytes; normal/-O failed-result reports
+identical. All11 observed process/compiler identities absent, device idle,
+original832589 free at01:50:07. Idle alert due02:02:04UTC. No next release.
+
+Clock36+Recursive source44926a6f/SHA4bfaec50 tiny CPU evidence frozen9e2aa295,
+canonical evidence-onlydba67de6; scientific source NOT adopted. Fresh no-context
+Astra reviewer receives only neutral full diff/spec/raw receipts. Exact-size
+CPU then child-specific cold-five packets are prepared for idle trn22, each
+separately released only after its applicable checks. No six-ready-job claim.
+Confirmed score and upload HOLD remain unchanged pending actual replica result.
+
 ## 01:49 UTC / 07:19 IST: K2 native test running; first compiled gradient exact
 
 Exact repaired0009d9de packet earned independent57-test normal/-O scoped
