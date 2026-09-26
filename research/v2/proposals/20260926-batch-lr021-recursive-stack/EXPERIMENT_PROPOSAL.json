@@ -1,0 +1,241 @@
+{
+  "schema": "prospective-conditional-stack-proposal-v1",
+  "status": "complete_prospective_design_pending_actual_batch_confirmation_and_unimplemented_exact_source",
+  "owner_role": "researcher",
+  "prepared_utc": "2026-09-26T09:52:23Z",
+  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "proposal_template": "research/agentic/EXPERIMENT_PROPOSAL.json",
+  "kind": "schedule_arm",
+  "run_purpose": "quality",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": null,
+  "p_improve": null,
+  "prediction_note": "No measured or fitted gain is available; this is an information-seeking single-factor research arm, not a predicted win.",
+  "estimated_host_hours": 1.25,
+  "source": "research/v2/lanes/sprint-batch-lr021-recursive-stack/train.py",
+  "source_sha256": null,
+  "source_commit": null,
+  "base_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+  "source_contract": "PENDING NEW SOURCE: intended train.py-only mechanical port of exact50fa Recursive diff onto exact8c6 batch/LR source; do not launch either donor unchanged with the combined argv. Freeze delivered source/commit/diff SHA before any launch; no invented future hash.",
+  "code_evidence": {
+    "parent_path": "research/v2/proposals/20260926-sprint-p0-clean-batch/train.py",
+    "parent_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+    "donor_path": "research/v2/proposals/20260926-sprint-p0-clean-recursive/train.py",
+    "donor_sha256": "50fa6d144f19758dcdf9980e03f2302453174b956f0fa1a3e0845c4c0b72e6fb",
+    "donor_commit": "7117d57b92e19e8437158164dbce94495389d7b6",
+    "donor_diff": "research/v2/proposals/20260926-sprint-p0-clean-recursive/source.diff",
+    "donor_diff_sha256": "a71addfd36ab78cfdd30fa47ecc87401f6359eda2a7f5eb95586bff304fe130d",
+    "donor_cpu_sha256": "42c048c86828e61c21edc66a6d5e5001c41fb00b7dbcf42a75516be481b34a27",
+    "inherited_review": "research/v2/verification/20260926-p0-sprint-fresh-independent/REVIEW.md",
+    "inherited_review_sha256": "c501228eb9a7f6b073005b88fe1d3041ddf90e61c569c1055b3aa723e5a7f7a9",
+    "review_limits": "Existing separate ports passed tiny actual-model/optimizer default3step and scalar recurrence checks, not an absent combined file. Bind exact composition and one scoped patch review without adding review layers or a full113M CPU run.",
+    "line_references": "Batch train.py1357-1363 parses total batch/LR; MATRIX_LR affects localconv AdamW and matrix Muon groups. Schedule train.py1201,1311-1354,1382-1384,1479-1487 contains exact transport/recurrences/flag/routing."
+  },
+  "control": {
+    "type": "actual_same_host_scientific_comparator_not_relabelled_selector_control",
+    "selected_host": null,
+    "run_label": null,
+    "ledger_row": null,
+    "public_val_bpb": null,
+    "bound": false,
+    "source_sha256": "8c6d7af73e3237690c7f9a61c24544393b21224996d60484502ab379303c34ee",
+    "candidate_delta": "Only Recursive schedule differs from actual same-host batch262144/LR.021, same official1800/seed42/public20M/context1024 and qualified runtime.",
+    "alternatives": [
+      {
+        "host": "trn21",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+        "public_val_bpb": 0.9869854734569898,
+        "status": "ACTUAL_QUALITY_ARM; source8c6, kind=batch_arm/base=e1e2 unchanged"
+      },
+      {
+        "host": "trn22",
+        "label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1",
+        "public_val_bpb": null,
+        "status": "PENDING_ACTUAL_RESULT; do not infer result"
+      }
+    ],
+    "role_integrity": "One actual label/row per run. Existing batch rows stay kind=batch_arm/base=e1e2; never relabel, duplicate or choose role after BPB. Freeze selected actual comparator before this stack starts.",
+    "selector": "Record this arm prospectively as schedule_arm/base8c6, with batch262144/LR.021 base argv. Unchanged decide.py requires actual eligible kind=control/base8c6 on same host; existing batch arms are NOT those rows. Without a genuine prospectively declared control its verdict is INSUFFICIENT, even if raw same-host delta is favorable. No fake adoption or threshold bypass.",
+    "control_priority": "This proposal does not authorize an extra control run. No control/confirmation can preempt the next-slot K2 retry. Any later formal-control need is handled prospectively by Supervisor without retroactive rows; primary scientific raw delta remains reportable separately."
+  },
+  "candidate": {
+    "files_allowed": [
+      "train.py"
+    ],
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "shape": "eight layers/width1024; batch262144 via accumulation2, context1024, pack32, four ranks/LNC2",
+    "submission_authorized": false,
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --total-batch-size 262144 --matrix-lr 0.021 --recursive-schedule",
+    "launch_command_sha256": "17e182b51e862becb11b75ba26702812720470e5ac4f8045cfe1f2cf6bc32984",
+    "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline",
+    "source": "research/v2/lanes/sprint-batch-lr021-recursive-stack/train.py",
+    "source_sha256": null,
+    "source_commit": null,
+    "argv": [
+      "--n-embd",
+      "1024",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--total-batch-size",
+      "262144",
+      "--matrix-lr",
+      "0.021",
+      "--recursive-schedule"
+    ]
+  },
+  "dispatch": {
+    "selected_host": null,
+    "selected_label": null,
+    "stage_authorized": false,
+    "launch_authorized": false,
+    "operator": "Existing sole Operator only",
+    "one_run": "ONE first full stack run, two host alternatives; select by availability after prerequisites, not favorable BPB. No two-run allocation here.",
+    "priority": "K2 retry owns next free host before all controls/confirmations; preserve active train+eval and table critical-path work. This stack never preempts it.",
+    "sequence": "Actual batch confirmation -> minimal Implementer source port and frozen source/diff/commit -> bounded CPU/OFF and single scoped review/composition -> genuine selected-host comparator binding and original-lock admission -> one full1800/fresh20M.",
+    "binding": "Source and commit are explicitly pending. No launch can use this prospective design until exact delivered source identity and required evidence are bound; no stale donor command/source substitution."
+  },
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NUM_STEPS": "No short-step override; existing1000000 ceiling, official charged budget controls.",
+    "binding": "Preserve authenticated same-host runtime/effective nonsecret environment. Unique output/metrics paths, exact command and SHA receipts."
+  },
+  "evaluation": {
+    "fresh_process": true,
+    "tokens": 20971520,
+    "context": 1024,
+    "batch_size": 1,
+    "expected_public_bytes": 83462186,
+    "unchanged_prepare_and_evaluator": true,
+    "checkpoint_required": true,
+    "public2m_selection": false
+  },
+  "accounting": {
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900,
+    "source_checkpoint_reserve_seconds": 15,
+    "source_startup_margin_seconds": 30,
+    "train_outer_timeout_seconds": 2730,
+    "eval_outer_timeout_seconds": 1800,
+    "term_grace_seconds": 60,
+    "policy": "All startup above900 is charged; retain existing predictor/checkpoint/through-exit accounting. Outer timeout is not extra budget. Steps/rate are diagnostics, no throughput or60%-steps quality gate."
+  },
+  "resource_admission": {
+    "initial_floor_bytes": 14495514624,
+    "runtime_floor_bytes": 11274289152,
+    "prospective_new_footprint_bytes": 3221225472,
+    "memory_available_minimum_bytes": 68719476736,
+    "policy": "Fresh measured free space>=max(initial floor,runtime floor+actual projected footprint), retain all current/control/candidate artifacts; increase reserve as necessary. No cleanup/AWS action or reduced floor."
+  },
+  "machinery": {
+    "reuse": "Reuse existing full1800/fresh20M original-guardian mechanics; mechanically bind future delivered exact source/unused label/proposal/argv. No new launcher, control allocation or repeated review/compile ceremony.",
+    "lock": "Same original exclusive device0.lock held through train/eval/owned children; fresh successful ps AND neuron-ls plus fuser/STOP/source/runtime/resources under lock, otherwise no launch.",
+    "guardian_sha256": "5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e",
+    "cache": "Research may reuse authenticated selected-host existing namespace after its owner exits; retain exact owner/source/path evidence. No presumed hits/cold status, deletion, or running cache mutation. A future submission needs genuine cold full replay/fresh20M and Claude audit."
+  },
+  "success_criteria": {
+    "quality": "Report actual stack minus same-host batch/LR public20M delta without altering either row's role. Formal selection remains unchanged and INSUFFICIENT absent genuine eligible kind=control/base8c6. If formal controls later exist, schedule_arm thresholds apply: <=-.0006 nominates, >=+.0005 discards, ambiguous low-prior discards; both-host negative/mean<=-.0010/disagreement<=.0015 for confirmed adoption, with existing HOLD.",
+    "correctness": "Finite complete actual full-budget result with exact source/argv/runtime, unchanged official accounting and over_budget=false, loadable actual checkpoint/fresh20M, retrieved logs/quiescence. Initial native full-run observations serve the single native check; no separate invented local-forward or smoke gate.",
+    "submission": "No automatic adoption/upload or official gain claim; controlling confirmed>=.003 official gain target, genuine cold full/fresh20M/Claude and human-only upload remain."
+  },
+  "gates": {
+    "actual_batch_confirmation": false,
+    "delivered_source_sha_bound": false,
+    "cpu_exactness_and_off_identity": false,
+    "one_scoped_review_or_exact_composition_bound": false,
+    "actual_same_host_scientific_comparator_bound": false,
+    "fresh_machine_admission": false,
+    "full_source_argv_binding": false,
+    "native_full_result": false,
+    "formal_selector_control_bound": false,
+    "submission_authorized": false
+  },
+  "abort_conditions": [
+    "Any source/argv/runtime/label/idle/STOP/resource/original-lock gate fails",
+    "Crash/nonfinite/causality/checkpoint/budget/eval failure",
+    "Missing actual control or unauthenticated results",
+    "Scientific flags drift or a duplicate consumed label is found"
+  ],
+  "required_artifacts": "Actual batch confirmation and genuine same-host comparator identities; final exact new source/diff/commit and bounded CPU/OFF/single-review binding; prospective one label/role; original-lock/preflight/resources/environment/cache; full train/startup/charge/checkpoint/fresh20M; one actual row and honest unchanged selector output including INSUFFICIENT/failure.",
+  "local_scope": "Researcher writes proposal only; no scientific code/selector/queue/state/ledger edit, model execution, review, host action or launch.",
+  "human_approved_by": "Poojith15:12 conditional batch-confirmation schedule-stack directive, not source implementation or launch release before prerequisites.",
+  "verdict": null,
+  "proposal_id": "20260926-batch-lr021-recursive-stack",
+  "arm_id": "batch262144-lr021-recursive-stack",
+  "hypothesis": "After actual two-host batch262144/LR.021 confirmation, adding the exact existing Recursive schedule may lower final public20M BPB relative to the same-host batch/LR arm within1800 charged seconds.",
+  "single_causal_change": "Recursive schedule OFF -> ON relative to confirmed batch262144/MATRIX_LR.021. Relative to original e1e2 this is an explicitly declared batch+LR+schedule stack, not a one-factor claim.",
+  "selection_rationale": "Human specifically directs this conditional next research base. Existing8c6 batch/LR and50fa schedule sources are separate; neither accepts this complete argv. Port only donor schedule into8c6 after actual batch confirmation, then measure the combined result. A standalone schedule win is not an additional prerequisite imposed by this proposal.",
+  "cheapest_falsifier": "After actual batch confirmation, one bounded exact-port CPU/OFF/donor-arithmetic check and the patch's single scoped review, then one official1800 full run with native initial-step observations and attached fresh20M. No additional standalone forward/compiler, repeated review or duplicate smoke ceremony.",
+  "host_alternatives": [
+    {
+      "host": "trn21",
+      "label": "fs-20260926-batch-lr021-recursive-stack-trn21-r1"
+    },
+    {
+      "host": "trn22",
+      "label": "fs-20260926-batch-lr021-recursive-stack-trn22-r1"
+    }
+  ],
+  "prior_result_refs": [
+    "research/v2/analysis/20260926-clean-batch-lr021-results/result.json",
+    "research/v2/analysis/20260926-e1e2-control-trn22/result.json",
+    "research/v2/analysis/20260926-clean-p0-results/REPORT.md"
+  ],
+  "duplicate_search": {
+    "paths": [
+      "research/v2/ledger.jsonl",
+      "research/v2/proposals/20260926-sprint-p0-clean-batch",
+      "research/v2/proposals/20260926-sprint-p0-clean-recursive"
+    ],
+    "finding": "Existing clean P0 ports/runs are separate batch/LR and schedule factors. No existing combined flag source or completed accepted-eight-layer batch262144/LR.021+Recursive run found. Historical six-layer/clock36 schedule arms are not this base."
+  },
+  "authority_amendments": [
+    "workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md",
+    "Later direct human correction conveyed by Supervisor accepts existing forward evidence; no inferred extra local-forward gate."
+  ],
+  "implementation_contract": {
+    "allowed_after": "Actual valid two-host batch/LR confirmation delivered; Researcher does not implement.",
+    "files_allowed": [
+      "train.py"
+    ],
+    "minimum_delta": "Copy only the exact donor Recursive additions/replacements into8c6; retain existing batch/LR parser, validation and defaults. Add OFF-default BooleanOptionalAction --recursive-schedule. Do not retune constants, reorder arithmetic or change the clock helper.",
+    "source_binding_pending": true,
+    "cpu": "One bounded exact-source receipt: schedule-OFF3step bit identity against8c6 with actual optimizer at default and targeted batch/LR configuration using feasible reduced geometry/accumulation; compare extracted ON recurrences and group routing bit-for-bit with50fa across existing boundary cases. Preserve seeds/RNG/data order/checkpoint config; report test scope honestly. No CPU execution by Researcher.",
+    "review": "One <=30min independent narrow port review using diff/spec/CPU receipts, or valid exact-delta composition accepted by Supervisor; no repeated source-review loop absent failed test.",
+    "unchanged": "Eight layers/width1024, existing attention/localconv/norm/packing/ownership/reduction/clipping, data loader, seed42, all non-schedule LR values, weight-decay formula, time charging/predictor/reserves/checkpoint/evaluator. No K2, tables, model-size, data-order or other factor."
+  },
+  "schedule_contract": {
+    "exactness": "Port donor AST/diff literally; formulas below explain, never replace, the exact source arithmetic.",
+    "flag": "RECURSIVE_SCHEDULE=False; --recursive-schedule BooleanOptionalAction defaultsFalse; main assigns global.",
+    "lr": "ON donor lr_multiplier uses warmdown_ratio=.95 for muon/.65 otherwise; p=min(1,max(0,elapsed/max(1e-6,budget))); flat until p<1-warmdown_ratio then cooldown=(1-p)/warmdown_ratio; return cooldown*1.0+(1-cooldown)*.05. Existing WARMUP_STEPS=0 and OFF expression ordering unchanged.",
+    "momentum": "ON frac=min(step/300,1); m=(1-frac)*.85+frac*.95; clamp progress; if p>1-.95, cooldown=(p-(1-.95))/.95 then m=.95+cooldown**2*(.79-.95). Do not simplify 1-.95 to a decimal constant.",
+    "beta2": "ON p clamped; cooldown=max(0,(p-(1-.95))/.95); .95+cooldown*(.97-.95). OFF MUON_BETA2=.9. In compiled Muon use one_b2_t iff Recursive, otherwise original1-group['beta2'].",
+    "groups": "Use donor lrm_adam and exact nested group LR expression. no_lr_decay still takes lrm_flat; Muon momentum/beta2 as donor; WEIGHT_DECAY*(1-wd_progress) unchanged. MATRIX_LR=.021 affects existing localconv AdamW and matrix Muon, not just Muon.",
+    "accounting": "startup_adjusted_schedule_elapsed and its call are unchanged. Progress follows actual official charged-budget prediction, not a newly invented step/epoch or startup-exempt clock."
+  },
+  "confirmation_condition": {
+    "passed": false,
+    "requirement": "Actual valid trn21 and trn22 batch262144/LR.021 results each against genuine same-host e1e2 controls; unchanged decide.py both deltas negative, mean<=-.0010, disagreement<=.0015 and all validity/HOLD rules. Do not equate two similar raw scores with confirmation.",
+    "trn21_batch_label": "fs-20260926-sprint-clean-batch-lr14-trn21-r1",
+    "trn21_actual_public20m": 0.9869854734569898,
+    "trn21_result": "research/v2/analysis/20260926-clean-batch-lr021-results/result.json",
+    "trn21_result_sha256": "b08608d848f661e82b7701686eb7179fc902de9c699a5668feaa39224b16bf49",
+    "trn21_control": "fs-20260926-sprint-e1e2-control-trn21-r1; actual completed result/binding pending at preparation",
+    "trn22_batch_label": "fs-20260926-sprint-clean-batch-lr14-trn22-r1; actual result pending at preparation",
+    "trn22_control": "fs-20260926-sprint-e1e2-control-trn22-r1",
+    "trn22_actual_control_public20m": 0.9879041000701606,
+    "no_presumed_win": "Existing50fa schedule-alone trn21 result.9880239239389417 is not proof of benefit on batch/LR. If batch confirmation fails, this conditional port/run is not released; no automatic different arm."
+  }
+}
