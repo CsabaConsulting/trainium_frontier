@@ -1,0 +1,16 @@
+Command: timeout 180s /home/poojith-devan/venv/bin/python -B research/v2/lanes/sprint-batch-lr021-recursive-stack/author_cpu.py
+Exit: 1
+Test SHA256: b996c641a7a001085e5f1b523da9449f4abdf0cda52ad581db2c38f4bb13c70f
+Candidate SHA256: c2e27ccde59e619d74102429e340716dbec16a6ba538ea9beca9c714d0d33f87
+Failure classification: author instrumentation defect; no PASS receipt from this attempt.
+The observer read positional argument 13 (to_bf16), not one_beta2 (argument 12).
+Corrected the observer to bind the original function signature by parameter name.
+Scientific candidate source was unchanged. Fresh bounded rerun is required.
+
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/sprint-batch-lr021-recursive-stack/author_cpu.py", line 274, in <module>
+    a = run(donor, 262144, .021, 2, True)
+  File "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/sprint-batch-lr021-recursive-stack/author_cpu.py", line 252, in run
+    assert set(transport_types) == ({'tensor'} if recursive else {'float'})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
