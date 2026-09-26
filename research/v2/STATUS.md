@@ -1,5 +1,37 @@
 # Workflow installation and incremental launch status
 
+## 15:44 IST: K2 native test active; table compiler and simulator checks complete
+
+Latest direct follow-up in K2_NEXT_SLOT accepts existing native framework-forward
+evidence. Exactly ONE native201 K2 test launched on trn21 at09:55:49.390676UTC,
+source662c; actual four ranks/original596823 lock and six fresh private caches
+archived0312ca41b. Turnover174.696458s after genuine control20M completion.
+Do not restart because local monitoring was interrupted. No extra OFF/smoke/review.
+Operator10:11:26 observation reports all original ranks and compiler still live,
+no completed step or fatal error. Startup already exceeds900s; exact fifth-boundary
+startup/charged seconds and rate remain unknown. Bounded compiler diagnosis only.
+trn22 confirmation observed10:11:25 step1790,283102tok/s, original832589 intact;
+training/eval preserved. Neither observation is a new BPB or speedup claim.
+
+Genuine trn21 control0.9880953480915388 is archived04b3880ee and authenticated
+b0f29162e:3631steps,1789.720523charged seconds,39 member hashes verified.
+Unchanged selector: batch/LR0.9869854734569898 delta-0.0011099 NOMINATE;
+Recursive0.9880239239389417 delta-0.0000714 DISCARD. Do not advertise a transferred
+schedule win. Human-requested conditional batch/schedule stack remains a new test.
+
+Tables repaired source414cdd76 committed2a51d40c5: real production backendNEFF
+PASS, both full-shape official simulator fixtures FP32 exact (including all4096
+groups and516096 untouchedrows), int32/int64 CPU/OFF3/ON2 PASS. Only runtime HBM
+row-group views changed; failed4079 receipt retained. Main independently executed
+all524288-row address/owner interval checks and verified source/CPU/artifact hashes.
+No table native execution/whole-model startup/BPB yet; proposals being rebound.
+Local heavy-process slot released. No further local forward gate.
+
+Previous goal turn: PROGRESS (actual launch/compiler/simulator/control evidence).
+Current turn: PROGRESS (recovered live work, table repair checked, actual control
+ledger+selector completed). Goal ACTIVE/incomplete. Officialbest0.9878 unchanged.
+Next formal report12:47UTC/18:17IST; conditional K2/tables ETA alert12:30UTC/18:00.
+
 ## 15:17 IST report / latest next-slot instruction
 
 Direct authority: workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md. K2 retry

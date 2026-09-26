@@ -1,5 +1,17 @@
 # Current state
 
+## Current runtime handoff — 26 September15:44 IST
+
+Read top research/v2/STATUS.md and state.hosts, not historical paragraphs below.
+Actual K2 source662c native201 launched09:55:49UTC on trn21; trn22 runs batch/LR
+confirmation. Preserve original jobs/locks after monitoring interruptions.
+The real K2 compiler and official simulator passed; human accepted existing
+framework-forward evidence. ONE native timing is the test, no extra gate.
+K2 observed still compiling10:11UTC, beyond900s startup; no measured speed yet.
+Tables414c exact-production local compiler/simulator/FP32 CPU/OFF pass, native
+pending. Genuine trn21 control scored0.9880953481; batch/LR delta-0.0011099
+NOMINATE, Recursive delta-0.0000714 DISCARD. Officialbest0.9878 unchanged.
+
 ## Storage resolved — 26 September 14:12 IST
 
 Human resized both root EBS volumes to400GiB. Operator verified exact serials,
