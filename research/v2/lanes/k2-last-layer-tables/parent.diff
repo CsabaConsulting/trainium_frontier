@@ -1,0 +1,448 @@
+diff --git a/../k2-final-sprint/train.py b/train.py
+index a80eb863..39e08d09 100644
+--- a/../k2-final-sprint/train.py
++++ b/train.py
+@@ -214,6 +214,140 @@ def _k2_build_registered_lookup(*, kernel=None, nki_op_factory=None):
+     lookup.register_autograd(backward, setup_context=setup_context)
+     return lookup
+ 
++def _k2_table_build_kernel(*, enabled=False):
++    global nl, nisa
++    if not enabled:
++        raise RuntimeError('EXPERIMENT_DISABLED: no native module imported')
++    import nki
++    import nki.isa as nisa
++    import nki.language as nl
++
++    # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
++    vocab, tokens, channels = 524288, 32768, 128
++    partition, features, groups = 128, 64, 4096
++
++    @nki.jit
++    def resident_consumer(gradient, counts, starts, positions, group_maximums):
++        assert gradient.shape == (tokens, channels)
++        assert counts.shape == starts.shape == (vocab, 1)
++        assert positions.shape == (tokens, 1)
++        assert group_maximums.shape == (groups, 1)
++        assert gradient.dtype == nl.bfloat16
++        assert counts.dtype == starts.dtype == positions.dtype == group_maximums.dtype == nl.int32
++        assert nl.num_programs() == 2
++        feature_first = nl.program_id(0) * features
++        output = nl.ndarray((vocab, channels), dtype=nl.float32, buffer=nl.shared_hbm)
++
++        # Explicitly reusable, bounded scratch. nl.where creates at most one
++        # live selected FP32 tile plus small address tiles; compiler liveness
++        # and allocation remain unproved until native compilation.
++        remaining = nl.ndarray((partition, 1), dtype=nl.int32, buffer=nl.sbuf)
++        pointer = nl.ndarray((partition, 1), dtype=nl.int32, buffer=nl.sbuf)
++        maximum = nl.ndarray((1, 1), dtype=nl.int32, buffer=nl.sbuf)
++        accumulator = nl.ndarray((partition, features), dtype=nl.float32, buffer=nl.sbuf)
++        active = nl.ndarray((partition, 1), dtype=nl.float32, buffer=nl.sbuf)
++        token = nl.ndarray((partition, 1), dtype=nl.int32, buffer=nl.sbuf)
++        value = nl.ndarray((partition, features), dtype=nl.float32, buffer=nl.sbuf)
++        updated = nl.ndarray((partition, features), dtype=nl.float32, buffer=nl.sbuf)
++        sentinel = nl.full((partition, 1), tokens, dtype=nl.int32, buffer=nl.sbuf)
++        limit = nisa.register_alloc(0)
++
++        # 4096 runtime row groups, each containing a runtime occurrence loop.
++        # Neither T nor the per-row occurrence count is statically unrolled.
++        # Dynamic group offsets must be checked by the native compiler.
++        for group in nl.dynamic_range(groups):
++            first = group * partition
++            nisa.dma_copy(dst=remaining, src=counts[first:first + partition, :])
++            nisa.dma_copy(dst=pointer, src=starts[first:first + partition, :])
++            nisa.dma_copy(dst=maximum, src=group_maximums[group:group + 1, :])
++            nisa.register_load(limit, maximum)
++            nisa.memset(dst=accumulator, value=0.0)
++            for _ in nl.dynamic_range(limit):
++                nisa.tensor_scalar(dst=active, data=remaining, op0=nl.greater, operand0=0.0,
++                                   engine=nisa.engine.vector)
++                address = nl.where(active, pointer, sentinel, dtype=nl.int32)
++                # Sentinel and scratch initialization are repeated each round:
++                # skipped DMA lanes must not expose preceding tokens/values.
++                nisa.memset(dst=token, value=tokens)
++                nisa.dma_copy(dst=token,
++                              src=positions.ap(pattern=[[1, partition], [1, 1]],
++                                               vector_offset=address, indirect_dim=0),
++                              oob_mode=nisa.oob_mode.skip, dge_mode=nisa.dge_mode.swdge)
++                token_address = nl.where(active, token, sentinel, dtype=nl.int32)
++                nisa.memset(dst=value, value=0.0)
++                # DMA widens actual BF16 tangent elements into FP32. No cast
++                # down from FP32 is accepted at this callable's boundary.
++                nisa.dma_copy(dst=value,
++                              src=gradient.ap(pattern=[[channels, partition], [1, features]],
++                                              offset=feature_first,
++                                              vector_offset=token_address, indirect_dim=0),
++                              oob_mode=nisa.oob_mode.skip, dge_mode=nisa.dge_mode.swdge)
++                nisa.tensor_tensor(dst=updated, data1=accumulator, data2=value,
++                                   op=nl.add, engine=nisa.engine.vector)
++                selected = nl.where(active.ap(pattern=[[1, partition], [0, features]]),
++                                    updated, accumulator, dtype=nl.float32)
++                nisa.tensor_copy(dst=accumulator, src=selected)
++                nisa.tensor_scalar(dst=pointer, data=pointer, op0=nl.add, operand0=1.0,
++                                   engine=nisa.engine.vector)
++                nisa.tensor_scalar(dst=remaining, data=remaining, op0=nl.add, operand0=-1.0,
++                                   engine=nisa.engine.vector)
++            # A fresh dense output per call; untouched rows store positive zero.
++            # Owner0 writes c[0:64], owner1 writes c[64:128].
++            nisa.dma_copy(dst=output[first:first + partition,
++                                     feature_first:feature_first + features], src=accumulator)
++        return output
++
++    return resident_consumer[2]
++
++
++def _k2_table_build_registered_lookup(*, kernel=None, nki_op_factory=None):
++    # Optional explicit injections exist solely for CPU tests. Production calls
++    # this with no arguments, and never substitutes a CPU backward.
++    if kernel is None:
++        kernel = _k2_table_build_kernel(enabled=True)
++    if nki_op_factory is None:
++        from torch_neuronx import nki_op as nki_op_factory
++
++    @nki_op_factory('trainium_k2_tables_fp32::embedding_bf16', mutates_args=())
++    def lookup(weight: torch.Tensor, ids: torch.Tensor, counts: torch.Tensor,
++               starts: torch.Tensor, positions: torch.Tensor,
++               maximums: torch.Tensor) -> torch.Tensor:
++        # Keep the ordinary gather and exact existing output cast.
++        return F.embedding(ids, weight).to(torch.bfloat16)
++
++    def setup_context(ctx, inputs, output):
++        weight, ids, counts, starts, positions, maximums = inputs
++        if weight.dtype != torch.float32 or output.dtype != torch.bfloat16:
++            raise ValueError('K2 requires FP32 weights and BF16 output')
++        ctx.save_for_backward(counts, starts, positions, maximums)
++
++    def backward(ctx, gradient):
++        if gradient.dtype != torch.bfloat16:
++            raise ValueError('K2 refuses a non-BF16 output tangent')
++        counts, starts, positions, maximums = ctx.saved_tensors
++        dense = kernel(gradient.reshape(-1, gradient.shape[-1]).contiguous(),
++                       counts, starts, positions, maximums)
++        return dense, None, None, None, None, None
++
++    lookup.register_autograd(backward, setup_context=setup_context)
++    return lookup
++
++
++_P2_ROWS = 524288
++_P2_WIDTH = 128
++_K2_TABLE_LOOKUP = None
++
++
++def _p2_hashes(idx):
++    cur = idx.to(torch.int32)
++    length = cur.shape[1]
++    prev = F.pad(cur, (1, 0), value=8192)[:, :length]
++    prev2 = F.pad(cur, (2, 0), value=8192)[:, :length]
++    bigram = torch.remainder((prev * 120193) ^ (cur * 128201), _P2_ROWS - 1)
++    trigram = torch.remainder((prev2 * 144203) ^ (prev * 152197) ^ (cur * 160201), _P2_ROWS - 1)
++    return bigram.to(torch.int64), trigram.to(torch.int64)
++
++
+ class CausalConv(nn.Module):
+     """Depthwise causal conv1d: zero-initialized, so the residual branch it's added into starts as a true no-op."""
+ 
+@@ -296,6 +430,7 @@ class GPTConfig:
+     mlp_ratio: int = 4
+     attn_scale: float = 0.0
+     n_kv_heads: int = 0
++    ngram_ve: bool = False
+ COMPUTE_DTYPE: torch.dtype = torch.bfloat16
+ 
+ def norm(x: torch.Tensor) -> torch.Tensor:
+@@ -805,6 +940,13 @@ class CausalSelfAttention(nn.Module):
+                 raise ValueError(f'n_kv_heads={self.n_kv_heads} must divide n_head={self.n_head}')
+             self.kv_repeat = self.n_head // self.n_kv_heads
+         self.coalesced = coalesced
++        self.ngram_ve = config.ngram_ve and layer_idx == 7
++        if self.ngram_ve:
++            with torch.random.fork_rng(devices=[]):
++                self.bigram_gate = Linear(32, self.n_head, bias=False)
++                self.trigram_gate = Linear(32, self.n_head, bias=False)
++            nn.init.zeros_(self.bigram_gate.weight)
++            nn.init.zeros_(self.trigram_gate.weight)
+         if coalesced == 'all':
+             pass
+         elif coalesced == 'vfc':
+@@ -818,7 +960,7 @@ class CausalSelfAttention(nn.Module):
+         self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
+         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if layer_idx % 2 == (config.n_layer - 1) % 2 else None
+ 
+-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, ngrams=None) -> torch.Tensor:
+         b, t, c = x_q.shape
+         q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
+         k = self.c_k(x_k).view(b, t, self.n_kv_heads, self.head_dim)
+@@ -830,6 +972,12 @@ class CausalSelfAttention(nn.Module):
+             ve = ve.view(b, t, self.n_head, self.head_dim)
+             gate = 2 * torch.sigmoid(self.ve_gate(x_v[..., :VE_GATE_CHANNELS]))
+             v = v + gate.unsqueeze(-1) * ve
++        if ngrams is not None:
++            bigram, trigram = ngrams
++            bgate = 2 * torch.sigmoid(self.bigram_gate(x_v[..., 32:64]))
++            tgate = 2 * torch.sigmoid(self.trigram_gate(x_v[..., 64:96]))
++            v = v + bgate.unsqueeze(-1) * bigram.view(b, t, self.n_head, self.head_dim)
++            v = v + tgate.unsqueeze(-1) * trigram.view(b, t, self.n_head, self.head_dim)
+         v = v.to(q.dtype)
+         q = rope_norm(q, cos, sin)
+         k = rope_norm(k, cos, sin)
+@@ -910,14 +1058,14 @@ class Block(nn.Module):
+         self.x0_lambda = nn.Parameter(torch.zeros(1))
+         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if self.attn is not None else None
+ 
+-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, ngrams=None) -> torch.Tensor:
+         x = self.resid_lambda * x + self.x0_lambda * x0
+         if self.attn is None:
+             return x + self.mlp(norm(x))
+         q_in = k_in = v_in = x
+         if self.local_conv is not None:
+             x = x + self.local_conv(norm(x))
+-        attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin)
++        attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, ngrams)
+         x = x + attn_out
+         x = x + self.mlp(norm(x))
+         return x
+@@ -929,10 +1077,16 @@ class GPT(nn.Module):
+         if config.n_layer != 8:
+             raise ValueError('this submission requires exactly eight layers')
+         self.config = config
++        if config.ngram_ve and config.n_embd < 96:
++            raise ValueError('A1 trigram gate requires at least96 channels')
+         padded_vocab_size = (config.vocab_size + 63) // 64 * 64
+         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
+         self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)
+         self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if i % 2 == (config.n_layer - 1) % 2 and i in ATTENTION_LAYERS})
++        if config.ngram_ve:
++            self.ngram_tables = nn.ParameterDict({key: nn.Parameter(torch.zeros(_P2_ROWS, _P2_WIDTH, dtype=torch.float32)) for key in ('b7', 't7')})
++            with torch.random.fork_rng(devices=[]):
++                self.ngram_projections = nn.ModuleDict({key: Linear(_P2_WIDTH, config.n_embd, bias=False) for key in ('b7', 't7')})
+         # Architecture inspiration: Ritwika Kancharla, Trainium of Thought (Sep 2026),
+         # https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html
+         # Exact scalar gates/pairs and attention indices are the L2 task's choices.
+@@ -983,6 +1137,12 @@ class GPT(nn.Module):
+         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
+         self.cos.copy_(cos)
+         self.sin.copy_(sin)
++        if self.config.ngram_ve:
++            for key in ('b7', 't7'):
++                self.ngram_tables[key].zero_()
++                torch.nn.init.uniform_(self.ngram_projections[key].weight, -s, s)
++            torch.nn.init.zeros_(self.transformer.h[7].attn.bigram_gate.weight)
++            torch.nn.init.zeros_(self.transformer.h[7].attn.trigram_gate.weight)
+ 
+     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int=ROPE_BASE):
+         device = self.transformer.wte.weight.device
+@@ -1018,6 +1178,8 @@ class GPT(nn.Module):
+             matrix_params.extend(block.mlp.parameters())
+             if block.c_in is not None:
+                 matrix_params.append(block.c_in.weight)
++        if self.config.ngram_ve:
++            matrix_params.extend(self.ngram_projections.parameters())
+         scalar_params.extend(self.unet_skip_gates)
+         for p in scalar_params:
+             if p.ndim > 1:
+@@ -1027,6 +1189,8 @@ class GPT(nn.Module):
+         value_embed_params = list(self.value_embeds.parameters())
+         dmodel_lr_scale = (self.config.n_embd / 768) ** (-0.5)
+         param_groups = [dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.001), dict(kind='adamw', params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01), dict(kind='adamw', params=scalar_params, lr=SCALAR_LR, betas=(SCALAR_BETA1, SCALAR_BETA2), eps=1e-10, weight_decay=0.0)]
++        if self.config.ngram_ve:
++            param_groups.append(dict(kind='rmsprop', params=list(self.ngram_tables.parameters()), lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.0, .999), eps=1e-10, weight_decay=0.0, no_lr_decay=True))
+         if value_embed_params:
+             param_groups.append(dict(kind='adamw', params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.0))
+         if local_conv_params:
+@@ -1068,7 +1232,20 @@ class GPT(nn.Module):
+                       else self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE))
+             else:
+                 ve = None
+-            x = block(x, x0, ve, cos, sin)
++            ngrams = None
++            if self.config.ngram_ve and i == 7:
++                rows_pair = _p2_hashes(metadata[0] if k2 else idx)
++                projected = []
++                for key, rows in zip(('b7', 't7'), rows_pair):
++                    master = self.ngram_tables[key]
++                    if k2:
++                        table_meta = _K2_METADATA(rows, _P2_ROWS)
++                        gathered = _K2_TABLE_LOOKUP(master, *table_meta)
++                    else:
++                        gathered = F.embedding(rows, master).to(torch.bfloat16)
++                    projected.append(self.ngram_projections[key](gathered))
++                ngrams = tuple(projected)
++            x = block(x, x0, ve, cos, sin, ngrams)
+             if i < self.unet_n_enc:
+                 unet_skips.append(x)
+         x = norm(x)
+@@ -1300,6 +1477,28 @@ class MuonAdamW(torch.optim.Optimizer):
+         torch._foreach_mul_(update, lr)
+         torch._foreach_sub_(params, update)
+ 
++    @torch.no_grad()
++    def _rmsprop_step(self, group):
++        if group['weight_decay'] != 0 or group['betas'][0] != 0:
++            raise ValueError('fixed FP32 table RMSProp contract')
++        for p in group['params']:
++            if p.grad is None:
++                continue
++            if p.dtype != torch.float32 or p.grad.dtype != torch.float32:
++                raise ValueError('FP32 table parameter and gradient required')
++            state = self.state[p]
++            if not state:
++                state['step'] = 0
++                state['exp_avg_sq'] = torch.zeros_like(p)
++            if state['exp_avg_sq'].dtype != torch.float32:
++                raise ValueError('FP32 RMS state required')
++            state['step'] += 1
++            beta2 = group['betas'][1]
++            state['exp_avg_sq'].lerp_(p.grad.square(), 1 - beta2)
++            denom = (state['exp_avg_sq'] / (1 - beta2 ** state['step'])).sqrt() + group['eps']
++            lr = self._device_scalar(group, 'lr', group['lr'], p)
++            p.sub_((p.grad / denom) * lr)
++
+     @torch.no_grad()
+     def _muon_step(self, group):
+         params = group['params']
+@@ -1400,6 +1599,8 @@ class MuonAdamW(torch.optim.Optimizer):
+                 if not update_adamw:
+                     continue
+                 self._adamw_step_foreach(group)
++            elif group['kind'] == 'rmsprop':
++                self._rmsprop_step(group)
+             elif group['kind'] == 'muon':
+                 self._muon_step(group)
+             else:
+@@ -1415,11 +1616,13 @@ def sync_gradients(model: nn.Module) -> None:
+         if p.grad is not None:
+             dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)
+ 
+-def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], *, max_norm: float) -> None:
++def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], *, max_norm: float, clip_table_params=()) -> None:
+     """Average the accumulated gradients across ranks, then clip them to a global norm of max_norm."""
+     sync_gradients(model)
+     if max_norm > 0:
+         torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=None)
++        if clip_table_params:
++            torch.nn.utils.clip_grad_norm_(clip_table_params, max_norm, foreach=None)
+ 
+ def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+@@ -1478,7 +1681,7 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+     return m
+ 
+ def main() -> None:
+-    global PACK_FACTOR, K2_EMBEDDING, _K2_LOOKUP, _K2_METADATA
++    global PACK_FACTOR, K2_EMBEDDING, _K2_LOOKUP, _K2_METADATA, _K2_TABLE_LOOKUP
+     global loss_scale_clean, loss_scale_skips
+     global N_EMBD, SEQ_LEN
+     parser = argparse.ArgumentParser(description='Neuron Competition R1 baseline')
+@@ -1492,7 +1695,7 @@ def main() -> None:
+     parser.add_argument('--compile-sdpa-direct', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT', '1') != '0', help='Call F.scaled_dot_product_attention directly inside the compiled graph. Default on.')
+     parser.add_argument('--nki-local-conv', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_LOCAL_CONV', '1') != '0', help='Use the NKI two-tap causal convolution kernel on Neuron when the shapes allow it. Default on.')
+     parser.add_argument('--bf16-norm-output', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BF16_NORM_OUTPUT', '1') != '0', help='Keep FP32 RMS statistics and residuals but feed the branches BF16 normalized inputs. Default on.')
+-    parser.add_argument('--ngram-ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE', '0') != '0', help='Not part of this build; must be passed as --no-ngram-ve.')
++    parser.add_argument('--ngram-ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE', '0') != '0', help='Fixed last-layer b7/t7 tables with FP32 masters, gradients and RMS state. Default off; requires K2 for native training.')
+ 
+     def _hp(flag: str, default, typ, helptext: str) -> None:
+         env = 'NEURON_COMPETITION_R1_' + flag.lstrip('-').replace('-', '_').upper()
+@@ -1515,8 +1718,8 @@ def main() -> None:
+     N_EMBD = args.n_embd
+     if args.nki_local_conv != True:
+         parser.error('this submission fixes USE_NKI_LOCAL_CONV=True; the launch flag must agree')
+-    if args.ngram_ve != False:
+-        parser.error('this submission fixes USE_NGRAM_VE=False; the launch flag must agree')
++    if args.ngram_ve and not K2_EMBEDDING:
++        parser.error('native A1 table training requires --k2-embedding')
+     if not 0.0 <= 1.0 <= 1.0:
+         parser.error(f'--byte-wte-init-mix must be in [0, 1], got {1.0}')
+     if args.qk_shift != False:
+@@ -1538,6 +1741,8 @@ def main() -> None:
+             raise ValueError('K2 requires Neuron, pack32/context1024/width1024')
+         _K2_METADATA = _k2_prepare_metadata
+         _K2_LOOKUP = _k2_build_registered_lookup()
++        if args.ngram_ve:
++            _K2_TABLE_LOOKUP = _k2_table_build_registered_lookup()
+     global COMPUTE_DTYPE
+     COMPUTE_DTYPE = compute_dtype_for(device)
+     print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')
+@@ -1547,6 +1752,7 @@ def main() -> None:
+     global BOS_TOKEN_ID
+     BOS_TOKEN_ID = tokenizer.get_bos_token_id()
+     config = build_config()
++    config.ngram_ve = args.ngram_ve
+     print0(f'model_config={json.dumps(asdict(config), indent=2)}')
+     model = GPT(config)
+     model.init_weights()
+@@ -1578,7 +1784,9 @@ def main() -> None:
+     assert dist.is_initialized() and dist.get_world_size() == 4
+     owned_optimizer = OwnedOptimizer(optimizer)
+     cached_linears = [m for m in model.modules() if isinstance(m, Linear)]
+-    clip_main_params = list(orig_model.parameters())
++    clip_table_params = list(orig_model.ngram_tables.parameters()) if config.ngram_ve else []
++    table_ids = {id(p) for p in clip_table_params}
++    clip_main_params = [p for p in orig_model.parameters() if id(p) not in table_ids]
+     loop_started = time.monotonic()
+     budget_started = loop_started
+     smooth_loss = 0.0
+@@ -1602,7 +1810,7 @@ def main() -> None:
+             last_loss = loss.detach()
+             (loss / grad_accum_steps * LOSS_SCALE).backward()
+             x, y, loader_state = fetch()
+-        clip_and_sync_gradients(model, clip_main_params, max_norm=GRAD_CLIP)
++        clip_and_sync_gradients(model, clip_main_params, max_norm=GRAD_CLIP, clip_table_params=clip_table_params)
+         schedule_elapsed = startup_adjusted_schedule_elapsed(step, elapsed, budget_started)
+         lrm = lr_multiplier(step, elapsed=schedule_elapsed, max_train_seconds=args.max_train_seconds)
+         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
+@@ -1700,6 +1908,12 @@ def make_plan(groups, world_size):
+     parameters = []
+     seen = set()
+     for group_index, group in enumerate(groups):
++        if group['kind'] == 'rmsprop':
++            for p in group['params']:
++                if id(p) in seen or p.dtype != torch.float32 or not p.is_contiguous():
++                    raise ValueError('replicated RMS requires unique contiguous FP32 Parameters')
++                seen.add(id(p))
++            continue
+         if group['kind'] not in ('adamw', 'muon'):
+             raise ValueError('ownership probe is restricted to AdamW and Muon')
+         if 'depth_mults' in group:
+@@ -1737,7 +1951,8 @@ class OwnedOptimizer:
+         self.parameter_ids = [id(p) for p in self.parameters]
+         self.groups, self.positions, self.padding = ([], [], {})
+         for group_index, source in enumerate(optimizer.param_groups):
+-            positions = [e['position'] for e in self.entries if e['group'] == group_index and e['owner'] == self.rank]
++            positions = (list(range(len(source['params']))) if source['kind'] == 'rmsprop' else
++                         [e['position'] for e in self.entries if e['group'] == group_index and e['owner'] == self.rank])
+             self.positions.append(positions)
+             self.groups.append({**source, 'params': [source['params'][i] for i in positions]})
+             if self.pad_singleton_muon and source['kind'] == 'muon' and (len(positions) == 1):
+@@ -1771,8 +1986,12 @@ class OwnedOptimizer:
+             if owned['kind'] == 'adamw':
+                 if update_adamw:
+                     opt._adamw_step_foreach(owned)
+-            else:
++            elif owned['kind'] == 'rmsprop':
++                opt._rmsprop_step(owned)
++            elif owned['kind'] == 'muon':
+                 opt._muon_step(owned)
++            else:
++                raise ValueError('unknown owned optimizer kind')
+         if self.owned:
+             torch._foreach_copy_(self.send_views, self.owned)
+         dist.all_gather_into_tensor(self.received, self.send)
+@@ -1780,11 +1999,15 @@ class OwnedOptimizer:
+         self.calls += 1
+ 
+     def state_dict(self):
++        if any(g['kind'] == 'rmsprop' for g in self.optimizer.param_groups):
++            raise ValueError('hybrid optimizer resume is unsupported; final checkpoint is model-only')
+         state = self.raw_state_dict()
+         state['state'] = {key: {name: value for name, value in fields.items() if name not in ('stacked_params', 'stacked_grads')} for key, fields in state['state'].items()}
+         return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
+ 
+     def load_state_dict(self, payload):
++        if any(g['kind'] == 'rmsprop' for g in self.optimizer.param_groups):
++            raise ValueError('hybrid optimizer resume is unsupported; final checkpoint is model-only')
+         if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries):
+             raise ValueError('optimizer checkpoint ownership/schema mismatch')
+         self.raw_load_state_dict(payload['optimizer'])
