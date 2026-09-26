@@ -1,0 +1,104 @@
+{
+  "proposal_id": "20260926-ordinary-embedding-subnormal-control",
+  "status": "COMPLETED_PROPOSAL_ONLY_DISABLED_PENDING_IMPLEMENTATION_REVIEW_AND_RELEASE",
+  "owner_role": "Researcher only; distinct Implementer, independent Verifier and sole Operator required",
+  "hypothesis": "Without importing any K2 code, the ordinary compiled embedding route may reproduce the exact FP32-subnormal backward loss seen in30630c84 while ordinary eager and normal-valued witnesses remain exact; such a result would localize control-route behavior, not qualify K2 or establish a precise compiler mechanism.",
+  "single_causal_change": "One new control-only process removes all K2/custom-autograd/kernel activity and observes ordinary eager versus ordinary compiled embedding on the same exact repeated-ID/subnormal tangent plus two narrowly paired witnesses. It is not a candidate retry or model-source change.",
+  "mechanism_class": "control_route_correctness_diagnostic",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "candidate_shortlist": [{"idea":"Ordinary embedding-only subnormal control","mechanism_class":"control_route_correctness_diagnostic","predicted_bpb_delta":null,"why_ranked":"The independent integer oracle authenticates meaningful nonzero expected bytes and the original all-rank mismatch occurs only in the required ordinary compiled control. A tiny separate control process tests this without changing any candidate or tolerance."}],
+  "selection_rationale": "Supervisor requested this single source-neutral diagnostic. Preserve original K2 FAILED and all earlier failures. Do not add profiling, compiler switches, denormal-mode changes, second candidate, timing pair or broad case suite.",
+  "p_improve": null,
+  "estimated_host_hours": 0.18333333333333332,
+  "trainium_feasibility": "Existing native Torch2.11.0+cpu / NKI0.5.0+28631259367.ga768afa6 runtime, four actual distributed neuron ranks with LNC2. V256/T256/C128, FP32 weight/output/upstream/gradient and int32 IDs; no full model. One ordinary torch.compile callable per rank, fullgraph=True,dynamic=False,backend=neuron, reused after a nonzero normal sentinel. Actual support remains unproved for this isolated probe.",
+  "cheapest_falsifier": "Before native assignment, independently generate strict little-endian FP32 expected bytes using an integer oracle, authenticate original IDs/tangent hashes, and test leaf receipt completeness/negative controls on tiny CPU inputs. No K2 import or source edit is needed.",
+  "prior_result_refs": [
+    "30630c8441249f7db894a80c19200f67003bd18d:research/v2/operator/20260926-trn22-k2-registered/completed/results-bundle.json",
+    "research/v2/verification/20260926-k2-subnormal-independent/REPORT.md",
+    "research/v2/verification/20260926-k2-subnormal-independent/analyze.py",
+    "research/v2/verification/20260926-k2-subnormal-independent/raw-analysis.log"
+  ],
+  "evidence": [
+    "All31 original raw files authenticated by the independent analysis; decoded7682695 bytes, bundle SHAa210263a3f0cd67f4896cb76c55ae67198331053220432800639b4483b1d2563.",
+    "All4 ranks completed20 cases, nonzero FP32 sentinel and two changed-tangent replays;130 candidate exact comparisons per rank. Required ordinary compiled FP32-subnormal gradient alone mismatched per rank; original gate remains FAILED.",
+    "Independent signed-integer2^-149 oracle gives1408 nonzeros; positive counts7:683,8:384,9:341,zeros31360. All-zero error maximum9*2^-149=1.2611686178923354e-44. This is not a zero fixture or tolerance issue."
+  ],
+  "duplicate_search_terms": ["compiled_ordinary_embedding", "fp32_subnormal", "2^-149", "ordinary embedding control", "30630c84"],
+  "control": {
+    "git_commit": "30630c8441249f7db894a80c19200f67003bd18d",
+    "run_label": "fs-20260926-k2-registered-forward-trn22-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Historical failed control-route observation ontrn22, not a quality control or current preflight. Same runtime/compiler configuration is required; cross-host observation on preferredtrn21 must disclose host change."
+  },
+  "candidate": {
+    "branch": "codex/20260926-ordinary-embedding-subnormal-control",
+    "files_allowed": ["new proposal-local ordinary_subnormal_probe.py, independent CPU tests, receipts and minimal reuse of reviewed single diagnostic binding support only"],
+    "expected_diff": "Standalone disabled control leaf; no train.py/K2/reference/adapter/kernel/validator/evaluator changes or imports. No generic launcher.",
+    "run_label": "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+    "launch_command": null,
+    "source_commit": null,
+    "source_sha256": null,
+    "scope": "No runnable checker exists in this proposal-only commit. Intended exact future argv is specified separately; no launch authority."
+  },
+  "prospective_command": [
+    "/usr/bin/timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "600s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone", "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/rank_entry.py",
+    "--enable-control-only", "--label", "fs-20260926-ordinary-fp32-subnormal-trn21-d1",
+    "--out-dir", "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/receipts"
+  ],
+  "command_status": "SPECIFICATION_ONLY. Later independently reviewed binding must pin exact leaf/rank-entry/driver/support bytes and runtime. Missing enable flag exits DISABLED before native imports. No command is run by this proposal.",
+  "fixture": {
+    "V":256,"T":256,"C":128,"dtype":"torch.float32","ids_dtype":"torch.int32","seed":42,
+    "ids":"ids[t]=t%11, t=0..255",
+    "subnormal":"upstream[t,c]=-(2^-149) iff (t+c)%3==0, otherwise +(2^-149)",
+    "ids_sha256":"bdc67a401900ee3bbd1e23ce38227311ef06dfd415ef25311138f1379648567e",
+    "positive_upstream_sha256":"8e79a64b9db2dd89e7bac15c068285a6aafb12db7dcd6f208bb683e3d08cf78d",
+    "positive_expected_gradient_sha256":"402743e587f15111ef1d3b927df591942db4bd96038726e4edc134a622e44085",
+    "expected_nonzero":1408,
+    "original_zero_actual_sha256":"fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471",
+    "normal_witness":"Same IDs/signs, tangent magnitude exactly2^-126, constructed directly on CPU, not by native multiplication of subnormals.",
+    "changed_tangent_witness":"Negate the original subnormal tangent and replay the SAME compiled callable. Recompute gradient from signed integer coefficients, retaining positive zero for untouched rows.",
+    "weights":"Generate one finite CPU torch.randn(256,128) after manual_seed(42), hash it and clone identical weights into each fresh eager/compiled leaf for every witness. Same seeded finite weight-generation rule as the original checker, but no claim of byte equality to its later random weight767d3433... after mixed-case history. Embedding weight-gradient oracle depends only on IDs/tangent. Forward is checked against this control's exact CPU gather and its weight hash.",
+    "scope":"Exact frozen gradient fixture is IDs and tangent; no K2 routing metadata is needed or imported. Fresh process removes original mixed BF16/K2/full-case history deliberately, so non-reproduction cannot prove the earlier failure invalid."
+  },
+  "ordered_protocol": [
+    "Initialize normal native distributed rank mapping once, WORLD_SIZE4/LOCAL_RANK consistency/LNC2, one Torch thread; capture actual runtime/env/seed and fixture pins. No K2 modules, registration, custom autograd.Function, nki_op, kernel or reference imports.",
+    "Use the frozen ordinary forward expression F.embedding(index,weight).to(torch.float32). Keep the cast even though it is FP32. Define one eager function and one torch.compile(eager,backend='neuron',fullgraph=True,dynamic=False) object, reused throughout.",
+    "Normal nonzero warmup: unique IDs0..255 and original random.Random(42) row-major randint(-256,256)/32 FP32 tangent. Run eager then compiled with fresh weight leaves; check strict forward/gradient bytes and input immutability. This warms the same compiled callable before subnormal input.",
+    "Run exactly three paired witnesses in order: original repeated-ID positive subnormal, same sign pattern at2^-126, negated original subnormal. Eager then compiled for each, fresh leaf/grad=None, no changed compiler flags or recompilation object, no grad accumulation from a prior witness.",
+    "Synchronize and read back IDs/weight/tangent bytes before forward and immediately before each backward; compare to pinned CPU bytes. Call output.backward(tangent), then retain synchronized output/gradient bytes/hash/nonzero/finite/error records and post-input hashes. No flush_denormal setting, loss rescaling, FP64/device detour, tolerances or output replacement.",
+    "Retain every route on mismatch; finish all planned witnesses on all4 ranks where execution remains safe. Per-rank finally writes complete JSON-safe receipt and cleans initialized process group; missing/error routes remain nonaccepting. Independent aggregation checks exact rank-set and cross-rank signatures. Watchdog bounds hangs; no automatic retry."
+  ],
+  "gates": {"rules_review":false,"diff_review":false,"cpu_or_static_checks":false,"numerical_equivalence":false,"causality":false,"smoke_run":false,"human_run_approval":false},
+  "success_criteria": {
+    "quality":"Not measured: no model, training, eval, BPB, quality adoption or candidate qualification.",
+    "throughput":"Not measured; diagnostic elapsed records are watchdog evidence, never performance/speedup.",
+    "correctness":"Every comparison remains strict shape/dtype/finite/identical bytes, atol0/rtol0, including signed-zero bits. Zero exit only if all required ordinary routes/witnesses are exact; any mismatch returns nonzero after retaining observations. Diagnostic reproduction is useful evidence, not a PASS or tolerance waiver."
+  },
+  "receipt_and_review": {
+    "expected_cases_per_rank":4,"routes_per_case":["ordinary_eager","ordinary_compiled"],
+    "required":"Exactly4 rank receipts, runtime/leaf hashes, all case identities/order, exact inputs/oracle records and all forward/gradient checks, missing/error reasons, JSON-safe nonfinite tags, route pre/backward/post hashes, process-group cleanup/exit records, graph metrics if emitted and original gate FAILED_PRESERVED.",
+    "independent_cpu":"Own integer oracle must reproduce original IDs/upstream/gradient hashes and encode normal/negative witnesses independently. Run own exactness and negative tests for zero output, stale positive tangent on negative replay, wrong route/rank/case, input mutation, missing gradient and signed-zero/NaN reporting. CPU torch ordinary checks are supportive only; local Torch version differs from installed native2.11.",
+    "native_acceptance":"No native release before exact new leaf and disabled packet are independently reviewed with own CPU test and fail-closed binding tests; Supervisor selects one host and sole Operator performs fresh preflight. Original K2 full-case gate stays FAILED regardless of outcome."
+  },
+  "host_and_safety": {
+    "preferred_host":"trn21 only after current exact36 training+attachedfresh20M terminal, retrieval and explicit descendant/compiler/device/original-lock quiescence",
+    "alternative":"Idletrn22 only if Supervisor selects it and CPU schedule qualification has not been released; requires separate exact hostname/root/label/lock rebind and review. No dual dispatch, fallback automation or reservation.",
+    "locks":{"path":"/home/ubuntu/.cache/trainium_freshstart/device0.lock","device":66305,"trn21_inode":596823,"trn22_inode":832589},
+    "preflight":"Reuse reviewed single diagnostic driver/dispatch/idle guard; same original lifetime exclusive flock plus fresh ps AND neuron-ls under lock, busy/error failclosed. Unique absent root, exact support/runtime pins, STOP/breakers/old queue absence, disk>=10.5GiB and existing RAM floor. Preserve current jobs and caches; no toolkit install.",
+    "limits":"One600-second child plus60-second kill grace, four ranks LNC2, OMP/MKL/OPENBLAS1; tensor fixtures<64MiB per rank, bounded receipts<=8MiB/rank and logs/output<=64MiB. Private fresh diagnostic SDK caches; existing disk/watchdog limits, no protected cleanup.",
+    "postflight":"Preserve all actual dispatch/driver/timeout/torchrun/rank/compiler PID/PPID/PGID/SID identities and explicit absence/lineage census, device idle and original lock competitor success before any other job. Child return alone is insufficient."
+  },
+  "interpretation": {
+    "compiled_only_subnormal_loss":"If all4 replicate compiled-only subnormal zero/loss while eager, normal witness and transfer hashes are exact, this is ordinary control-platform evidence independent of K2 imports. It does not distinguish exact lowering/flush site or retroactively pass K2.",
+    "not_reproduced":"If all routes are exact, retain original failure and investigate process/order interaction separately. Do not call the candidate gate passed or retry it automatically.",
+    "broader_failure":"If eager, normal witness, transfer checks, ranks or forward fail, record the narrower observations and classify inconclusive/broader platform failure. Do not choose a tolerance to make it pass.",
+    "next_K2_decision":"Supervisor may use the result to choose a separately proposed diagnostic or an explicitly reviewed qualification design. No candidate/validator/oracle edits, gate waiver, native qualification, timing or adoption follow from this control-only experiment."
+  },
+  "abort_conditions":["Missing hash/runtime/fixture/independent review or release", "Busy/error idle checks, wrong original lock, STOP/disk/unique-root failure", "Unexpected K2 import/custom operator/denormal mode or unbounded scope", "Timeout/crash/nonfinite/missing rank or receipt: preserve incomplete failure; no retry", "Any attempt to change the old failed gate, tolerance, source, evaluator, ledger or running host job"],
+  "launch_authorized":false,"stage_authorized":false,"host_reserved":false,"native_qualification":false,"original_K2_gate":"FAILED_PRESERVED","source_adoption":false,"submission_authorized":false,
+  "human_approved_by":null,"verdict":null,"results":null
+}

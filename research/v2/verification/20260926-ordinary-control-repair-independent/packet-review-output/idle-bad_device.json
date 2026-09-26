@@ -1,0 +1,42 @@
+{
+  "calls": [
+    [
+      "/usr/bin/ps",
+      "-eo",
+      "pid=,ppid=,comm=,args="
+    ],
+    [
+      "/opt/aws/neuron/bin/neuron-ls",
+      "--json-output"
+    ]
+  ],
+  "evidence": {
+    "ps": {
+      "command": [
+        "/usr/bin/ps",
+        "-eo",
+        "pid=,ppid=,comm=,args="
+      ],
+      "returncode": 0,
+      "stdout_sha256": "2810b5e383fe0c320d347339290c2c7357da63d400656e362e8ed02cc484ea01",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "",
+      "row_count": 3,
+      "busy": [],
+      "excluded_pids": [
+        101,
+        100
+      ]
+    },
+    "neuron_ls": {
+      "command": [
+        "/opt/aws/neuron/bin/neuron-ls",
+        "--json-output"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "2a1c858d0913ec9527e2e35d90793923735e29be629b856c5755fd5b15177590",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    }
+  }
+}

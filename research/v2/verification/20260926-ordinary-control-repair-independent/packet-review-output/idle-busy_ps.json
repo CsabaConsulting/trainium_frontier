@@ -1,0 +1,61 @@
+{
+  "calls": [
+    [
+      "/usr/bin/ps",
+      "-eo",
+      "pid=,ppid=,comm=,args="
+    ],
+    [
+      "/opt/aws/neuron/bin/neuron-ls",
+      "--json-output"
+    ]
+  ],
+  "evidence": {
+    "ps": {
+      "command": [
+        "/usr/bin/ps",
+        "-eo",
+        "pid=,ppid=,comm=,args="
+      ],
+      "returncode": 0,
+      "stdout_sha256": "f9bfa65152c57b1ccfde4819a25bbfea30ec3975d92d0792a1c1561567b0485f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "",
+      "row_count": 4,
+      "busy": [
+        {
+          "pid": 102,
+          "ppid": 1,
+          "comm": "python",
+          "matched": [
+            "train.py"
+          ],
+          "command_sha256": "44391159d850138482daef6e4db3162f115d0e571d501d0e4cb15ed520a6bba0"
+        }
+      ],
+      "excluded_pids": [
+        101,
+        100
+      ]
+    },
+    "neuron_ls": {
+      "command": [
+        "/opt/aws/neuron/bin/neuron-ls",
+        "--json-output"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "5b948ecc8079a4a1c80e915e194e4f414d96b1658c9a8ebfcb1639f728cd0916",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "",
+      "device": 0,
+      "lnc": 2,
+      "cores": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "process_pids": []
+    }
+  }
+}

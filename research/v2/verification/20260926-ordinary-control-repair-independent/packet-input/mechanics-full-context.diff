@@ -1,0 +1,451 @@
+diff --git a/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/dispatch_driver.py b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/dispatch_driver.py
+new file mode 100644
+index 00000000..148c24f1
+--- /dev/null
++++ b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/dispatch_driver.py
+@@ -0,0 +1,35 @@
++"""Small detached receipt wrapper for the unchanged exact outer flock command."""
++import datetime as dt
++import json
++from pathlib import Path
++import subprocess
++import sys
++
++LOCK = '/home/ubuntu/.cache/trainium_freshstart/device0.lock'
++
++
++def run(root):
++    command = ['/usr/bin/flock', '-n', LOCK, '/usr/bin/python3', '-I', '-B',
++               str(root / 'host_driver.py')]
++    result = {'command': command, 'started_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
++              'status': 'OUTER_COMMAND_FAILED', 'returncode': None}
++    try:
++        with (root / 'outer-flock.log').open('x') as out:
++            result['returncode'] = subprocess.call(command, stdin=subprocess.DEVNULL,
++                                                   stdout=out, stderr=subprocess.STDOUT)
++        if result['returncode'] == 0:
++            result['status'] = 'OUTER_COMMAND_EXITED'
++    except Exception as exc:
++        result['error'] = type(exc).__name__ + ': ' + str(exc)
++        raise
++    finally:
++        result['ended_utc'] = dt.datetime.now(dt.timezone.utc).isoformat()
++        result['under_lock_receipt_exists'] = (root / 'under-lock-idle.json').is_file()
++        result['driver_terminal_exists'] = (root / 'terminal.json').is_file()
++        with (root / 'outer-flock-exit.json').open('x') as out:
++            json.dump(result, out, indent=2, sort_keys=True); out.write('\n')
++    return result['returncode']
++
++
++if __name__ == '__main__':
++    sys.exit(run(Path(__file__).resolve().parent))
+diff --git a/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/host_driver.py b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/host_driver.py
+new file mode 100644
+index 00000000..ae1caf98
+--- /dev/null
++++ b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/host_driver.py
+@@ -0,0 +1,124 @@
++"""One disabled-packet ordinary-only diagnostic binding; derived from guarded P driver.
++
++Only a future separately assigned sole Operator may stage/run this packet.
++"""
++import datetime as dt
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import socket
++import subprocess
++import sys
++import time
++
++ROOT = Path("/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet")
++PROJECT = Path('/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2')
++LABEL = "fs-20260926-ordinary-fp32-subnormal-trn21-d1"
++EXPECTED_HOSTNAME = 'ip-172-31-34-85'
++LOCK = '/home/ubuntu/.cache/trainium_freshstart/device0.lock'
++PINS = {"ordinary_subnormal_probe.py":"1cc6ee395f88125b9c9d280562e918d002a1e1a10dc88d50501d1fb4a09a551c","validate_receipts.py":"55013b6aec3c8e64fc3044440b062030a3ca03371244dafab934f1d35b59a422","rank_entry.py":"5b2319042ac48a1dbbbe9ed63024d5745ee233fdb3b5f77691c22e33d9bc4bb0","dispatch_driver.py":"c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a","idle_guard.py":"adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737"}
++COMMAND = ["/usr/bin/timeout","--foreground","--signal=TERM","--kill-after=60s","600s","/home/ubuntu/workspace/native_venv/bin/torchrun","--standalone","--nproc_per_node=4","/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/rank_entry.py","--enable-control-only","--label","fs-20260926-ordinary-fp32-subnormal-trn21-d1","--out-dir","/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/receipts"]
++CHECKER_ARGS = ["--enable-control-only","--label","fs-20260926-ordinary-fp32-subnormal-trn21-d1","--out-dir","/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/receipts"]
++ENV = {"HOME":"/home/ubuntu","PATH":"/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin","NKI_VENV_PATH":"/home/ubuntu/workspace/native_venv","PYTHONUNBUFFERED":"1","PYTHONDONTWRITEBYTECODE":"1","NEURON_LOGICAL_NC_CONFIG":"2","NEURON_CC_FLAGS":"--optlevel=1 --auto-cast matmult --auto-cast-type bf16","NEURON_COMPETITION_R1_SEED":"42","OMP_NUM_THREADS":"1","MKL_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","TRN_EXP_LABEL":"fs-20260926-ordinary-fp32-subnormal-trn21-d1","TORCH_NEURONX_ENABLED_METRIC_TABLES":"graph_stats","TORCH_NEURONX_METRICS_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/metrics","TORCH_NEURONX_NEFF_CACHE_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/neff","TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/local","TORCH_NEURONX_HLO_CACHE_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/hlo","TORCHINDUCTOR_CACHE_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/inductor","NEURON_COMPILE_CACHE_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/compiler","TORCH_NEURONX_DEBUG_DIR":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/debug","NEURON_COMPILE_CACHE_URL":"/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet/caches/compiler"}
++CACHE_KEYS = ["TORCH_NEURONX_NEFF_CACHE_DIR","TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR","TORCH_NEURONX_HLO_CACHE_DIR","TORCHINDUCTOR_CACHE_DIR","NEURON_COMPILE_CACHE_DIR","TORCH_NEURONX_DEBUG_DIR"]
++
++
++def utc():
++    return dt.datetime.now(dt.timezone.utc).isoformat()
++
++
++def sha(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def require(ok, message):
++    if not ok:
++        raise RuntimeError(message)
++
++
++def record(name, value):
++    with (ROOT / name).open('x') as stream:
++        json.dump(value, stream, indent=2, sort_keys=True)
++        stream.write('\n')
++
++
++def load_module(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++def main():
++    started = time.monotonic()
++    child_returncode = None
++    try:
++        require(Path(__file__).resolve().parent == ROOT, 'WRONG_PACKET_ROOT')
++        require(socket.gethostname() == EXPECTED_HOSTNAME, 'WRONG_HOST')
++        for base in (Path('/home/ubuntu'), PROJECT, ROOT,
++                     *[p for p in Path('/home/ubuntu').glob('trainium*') if p.is_dir()]):
++            for rel in ('STOP', 'research/agentic/STOP', 'research/v2/STOP'):
++                require(not os.path.lexists(base / rel), 'STOP: ' + str(base / rel))
++        v = os.statvfs('/')
++        require(v.f_bavail * v.f_frsize >= 10.5 * 1024**3, 'DISK_HEADROOM')
++        for name, expected in PINS.items():
++            require(sha(ROOT / name) == expected, 'SUPPORT_SHA:' + name)
++        for name in ('receipts', 'caches', 'metrics'):
++            require(not os.path.lexists(ROOT / name), 'ALREADY_EXISTS:' + name)
++        (ROOT / 'caches').mkdir(exist_ok=False)
++        cold = {}
++        for key in CACHE_KEYS:
++            cache = Path(ENV[key])
++            cache.mkdir(exist_ok=False)
++            require(not any(cache.iterdir()), 'CACHE_NOT_EMPTY:' + key)
++            cold[key] = dict(path=str(cache), initially_empty=True,
++                             device=cache.stat().st_dev, inode=cache.stat().st_ino)
++        require(ENV['NEURON_COMPILE_CACHE_URL'] == ENV['NEURON_COMPILE_CACHE_DIR'], 'COMPILER_URL_DIR')
++        (ROOT / 'metrics').mkdir(exist_ok=False)
++        record('fresh-caches.json', dict(utc=utc(), directories=cold,
++                                       compile_cache_url=ENV['NEURON_COMPILE_CACHE_URL'],
++                                       scope='Created absent and empty before child; runtime use requires worker/compiler evidence'))
++        guard = load_module('bound_idle_guard', ROOT / 'idle_guard.py')
++        lock_fd = guard.require_idle_under_inherited_lock(LOCK, ROOT / 'host_driver.py', record)
++        record('diagnostic-launch.json', dict(utc=utc(), label=LABEL, command=COMMAND,
++                                             environment=ENV, support_sha256=PINS,
++                                             quality_evidence=False, no_eval=True))
++        with (ROOT / 'diagnostic.log').open('x') as output:
++            output.write('DIAGNOSTIC_START_UTC=' + utc() + '\n')
++            output.flush()
++            child_started = time.monotonic()
++            child_returncode = subprocess.call(COMMAND, cwd=ROOT, env=ENV,
++                                               stdin=subprocess.DEVNULL, stdout=output,
++                                               stderr=subprocess.STDOUT, pass_fds=(lock_fd,))
++            child_wall = time.monotonic() - child_started
++            output.write('DIAGNOSTIC_END_UTC=' + utc() + '\n')
++            output.flush()
++        record('child-exit.json', dict(utc=utc(), returncode=child_returncode,
++                                      timeout_wrapped_child_wall_seconds=child_wall,
++                                      diagnostic_only=True, official_training_budget='NOT_A_QUALITY_RUN'))
++        if child_returncode != 0:
++            record('terminal.json', dict(utc=utc(), label=LABEL, status='DIAGNOSTIC_CHILD_FAILED',
++                                         returncode=child_returncode, complete=False,
++                                         no_eval=True, no_automatic_next_job=True))
++            return child_returncode
++        # Exit zero / four files alone is insufficient. No revised checker math.
++        validator = load_module('bound_receipt_validator', ROOT / 'validate_receipts.py')
++        completion = validator.validate(ROOT, LABEL, ENV, PINS, CHECKER_ARGS)
++        record('completion-check.json', completion)
++        record('terminal.json', dict(utc=utc(), label=LABEL, status=completion['status'],
++                                     returncode=0, complete=True, no_eval=True,
++                                     no_automatic_next_job=True, accepted_speedup=False,
++                                     driver_elapsed_to_terminal_seconds=time.monotonic() - started))
++        return 0
++    except Exception as exc:
++        record('terminal.json', dict(utc=utc(), label=LABEL, status='DIAGNOSTIC_DRIVER_REFUSED_OR_INCOMPLETE',
++                                     error=type(exc).__name__ + ': ' + str(exc),
++                                     child_returncode=child_returncode, complete=False,
++                                     no_eval=True, no_automatic_next_job=True))
++        raise
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/idle_guard.py b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/idle_guard.py
+new file mode 100644
+index 00000000..8aeebb14
+--- /dev/null
++++ b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/idle_guard.py
+@@ -0,0 +1,164 @@
++"""Fail-closed idle evidence inside the existing inherited lifetime flock.
++
++No locking path, source, evaluator, cache or device state is changed here.
++The outer util-linux flock owns the lock until the synchronous driver exits.
++"""
++import datetime as dt
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import stat
++import subprocess
++
++PS = ['/usr/bin/ps', '-eo', 'pid=,ppid=,comm=,args=']
++NEURON_LS = ['/opt/aws/neuron/bin/neuron-ls', '--json-output']
++CHECK_ENV = {'PATH': '/usr/bin:/bin:/opt/aws/neuron/bin', 'LC_ALL': 'C'}
++JOB_NAMES = {
++    'torchrun', 'train.py', 'profile_actual_loop.py', 'host_driver.py',
++    'host_queue.py', 'host_queue-6ef7.py', 'cpu_driver.py',
++    'preflight_dryrun.py', 'submission_rehearsal.py', 'neuronx-cc',
++    'walrus_driver', 'neuron_parallel_compile', 'torch.distributed.run',
++}
++
++
++def utc():
++    return dt.datetime.now(dt.timezone.utc).isoformat()
++
++
++def digest(text):
++    return hashlib.sha256(text.encode()).hexdigest()
++
++
++def inherited_lock(lock_path, driver_path):
++    """Authenticate the exact outer command and its already-locked open FD."""
++    lock = Path(lock_path)
++    st = lock.lstat()
++    if not stat.S_ISREG(st.st_mode) or st.st_uid != os.getuid():
++        raise RuntimeError('LOCK_PATH_NOT_OWNED_REGULAR_FILE')
++    parent = os.getppid()
++    expected = ['/usr/bin/flock', '-n', str(lock), '/usr/bin/python3',
++                '-I', '-B', str(driver_path)]
++    actual = Path(f'/proc/{parent}/cmdline').read_bytes().rstrip(b'\0').decode().split('\0')
++    if actual != expected:
++        raise RuntimeError('OUTER_FLOCK_COMMAND_MISMATCH')
++    matches = []
++    for entry in Path('/proc/self/fd').iterdir():
++        fd = int(entry.name)
++        try:
++            fst = os.fstat(fd)
++        except OSError:
++            continue  # The enumeration directory descriptor has already closed.
++        if (fst.st_dev, fst.st_ino) == (st.st_dev, st.st_ino):
++            matches.append(fd)
++    if len(matches) != 1:
++        raise RuntimeError('EXACT_INHERITED_LOCK_FD_NOT_FOUND')
++    fd = matches[0]
++    info = Path(f'/proc/self/fdinfo/{fd}').read_text()
++    if not any(line.startswith('lock:') and 'FLOCK' in line and 'WRITE' in line
++               for line in info.splitlines()):
++        raise RuntimeError('INHERITED_FD_NOT_ALREADY_EXCLUSIVELY_LOCKED')
++    # Same open-file description, hence no release/reacquire window.
++    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
++    return {'path': str(lock), 'fd': fd, 'device': st.st_dev, 'inode': st.st_ino,
++            'parent_pid': parent, 'driver_pid': os.getpid(),
++            'verified_existing_exclusive_lock': True,
++            'lifetime': 'Outer flock remains through driver and all synchronous phases.'}
++
++
++def check_idle(run, own_pid, outer_pid, evidence):
++    def checked(command, name):
++        evidence[name] = {'command': command, 'returncode': None}
++        try:
++            result = run(command, capture_output=True, text=True, timeout=15, env=CHECK_ENV)
++        except subprocess.TimeoutExpired as exc:
++            stderr = exc.stderr or ''
++            if isinstance(stderr, bytes):
++                stderr = stderr.decode(errors='replace')
++            evidence[name].update({'timed_out': True, 'timeout_seconds': exc.timeout,
++                                   'stderr': stderr, 'error': str(exc)})
++            raise RuntimeError(name.upper() + '_COMMAND_TIMEOUT') from exc
++        except OSError as exc:
++            evidence[name]['error'] = type(exc).__name__ + ': ' + str(exc)
++            raise
++        evidence[name].update({'returncode': result.returncode,
++                               'stdout_sha256': digest(result.stdout),
++                               'stderr_sha256': digest(result.stderr),
++                               'stderr': result.stderr})
++        return result
++    ps = checked(PS, 'ps')
++    if ps.returncode != 0 or ps.stderr:
++        raise RuntimeError('PS_COMMAND_FAILED')
++    rows = ps.stdout.splitlines()
++    if not rows:
++        raise RuntimeError('PS_EMPTY_OUTPUT')
++    busy, seen = [], set()
++    for line in rows:
++        fields = line.split(None, 3)
++        if len(fields) != 4 or not fields[0].isdigit() or not fields[1].isdigit():
++            raise RuntimeError('PS_PARSE_FAILED')
++        pid, ppid, comm, command = int(fields[0]), int(fields[1]), fields[2], fields[3]
++        if pid in seen or pid <= 0:
++            raise RuntimeError('PS_DUPLICATE_OR_INVALID_PID')
++        seen.add(pid)
++        if pid in (own_pid, outer_pid):
++            continue  # Only the authenticated current driver and its exact flock parent.
++        names = {Path(part).name for part in command.split()}
++        matched = sorted(names & JOB_NAMES)
++        if 'prepare.py' in names and 'eval-public' in command.split():
++            matched.append('prepare.py eval-public')
++        if comm.startswith(('neuron', 'walrus', 'torchrun')):
++            matched.append('native_process_comm:' + comm)
++        if matched:
++            busy.append({'pid': pid, 'ppid': ppid, 'comm': comm,
++                         'matched': matched, 'command_sha256': digest(command)})
++    evidence['ps'].update({'row_count': len(rows), 'busy': busy,
++                           'excluded_pids': [own_pid, outer_pid]})
++    if not {own_pid, outer_pid}.issubset(seen):
++        raise RuntimeError('PS_OWN_LOCK_PROCESSES_MISSING')
++    # Run both requested checks even when ps reports a busy machine.
++    nl = checked(NEURON_LS, 'neuron_ls')
++    if nl.returncode != 0 or nl.stderr:
++        raise RuntimeError('NEURON_LS_COMMAND_FAILED')
++    devices = json.loads(nl.stdout)
++    # Schema observed on both exact trn2.3xlarge hosts: one device0, four LNC2 cores.
++    if not isinstance(devices, list) or len(devices) != 1:
++        raise RuntimeError('NEURON_LS_DEVICE_SCHEMA_UNKNOWN')
++    device = devices[0]
++    if (not isinstance(device, dict) or device.get('neuron_device') != 0
++            or device.get('instance_type') != 'trn2.3xlarge'
++            or device.get('nc_count') != 4
++            or device.get('logical_neuroncore_config') != 2
++            or device.get('neuroncore_ids') != [0, 1, 2, 3]
++            or not isinstance(device.get('neuron_processes'), list)):
++        raise RuntimeError('NEURON_LS_DEVICE_SCHEMA_UNKNOWN')
++    processes = device['neuron_processes']
++    pids = []
++    for process in processes:
++        if not isinstance(process, dict) or type(process.get('pid')) is not int or process['pid'] <= 0:
++            raise RuntimeError('NEURON_LS_PROCESS_SCHEMA_UNKNOWN')
++        pids.append(process['pid'])
++    evidence['neuron_ls'].update({'device': 0, 'lnc': 2, 'cores': [0, 1, 2, 3],
++                                  'process_pids': pids})
++    if busy:
++        raise RuntimeError('PS_NATIVE_JOB_BUSY')
++    if pids:
++        raise RuntimeError('NEURON_DEVICE_BUSY')
++
++
++def require_idle_under_inherited_lock(lock_path, driver_path, record):
++    evidence = {'schema': 'same-host-lifetime-lock-idle-v1', 'started_utc': utc(),
++                'status': 'REFUSED', 'lock_path': str(lock_path)}
++    try:
++        evidence['lock'] = inherited_lock(lock_path, driver_path)
++        check_idle(subprocess.run, os.getpid(), os.getppid(), evidence)
++        evidence['status'] = 'PASS'
++        return evidence['lock']['fd']
++    except Exception as exc:
++        evidence['error'] = type(exc).__name__ + ': ' + str(exc)
++        raise
++    finally:
++        evidence['ended_utc'] = utc()
++        # No complete ps argv dump or process environment is persisted.
++        record('under-lock-idle.json', evidence)
+diff --git a/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/rank_entry.py b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/rank_entry.py
+new file mode 100644
+index 00000000..8298f2e5
+--- /dev/null
++++ b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/rank_entry.py
+@@ -0,0 +1,59 @@
++"""Per-rank environment receipt only, then run the unchanged tiny checker."""
++import datetime as dt
++import hashlib
++import json
++import os
++from pathlib import Path
++import runpy
++import sys
++
++ROOT = Path("/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn21_stage_r2/out/fs-20260926-ordinary-fp32-subnormal-trn21-d1-packet")
++CHECKER_SHA = '1cc6ee395f88125b9c9d280562e918d002a1e1a10dc88d50501d1fb4a09a551c'
++KEYS = ('HOME', 'PATH', 'NKI_VENV_PATH', 'PYTHONUNBUFFERED', 'PYTHONDONTWRITEBYTECODE',
++        'NEURON_LOGICAL_NC_CONFIG', 'NEURON_CC_FLAGS', 'NEURON_COMPETITION_R1_SEED',
++        'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'TRN_EXP_LABEL',
++        'TORCH_NEURONX_ENABLED_METRIC_TABLES', 'TORCH_NEURONX_METRICS_DIR',
++        'TORCH_NEURONX_NEFF_CACHE_DIR', 'TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR',
++        'TORCH_NEURONX_HLO_CACHE_DIR', 'TORCHINDUCTOR_CACHE_DIR',
++        'NEURON_COMPILE_CACHE_DIR', 'NEURON_COMPILE_CACHE_URL', 'TORCH_NEURONX_DEBUG_DIR')
++
++
++def record(name, value):
++    with (ROOT / name).open('x') as stream:
++        json.dump(value, stream, indent=2, sort_keys=True)
++        stream.write('\n')
++
++
++def main():
++    if Path(__file__).resolve().parent != ROOT:
++        raise RuntimeError('WRONG_PACKET_ROOT')
++    rank = int(os.environ.get('RANK', '-1'))
++    if rank not in range(4) or os.environ.get('LOCAL_RANK') != str(rank) or os.environ.get('WORLD_SIZE') != '4':
++        raise RuntimeError('BAD_RANK_ENVIRONMENT')
++    checker = ROOT / 'ordinary_subnormal_probe.py'
++    if hashlib.sha256(checker.read_bytes()).hexdigest() != CHECKER_SHA:
++        raise RuntimeError('CHECKER_HASH_MISMATCH')
++    record('rank-environment-r' + str(rank) + '.json',
++           dict(rank=rank, world_size=4, local_rank=rank, pid=os.getpid(),
++                utc=dt.datetime.now(dt.timezone.utc).isoformat(),
++                capture_phase='before Torch/NKI import; SDK honoring of variables requires compiler/cache evidence',
++                environment={key: os.environ.get(key) for key in KEYS},
++                checker_sha256=CHECKER_SHA, checker_argv=sys.argv[1:]))
++    rc, error = 0, None
++    sys.argv = [str(checker), *sys.argv[1:]]
++    try:
++        runpy.run_path(str(checker), run_name='__main__')
++    except SystemExit as exc:
++        rc = 0 if exc.code is None else exc.code if type(exc.code) is int else 1
++        raise
++    except BaseException as exc:
++        rc, error = 1, type(exc).__name__ + ': ' + str(exc)
++        raise
++    finally:
++        record('rank-wrapper-exit-r' + str(rank) + '.json',
++               dict(rank=rank, returncode=rc, error=error,
++                    utc=dt.datetime.now(dt.timezone.utc).isoformat()))
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/validate_receipts.py b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/validate_receipts.py
+new file mode 100644
+index 00000000..edf2138c
+--- /dev/null
++++ b/research/v2/proposals/20260926-ordinary-embedding-subnormal-control/validate_receipts.py
+@@ -0,0 +1,39 @@
++"""Completion authentication for the single ordinary-only diagnostic binding."""
++import importlib.util
++import json
++
++
++def require(ok, message):
++    if not ok:
++        raise ValueError(message)
++
++
++def validate(root, label, env, pins, args):
++    spec = importlib.util.spec_from_file_location('ordinary_probe_validator', root / 'ordinary_subnormal_probe.py')
++    probe = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(probe)
++    require(probe.sha((root/'ordinary_subnormal_probe.py').read_bytes()) == pins['ordinary_subnormal_probe.py'], 'LEAF_HASH')
++    require(sorted(p.name for p in (root/'receipts').iterdir()) == ['rank0.json','rank1.json','rank2.json','rank3.json'], 'EXACT_RANK_FILES')
++    signatures, pids = [], []
++    for rank in range(4):
++        receipt = json.loads((root/'receipts'/('rank'+str(rank)+'.json')).read_text())
++        probe.validate_receipt(receipt,rank)
++        require(receipt['label'] == label and receipt['argv'] == args and receipt['checker_sha256'] == pins['ordinary_subnormal_probe.py'], 'LEAF_BINDING')
++        require(receipt['runtime'] == dict(torch='2.11.0+cpu',nki='0.5.0+28631259367.ga768afa6') and receipt['seed'] == 42, 'RUNTIME')
++        require(receipt['environment'] == {k:env[k] for k in receipt['environment']} and
++                set(receipt['environment']) == {'NEURON_CC_FLAGS','NEURON_LOGICAL_NC_CONFIG','OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS'}, 'LEAF_ENV')
++        require(receipt['native_qualification'] is False, 'QUALIFICATION_FORBIDDEN')
++        wrapper = json.loads((root/('rank-environment-r'+str(rank)+'.json')).read_text())
++        exited = json.loads((root/('rank-wrapper-exit-r'+str(rank)+'.json')).read_text())
++        require(type(wrapper['rank']) is int and type(wrapper['local_rank']) is int and wrapper['rank'] == rank and wrapper['local_rank'] == rank and wrapper['world_size'] == 4 and
++                wrapper['checker_argv'] == args and wrapper['checker_sha256'] == pins['ordinary_subnormal_probe.py'], 'WRAPPER_BINDING')
++        require(wrapper['environment'] == {k:env.get(k) for k in wrapper['environment']} and
++                set(wrapper['environment']) == set(env), 'WRAPPER_ENV')
++        require(type(exited['rank']) is int and exited['rank'] == rank and type(exited['returncode']) is int and exited['returncode'] == 0 and exited['error'] is None, 'WRAPPER_EXIT')
++        require(type(receipt['pid']) is int and receipt['pid'] > 0 and wrapper['pid'] == receipt['pid'], 'PID')
++        pids.append(receipt['pid'])
++        signatures.append(probe.sha(json.dumps(dict(weight=receipt['weight'],routes=receipt['routes']), sort_keys=True).encode()))
++    require(len(set(pids)) == 4 and len(set(signatures)) == 1, 'CROSS_RANK')
++    return dict(status='COMPLETE_EXACT_DIAGNOSTIC_PENDING_INDEPENDENT_RESULT_REVIEW', ranks=4,
++                cases_per_rank=4, routes_per_case=2, cross_rank_sha256=signatures[0],
++                original_K2_gate='FAILED_PRESERVED', native_qualification=False, accepted_speedup=False)

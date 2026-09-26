@@ -1,0 +1,54 @@
+{
+  "scope": "LOCAL_SYNTHETIC_AND_STATIC_ONLY",
+  "checks": [
+    "all_six_source_support_pins",
+    "exact_root_host_label_argv_lifetime_flock_and_600_plus_60_bound",
+    "full_context_diff_matches_supplied_sources",
+    "static_inherited_lock_authentication_and_guard_before_child_before_aggregation",
+    "synthetic_idle_ps_and_device",
+    "four_exact_ranks_synthetic_native_metadata_only"
+  ],
+  "negatives": {
+    "idle_busy_ps": "RuntimeError: PS_NATIVE_JOB_BUSY",
+    "idle_busy_device": "RuntimeError: NEURON_DEVICE_BUSY",
+    "idle_bad_device": "RuntimeError: NEURON_LS_DEVICE_SCHEMA_UNKNOWN",
+    "idle_missing_own": "RuntimeError: PS_OWN_LOCK_PROCESSES_MISSING",
+    "idle_bad_ps": "RuntimeError: PS_PARSE_FAILED",
+    "idle_timeout": "RuntimeError: PS_COMMAND_TIMEOUT",
+    "idle_ps_error": "RuntimeError: PS_COMMAND_FAILED",
+    "idle_ps_stderr": "RuntimeError: PS_COMMAND_FAILED",
+    "idle_device_error": "RuntimeError: NEURON_LS_COMMAND_FAILED",
+    "cross_rank_signature": "ValueError: CROSS_RANK",
+    "wrong_rank": "ValueError: RANK",
+    "error_receipt": "ValueError: EXIT",
+    "wrong_leaf_pin": "ValueError: LEAF_BINDING",
+    "wrong_argv": "ValueError: LEAF_BINDING",
+    "wrong_runtime": "ValueError: RUNTIME",
+    "wrong_label": "ValueError: IDENTITY",
+    "wrapper_error": "ValueError: WRAPPER_EXIT",
+    "wrapper_boolean_exit": "ValueError: WRAPPER_EXIT",
+    "wrapper_env": "ValueError: WRAPPER_ENV",
+    "duplicate_pid": "ValueError: CROSS_RANK",
+    "missing_raw": "KeyError: '2d20b77660fde17ac30bb287198be94fc36668f27ef670bdfe44234ea211f4cb'",
+    "missing_route": "ValueError: ROUTE_COUNT",
+    "missing_rank_file": "ValueError: EXACT_RANK_FILES",
+    "extra_rank_file": "ValueError: EXACT_RANK_FILES",
+    "malformed_json": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  },
+  "baseline": {
+    "status": "COMPLETE_EXACT_DIAGNOSTIC_PENDING_INDEPENDENT_RESULT_REVIEW",
+    "ranks": 4,
+    "cases_per_rank": 4,
+    "routes_per_case": 2,
+    "cross_rank_sha256": "08b616bfb9aee473a0c1a5e5b94514efc5efd89c76c1634641b6c61f93e16119",
+    "original_K2_gate": "FAILED_PRESERVED",
+    "native_qualification": false,
+    "accepted_speedup": false
+  },
+  "disabled": {
+    "stdout": "{\"status\": \"DISABLED\", \"native_imported\": false}\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "status": "PASS_SCOPED_DISABLED_MECHANICS"
+}
