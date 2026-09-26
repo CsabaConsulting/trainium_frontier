@@ -1,0 +1,18 @@
+--- k2-native-index-repair/train.py
++++ k2-compiler-local-constants/train.py
+@@ -84,12 +84,11 @@
+     import nki.isa as nisa
+     import nki.language as nl
+ 
+-    # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
+-    vocab, tokens, channels = 8192, 32768, 1024
+-    partition, features, groups = 128, 512, 64
+-
+     @nki.jit
+     def resident_consumer(gradient, counts, starts, positions, group_maximums):
++        # Fixed production geometry. No flag, shape fallback, or CPU-ID route.
++        vocab, tokens, channels = 8192, 32768, 1024
++        partition, features, groups = 128, 512, 64
+         assert gradient.shape == (tokens, channels)
+         assert counts.shape == starts.shape == (vocab, 1)
+         assert positions.shape == (tokens, 1)
