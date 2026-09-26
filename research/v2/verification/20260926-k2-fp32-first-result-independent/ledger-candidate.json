@@ -1,0 +1,72 @@
+{
+  "schema": "diagnostic-ledger-candidate-not-inserted-v1",
+  "label": "fs-20260926-k2-fp32-first-trn22-d1",
+  "kind": "diagnostic",
+  "host": "trn22",
+  "raw_commit": "015bacec8fdbe47f1b63f01b160afdc264d780f9",
+  "raw_bundle_sha256": "db4fd0b148fd29930bc4925ba898a8f80108d1bd84c6ad3efc33e8694e15e2c6",
+  "status": "FAILED_COMPILED_CUSTOM_FP32_GRADIENT",
+  "process_status": "DIAGNOSTIC_CHILD_FAILED",
+  "child_exit": 1,
+  "checker_sha256": "bd2bca7c29615df599094d3c618f5cdf0e4f4381e6d19213dc022691214ce788",
+  "kernel_sha256": "2c8295a4b1820b04985859389f38470774b7ffe190baaff4d01c86956cb511ae",
+  "reference_sha256": "14572563ca970754ca0dceb309c86d141916a91ceef26acc7a7eccd254d1953f",
+  "shape": {
+    "V": 256,
+    "T": 256,
+    "C": 128
+  },
+  "world_size": 4,
+  "lnc": 2,
+  "seed": 42,
+  "fixture": "unique/fp32 FIRST custom-compiled fixture",
+  "routes": {
+    "direct_consumer": "EXACT_GRADIENT",
+    "eager_custom": "EXACT_OUTPUT_AND_GRADIENT",
+    "compiled_custom": "EXACT_OUTPUT_ZERO_GRADIENT_MISMATCH",
+    "compiled_ordinary_embedding": "EXACT_OUTPUT_AND_GRADIENT"
+  },
+  "expected_nonzeros": 32709,
+  "compiled_custom_nonzeros": 0,
+  "max_abs_gradient_error": 8,
+  "expected_gradient_sha256": "dee95c1da97debf6a901e00260bd60a74e7be1992eca64b832c4f6633cccc671",
+  "observed_zero_gradient_sha256": "fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471",
+  "all_seven_input_records_unchanged": true,
+  "rank_process_exits": {
+    "0": {
+      "wrapper_receipt_rc": 1,
+      "torchrun_process_exit": 1,
+      "pid": 3217200
+    },
+    "1": {
+      "wrapper_receipt_rc": 1,
+      "torchrun_process_exit": -15,
+      "pid": 3217201
+    },
+    "2": {
+      "wrapper_receipt_rc": 1,
+      "torchrun_process_exit": -15,
+      "pid": 3217202
+    },
+    "3": {
+      "wrapper_receipt_rc": 1,
+      "torchrun_process_exit": 1,
+      "pid": 3217203
+    }
+  },
+  "child_wall_seconds": 28.54430987604428,
+  "watchdog_seconds": 600,
+  "kill_grace_seconds": 60,
+  "postflight": "9 observed PIDs absent;256 identity rows;device idle;original66305:832589 lock free",
+  "timeout_pid_3217195_observed": true,
+  "stale_postflight_timeout_prose_preserved": true,
+  "original_twenty_case_failure": "UNCHANGED_FAILED",
+  "native_qualification": false,
+  "accepted_speedup": false,
+  "quality_evidence": false,
+  "public_20m": null,
+  "source_adoption": false,
+  "submission_eligible": false,
+  "authoritative_ledger_written": false,
+  "next_launch_or_retry_authorized": false
+}
