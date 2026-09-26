@@ -1,16 +1,16 @@
 {
   "proposal_id": "20260926-k2-compiler-local-constants-timing",
-  "status": "complete_source_and_author_cpu_parser_bound_fresh_review_native_admission_pending",
+  "status": "complete_cpu_off_review_local_backward_compile_human_forward_substitution_native201_pending",
   "owner_role": "researcher",
-  "authority": "workflow/FINAL_SPRINT_GOAL_2026-09-26_1326_IST.md",
+  "authority": "workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md and direct human native201 amendment",
   "hypothesis": "Putting the six unchanged fixed geometry constants inside the jitted resident_consumer resolves the independently reproduced NKI closure-name tracing failure without changing the K2 operation; any useful whole-step speedup still requires one actual native45 comparison at >=1.03x.",
   "single_causal_change": "In a NEW train.py derivative of frozen a318 only, move/bind vocab=8192, tokens=32768, channels=1024, partition=128, features=512, groups=64 as local constants in resident_consumer instead of outer Python closure variables. No numeric value, operation, traversal, accumulation, metadata, guard, registration, optimizer, model, data or clock change.",
   "mechanism_class": "throughput",
   "predicted_bpb_delta": null,
   "prediction_note": "Compiler compatibility hypothesis supported by CPU parser evidence, not a BPB or native speed prediction. No full-quality or submission claim.",
-  "selection_rationale": "This distinct repair has a real matching-version CPU parser reproduction and controlled six-name localization, unlike blindly retrying parked a318. Final Sprint prioritizes bounded K2 qualification; preserve the running batch/control jobs and existing flag-only fallback if source gates are not complete at a host boundary.",
+  "selection_rationale": "Direct human priority: next free host before new controls/confirmations. Preserve already-running evals. One native timing run IS the native test; no additional source review or separate native gate. Local backward compiler/simulator completed; human explicitly accepts existing native forward evidence.",
   "trainium_feasibility": "Keep fixed full chip LNC2/four ranks, eight layers/width1024, batch131072, pack32/context1024. Offline exact NKI-version parse/MLIR verification is encouraging only for name resolution; actual native lowering, SBUF/liveness, DMA, metadata ops, registration, device arithmetic, fit and whole-step rate remain unproved.",
-  "cheapest_falsifier": "One existing CPU evidence bundle on the actual future full source: exact narrow diff/shape constants, original both-dtype arithmetic/OFF identity checks and matching-version offline parser. One fresh bounded review of this repair. Only after source binding and same-host control acceptance, one fresh-cold full-shape native45; no duplicate OFF45.",
+  "cheapest_falsifier": "Existing CPU exactness and OFF identity, followed by one full-shape cold201-step native timing/loss run. No extra OFF, native smoke, per-parameter native identity or further review.",
   "evidence": [
     "research/v2/analysis/20260926-k2-parser-failure/README.md",
     "research/v2/analysis/20260926-k2-parser-failure/parser-results.json",
@@ -31,10 +31,10 @@
   "control": {
     "source_sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43",
     "kind": "control",
-    "host": null,
-    "run_label": null,
-    "primary_tokens_per_second": null,
-    "selected_control_bound": false,
+    "host": "trn21",
+    "run_label": "fs-20260926-sprint-e1e2-control-trn21-r1",
+    "primary_tokens_per_second": 266550.74626781716,
+    "selected_control_bound": true,
     "rule": "Before dispatch bind the declared genuine same-host e1e2 full run's exact source/argv/runtime/seed and trustworthy sequential t9..t44 observations. Use only that host's precommitted35*131072/(t44-t9). No cross-host rate, best window, post-result host/label selection or new OFF45. Host selection follows ready/idle priority, not favorable timing.",
     "alternatives": [
       {
@@ -53,7 +53,11 @@
         "actual_steps": 3640
       }
     ],
-    "must_not_relabel_quality_run_as_smoke": true
+    "must_not_relabel_quality_run_as_smoke": true,
+    "t9": 801.6183728299802,
+    "t44": 818.829054338974,
+    "timing_evidence": "research/v2/analysis/20260926-k2-next-slot-handoff/authenticated-live.json",
+    "note": "Training completed3631steps, charged1789.7205228330567 withinbudget; fresh20M still protected/running at09:52. Do not launch until it naturally exits and ordinary idle guards pass. Quality evaluation is not an additional K2 science gate."
   },
   "candidate": {
     "source": "research/v2/lanes/k2-compiler-local-constants/train.py",
@@ -61,19 +65,20 @@
     "files_allowed": [
       "train.py"
     ],
-    "run_label_template": "fs-20260926-k2-localconstants-on-parentcontrol-<host>-r1",
-    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 45 --k2-embedding",
-    "control_command_difference": "The new source must preserve audited K2-OFF behavior versus a318/e1e2. ON adds --k2-embedding; --num-steps45 changes termination only. Same1800-second schedule/budget, seed42 and data order; boundary44 precedes different stop collective. No source patch may change clock or final boundary semantics.",
+    "run_label_template": "fs-20260926-k2-localconstants-native201-<host>-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --num-steps 201 --k2-embedding",
+    "control_command_difference": "The new source must preserve audited K2-OFF behavior versus a318/e1e2. ON adds --k2-embedding; --num-steps201 changes termination only. Same1800-second schedule/budget, seed42 and data order; boundary44 precedes different stop collective. No source patch may change clock or final boundary semantics.",
     "seed": 42,
     "max_train_seconds": 1800,
     "submission_authorized": false,
     "source_commit": "da34c88e90c0f7f281188315a3e63734a8d55521",
-    "source_status": "Actual source and author CPU/parser bundle archived at da34c88e; exact SHA bound. Independent fresh review and native/machine/source release remain pending.",
+    "source_status": "Exact662c frozen; CPU/OFF, one fresh independent review, production backward NEFF and simulator receipts complete. Human accepts native base forward evidence. One native201 timing run remains.",
     "parent_source": "research/v2/lanes/k2-native-index-repair/train.py",
     "parent_source_sha256": "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71",
     "expected_diff": "In a NEW train.py derivative of frozen a318 only, move/bind vocab=8192, tokens=32768, channels=1024, partition=128, features=512, groups=64 as local constants in resident_consumer instead of outer Python closure variables. No numeric value, operation, traversal, accumulation, metadata, guard, registration, optimizer, model, data or clock change.",
-    "launch_command_sha256": "7c1e0c36c8abbae4728424f95b0a80e80a4d3617d89d730ac2b3e168e1467c7f",
-    "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline"
+    "launch_command_sha256": "454ddb324b6b795ab4f05c46161a46d44e22c6e03e934d598a7e1256d496f23e",
+    "launch_command_hash_encoding": "Exact UTF-8 command string without trailing newline",
+    "native_step_count": 201
   },
   "gates": {
     "source_frozen": true,
@@ -83,14 +88,16 @@
     "matching_version_offline_parser_on_final_source_passed": true,
     "independent_repair_review": "PASS_FOR_NEW_SOURCE_NATIVE_CHECK: fresh isolated reviewer executed its own constant-value/scope/operation AST checks from frozen diff/spec/receipts only. Archived verification/20260926-k2-compiler-local-constants/REVIEW.md SHA2bbbd51f3a70a0fb1be5883a2a1413ea1b59a92f5643fac301fb365811124bf5. Supervisor separately hashed fullsource662c and inspected exact six-constant relocation diff.",
     "independent_review_passed": true,
-    "new_human_prelaunch_compile_gate": "workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md requires real local production forward/backward compilation and official simulator reference comparison if available; parser-only is not enough. No native release while pending.",
-    "real_local_production_backend_compile_passed": false,
-    "same_host_control_timing_bound": false,
+    "new_human_prelaunch_compile_gate": "SATISFIED AS AMENDED: actual backward NEFF plus production official simulator; human explicitly approved accepted base native forward evidence instead of unavailable exact local framework forward compile. Latest evidence bar CPU exactness + OFF identity + this ONE native timing, no extra gates.",
+    "real_local_production_backend_compile_passed": true,
+    "same_host_control_timing_bound": true,
     "native_timing": false,
     "native_cold_startup": false,
     "fresh_machine_admission_passed": false,
     "human_run_approval": "Standing development scope plus Supervisor's distinct evidence-backed repair selection; this is not native release.",
-    "submission_authorized": false
+    "submission_authorized": false,
+    "local_framework_forward_compiled": false,
+    "forward_evidence_substitution_human_approved": true
   },
   "timing": {
     "startup_steps": 5,
@@ -100,8 +107,10 @@
     "secondary_statistic": "Matched logged steady dt/tok_s; report disagreement or recompile, not fastest sample",
     "cold_cache": "Fresh unused private six-cache namespace for ON, created empty, actual rank environments verified. OFF provenance also recorded. Preserve shared/active/protected caches.",
     "startup_charge": "Uncapped fifth boundary and official capped startup allowance; all excess and later time count normally. No clock/prepare/evaluator edit.",
-    "screen_pass": "One admitted ON45 completes45 finite correct steps with exact source/argv/runtime, valid native/checkpoint evidence, trustworthy same-host matching windows, cold startup/accounting/resources; exact unrounded candidate/control rate>=1.03. Parser success is not this pass.",
-    "quality_followup": "Only after actual qualification, declare/bind a separate same-new-source full1800 plus fresh20M/context1024. If used as future P2 control, prospectively fix kind=control/base=new SHA before full launch/BPB, one actual row. Old a318/639 control/full proposals remain disabled and cannot supply new-source qualification."
+    "screen_pass": "One admitted ON201 completes201 finite correct steps with exact source/argv/runtime, valid native/checkpoint evidence, trustworthy same-host matching windows, cold startup/accounting/resources; exact unrounded candidate/control rate>=1.03. Parser success is not this pass.",
+    "quality_followup": "Only after actual qualification, declare/bind a separate same-new-source full1800 plus fresh20M/context1024. If used as future P2 control, prospectively fix kind=control/base=new SHA before full launch/BPB, one actual row. Old a318/639 control/full proposals remain disabled and cannot supply new-source qualification.",
+    "requested_completed_steps": 201,
+    "loss_report": "Report actual emitted losses at matching logged steps0..200 vs same-host base, including50/100/200 where available; disclose no loss if not printed, and learning-rate/time-clock confounding. Do not invent per-step losses or claim loss agreement proves every tensor."
   },
   "abort_conditions": [
     "Failed independent source test",
@@ -109,7 +118,7 @@
     "Original flock, fresh ps/neuron-ls or measured resource check fails",
     "Missing/untrustworthy timing observations"
   ],
-  "retry_policy": "Old639 failed and its one diagnosed a318 retry failed; both remain parked with actual records intact. This is a distinct proposal justified by real new matching-parser evidence and requires new exact source plus one fresh review and explicit Supervisor native release. It grants ONE new-source native check only, no automatic retry/reset or repaired-source full launch. On failure archive literal evidence, park this source and take next eligible job.",
+  "retry_policy": "Human explicitly selected one next-slot evidence-backed source662c native201 retry after local compiler/simulator evidence and accepted native forward substitution. Old639/a318 failures remain archived and parked. This is one native timing test, not an extra smoke; no automatic retry after failure.",
   "human_approved_by": "Poojith Final Sprint standing development scope; Supervisor explicitly requested this new evidence-backed research proposal, not an automatic third attempt.",
   "verdict": null,
   "resource_admission": {
@@ -231,18 +240,18 @@
   "success_criteria": {
     "throughput": "Actual unrounded same-host precommitted whole-step ratio>=1.03; no CPU/parser-based speed claim.",
     "correctness": "No crash/nonfinite/causality/source/budget/checkpoint/resource failure; finite full-shape native execution and retrieved actual evidence.",
-    "quality": "No BPB verdict from45 steps. Later separately declared full1800/fresh20M uses unchanged decide.py; cold full replay/Claude/human required for submission."
+    "quality": "No BPB verdict from201 steps. Later separately declared full1800/fresh20M uses unchanged decide.py; cold full replay/Claude/human required for submission."
   },
   "required_artifacts": [
     "Committed proposal; exact new train.py source/commit/SHA/diff and unchanged-parent binding",
     "Single actual CPU/off-identity/parser bundle and one fresh repair review with scope/hash",
     "Precommitted same-host actual control timing/source/argv/runtime receipts",
     "Original-lock and fresh idle/resource/STOP/provenance receipts; all six private cold cache namespaces",
-    "Complete candidate log, all45 sequential boundaries, native correctness/checkpoint evidence, uncapped startup and charged-time metrics",
+    "Complete candidate log, all201 sequential boundaries, native correctness/checkpoint evidence, uncapped startup and charged-time metrics",
     "Failure or completion/quiescence record and unchanged exact ratio verdict; no invented future quality row"
   ],
   "role_separation": "Researcher writes this proposal only. Implementer owns new source/author CPU receipts; one independent Reviewer checks repair; Supervisor binds evidence and selects later release; existing sole Operator alone admits/runs; Analyst compares observed results. No source/selector/queue/state/ledger/host action by this task.",
-  "source_binding_updated_utc": "2026-09-26T09:39:39Z",
+  "source_binding_updated_utc": "2026-09-26T09:53:01.421Z",
   "actual_candidate_evidence": {
     "source_sha256": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
     "source_commit": "da34c88e90c0f7f281188315a3e63734a8d55521",
@@ -262,5 +271,17 @@
     "backend_executed": false,
     "native_executed": false,
     "scope": "Name-resolution/MLIR only, before BIR/backend/allocation/executable/framework/device execution. Author tests and recorded diff do not self-approve the active fresh independent review."
+  },
+  "local_compile_evidence": {
+    "report": "research/v2/analysis/20260926-k2-full-local-compile/REPORT.md",
+    "commit": "d841f877e",
+    "compile_receipt": "research/v2/analysis/20260926-k2-full-local-compile/compile-production-result-1790416102882879459.json",
+    "compile_receipt_sha256": "9acca1236547f7f49dcebfe60b0a683f8ad9420167a26cfaf10d16f97d923b34",
+    "neff_sha256": "c3af17a145edf8af06e86d073cca6036d505e35039f6592c3079bbfd0ebcb48e",
+    "simulator_receipts": [
+      "d5c0414bbea38eb37f410fcc90f32a7a961e5dfbcaaa069fdea9e08d4e1c0019",
+      "47dcbc578e419d07bf65c9c7063983883bfcc2d54edec94d925fef034d25e506"
+    ],
+    "note": "Actual productionCompileKernel policy authenticated; original experimental-allocator failure retained, not production failure. Forward not compiled locally and explicitly substituted by human."
   }
 }

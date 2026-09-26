@@ -5,6 +5,11 @@ This repository is an evidence-driven competition workspace. Read this file befo
 ## Latest direct amendment — 26 September, 15:12 IST
 
 Read `workflow/K2_NEXT_SLOT_2026-09-26_1512_IST.md` with FINAL SPRINT.
+Its LATEST follow-up accepts existing native forward evidence; backward local
+compile/simulator already passed. CPU exactness + OFF identity + ONE Trn2
+timing is the evidence bar. Native201 reports speed/startup/loss0..200; no
+extra gate, OFF run, review loop or gating question. This overrides the older
+local-forward prerequisite in the next paragraph.
 K2 retry owns the NEXT free host before new controls or confirmations; preserve
 live train/eval jobs. Before native retry, real local production-shape forward
 AND backward compilation is required; parser-only/Python success is not enough.
