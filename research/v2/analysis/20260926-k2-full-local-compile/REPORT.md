@@ -118,7 +118,8 @@ The second fixture uses even-numbered vocabulary rows only. Each active row
 has eight occurrences; 4,096 odd rows are untouched, interleaved within all
 128-row groups. Their inactive lanes take the sentinel and `oob_mode.skip`
 paths while adjacent active lanes accumulate. This exact full-shape official
-simulation also passes, including positive-zero output for untouched rows.
+simulation also passes, including zero output for untouched rows; the equality
+test does not separately compare the sign bit of floating-point zero.
 Its reference is independently calculated token-by-token in FP32 as above.
 
 Neither fixture covers nonfinite inputs, highly skewed nonzero frequencies,
