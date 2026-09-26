@@ -1,0 +1,396 @@
+{
+  "caps_and_metadata": {
+    "changed_prototype_files": [
+      "binding.py",
+      "common.py",
+      "host_driver.py",
+      "test_repairs.py"
+    ],
+    "guard_negatives": [
+      "MISSING_SAMPLE_OR_GAP",
+      "MEMAVAILABLE_FLOOR",
+      "SUMMED_RSS_CAP",
+      "DISK_FLOOR",
+      "CACHE_TMP_CAP",
+      "ARTIFACT_CAP",
+      "LOG_METRIC_CAP"
+    ],
+    "metadata_negatives": 4
+  },
+  "disabled": [
+    "DISABLED_NO_SEPARATE_HOST_RELEASE",
+    "WRONG_BOUND_PACKET_ROOT",
+    "INCOMPLETE_BOUND_PROJECT_OR_STAGE"
+  ],
+  "pins": {
+    "artifacts.py": "eb88856d6116a19a37116fa5b7458f9e9ae74183b72abe7d98bb237c689c0cd1",
+    "binding.py": "abd5d4da76eb3a519cee8eb21da1c0331807781ed542abfc8a33e98e83b345ac",
+    "common.py": "5e163f217e7598bcfef809fb624a0e784516ab64fdf3b74faed3ce63d40c60c6",
+    "consumer_nki.py": "9425390c96053a1b24d4addf8b61b1a87c4993f3551f08c7cdcefcf142d84dcd",
+    "coordinator.py": "3d0fe301b55a84f64722bdea644ce1a020f8af9c4f5cd52f9dc49cdea5846912",
+    "evidence.py": "3a86381bcc043c98c15879a3c6367c3b9bbf4462a2f055f791e114a94ce31233",
+    "fault_child.py": "3a727fd4b311ebd6c5bc4c5d3605820d281068d660a53ef54321d82219273a27",
+    "fixtures.py": "e848b27b1648ce6b0076aea8d67846db29457c4e5e7d5a3ab2ba5b52930b787d",
+    "generate.py": "32aef3a5b4cf82fcc1b89cc162810c0445d0abbb30ad98149867c72af4157d8c",
+    "host_driver.py": "d5795da03ef1c26fab400240d3ba6c3e2464290cd6cd6520ba82ff24900d2121",
+    "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+    "monitor.py": "36343be8359c241724d1f07427cf8fee5f238e9150a7a85e31cab46ee01cdb34",
+    "oracle.py": "93a6309e9fec0d8680905adf963ac49b3fcb3aeca56cfc942b70dae16a7709d0",
+    "peer_fixture.py": "dabee2ece1136a20bdec35a29a0a71901fc4ddf1a5b8ab2a38cd9b054c3e8042",
+    "test_binding.py": "eaafcc88e35d6662be28f41bea7c58d79ff408f55f04d13d753ac91381449f08",
+    "test_oracle_core.py": "27edd015f9f364be7476f3ea2d350f1d878a2f73dd60a993a1c7eb5c90cda45e",
+    "test_packet.py": "d96206f5a1b7ee06f6efb51aec26422b742b9b4f549c080741461ab50afd8f00",
+    "test_repairs.py": "1f9c8bd386168409574145b5ce189bd2d760d9c5e3debbcf050aeb711529c6cd",
+    "worker.py": "711378567cf7e7a7af6aabf5bb2dc023ce79620ac91a205020f482596b5df588"
+  },
+  "routes": [
+    {
+      "accepted_ordinals": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-reference_native_seam-elobh8o6",
+      "calls": {
+        "build": 1,
+        "compiled": 2,
+        "eager": 2,
+        "kernel": 3
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [],
+      "mode": "reference_native_seam"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-skip_return_none-8gwpxefa",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: MISSING_ACTUAL_NATIVE_OUTPUT",
+        "coordinator: RuntimeError: WORKER_CHANNEL_LOST"
+      ],
+      "mode": "skip_return_none"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-cpu_oracle-on4989ss",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: MISSING_ACTUAL_NATIVE_OUTPUT",
+        "coordinator: RuntimeError: WORKER_CHANNEL_LOST"
+      ],
+      "mode": "cpu_oracle"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-zero_native-ar41xrwl",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "zero_native"
+    },
+    {
+      "accepted_ordinals": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-stale_f0-_k6t8r9_",
+      "calls": {
+        "build": 1,
+        "compiled": 1,
+        "eager": 1,
+        "kernel": 3
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "stale_f0"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-missing_owner-it81cb3n",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "missing_owner"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-one_bit-9f9mwkee",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "one_bit"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-nonfinite-utb6ks3e",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "nonfinite"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-wrong_dtype-f13smsuu",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "coordinator: RuntimeError: ACTUAL_OUTPUT_DOMAIN",
+        "RuntimeError: WORKER_CHANNEL_LOST"
+      ],
+      "mode": "wrong_dtype"
+    },
+    {
+      "accepted_ordinals": [],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-wrong_shape-qkrk2jic",
+      "calls": {
+        "build": 1,
+        "compiled": 0,
+        "eager": 0,
+        "kernel": 1
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "coordinator: RuntimeError: ACTUAL_OUTPUT_DOMAIN",
+        "RuntimeError: WORKER_CHANNEL_LOST"
+      ],
+      "mode": "wrong_shape"
+    },
+    {
+      "accepted_ordinals": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "artifact_root": "/home/poojith-devan/k2-binding-fresh-independent-iiw41V/normal-signed_zero-tbxx98i5",
+      "calls": {
+        "build": 1,
+        "compiled": 1,
+        "eager": 1,
+        "kernel": 3
+      },
+      "caveat": "CPU SDK/load/device seams; metadata revalidation bypassed for tiny transport. Source hashes checked unmodified. No admission/native result claimed.",
+      "errors": [
+        "RuntimeError: HOST_COMPARISON_FAILED",
+        "coordinator: RuntimeError: OUTPUT_NOT_EXACT_FINITE"
+      ],
+      "mode": "signed_zero"
+    }
+  ],
+  "scalar": {
+    "additional_finite_pairs": 1027,
+    "f2": {
+      "0": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "1": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "2": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "3": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "4": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "127": [
+        "0x0",
+        "0x0",
+        "0x10000",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "128": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x80010000",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "129": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "130": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "131": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "132": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "133": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "4095": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "4096": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "8191": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x10000",
+        "0x80010000",
+        "0x0",
+        "0x0"
+      ]
+    },
+    "method": "Fraction exact sum and monotonic binary32 lattice nearest-even search",
+    "recurrences": 1144
+  }
+}
