@@ -1,5 +1,15 @@
 # K2 rescue status
 
+FINAL: CLOSED_NATIVE_COMPILATION_FAILED,26 September18:28IST.
+Native949f terminal12:49:37UTC;0steps,767.385s harnesswall, no successful
+startup/net/speed/loss measurement. Same resident_consumer loop-body cycle:
+Block1_LoopBody_1_Resume_2 -> Block1_LoopBody_1,
+Block1_LoopBody_1_LoopBody_2 -> Block1_LoopBody_1_LoopBody_2.
+Failure detected12:56:35,32rawfiles authenticated, all processes/device/lock
+idle12:56:52. NATIVE_FAILURE.json binds archiveaf5964d9. No retry: the one
+outside-compiled-graph rescue is exhausted; tables closed forPhase1 too.
+Clean batch/LR cold successor actually launched12:57:15UTC, not a K2 rerun.
+
 26 September18:13IST: fresh isolated reviewer wrote REVIEW.md/REVIEW_RECEIPT
 PASS_NATIVE_TIMING_SCOPE, then final delivery hit model usage limit. Root
 verified all6 recorded file hashes and replayed its own reference test:

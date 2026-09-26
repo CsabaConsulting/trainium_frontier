@@ -1,5 +1,13 @@
 # Current controller contract — 26 September 2026 takeover
 
+LATEST18:28IST EXECUTION STATE: the single K2 rescue has FAILED native
+compilation before step1; K2 AND TABLES ARE CLOSED FOR PHASE1. No further
+retry, helper agent or table release. Exact failure/receipt is in
+lanes/k2-outside-compile-rescue/NATIVE_FAILURE.json. trn21-finalcold is LIVE
+since18:27:15IST; trn22-muon150 stays live. Then seed43 after both required
+completions, Claude/Downloads handoff, remaining safe scalar arms. All older
+pending-K2/table queue prose below is historical, not renewed authority.
+
 This is the latest direct human instruction. Conflicting older agent counts,
 5-minute polling, racing lanes, S0/MOONSHOT and old targets are superseded.
 

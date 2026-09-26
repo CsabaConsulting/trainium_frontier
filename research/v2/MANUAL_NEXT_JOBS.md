@@ -1,19 +1,20 @@
-# Manual next jobs — verified 26 September 18:13 IST
+# Manual next jobs — verified 26 September 18:28 IST
 
 Run commands from /home/poojith-devan/Desktop/Trainium. Root is sole Operator.
-Current consumed jobs: trn21-k2rescue (18:06:47 IST), trn22-muon150 (18:12:10).
+Current consumed jobs: trn21-finalcold (18:27:15 IST), trn22-muon150 (18:12:10).
 Both have four verified workers and their original lifetime locks held.
 NEVER rerun either label. Warmdown .60 and .85 are complete and archived.
+K2 native rescue FAILED with0steps; failure already collected and authenticated.
+K2 and tables are CLOSED forPhase1; no further retry or table release.
 
 ## Current ordered work
 
 | Host | Running | Next | Following |
 |---|---|---|---|
-| trn21 | K2 native201 | Qualified tables timing, otherwise trn21-finalcold | Remaining scalar arm after final-candidate decision |
+| trn21 | trn21-finalcold | Archive cold result and prepare Downloads/Claude audit handoff | Remaining scalar arm after final-candidate decision |
 | trn22 | momentum150 | trn22-finalseed43 after authenticated final cold | Remaining scalar arm after final-candidate decision |
 
-Tables are conditional on net tokens >=+3% and acceptable native loss/correctness.
-They have no released packet yet. Do not launch an old table source.
+Tables' K2 prerequisite failed. All table packets remain disabled.
 Remaining LR/control packets are prepared but removed from the active queue:
 do not use old command chains. Rebind the queue and exact predecessor before use.
 There are not three unconditional ready successors per host; do not claim otherwise.
@@ -31,33 +32,19 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py status trn
 Preserve active train AND attached eval. Routine checks every20–30minutes.
 An observation timeout is not a failed run. Never unlink/replace a lock.
 
-## K2 terminal and safe cold successor
+## Final cold completion
 
 Collect ONCE only after terminal, all descendants absent, idle device and free
 original lock. Existing bundles must be authenticated, never overwritten.
 
 ```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-k2rescue
-python3 research/v2/lanes/k2-outside-compile-rescue/analyze_native.py research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
 ```
 
-If K2 qualifies, tables preempt this slot and require a newly bound packet/queue.
-Otherwise, after timing completed successfully but failed the net screen, OR
-after an archived K2 training-process failure with independent idle proof:
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-finalcold research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
-```
-
-A narrow failed-predecessor handoff now accepts only this exact K2 label/source
-with FULL_DRIVER_FAILED, TRAIN_EXIT matching a nonzero raw run exit code,
-authenticated source/binding and exited outer guardian. All independent
-postflight process/device/original-lock and fresh admission checks remain.
-Other failures, missing receipts and other successor pairs still refuse.
-The attempt records FAILED_K2_ARCHIVED_COLD_FALLBACK_ONLY, never a K2 PASS.
-Source review is NOT a gate for the already launched research timing. Its later
-source-scope PASS does not substitute for actual native evidence or Claude audit.
+The failed-K2 handoff is already consumed. Do not dispatch finalcold again.
+Its immutable attempt records FAILED_K2_ARCHIVED_COLD_FALLBACK_ONLY.
+Actual cold result and fresh20M must be authenticated before Downloads packaging.
 
 ## Momentum terminal and seed43 successor
 
@@ -69,8 +56,6 @@ python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22
 Seed43 requires BOTH completed momentum and actual clean candidate cold result:
 
 ```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
 ```

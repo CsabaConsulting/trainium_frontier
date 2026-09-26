@@ -1,5 +1,11 @@
 # Conditional table rescue — 26 September18:25 IST
 
+18:28IST FINAL: CLOSED_PHASE1_DEPENDENCY_NATIVE_FAILURE. Native K2 rescue949f
+failed0steps with the same loop-body compiler cycle. The required net>=3%
+prerequisite did not pass. Keep ba5add51 and all local evidence archived; never
+release its disabled packet or allocate host time. This is the dependency's
+failure, not a native table quality result. No further table work authorized.
+
 LOCAL_PREPARED_NOT_RELEASED. Sourceba5add51, disabled packet0afb4f7d.
 Both INT32/INT64 synthetic CPU suites pass: FP32 collision/microstep reference,
 RMS updates, replicated routing, clipping, OFF3 identity, ON2 full reduced-model

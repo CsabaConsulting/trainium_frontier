@@ -1,5 +1,17 @@
 # Current state
 
+## Latest18:28IST: K2 exhausted; final cold and momentum live
+
+Use current top research/v2/STATUS.md and LOW_USAGE_CONTROLLER.md.
+The one949f outside-graph K2 rescue FAILED native compilation0steps with
+loop-body cycle;32rawfiles archivedaf5964d9, no native timing/BPB exists.
+K2/tables CLOSED forPhase1, no more attempts. trn21 clean batch/LR cd0c cold
+replay launched18:27:15IST, fourworkers/originallock verified. trn22 momentum150
+remains live. Both warmdowns lost; confirmed8c6 publicmean.986879270651192
+remains best confirmed research stack, officialbest.9878. After real cold+20M,
+prepare unique Downloads/Claude audit package and seed43 confirmation.
+No submission readiness or official-score improvement is claimed yet.
+
 ## Current: warmdowns running; human momentum150 arm next
 
 Use current top research/v2/STATUS.md, queue.current_low_usage_queue and

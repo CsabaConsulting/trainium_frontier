@@ -1,5 +1,21 @@
 # Workflow installation and incremental launch status
 
+## K2 rescue failed; final cold candidate live — 26 September18:28IST
+
+K2 source949f failed native compilation at12:49:37UTC,0completed steps after
+767.385s harness wall. Error: COMPILATION FAILED: Block1_LoopBody_1_Resume_2
+-> Block1_LoopBody_1, Block1_LoopBody_1_LoopBody_2 -> Block1_LoopBody_1_LoopBody_2.
+Moving backward outside AOT did not eliminate the native kernel compiler cycle.
+No startup/charge/rate/net/loss measurement exists; one rescue exhausted,
+K2 AND TABLES CLOSED forPhase1. No further retry or new kernel lane.
+32rawfiles authenticated, failure ledger appendedonce, all observed processes,
+device and original lock idle12:56:52. Cold clean batch/LR cd0c launched
+12:57:15.929UTC, fourworkers3346027–30/original596823 verified12:57:25.
+Failure guardian exit->next dispatch458.012s; no hidden successful K2 claim.
+trn22 momentum150 preserved; seed43 follows actual cold+momentum completions.
+Cold train ETA~19:12IST, fresh20M~19:25IST (estimates, not guarantee).
+After measured cold result prepare unique Downloads/Claude audit handoff.
+
 ## Conditional table source ready locally — 26 September18:25IST
 
 tables-outside-compile-rescue/ sourceba5add51 passes INT32/INT64 FP32 reference,
