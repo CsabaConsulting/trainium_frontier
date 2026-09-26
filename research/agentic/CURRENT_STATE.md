@@ -8,8 +8,8 @@ trn22 genuine6ef7 control actually launched00:38:13.646155UTC, all4workers
 actual start, not just assignment. Preceding idle249.412520s. Top-level host
 state is now running, launch_allowed=false to prevent duplicate launch.
 
-trn21 bcbd full and attachedfresh20M remain protected; last00:37:06 step1770,
-266965tok/s,931s source remaining,18.664GB free. Exact36 cross-host replica
+trn21 bcbd full and attachedfresh20M remain protected; last00:45:12 step2760,
+268244tok/s,445s source remaining,18.664GB free. Exact36 cross-host replica
 f4fe5d8e is conditionally released18727a55 AFTER terminal/retrieval/explicit
 quiescence and top-level assignment advance. Independent268 mechanics checks
 and root normal/-O replays pass; source36a862/argv exactly match the trn22
@@ -25,10 +25,13 @@ seconds on specified ranks; these are not rank-summed wall-time accounting.
 
 K2 FP32-first failed all4 custom-compiled gradients again, while ordinary
 compiled forward/gradient and direct/eager paths match. Raw015bacec/8307a086
-and explicit9PID/256row quiescence retrieved; separate outcome audit running.
+and explicit9PID/256row quiescence authenticate in independent461-check audit
+696730ff and root normal/-O replays; diagnostic-only ledger row appended.
 Original20-case gate stays failed. Registered-operator proposal60070dee is
-design-only; one exact six-file SDK source inventory is now authorized on
-trn21, stdlib/no tensors/device/cache/writes,15s/2CPU/128MiB, no source launch.
+design-only. Tiny installed SDK source reads0770f22a and7ff42226 completed
+without SDK imports/tensors/device/cache/writes. Actual wrapper definitions
+retrieved; kernel indexed-callable/automatic-bridge contract still unresolved.
+No native retry/source acceptance. Source-only follow-up being prepared.
 
 Confirmed mean remains0.9901674436550496; raw .9883821509811542 awaits formal
 control/cross-host confirmation. .986340 did not confirm. No new submission
