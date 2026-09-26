@@ -3,7 +3,7 @@
 
 Usage: python3 compare.py CONTROL/rehearsal.json ON/rehearsal.json
 The control is the actual completed e1e2 trn22 parent (>=45 boundaries);
-ON is the frozen 63925519 candidate (exactly 45). Source/host/argv/runtime,
+ON is the explicitly labelled candidate (exactly 45). Source/host/argv/runtime,
 finite loss, stall/recompile and cold-cache proofs require external receipts.
 The historical 105-step batch receipt documents schema only, not a baseline.
 JSON decimal metrics are strings; decisions use exact rational arithmetic on
@@ -164,7 +164,10 @@ def inspect(path, candidate=False):
     return report, None
 
 
-def compare(control_path, candidate_path):
+def compare(control_path, candidate_path, expected_candidate_source_sha256=SOURCE):
+    # Context only: this does not inspect source bytes or alter timing criteria.
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_candidate_source_sha256):
+        raise ValueError("expected candidate source context must be a lowercase SHA256")
     control, control_interval = inspect(control_path)
     candidate, candidate_interval = inspect(candidate_path, candidate=True)
     valid = control["receipt_valid"] and candidate["receipt_valid"]
@@ -182,7 +185,7 @@ def compare(control_path, candidate_path):
         "threshold": "1.03", "timing_threshold_pass": ratio >= THRESHOLD if ratio is not None else None,
         "timing_diagnostic_review_required": bool(control.get("tied_boundary_steps")
                                                  or candidate.get("tied_boundary_steps")),
-        "context_only_expected_candidate_source_sha256": SOURCE,
+        "context_only_expected_candidate_source_sha256": expected_candidate_source_sha256,
         "source_identity_verified_by_this_helper": False,
         "native_correctness": "NOT_ESTABLISHED", "finite_loss": "NOT_ESTABLISHED",
         "cold_cache_proof": "NOT_ESTABLISHED: require packet/runtime receipts; "
@@ -200,8 +203,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("control", type=Path)
     parser.add_argument("candidate", type=Path)
+    parser.add_argument("--expected-candidate-source-sha256", default=SOURCE,
+                        help="Context label only; source identity is checked separately")
     args = parser.parse_args()
-    result = compare(args.control, args.candidate)
+    result = compare(args.control, args.candidate, args.expected_candidate_source_sha256)
     print(json.dumps(result, indent=2, allow_nan=False))
     return 0 if result["receipts_valid"] else 2
 

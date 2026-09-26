@@ -23,6 +23,21 @@ def receipt(duration=10, count=45, startup=100):
 
 
 class CompareTests(unittest.TestCase):
+    def test_repaired_source_context_does_not_change_arithmetic(self):
+        with tempfile.TemporaryDirectory() as folder:
+            paths = [Path(folder) / name for name in ("control.json", "candidate.json")]
+            for path, data in zip(paths, (receipt(12), receipt())):
+                path.write_text(json.dumps(data))
+            old = compare.compare(*paths)
+            source = "a3181d0dd183ca04efdbf9dcf5dcd7e3b556a892a3c9a30a2761e73d37c2aa71"
+            repaired = compare.compare(*paths, source)
+            self.assertEqual(repaired.pop("context_only_expected_candidate_source_sha256"), source)
+            old.pop("context_only_expected_candidate_source_sha256")
+            self.assertEqual(old, repaired)
+            self.assertFalse(repaired["source_identity_verified_by_this_helper"])
+            with self.assertRaises(ValueError):
+                compare.compare(*paths, "unverified-short-hash")
+
     def run_pair(self, control=None, candidate=None):
         with tempfile.TemporaryDirectory() as folder:
             paths = [Path(folder) / name for name in ("control.json", "candidate.json")]

@@ -1,5 +1,27 @@
 # Workflow installation and incremental launch status
 
+## 14:48 IST: P3 fallback is live, K2 retry transport ready
+
+P3 actually dispatched09:14:36UTC ontrn22; allfour3370203–06,guardian3370169
+and original832589 verifiedlive09:17:15, free171013025792B. No fatal in actual
+component log at that observation. Native component records not yet complete;
+this is not training/BPB. Idleturnover629.515s missed600starget by29.515s,
+recorded rather than hidden. Current originalprocesses remain protected.
+Receipt9624f2d9; outer930+15 boundary approximately09:30UTC.
+
+K2 retry sourcea318,completedproposal0b2f5694/one independentreviewb689fb6e
+and exactpackete0901203/driver77be68e6 now LOCAL_CHECK_PASS (a7a2d94a).
+It is nextafter P3 actualterminal/retrieval/quiescence/freshoriginal-lockguards.
+No further source review, extraOFF, full run or human permission wait.
+
+trn21 control observed09:11:43 atstep40/loss5.4754/267651tok/s, allfour original
+workers and lock alive. Train-end~09:41UTC estimate; final20M later, not scored.
+P2 dependent source0127d02d applies only the identical reviewed dtype fix;
+bothint32/int64 FP32/OFF3/ON2 suites pass with scope limits in COMPOSITION.md.
+New source-bound native/full proposals are being prepared, still conditional.
+Previous goal turn classification: PROGRESS (actual results, source repair,
+independent executed reference, durable retry release). Goal remains active.
+
 ## 14:42 IST: minimal K2 repair qualified for one native retry
 
 Exacta3181d0d changes only dtype guard and error to permit official-loader

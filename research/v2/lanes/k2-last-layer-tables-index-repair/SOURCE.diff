@@ -1,0 +1,13 @@
+--- k2-last-layer-tables/train.py
++++ k2-last-layer-tables-index-repair/train.py
+@@ -162,8 +162,8 @@
+     return resident_consumer[2]
+ 
+ def _k2_prepare_metadata(ids, vocab=8192, group=128):
+-    if ids.dtype != torch.int64 or ids.ndim != 2:
+-        raise ValueError('K2 requires two-dimensional int64 token IDs')
++    if ids.dtype not in (torch.int32, torch.int64) or ids.ndim != 2:
++        raise ValueError('K2 requires two-dimensional int32 or int64 token IDs')
+     if vocab % group or ids.numel() >= 2**24:
+         raise ValueError('K2 metadata geometry is unsupported')
+     # This snapshot also supplies the gather, so all consumers have the same
