@@ -1,0 +1,20 @@
+{"event": "guardian_started", "identity": {"pgid": 1527854, "pid": 1528051, "ppid": 1528050, "sid": 1527854, "start_ticks": 4939162, "state": "R"}, "lock_device": 64513, "lock_held": true, "lock_inode": 5946793, "monotonic": 49391.73753866, "subreaper": true}
+{"command": ["/usr/bin/timeout", "--foreground", "--signal=TERM", "--kill-after=.1s", ".3s", "/usr/bin/python3", "-c", "import subprocess,sys,os,time,pathlib; command=[sys.executable,'-c',\"import os,time,pathlib,signal; os.setsid(); signal.signal(signal.SIGTERM,signal.SIG_IGN); pathlib.Path('child').write_text(str(os.getpid())); time.sleep(2); pathlib.Path('natural').touch()\"]; sandbox=pathlib.Path('.'); env=dict(os.environ); process = subprocess.Popen(command, cwd=sandbox, env=env); process.wait()"], "event": "phase_spawned", "identity": {"pgid": 1527854, "pid": 1528052, "ppid": 1528051, "sid": 1527854, "start_ticks": 4939174, "state": "R"}, "lock_held": true, "monotonic": 49391.744836576, "pid": 1528052}
+{"event": "owned_identity", "identity": {"pgid": 1527854, "pid": 1528052, "ppid": 1528051, "sid": 1527854, "start_ticks": 4939174, "state": "R"}, "lock_held": true, "monotonic": 49391.744974546}
+{"event": "owned_identity", "identity": {"pgid": 1527854, "pid": 1528053, "ppid": 1528052, "sid": 1527854, "start_ticks": 4939174, "state": "S"}, "lock_held": true, "monotonic": 49391.795526169}
+{"event": "owned_identity", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49391.79564498}
+{"event": "owned_exited", "identity": {"pgid": 1527854, "pid": 1528053, "ppid": 1528052, "sid": 1527854, "start_ticks": 4939174, "state": "S"}, "lock_held": true, "monotonic": 49392.098036359}
+{"event": "owned_exited", "identity": {"pgid": 1527854, "pid": 1528052, "ppid": 1528051, "sid": 1527854, "start_ticks": 4939174, "state": "R"}, "lock_held": true, "monotonic": 49392.148452136}
+{"event": "reaped", "lock_held": true, "monotonic": 49392.148717196, "pid": 1528052, "returncode": 124, "wait_status": 31744}
+{"event": "phase_exit", "lock_held": true, "monotonic": 49392.148752075, "pid": 1528052, "returncode": 124}
+{"event": "cleanup_started", "lock_held": true, "monotonic": 49392.148870149, "reason": "PHASE_EXIT_WITH_DESCENDANTS_124"}
+{"event": "signal_owned", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.14899388, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.199420662, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.249820574, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.300231223, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.300383877, "signal": 9}
+{"event": "owned_exited", "identity": {"pgid": 1528054, "pid": 1528054, "ppid": 1528053, "sid": 1528054, "start_ticks": 4939176, "state": "S"}, "lock_held": true, "monotonic": 49392.350578111}
+{"event": "reaped", "lock_held": true, "monotonic": 49392.350741319, "pid": 1528054, "returncode": -9, "wait_status": 9}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 49392.35078023, "proof": "waitpid_ECHILD", "reason": "PHASE_EXIT_WITH_DESCENDANTS_124"}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 49392.551296678, "proof": "waitpid_ECHILD", "reason": "DRIVER_FINALLY"}
+{"event": "release_ready", "lock_held": true, "monotonic": 49392.75160106, "proof": "waitpid_ECHILD_AND_POSTFLIGHT_PASS", "signal_received": null}

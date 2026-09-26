@@ -1,0 +1,19 @@
+{"event": "guardian_started", "identity": {"pgid": 1527235, "pid": 1527519, "ppid": 1527517, "sid": 1527235, "start_ticks": 4937580, "state": "R"}, "lock_device": 64513, "lock_held": true, "lock_inode": 5946735, "monotonic": 49375.847089164, "subreaper": true}
+{"command": ["/usr/bin/python3", "-c", "import subprocess,sys,os,time,pathlib; command=[sys.executable,'-c',\"import os,time,pathlib,signal; os.setsid(); signal.signal(signal.SIGTERM,signal.SIG_IGN); pathlib.Path('child').write_text(str(os.getpid())); time.sleep(2); pathlib.Path('natural').touch()\"]; sandbox=pathlib.Path('.'); env=dict(os.environ); process = subprocess.Popen(command, cwd=sandbox, env=env); process.wait()"], "event": "phase_spawned", "identity": {"pgid": 1527235, "pid": 1527535, "ppid": 1527519, "sid": 1527235, "start_ticks": 4937584, "state": "R"}, "lock_held": true, "monotonic": 49375.850639729, "pid": 1527535}
+{"event": "owned_identity", "identity": {"pgid": 1527235, "pid": 1527535, "ppid": 1527519, "sid": 1527235, "start_ticks": 4937584, "state": "R"}, "lock_held": true, "monotonic": 49375.850856875}
+{"event": "owned_identity", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49375.901527541}
+{"event": "guardian_signal", "lock_held": true, "monotonic": 49375.952259443, "signal": 15}
+{"event": "cleanup_started", "lock_held": true, "monotonic": 49375.952557377, "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "signal_owned", "identity": {"pgid": 1527235, "pid": 1527535, "ppid": 1527519, "sid": 1527235, "start_ticks": 4937584, "state": "R"}, "lock_held": true, "monotonic": 49375.952827988, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49375.952880078, "signal": 15}
+{"event": "owned_exited", "identity": {"pgid": 1527235, "pid": 1527535, "ppid": 1527519, "sid": 1527235, "start_ticks": 4937584, "state": "R"}, "lock_held": true, "monotonic": 49376.003219934}
+{"event": "signal_owned", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49376.003552669, "signal": 15}
+{"event": "reaped", "lock_held": true, "monotonic": 49376.00363273, "pid": 1527535, "returncode": -15, "wait_status": 15}
+{"event": "signal_owned", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49376.054078813, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49376.105427818, "signal": 15}
+{"event": "signal_owned", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49376.105769704, "signal": 9}
+{"event": "owned_exited", "identity": {"pgid": 1527536, "pid": 1527536, "ppid": 1527535, "sid": 1527536, "start_ticks": 4937587, "state": "S"}, "lock_held": true, "monotonic": 49376.156118949}
+{"event": "reaped", "lock_held": true, "monotonic": 49376.156388848, "pid": 1527536, "returncode": -9, "wait_status": 9}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 49376.156460599, "proof": "waitpid_ECHILD", "reason": "GUARDIAN_SIGNAL_15"}
+{"event": "lineage_quiescent", "lock_held": true, "monotonic": 49376.356993536, "proof": "waitpid_ECHILD", "reason": "DRIVER_FINALLY"}
+{"event": "release_ready", "lock_held": true, "monotonic": 49376.557439936, "proof": "waitpid_ECHILD_AND_POSTFLIGHT_PASS", "signal_received": 15}
