@@ -133,8 +133,11 @@ class Jit:
 
 @contextlib.contextmanager
 def interpreted_kernel(vocab=8, tokens=16, channels=8, partition=4):
-    text = (ROOT / 'consumer_nki.py').read_text()
-    tree = ast.parse(text)
+    tree = ast.parse((ROOT / 'train.py').read_text())
+    function = next(n for n in tree.body if isinstance(n, ast.FunctionDef)
+                    and n.name == '_k2_build_kernel')
+    function.name = 'build_kernel'
+    tree = ast.Module(body=[function], type_ignores=[])
     replaced = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Tuple):

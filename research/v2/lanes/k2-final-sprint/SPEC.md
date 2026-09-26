@@ -8,13 +8,14 @@ The original base and earlier numerical failure artifacts are untouched.
 
 ## Actual implementation
 
-`train.py` adds a default-false flag and a training/grad-enabled branch. It
-imports K2 only when enabled, rejects non-Neuron or non-pack32/context1024/
+`train.py` contains all routing, registration and NKI consumer code inline,
+adds a default-false flag and a training/grad-enabled branch. New Neuron
+imports occur only when enabled. It rejects non-Neuron or non-pack32/context1024/
 width1024 launches, and constructs metadata once per forward shared by WTE/VE7.
 Parameter objects, initialization, optimizer, collectives, checkpoint format,
 training clocks and ordinary evaluation remain unchanged. No data/evaluator edit.
 
-`k2.py` clones int64 IDs on their existing device and uses actual
+The inlined `_k2_prepare_metadata` clones int64 IDs on their existing device and uses actual
 `torch.argsort(stable=True)` plus left/right `torch.searchsorted` to produce
 counts, starts and a strictly token-ordered position permutation. Group maxima
 are device reductions of integer counts. All tensors remain on device; there
@@ -44,8 +45,9 @@ Run the self-contained patch test with the existing laptop venv:
 ```
 
 `cpu-result.json` records 16 actual registered-autograd changed-op cases versus
-plain Torch embedding/cast backward. The producer is executed directly; the
-actual NKI body is CPU-interpreted with only geometry constants changed. It is
+plain Torch embedding/cast backward. The actual inlined producer and registration
+helpers are AST-extracted from train.py and executed directly; the actual inlined
+NKI body is CPU-interpreted with only geometry constants changed. It is
 not an SDK simulator. Twelve finite fixtures are raw-bit exact; four NaN/Inf/
 overflow fixtures remain explicitly FAIL_NONFINITE_DIAGNOSTIC, never training
 passes. Both BF16 subnormal signs, normal-to-subnormal cancellation, the
@@ -70,8 +72,9 @@ does not catch and hide unsupported-operator or compile errors.
 
 ## Operator timing use
 
-Stage `train.py`, `k2.py`, `consumer_nki.py` together. Existing official prepare
-must be importable as usual. Use the ordinary checked full-chip four-rank/LNC2
+Stage only `train.py`. It has no dependency on `k2.py` or `consumer_nki.py`;
+those standalone files are retained as source references only. Existing official
+prepare must be importable as usual. Use the ordinary checked full-chip four-rank/LNC2
 launch machinery and one unique proposal/label per arm; Implementer does not
 launch or hold a host. Compare the exact same candidate with `--no-k2-embedding`
 and `--k2-embedding`, same seed42, pack32/context1024/width1024 and batch131072.

@@ -5,6 +5,7 @@ The actual torch device metadata producer and actual registered autograd are
 executed. Native numerical semantics and speed remain to be measured.
 """
 import argparse
+import ast
 import hashlib
 import importlib.util
 import json
@@ -14,11 +15,21 @@ import types
 
 import torch
 import torch.nn.functional as F
-from k2 import prepare_metadata, build_registered_lookup
 from cpu_instruction_model import interpreted_kernel, Tensor
 
 ROOT = Path(__file__).resolve().parent
 torch.set_num_threads(1)
+
+# Test the actual inlined helpers, never the standalone reference modules.
+helper_tree = ast.parse((ROOT/'train.py').read_text())
+helper_names = {'_k2_prepare_metadata', '_k2_build_registered_lookup'}
+helper_tree = ast.Module(body=[n for n in helper_tree.body
+                             if isinstance(n, ast.FunctionDef) and n.name in helper_names],
+                         type_ignores=[])
+helper_namespace = {'torch': torch, 'F': F}
+exec(compile(helper_tree, str(ROOT/'train.py'), 'exec'), helper_namespace)
+prepare_metadata = helper_namespace['_k2_prepare_metadata']
+build_registered_lookup = helper_namespace['_k2_build_registered_lookup']
 
 
 def bits(x):
