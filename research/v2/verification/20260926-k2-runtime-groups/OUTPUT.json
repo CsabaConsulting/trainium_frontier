@@ -1,0 +1,110 @@
+{
+  "status": "PASS_CHANGED_SOURCE_SEMANTICS_ONLY",
+  "start_utc": "2026-09-26T10:21:41.990446+00:00",
+  "end_utc": "2026-09-26T10:21:43.385436+00:00",
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "executable": "/usr/bin/python3",
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.43",
+  "cwd": "/home/poojith-devan/Documents/ChatGPT/Trainium",
+  "argv": ["research/v2/verification/20260926-k2-runtime-groups/reference_check.py"],
+  "script_sha256": "9217fb432bc24447d5854f64c539096ec67a9331164b6007182e5afa28d86a7f",
+  "reference_cases_sha256": "cd7281cded550e2fb1d95ce21118ec1e4818dea64901e9bbc4b88921e1c48dda",
+  "production_addresses": {
+    "geometry": {"G": 64, "P": 128, "C": 1024, "owners": 2},
+    "metadata_rows_checked_per_owner": 8192,
+    "maxima_checked_per_owner": 64,
+    "output_addresses_checked": 8388608,
+    "every_element_written_once": true,
+    "owner_overlap": false,
+    "last_address": 8388607,
+    "ordered_address_sha256": "549987530e5773e846070308f2bf5665b824088011ddb6a48c4293089d140895"
+  },
+  "reference_cases": [
+    {
+      "name": "all_groups_empty", "tokens": 0,
+      "counts": [0, 0, 0, 0, 0, 0, 0, 0], "group_maxima": [0, 0, 0, 0],
+      "output_rows": [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
+      "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "last_row_duplicate_order", "tokens": 3,
+      "counts": [0, 0, 0, 0, 0, 0, 0, 3], "group_maxima": [0, 0, 0, 3],
+      "output_rows": [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
+      "trace_sha256": "c5a494094b353832246b2b0fba53e45c7cd4c6bfbacb9af47e3b04f5a05f09d5",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "last_row_order_discriminator", "tokens": 3,
+      "counts": [0, 0, 0, 0, 0, 0, 0, 3], "group_maxima": [0, 0, 0, 3],
+      "output_rows": [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, -1.0, 2.0, -2.0, 4.0, -4.0]],
+      "trace_sha256": "c5a494094b353832246b2b0fba53e45c7cd4c6bfbacb9af47e3b04f5a05f09d5",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "empty_middle_group_boundary_rows", "tokens": 10,
+      "counts": [2, 2, 0, 0, 2, 0, 1, 3], "group_maxima": [2, 0, 2, 3],
+      "output_rows": [[-5.0, 5.0, -10.0, 10.0, -20.0, 20.0], [3.0, -3.0, 6.0, -6.0, 12.0, -12.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [17.0, -17.0, 34.0, -34.0, 68.0, -68.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [4.0, -4.0, 8.0, -8.0, 16.0, -16.0], [4.0, -4.0, 8.0, -8.0, 16.0, -16.0]],
+      "trace_sha256": "ae05e1f2dd4e3752052598c8abeb880e119dbb1d7a894c8bfa964162c51f236d",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "every_row_both_owners", "tokens": 16,
+      "counts": [2, 2, 2, 2, 2, 2, 2, 2], "group_maxima": [2, 2, 2, 2],
+      "output_rows": [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [4.0, -4.0, 8.0, -8.0, 16.0, -16.0], [8.0, -8.0, 16.0, -16.0, 32.0, -32.0], [12.0, -12.0, 24.0, -24.0, 48.0, -48.0], [10.0, -10.0, 20.0, -20.0, 40.0, -40.0], [6.0, -6.0, 12.0, -12.0, 24.0, -24.0], [2.0, -2.0, 4.0, -4.0, 8.0, -8.0], [-2.0, 2.0, -4.0, 4.0, -8.0, 8.0]],
+      "trace_sha256": "9c1deb35b7f1403d083442eba4d7bae8950f33c0477e43febcf43e4b436a84f1",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "first_row_only_trailing_empty_groups", "tokens": 4,
+      "counts": [4, 0, 0, 0, 0, 0, 0, 0], "group_maxima": [4, 0, 0, 0],
+      "output_rows": [[2.0, -2.0, 4.0, -4.0, 8.0, -8.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
+      "trace_sha256": "039f86efdfc3eac444c970c7724bff9f2a846c6f4ce050abdc494b13d6c30947",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    },
+    {
+      "name": "unequal_counts_last_group", "tokens": 7,
+      "counts": [1, 1, 0, 0, 0, 0, 4, 1], "group_maxima": [1, 0, 0, 4],
+      "output_rows": [[7.0, -7.0, 14.0, -14.0, 28.0, -28.0], [4.0, -4.0, 8.0, -8.0, 16.0, -16.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [15.0, -15.0, 30.0, -30.0, 60.0, -60.0], [2.0, -2.0, 4.0, -4.0, 8.0, -8.0]],
+      "trace_sha256": "6a92ded840195e57e1cd2290e57aa019ffe2df6d83fcbd18617b6ff2b4203e95",
+      "exact_static_dynamic_and_direct": true, "empty_rows_positive_zero": true
+    }
+  ],
+  "random_cases": {"count": 64, "seed": 42, "all_passed": true, "evidence_sha256": "5e52937ea1a26b63f56f07a5f2717974c5f2afb36f677f8585508c2346405511"},
+  "supplied_evidence": {
+    "source_pin": "f8047d07908386c8155218d89773405b1a7a6d7c2d33ce420899bb342d5fb07e",
+    "parent_pin": "662c968aabd83dd4bfdbf497eb6491be30e6572f581cd4be15dd5c620f470a00",
+    "delta": {"added": 7, "removed": 8},
+    "files": {
+      "SOURCE.diff": {"bytes": 1993, "sha256": "4ed25ae91e40bb07ed6fbeb5eb4a80ecc69c994463de9a8803ecd82ce8bc4ade"},
+      "SPEC.md": {"bytes": 4788, "sha256": "d04c38686034642af2c1709d57ae6537d66929fb00472d322e86ad58b4286737"},
+      "cpu-result.json": {"bytes": 99351, "sha256": "2cfb0410596c28b20adef0bf91b911283ff334263fbbf947b7ac838a9fcab7cd"},
+      "compile-production-result-1790417895251858239.json": {"bytes": 3173, "sha256": "147a300be275cb74b01e0ce2321f82a7e35dd9edf84944b25e6ad4dec80cda4a"},
+      "simulate-result-1790417911971128655.json": {"bytes": 1218, "sha256": "74d25e9302ba1ac64602fd33b191325f4372ac705857434026290a28b61d70cc"},
+      "simulate-result-1790417933199676192.json": {"bytes": 1263, "sha256": "6baa893345aa6899e90f4672f1d8cba391eb17e80df2713c594d25bcbd3c99b5"},
+      "artifacts-manifest.json": {"bytes": 1086, "sha256": "ccf4914bbe35206bf2ee87866204a639eab6dc05e33a4eebea6c432212ddde40"}
+    },
+    "cpu_receipt": {
+      "torch.int32": {"finite_cases": 12, "nonfinite_diagnostics_not_accepted_as_finite": 4, "all_reported_bits_equal": true},
+      "torch.int64": {"finite_cases": 12, "nonfinite_diagnostics_not_accepted_as_finite": 4, "all_reported_bits_equal": true}
+    },
+    "compiler_artifacts": {
+      "k2.neff": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/k2.neff", "bytes": 61338, "sha256": "e64314f25fbcbab62d6bcc41bdc1408e830821c296b8898e2c9a8569ed5441ac"},
+      "backend.log": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/log-neuron-cc.txt", "bytes": 394278, "sha256": "a9dd3b0fc509d63f765e5ba91011368e2f6d9c327dae36cfe8af5b4e4b63b3ba"},
+      "core0-instruction-stats.txt": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/nc00/sg00/instruction_stats.txt", "bytes": 1043, "sha256": "8698c1232eab4614dd2548527a8f85d7453b9079f13d76c077b4e4d7dbf5a10f"},
+      "core1-instruction-stats.txt": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/nc01/sg00/instruction_stats.txt", "bytes": 1043, "sha256": "d34e94d0af972ee50f2c63e8d7224e6d99f5747e9b2b03c30be691eb5ba8d9a2"},
+      "kernel-info.json": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/kernel_info.json", "bytes": 955, "sha256": "5081b10e0a650504d68595af8ae35d40afcabea9bb10065ac1244ffb65d31e7f"},
+      "mempressure.txt": {"path": "/home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-runtime-groups/scratch/compile-1790417891961756099/mempressure.txt", "bytes": 94, "sha256": "a34a25cb1f45aaa3f61145ef6935643949519bf74cf8c0fdda490c948cba1415"}
+    },
+    "simulator_receipts": [
+      {"receipt": "simulate-result-1790417911971128655.json", "fixture": "uniform", "maximum_count": 4, "untouched_rows": 0, "exact_equal": true},
+      {"receipt": "simulate-result-1790417933199676192.json", "fixture": "sparse", "maximum_count": 8, "untouched_rows": 4096, "exact_equal": true}
+    ],
+    "source_bytes_independently_rehashed": false,
+    "source_binding_limit": "Whitelist excludes full candidate, parent and gate harness; pins are supplied receipt declarations."
+  },
+  "native_execution": false,
+  "framework_imports": false,
+  "host_contact": false,
+  "performance_or_launch_acceptance": false
+}

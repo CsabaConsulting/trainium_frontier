@@ -1,0 +1,14 @@
+{
+  "geometry": {"groups": 4, "partition": 2, "channels": 6, "owners": 2},
+  "channel_multipliers": [1, -1, 2, -2, 4, -4],
+  "cases": [
+    {"name": "all_groups_empty", "ids": [], "values": []},
+    {"name": "last_row_duplicate_order", "ids": [7, 7, 7], "values": [16777216, 1, -16777216]},
+    {"name": "last_row_order_discriminator", "ids": [7, 7, 7], "values": [16777216, -16777216, 1]},
+    {"name": "empty_middle_group_boundary_rows", "ids": [7, 1, 0, 6, 1, 7, 4, 0, 7, 4], "values": [1, -2, 3, 4, 5, -6, 7, -8, 9, 10]},
+    {"name": "every_row_both_owners", "ids": [7, 0, 6, 1, 5, 2, 4, 3, 7, 0, 6, 1, 5, 2, 4, 3], "values": [1, 2, 3, 4, 5, 6, 7, 8, -3, -2, -1, 0, 1, 2, 3, 4]},
+    {"name": "first_row_only_trailing_empty_groups", "ids": [0, 0, 0, 0], "values": [3, 0, -2, 1]},
+    {"name": "unequal_counts_last_group", "ids": [6, 7, 6, 1, 6, 6, 0], "values": [1, 2, 3, 4, 5, 6, 7]}
+  ],
+  "random_cases": {"seed": 42, "count": 64, "maximum_tokens": 32, "value_choices": [-16777216, -4, -1, 0, 1, 4, 16777216]}
+}
