@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## Verified cold replay training — 26 September18:48IST
+
+Actual13:17:23UTC trn21 cd0c cold replay step380/loss3.2293/281961tok_s,
+~1449trainingseconds remaining. Four original workers/original lock held,
+149.02GiB free, no terminal. Additional read-only13:18:05 confirms six unique
+caches were created empty and step markers0..4 exist; marker file contains
+indices, not timings, so exact cold startup/charge awaits terminal rehearsal.
+No full-run/score/upload PASS yet. Train ETA~19:12IST,20M~19:25IST estimate.
+Next trn21 routine check~13:37UTC; trn22 check~13:23UTC remains due.
+This turn=VERIFIED WAIT: actual live worker processes and advancing training
+log checked after20minutes; no new launch or source change.
+
 ## Remove artificial cross-host queue wait — 26 September18:40IST
 
 Seed43 remains same frozen cd0c/accepted command plusseed43; it now follows
