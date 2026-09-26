@@ -1,0 +1,55 @@
+{
+  "actual_tensor_beta2_route_on": true,
+  "arms": 10,
+  "bytewise_checkpoint_model_content": true,
+  "candidate_sha256": "4bfaec501c2e0e499803eaafbf7526819f248936369e7d8cbbc973a58cf0b1ea",
+  "default_and_explicit_off_identity_both_clock_modes": true,
+  "fullsize_or_native": false,
+  "negative_controls": [
+    {
+      "name": "missing_arm",
+      "refused": "missing arm"
+    },
+    {
+      "name": "missing_rank",
+      "refused": "rankset:clock1-on"
+    },
+    {
+      "name": "missing_update",
+      "refused": "six real updates/MLP:clock0-on"
+    },
+    {
+      "name": "wrong_lr_clock",
+      "refused": "shared LR clock:clock1-on"
+    },
+    {
+      "name": "scalar_beta2",
+      "refused": "beta2 actual route:clock1-on"
+    },
+    {
+      "name": "changed_gradient",
+      "refused": "clock0 off identity"
+    }
+  ],
+  "new_checkpoint_toggle_only_for_off": true,
+  "parameter_tensors": 65,
+  "parameters": 4523316,
+  "ranks_per_arm": 4,
+  "raw_sha256": {
+    "clock0-base": "540b3ed52bac3bc42ee76f310c50beb4bfd1e36cd377edee141db28ae15cf47a",
+    "clock0-default": "c62fd1a9c411e808daf19cb86e3b22f811c2fd246a1a03abe8692d2b11f038ca",
+    "clock0-off": "d3e3c813fb09adabed7c3ffdf47598e8601648b8d6b0daeb6f90d32bb6da5f65",
+    "clock0-on": "265d5f90354416e968f02bd5736defb5bfa687d571e2650f97cc28c81b12033e",
+    "clock0-reference": "c6113b0d422b07dea4fc0f16df310874f96c8da04da4519ee18651531d0dd720",
+    "clock1-base": "910a0048cbd64774805758f0018036b736c541325f7b91ab98bbc738cd6f37c3",
+    "clock1-default": "afd6d373e3ff5d473b78030b660dfedd4f648a9e657109fdfcd01b28453d871c",
+    "clock1-off": "196ec690598b33ec6d2e813635349301c43a8ad4d63549bd9ce2cbabd821b687",
+    "clock1-on": "f2dfa7cac7584454f2fd7d978391a5a6a9225a6b174f13efc1eccde827cf615f",
+    "clock1-reference": "b7c5177df368f0db0225abaebe9f16869f73cc1ed040f316f9e040a51888daa7"
+  },
+  "recursive_updates_equal_independent_formulas_both_clock_modes": true,
+  "serialized_checkpoint_file_identity_claimed": false,
+  "status": "IMPLEMENTER_SELF_CHECKS_ONLY",
+  "steps": 6
+}
+

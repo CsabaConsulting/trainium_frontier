@@ -1,0 +1,13 @@
+Command: python3 research/v2/lanes/clock36-recursive/test_static.py Tests.test_five_boundary_ages_offsets_and_accounting
+Exit: 1
+FAIL: test_five_boundary_ages_offsets_and_accounting
+  self.assertEqual(env['excess'],max(0.,age+30-900))
+AssertionError: 0.0010000000038417056 != 0.0009999999999763531
+Ran 1 test in 0.054s
+FAILED (failures=1)
+
+This was a test-reference rounding error with a large fake process-start offset:
+the real reset computes (start + age) - start from the rounded monotonic float.
+The corrected reference uses this observed duration. Candidate bytes unchanged.
+The initial full scalar test run used the same failing assertion; it is retained
+separately as failed-static-full-attempt1.txt after its process exits.
