@@ -1,5 +1,21 @@
 # Final-slot fallback — NOT READY TO UPLOAD
 
+Latest26 September18:34IST: actual cold full replay is LIVE ontrn21 since
+18:27:15IST, sourcecd0c, original lifetime lock and four workers verified.
+No cold score exists yet. `export_cold_audit.py` authenticates the real archived
+cold/fresh20M result before creating a NEW Downloads directory with exactly
+five attachments. `--check` currently refuses ACTUAL_COLD_BUNDLE_MISSING_NO_EXPORT,
+as intended. Three local exporter tests pass; no Downloads files were created.
+After cold completion and collection, run:
+
+```bash
+python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py --check
+python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py
+```
+
+Export is audit-only, never upload approval. Claude and seed43 remain pending.
+Older prepared-only transport prose below is historical; do not relaunch this label.
+
 Human-selected current final-package candidate,26 September2026.
 Confirmed research base8c6: batch262144, matrix LR.021, ordinary warmdown.75,
 momentum warmup300, seed42. No Recursive, momentum150, K2 or tables.

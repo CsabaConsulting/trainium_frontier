@@ -1,5 +1,16 @@
 # Workflow installation and incremental launch status
 
+## Momentum progressing; audit exporter prepared — 26 September18:34IST
+
+Actual13:02:44UTC trn22 momentum150 step450/loss3.1986/283006tok_s,
+~1384trainingseconds remaining; four workers/original lock intact, no terminal.
+Estimated training end18:56IST, fresh20M~19:08IST, not guaranteed. trn21 cold
+replay remains protected; last verified12:57:25UTC, next~13:17UTC.
+Five-file audit exporter is implemented/tested: refuses absent actual cold
+bundle; exact source/parent/accepted command pins; existing strict cold/eval
+analyzer; unique Downloads directory; no overwrite/upload.3local tests PASS.
+No export yet. This turn=PROGRESS, final cold/seed43/Claude still incomplete.
+
 ## K2 rescue failed; final cold candidate live — 26 September18:28IST
 
 K2 source949f failed native compilation at12:49:37UTC,0completed steps after

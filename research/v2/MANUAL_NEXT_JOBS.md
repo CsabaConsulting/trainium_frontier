@@ -77,5 +77,13 @@ Busy/unknown/mismatch means refuse, never force or duplicate.
 
 After actual cold full run/fresh20M, prepare a unique Downloads audit folder:
 exact train.py, unchanged accepted launch, Claude brief and measured receipts.
+The tested exporter creates exactly five attachments; the exact launch command
+is in AUDIT_BRIEF.md rather than a sixth attachment:
+
+```bash
+python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py --check
+python3 workflow/candidates/final-batch262144-lr021/export_cold_audit.py
+```
+
 Do not overwrite old Downloads or claim upload-ready before Claude audit.
 Poojith alone uploads. Warm startup never qualifies a submission.
