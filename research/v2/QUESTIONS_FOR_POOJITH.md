@@ -1,5 +1,24 @@
 # Non-blocking morning questions
 
+## Active narrow safety-hold decision — 26 September 12:04 IST
+
+Asked through the current async approval question: may the Operator release
+only trn21's parked guardian after independent current checks prove all owned
+training/compiler processes stopped and the device idle? No answer yet.
+The failed clean native r1 had40 observed job/compiler identities absent and
+device idle at06:28:30, but guardian3202398/flock3202397/dispatch3202396 retain
+original lock596823. Root158 normal/-O archive checks authenticate that
+historical evidence and27 partial retrieved files; it is not a current release.
+Cause is a compiler-generated cache symlink to a4096B installed SDK table,
+not a numerical result. Independent cache-accounting repair is in progress.
+
+Recommendation: approve this one hold release only after fresh independent
+identity/descendant/device checks, preserving every artifact and original lock
+file. No training restart, cleanup, breaker policy change or AWS action is
+included. Alternative: keep hold while all local work/trn22 preparation continue.
+Latest AGENTS reserves safety reset decisions to the human; do not infer approval
+from older broad night-mode prose. No external signal or release has occurred.
+
 ## Resolved narrowly — three checkpoints only, 26 September 11:27 IST
 
 Poojith answered "Yes—delete those three discarded checkpoints" to the exact
