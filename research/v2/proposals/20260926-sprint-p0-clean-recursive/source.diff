@@ -1,0 +1,97 @@
+diff --git a/research/v2/proposals/20260926-sprint-p0-clean-recursive/base.py b/research/v2/proposals/20260926-sprint-p0-clean-recursive/train.py
+index add51d31..bb0ba92f 100644
+--- a/research/v2/proposals/20260926-sprint-p0-clean-recursive/base.py
++++ b/research/v2/proposals/20260926-sprint-p0-clean-recursive/train.py
+@@ -64,6 +64,7 @@ MUON_MOMENTUM_COOLDOWN_FRAC = 0.045
+ MUON_MOMENTUM_FINAL = 0.85
+ MUON_NS_STEPS = 5
+ MUON_BETA2 = 0.9
++RECURSIVE_SCHEDULE = False
+ INIT_SCALE = 0.5
+ ATTN_CPROJ_INIT_SCALE = 0.1
+ PACK_FACTOR = 4
+@@ -1197,7 +1198,7 @@ class MuonAdamW(torch.optim.Optimizer):
+                 _MUON_COMPILED[key] = fn
+                 print0(f'muon step: COMPILED body for {tuple(g.shape)} (tall={key[0]} ns_steps={ns_steps} red_dim={red_dim}) [specialisations so far: {len(_MUON_COMPILED)}]')
+             lr_t, lrwd_t, mom_t, one_mom_t, one_b2_t = self._muon_compile_scalars(group, p0, ratio)
+-            one_beta2 = 1 - group['beta2']
++            one_beta2 = one_b2_t if RECURSIVE_SCHEDULE else 1 - group['beta2']
+             w, momentum_buffer, second = fn(w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t, key[0], ns_steps, red_dim, g.size(red_dim), one_beta2, COMPUTE_DTYPE == torch.bfloat16, False)
+             state['stacked_params'] = w
+             state['momentum_buffer'] = momentum_buffer
+@@ -1307,7 +1308,16 @@ def startup_adjusted_schedule_elapsed(step: int, elapsed: float, budget_started:
+     process_age = elapsed + (budget_started - _PROCESS_STARTED)
+     return max(0.0, process_age + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS)
+ 
+-def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0) -> float:
++def lr_multiplier(step: int, elapsed: float=0.0, max_train_seconds: float=1.0, kind: str='muon') -> float:
++    if RECURSIVE_SCHEDULE:
++        if step < WARMUP_STEPS:
++            return (step + 1) / max(1, WARMUP_STEPS)
++        warmdown_ratio = 0.95 if kind == 'muon' else 0.65
++        progress = min(1.0, max(0.0, elapsed / max(1e-06, max_train_seconds)))
++        if progress < 1.0 - warmdown_ratio:
++            return 1.0
++        cooldown = (1.0 - progress) / warmdown_ratio
++        return cooldown * 1.0 + (1 - cooldown) * 0.05
+     if step < WARMUP_STEPS:
+         return (step + 1) / max(1, WARMUP_STEPS)
+     progress = min(1.0, elapsed / max(1e-06, max_train_seconds))
+@@ -1321,13 +1331,29 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+     """Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then a cooldown towards
+     MUON_MOMENTUM_FINAL over the last MUON_MOMENTUM_COOLDOWN_FRAC of the wall-clock budget.
+     """
++    if RECURSIVE_SCHEDULE:
++        frac = min(step / 300, 1.0)
++        m = (1 - frac) * 0.85 + frac * 0.95
++        p = min(1.0, max(0.0, progress))
++        if p > 1.0 - 0.95:
++            cooldown = (p - (1.0 - 0.95)) / 0.95
++            m = 0.95 + cooldown ** 2 * (0.79 - 0.95)
++        return m
+     frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
+     m = (1 - frac) * 0.85 + frac * 0.95
+     cd = min(1.0, max(0.0, (progress - (1.0 - MUON_MOMENTUM_COOLDOWN_FRAC)) / MUON_MOMENTUM_COOLDOWN_FRAC))
+     m = (1 - cd) * m + cd * MUON_MOMENTUM_FINAL
+     return m
+ 
++def muon_beta2(progress: float) -> float:
++    if RECURSIVE_SCHEDULE:
++        p = min(1.0, max(0.0, progress))
++        cooldown = max(0.0, (p - (1.0 - 0.95)) / 0.95)
++        return 0.95 + cooldown * (0.97 - 0.95)
++    return MUON_BETA2
++
+ def main() -> None:
++    global RECURSIVE_SCHEDULE
+     global PACK_FACTOR
+     global loss_scale_clean, loss_scale_skips
+     global N_EMBD, SEQ_LEN
+@@ -1353,7 +1379,9 @@ def main() -> None:
+     _hp('--n-embd', N_EMBD, int, 'Model width (must be a multiple of HEAD_DIM); 0 derives it from DEPTH * ASPECT_RATIO.')
+     parser.add_argument('--clip-after-reduce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE', '1') != '0', help='Average gradients across ranks before clipping. Default on.')
+     _hp('--pack-factor', PACK_FACTOR, int, 'Rows per micro-batch: the loader fetches PACK_FACTOR*SEQ_LEN tokens per row and reshapes them to PACK_FACTOR rows of SEQ_LEN; grad_accum_steps falls as this rises (TOTAL_BATCH_SIZE is fixed).')
++    parser.add_argument('--recursive-schedule', action=argparse.BooleanOptionalAction, default=False)
+     args = parser.parse_args()
++    RECURSIVE_SCHEDULE = args.recursive_schedule
+     if args.clip_after_reduce != True:
+         parser.error('this submission fixes CLIP_AFTER_REDUCE=True; the launch flag must agree')
+     loss_scale_clean = 0
+@@ -1448,14 +1476,15 @@ def main() -> None:
+         clip_and_sync_gradients(model, clip_main_params, max_norm=GRAD_CLIP)
+         schedule_elapsed = startup_adjusted_schedule_elapsed(step, elapsed, budget_started)
+         lrm = lr_multiplier(step, elapsed=schedule_elapsed, max_train_seconds=args.max_train_seconds)
++        lrm_adam = lr_multiplier(step, elapsed=schedule_elapsed, max_train_seconds=args.max_train_seconds, kind='adamw') if RECURSIVE_SCHEDULE else lrm
+         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
+         wd_progress = min(1.0, schedule_elapsed / max(1e-06, args.max_train_seconds))
+         for group in optimizer.param_groups:
+-            group['lr'] = group['initial_lr'] * 1.0 * (lrm_flat if group.get('no_lr_decay') else lrm)
++            group['lr'] = group['initial_lr'] * 1.0 * (lrm_flat if group.get('no_lr_decay') else lrm_adam if group['kind'] != 'muon' else lrm)
+             if group['kind'] == 'muon':
+                 group['momentum'] = muon_momentum(step, wd_progress)
+                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress)
+-                group['beta2'] = 0.9
++                group['beta2'] = muon_beta2(wd_progress) if RECURSIVE_SCHEDULE else 0.9
+         owned_optimizer.step(update_adamw=True)
+         for m in cached_linears:
+             m.refresh_weight_cache(COMPUTE_DTYPE)

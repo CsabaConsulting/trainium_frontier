@@ -1,0 +1,81 @@
+--- baseline/lifetime_guard.py
++++ candidate/lifetime_guard.py
+@@ -40,10 +40,14 @@
+     def __init__(self, lock_fd, lock_path, expected, receipt, grace=60.0, kill_wait=10.0):
+         require_original_lock(lock_fd, lock_path, expected)
+         self.fd, self.lock_path, self.expected = lock_fd, lock_path, expected
+-        self.receipt = open(receipt, 'x', buffering=1)
++        self.receipt = None
+         self.owned, self.statuses = {}, {}
+         self.signal_received = None
+         self.audit_error = None
++        try:
++            self.receipt = open(receipt, 'x', buffering=1)
++        except BaseException as exc:
++            self.audit_error = repr(exc)
+         self.job_started = False
+         self.grace, self.kill_wait = grace, kill_wait
+         libc = ctypes.CDLL(None, use_errno=True)
+@@ -213,7 +217,7 @@
+                 empty = self.reap()
+                 if self.audit_error is not None:
+                     self.quiesce('LIFETIME_AUDIT_FAILED: ' + self.audit_error)
+-                    self.park('LIFETIME_AUDIT_FAILED: ' + self.audit_error)
++                    raise RuntimeError('LIFETIME_AUDIT_FAILED: ' + self.audit_error)
+                 result = self.statuses.get(process.pid)
+                 if result is not None:
+                     process.returncode = result
+@@ -240,21 +244,33 @@
+                 self.park('PRIMARY_ERROR: ' + repr(exc) + '; CLEANUP_UNKNOWN: ' + repr(cleanup))
+             raise
+ 
+-    def finish(self, postflight):
+-        """The lock remains open through all owned exits and device/process postflight."""
++    def finish(self, postflight, independent_idle):
++        """Reporting failure is a failed result, not authority to retain idle hardware.
++
++        Release still requires kernel lineage proof, separate fresh machine-idle
++        checks and the original held inode. Return False on any reporting failure.
++        The outer flock releases only when this synchronous driver exits.
++        """
++        reporting_error = None
+         try:
+             self.quiesce('DRIVER_FINALLY')
+-            postflight()
+-            # Postflight uses synchronous subprocesses; require kernel proof again.
++            try:
++                postflight()
++            except BaseException as exc:
++                reporting_error = repr(exc)
++            # A reporting callback can have created helpers before failing.
++            self.quiesce('AFTER_REPORTING_POSTFLIGHT')
++            require_original_lock(self.fd, self.lock_path, self.expected)
++            independent_idle()
++            # Idle helpers themselves may not leave descendants.
+             self.discover()
+             if not self.reap():
+                 raise RuntimeError('POSTFLIGHT_CHILD_REMAINS')
+-            if self.audit_error is not None:
+-                raise RuntimeError('LIFETIME_AUDIT_FAILED: ' + self.audit_error)
+-            self.event('release_ready', proof='waitpid_ECHILD_AND_POSTFLIGHT_PASS' if self.job_started else 'NO_JOB_STARTED_waitpid_ECHILD',
+-                       signal_received=self.signal_received)
+-            if self.audit_error is not None:
+-                raise RuntimeError('LIFETIME_AUDIT_FAILED: ' + self.audit_error)
++            require_original_lock(self.fd, self.lock_path, self.expected)
++            self.event('release_ready', proof='waitpid_ECHILD_AND_INDEPENDENT_IDLE_PASS',
++                       signal_received=self.signal_received, reporting_error=reporting_error,
++                       audit_error=self.audit_error)
++            require_original_lock(self.fd, self.lock_path, self.expected)
+         except BaseException as exc:
+             try:
+                 self.quiesce('POSTFLIGHT_FAILURE: ' + repr(exc))
+@@ -263,4 +279,8 @@
+             self.park('POSTFLIGHT_OR_QUIESCENCE_FAILED: ' + repr(exc))
+         for pidfd, _ in self.owned.values():
+             os.close(pidfd)
+-        self.receipt.close()
++        try:
++            self.receipt.close()
++        except BaseException as exc:
++            reporting_error = reporting_error or repr(exc)
++        return reporting_error is None and self.audit_error is None

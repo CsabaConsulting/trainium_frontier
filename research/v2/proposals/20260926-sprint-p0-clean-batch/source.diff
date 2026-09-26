@@ -1,0 +1,26 @@
+diff --git a/research/v2/proposals/20260926-sprint-p0-clean-batch/base.py b/research/v2/proposals/20260926-sprint-p0-clean-batch/train.py
+index add51d31..b46b1750 100644
+--- a/research/v2/proposals/20260926-sprint-p0-clean-batch/base.py
++++ b/research/v2/proposals/20260926-sprint-p0-clean-batch/train.py
+@@ -1328,6 +1328,7 @@ def muon_momentum(step: int, progress: float=0.0) -> float:
+     return m
+ 
+ def main() -> None:
++    global TOTAL_BATCH_SIZE, MATRIX_LR
+     global PACK_FACTOR
+     global loss_scale_clean, loss_scale_skips
+     global N_EMBD, SEQ_LEN
+@@ -1353,7 +1354,13 @@ def main() -> None:
+     _hp('--n-embd', N_EMBD, int, 'Model width (must be a multiple of HEAD_DIM); 0 derives it from DEPTH * ASPECT_RATIO.')
+     parser.add_argument('--clip-after-reduce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE', '1') != '0', help='Average gradients across ranks before clipping. Default on.')
+     _hp('--pack-factor', PACK_FACTOR, int, 'Rows per micro-batch: the loader fetches PACK_FACTOR*SEQ_LEN tokens per row and reshapes them to PACK_FACTOR rows of SEQ_LEN; grad_accum_steps falls as this rises (TOTAL_BATCH_SIZE is fixed).')
++    parser.add_argument('--total-batch-size', type=int, default=TOTAL_BATCH_SIZE)
++    parser.add_argument('--matrix-lr', type=float, default=MATRIX_LR)
+     args = parser.parse_args()
++    if args.total_batch_size <= 0 or not math.isfinite(args.matrix_lr) or args.matrix_lr <= 0:
++        parser.error('positive total batch and finite positive matrix LR required')
++    TOTAL_BATCH_SIZE = args.total_batch_size
++    MATRIX_LR = args.matrix_lr
+     if args.clip_after_reduce != True:
+         parser.error('this submission fixes CLIP_AFTER_REDUCE=True; the launch flag must agree')
+     loss_scale_clean = 0
