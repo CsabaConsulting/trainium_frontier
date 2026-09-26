@@ -1,0 +1,41 @@
+{
+  "scope": "Bounded primary excerpts, not full webpage snapshots; no webpage-content hash claimed",
+  "sources": [
+    {
+      "id": "aws-native-231",
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.0/frameworks/torch/pytorch-native-overview.html#neuron-kernel-interface-nki-integration",
+      "version": "Neuron documentation v2.31.0",
+      "retrieved_utc": "2026-09-26T00:38:31Z",
+      "section": "NKI Integration, FAQ, Appendix",
+      "excerpt": "For training, add autograd support via register_autograd() method for custom backward passes",
+      "supports": "Documented registration route, not installed API signature or fix proof."
+    },
+    {
+      "id": "pytorch-library-211",
+      "url": "https://docs.pytorch.org/docs/2.11/library.html#torch.library.register_autograd",
+      "version": "PyTorch 2.11 documentation",
+      "retrieved_utc": "2026-09-26T00:38:31Z",
+      "section": "register_autograd, register_fake, opcheck",
+      "excerpt": "Both setup_context_fn and backward_fn must be traceable.",
+      "supports": "Explicit backward/context registration, data-free fake metadata contract and API-contract checks, not Neuron backend support."
+    },
+    {
+      "id": "aws-lab",
+      "url": "https://awslabs.github.io/accelerated-compute-tutorials/en/aws-ai-chip/education/ndd-day2-hands-on-lab/",
+      "version": "Unversioned AWS-owned lab; table specifies Neuron2.31/Torch2.11",
+      "retrieved_utc": "2026-09-26T00:38:31Z",
+      "section": "Environment; Lab1 Step4; Lab2 nki_ops pattern",
+      "excerpt": "nki 0.5.0+28631259367.ga768afa6",
+      "supports": "Concrete matching NKI build and nki_op/wrap_nki pattern; different torch-neuronx build, no installed API proof."
+    },
+    {
+      "id": "pytorch-triton-current",
+      "url": "https://docs.pytorch.org/tutorials/recipes/torch_compile_user_defined_triton_kernel_tutorial.html#adding-training-support",
+      "version": "Current tutorial identifies2.14.0+cu130, NOT installed2.11",
+      "retrieved_utc": "2026-09-26T00:38:31Z",
+      "section": "Adding training support",
+      "excerpt": "Prefer this to using torch.autograd.Function",
+      "supports": "General compile-composability guidance only; no Triton code/API is proposed for Neuron."
+    }
+  ]
+}
