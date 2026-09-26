@@ -1,0 +1,81 @@
+{
+  "schema": "completed-supervisor-retained-checkpoint-proposal-v1",
+  "proposal_id": "20260926-confirmed36-clean-checkpoint-cpu",
+  "prepared_utc": "2026-09-26T03:15:45Z",
+  "status": "COMPLETED_SPEC_IMPLEMENTATION_AND_FRESH_REVIEW_REQUIRED",
+  "label": "fs-20260926-confirmed36-clean-checkpoint-trn21-r1",
+  "host": "trn21",
+  "stage_authorized": false,
+  "launch_authorized": false,
+  "native_launch_authorized": false,
+  "submission_authorized": false,
+  "source_adoption": false,
+  "scope": "CPU-only, synthetic retained-checkpoint state/ordinary-loader purity/causality and source-port identity qualification after the separately accepted full113M G2 pair. No production/evaluation source edits.",
+  "hypothesis": "The independently source-reviewed clean ordinary116188 GPT loader reproduces confirmed36 trained parameters and synthetic outputs for both odd/even batch and context shapes without the research batch-splitting wrapper.",
+  "prerequisite_pair": {
+    "packet_commit": "8cc56def09227556e08322254c85542439ea9b22",
+    "proposal": "research/v2/proposals/20260926-confirmed36-clean-cpu-trn21-r1/EXPERIMENT_PROPOSAL.json",
+    "root": "/home/ubuntu/trainium_confirmed36_clean_cpu_20260926_trn21_r1",
+    "actual_results": "PENDING; do not fabricate checkpoint names or hashes"
+  },
+  "sources": {
+    "reference": {
+      "commit": "7419927c7417b5666a984ec9c2b849feadabaaa9",
+      "path": "workflow/proposals/research-v2/train.py",
+      "sha256": "36a86274c20a9dabce9fc7c34878896c7664f38026cf740b09ca12eef93d4ffb"
+    },
+    "candidate": {
+      "commit": "7b9c20c696237fbb2abef57135bf777e6a801365",
+      "path": "workflow/candidates/confirmed-clock36-116188/train.py",
+      "sha256": "e1e2f68629f3b7ff56c19c555cadef5b5e30868147d174ddc77a486dd2a74b43"
+    }
+  },
+  "existing_helper": {
+    "path": "research/v2/proposals/20260926-clock36-checkpoint-mask-r3/compare_checkpoints.py",
+    "sha256": "1b3714e050e473b176a3e1f1fbd59387579867f3d06d14ecf71248a6d8a1714c",
+    "reuse": "Preserve mask_record/raw_record/model_state/restored_mask_spec semantics. Adapt arm list and strengthen synthetic batch/context coverage only in new helper; never edit prior helper/failure."
+  },
+  "implementation_boundary": [
+    "Separate Implementer edits only new diagnostic helper/tests/spec under this proposal, not train.py, prepare.py, evaluator, live packet or previous artifacts.",
+    "No host/SSH/fullsize laptop allocation. Tiny fixture tests and AST/source pin checks only. New helper needs fresh independent review with own positive/negative tests.",
+    "No use of supplied/checkpoint pickled arbitrary code; torch.load(weights_only=True), exact sources/pins and validated input paths."
+  ],
+  "input_authentication": [
+    "After the real pair completes, freeze exact two source/request/G2/standardcompare/checkpointidentity artifacts and checkpoint full paths/bytes/SHA in a new INPUTS receipt. Missing pair PASS or nonidentical G2 means HOLD.",
+    "Verify each checkpoint lies under its exact arm private tmp/g2-* directory and exactly matches independently retrieved identity. Check before and after the helper; do not discover arbitrary checkpoints, silently choose newest, or mutate payload.",
+    "Protected original prepare hash5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb unchanged."
+  ],
+  "required_qualification": [
+    "Eight layers, width1024,65 state tensors and113256724 parameters in both retained payloads; identical tensor keys/dtypes/shapes/rawbytes. Metadata can differ as documented but no parameter normalization.",
+    "Use each file's actual unpatched load_for_eval on CPU. No compute_dtype_for override, monkeypatch of forward, replacement wrapper or global toggle edit. Clean candidate must return its ordinary GPT, not reference subclass/adapter.",
+    "Loaded state exactly equals saved tensors. Hash all parameters AND persistent/nonpersistent buffers around every forward, including inputs; no mutations or mode change.",
+    "Only mask_full/mask_short buffers may contain negative infinity; validate complete expected causal/window mask values, shape/dtype/device from restored config using the corrected helper's independent streamed formula. NaN/+inf/wrong zeros in masks, or any nonfinite parameter/other buffer, fails.",
+    "Synthetic inputs fixed seed7, legal token IDs; batches1,2,3 and contexts256,257. Keep exact same source/weights/mode and compare repeat calls, rowwise outputs, and cross-source outputs. Both even and odd batches exercise the former research wrapper boundary.",
+    "Compare complete cross-source output bytes at each synthetic shape. If a legitimate numeric mismatch appears, report exact tensor/shape/maxabs/relative/dtype and REFUSE this equality claim; do not add tolerance retrospectively.",
+    "Suffix perturbations must be nondegenerate per row. Apply the unchanged organizer-style causal-prefix criterion<=1e-2 and also report exact prefix equality; do not invoke real validation data or modify scoring code.",
+    "Retain complete receipts, effective Python/Torch versions, checkpoint/source hashes and raw failures. Tiny helper self-tests cannot substitute for this actual fullsize result."
+  ],
+  "fresh_reviewer_requirements": [
+    "Fresh session receives only diff/spec/receipts, no shared Implementer branch/notes/context; default REFUSE until complete.",
+    "Own independent tiny reference/negative tests must prove rejection of mutated weights/buffers/inputs, wrong mask entries/NaN/+inf, noncausal suffix use, output aliasing, wrong checkpoint/source, and malformed shape/count.",
+    "Verify pre/post checkpoint immutability and ordinary loader not patched; role-separated review cannot be satisfied by Implementer self-tests."
+  ],
+  "future_host_constraints": {
+    "original_lock": {
+      "device": 66305,
+      "inode": 596823,
+      "path": "/home/ubuntu/.cache/trainium_freshstart/device0.lock"
+    },
+    "timeout_seconds": 600,
+    "kill_grace_seconds": 60,
+    "threads": 1,
+    "minimum_available_ram_gib": 64,
+    "minimum_disk_gib": 10.5,
+    "extra_footprint_required": true,
+    "sole_operator": true,
+    "ps_neuron_ls_fuser_stop_breaker_required": true,
+    "explicit_all_descendant_postflight": true
+  },
+  "acceptance_limit": "This proves only the declared CPU checkpoint/synthetic scope. Native loader/causality and complete cold1800+fresh20M and ClaudeviaPoojith audit still remain. Original older clean-route REFUSE and all prior failures are preserved.",
+  "rollback": "Leave new helper disabled; preserve G2 checkpoints/logs and model source. No automatic retry/native/full/adoption/upload."
+}
