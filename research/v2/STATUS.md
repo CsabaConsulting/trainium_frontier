@@ -1,5 +1,38 @@
 # Workflow installation and incremental launch status
 
+## 14:20 IST observed: both full runs are now evaluating
+
+trn22 genuinee1e2 control finished3640steps/exit0, uncappedstartup793.865135s
+in reused caches (notcold), officialcharge1789.206186s. Attached20M evaluator
+3367667 was live08:50:45UTC with originalguardian3345115/lock832589. Receipt
+c34a14ca/SHA3102ba70. No new BPB yet. Parent fixed timing window is actually
+266629.657930tok/s; K2 must reach>=274628.547668 at the same t9..t44 window.
+Independent read-only analysis agrees; full evidence/limitations recorded in
+analysis/20260926-k2-final-sprint-timing/PARENT_CONTROL_WINDOW.md.
+K2 ON45 still waits current eval/retrieval/quiescence and ordinary preflight,
+not another control run or new source review. trn21 attached20M is also live.
+
+## Successor handoff: trn21 training complete, fresh20M live
+
+Actual08:45:18.767UTC receipt in
+operator/20260926-final-sprint-successor-handoff/trn21-live.json (da736b4d,
+SHA73a6c89a) proves1921steps/exit0, uncappedstartup798.420385s and official
+charge1788.753648s. Reused cache is not a cold-start claim. Attached20M began
+08:45:16UTC; evaluator3255522/harness3255449 and original3231387 guardian/
+596823 lock were live. Score and whole-job quiescence are still pending.
+Independent read-only Analyst rehashed16 captured files and recomputed all
+1921 boundaries, checkpoint7ca06a5c/453044626B and accounting without mismatch.
+All-post-five281496.33tok/s is+5.81% vs historical cross-host e1e2 only;
+different host/LR/cache means this is context, not an isolated causal claim.
+
+Next trn21 selected: existing genuine e1e2 control, proposal e635132f,
+packet1f080e4d, scored commandb75 unchanged. Transport ebfabaef is ready.
+Dispatch only after actual batch.021 train+20M/retrieval/quiescence and
+fresh original-lock/source/device/resource checks. No new human approval
+or source review. K2 ON45 remains nexttrn22 after its parent control+20M.
+Previous goal turn was PROGRESS: both human-resized disks were verified and
+guest-expanded, clearing the actual next-job storage blocker without interruption.
+
 ## Storage resolved: both roots expanded to 400 GiB, 26 September 14:12 IST
 
 Poojith completed the AWS-side resize to400GiB each. The sole Operator
