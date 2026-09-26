@@ -1,5 +1,14 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 08:27 IST
+
+Confirmed mean0.9883066129 unchanged. trn21 LR0.012 training; trn22 childcold
+reports845.889s fifth/exit0, numeric threshold passed, complete raw/postflight
+acceptance pending before full0090fd37 release. Cleanport e1e2f686 is implemented
+and fresh tinyCPU/source review passed narrowly; fullCPU/native/coldfull/20M/
+humanClaudeaudit pending. New builder delegation is thread-limited, not active.
+See newest CURRENT_STATE and top-levelstate for actual launch authority.
+
 ## Current — 26 September 08:13 IST
 
 Both next jobs are actually live: trn21 exact36 LR0.012 full1800 started08:08:21;

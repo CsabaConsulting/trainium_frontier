@@ -1,5 +1,32 @@
 # Current state
 
+## 02:57 UTC / 08:27 IST: child cold finished; full result audit and next release pending
+
+Confirmed public20M mean remains0.9883066128526815; no new quality score.
+Operator reports child Recursive cold-five exited0 at02:55:11.715961UTC,
+uncapped fifth845.889473766s, process850.564158289s, charged4.674684523s.
+This clears the numeric startup threshold, not yet root acceptance of all raw
+and explicit every-observed-process quiescence. Full0090fd37 is ready with
+root151+8mechanical checks; no automatic full launch or submission.
+
+trn21 LR0.012 is training: Operator02:54:41 reports step360/loss3.4773/
+268236tok/s, remaining1625s, original596823 lock held. Final startup/charge and
+fresh20M remain pending. trn22 original832589 is reported free after cold;
+explicit postflight is being archived. No checkpoint or cache deleted.
+
+Clean116188 port e1e2f686 is IMPLEMENTED, not upload-ready. New fresh no-context
+review c4464dca accepts only inspected source/tinyCPU arithmetic/clock scope;
+root replay matches three exact SGD losses/gradients/updates, B1/B2/B3 context256,
+280 scalarclock and7actual-boundary cases. Archive0b889d8c preserves own harness
+failures and limits. Production trajectory/full113M/native/coldfull/fresh20M/
+ClaudeviaPoojith still required; the research score is not a port measurement.
+Repeated new CPU-packet delegation attempts returned "agent thread limit reached";
+no such builder is active. Sole Operator and detached jobs remain active.
+
+K2 domain note59cacb4c preserves HOLD. Ordinary eager AND compiled subnormal
+failures do not establish documented hardwareFTZ or justify a gate waiver.
+Next proposed no-host work is CPU cast/provenance audit, not another native retry.
+
 ## 02:43 UTC / 08:13 IST: both next jobs actually started; checkpoint gate recovered
 
 Confirmed research mean stays0.9883066128526815, no new quality score.
