@@ -1,5 +1,39 @@
 # Current state
 
+## 05:06 UTC / 10:36 IST: clean full cold replay live; warm control accepted
+
+Clean e1e2 full cold replay launched on trn22 at04:54:43.028901UTC after the
+independent fixed-job lifetime repair passed. Actual04:55:20 snapshot shows
+all four workers3281955–3281958, guardian3281909 and original66305:832589 held.
+Root46 checks normal/-O authenticate all7 captures, exact executed source,
+long argv, budget/seed and private cache paths. Raw319ac89d/canonicale9d29704;
+`research/v2/analysis/20260926-clean-fullcold-launch/result.json`.
+Startup and full BPB are pending; prior859s cold-five is not this run's result.
+Sole Operator is assigned one read-only05:09 boundary check, no new launch.
+
+trn21 prospective exact36 warm control completed3631steps and fresh20M:
+public0.9881207925137612, uncapped fifth110.209841834s, charged1789.266018374s.
+Root96 checks normal/-O authenticate39 artifacts, stable checkpoint8b2df035,
+all13 observed identities/254-row ancestry/device/original596823 quiescence.
+Raw1085cc33/canonical5388a498. Ledger now has this genuine prospective control;
+unchanged decide.py DISCARDS LR.012 (delta-0.0000552448). Recursive remains
+INSUFFICIENT without a genuine same-host trn22 control. Confirmed two-host
+mean0.9883066128526815 remains unchanged; warm cache hit/path-only causality
+and imported prepare origin are explicitly unproven.
+
+trn21 idle since04:49:51.986287,15-minute incident reported. Free12.17GiB is
+below pending K2's16GiB and native-helper13.5GiB gates. Human scoped cleanup
+request is unanswered. Three inventoried discarded targets total only0.439GiB,
+insufficient; no deletion or gate lowering. Inventory2d5941c9/canonical3ba4361e.
+
+K2's four repair faults have fresh CPU-only acceptance, not native or whole
+packet acceptance. Disabled trn21 binding53eadaaf/canonical4d9dc19e still needs
+fresh review, real project pin, resource gate and full-worker/consumer evidence.
+Clean native helper fresh review REFUSE reproduces partial receipt loss on TERM
+and lost causal failure detail. Separate reporting-only repair is active; do
+not waive native consistency. Submission remains HOLD pending fullcold score,
+native consistency and Claude-via-human compliance audit. No upload occurred.
+
 ## 04:49 UTC / 10:19 IST: launcher repair in fresh review; live eval check resumed
 
 Fixed-job lifetime repair13c90714 and disabled transportd7d2ea6b are frozen.

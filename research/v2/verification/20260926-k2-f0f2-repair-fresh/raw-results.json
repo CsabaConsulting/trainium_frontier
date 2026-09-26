@@ -1,0 +1,710 @@
+{
+  "scope": "independent CPU repair review; no native execution",
+  "pins": {
+    "artifacts.py": "eb88856d6116a19a37116fa5b7458f9e9ae74183b72abe7d98bb237c689c0cd1",
+    "binding.py": "fa346671cd7346ee2dcaae2dffaed01661ed273b547b27e2af5cea186735cb35",
+    "common.py": "01be002f33d35f34698fbf9c49b48f866f787cfba01111fd0bfbadeedb96fe69",
+    "consumer_nki.py": "9425390c96053a1b24d4addf8b61b1a87c4993f3551f08c7cdcefcf142d84dcd",
+    "coordinator.py": "3d0fe301b55a84f64722bdea644ce1a020f8af9c4f5cd52f9dc49cdea5846912",
+    "evidence.py": "3a86381bcc043c98c15879a3c6367c3b9bbf4462a2f055f791e114a94ce31233",
+    "fault_child.py": "3a727fd4b311ebd6c5bc4c5d3605820d281068d660a53ef54321d82219273a27",
+    "fixtures.py": "e848b27b1648ce6b0076aea8d67846db29457c4e5e7d5a3ab2ba5b52930b787d",
+    "generate.py": "32aef3a5b4cf82fcc1b89cc162810c0445d0abbb30ad98149867c72af4157d8c",
+    "host_driver.py": "9a1e5ab9fc4d5ec039a743da520c011dfa2a9cb6fa682fc26fbf191f74bc643f",
+    "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+    "monitor.py": "36343be8359c241724d1f07427cf8fee5f238e9150a7a85e31cab46ee01cdb34",
+    "oracle.py": "93a6309e9fec0d8680905adf963ac49b3fcb3aeca56cfc942b70dae16a7709d0",
+    "peer_fixture.py": "dabee2ece1136a20bdec35a29a0a71901fc4ddf1a5b8ab2a38cd9b054c3e8042",
+    "test_oracle_core.py": "27edd015f9f364be7476f3ea2d350f1d878a2f73dd60a993a1c7eb5c90cda45e",
+    "test_packet.py": "d96206f5a1b7ee06f6efb51aec26422b742b9b4f549c080741461ab50afd8f00",
+    "test_repairs.py": "fb18708e4311d245a367fc4f84e44ecf4abc984bb88fb551b5571f86ee2b8712",
+    "worker.py": "711378567cf7e7a7af6aabf5bb2dc023ce79620ac91a205020f482596b5df588"
+  },
+  "enospc": {
+    "held_before_and_after_TERM": true,
+    "stderr": ""
+  },
+  "exists": {
+    "held_before_and_after_TERM": true,
+    "stderr": ""
+  },
+  "late": {
+    "stdout": "{\"result\": 1, \"calls\": 2}\n",
+    "terminal": {
+      "elapsed": 0.23062683100579306,
+      "error": "RuntimeError: independent-preflight-failure",
+      "helpers": [],
+      "native_qualification": false,
+      "no_automatic_next_job": true,
+      "postflight": {
+        "final_quiescence": {
+          "at": 49533.283792156,
+          "demonstrated_exits": [
+            [
+              1532049,
+              4953309
+            ]
+          ],
+          "kernel_echild": true
+        },
+        "final_termination": {
+          "events": [
+            {
+              "at": 49533.153310774,
+              "identities": [
+                1532049
+              ],
+              "signal": 15
+            },
+            {
+              "at": 49533.265693639,
+              "identities": [
+                1532049
+              ],
+              "signal": 9
+            }
+          ],
+          "survivors": []
+        },
+        "lock": {
+          "fd": 4
+        },
+        "status": "IDLE_OBSERVED"
+      },
+      "started": 49533.053175514,
+      "status": "FAILED_OR_INCOMPLETE",
+      "stream_close_errors": [],
+      "termination": {
+        "events": [
+          {
+            "at": 49533.08814815,
+            "identities": [],
+            "signal": 15
+          }
+        ],
+        "survivors": []
+      },
+      "unknown_precision": {
+        "compiler_separate_peak_rss_bytes": null,
+        "complete_graph_count": null,
+        "hardware_owner_execution_trace": null,
+        "hbm_exact_peak_bytes": null,
+        "reason": "No evidenced frozen-SDK binding; sampled guards and full-byte behavior are not precision traces.",
+        "sbuf_allocated_peak_bytes": null,
+        "sbuf_spill_bytes": null,
+        "worker_separate_peak_rss_bytes": null
+      }
+    },
+    "stderr": ""
+  },
+  "helpers": [
+    {
+      "detach": false,
+      "error": "DEADLINE",
+      "events": [
+        {
+          "command": [
+            "/home/poojith-devan/venv/bin/python",
+            "-c",
+            "import os,signal,time; p=os.fork(); signal.signal(signal.SIGTERM,signal.SIG_IGN); time.sleep(30)"
+          ],
+          "started": 49533.769994131,
+          "status": "INCOMPLETE",
+          "cleanup": {
+            "events": [
+              {
+                "signal": 15,
+                "at": 49534.67657954,
+                "identities": [
+                  1532050,
+                  1532051
+                ]
+              },
+              {
+                "signal": 9,
+                "at": 49534.761436042,
+                "identities": [
+                  1532050,
+                  1532051
+                ]
+              }
+            ],
+            "survivors": []
+          },
+          "final_quiescence": {
+            "kernel_echild": true,
+            "at": 49534.777239881,
+            "demonstrated_exits": [
+              [
+                1532050,
+                4953377
+              ],
+              [
+                1532051,
+                4953377
+              ]
+            ]
+          },
+          "ended": 49534.777260197,
+          "close_errors": []
+        }
+      ],
+      "proof": {
+        "kernel_echild": true,
+        "at": 49534.788288742,
+        "demonstrated_exits": [
+          [
+            1532050,
+            4953377
+          ],
+          [
+            1532051,
+            4953377
+          ]
+        ]
+      }
+    },
+    {
+      "detach": true,
+      "error": "HELPER_LEFT_DESCENDANTS",
+      "events": [
+        {
+          "command": [
+            "/home/poojith-devan/venv/bin/python",
+            "-c",
+            "import os,signal,time; p=os.fork(); signal.signal(signal.SIGTERM,signal.SIG_IGN); (os.close(1),os.close(2),os.setsid(),time.sleep(30)) if p==0 else os._exit(0)"
+          ],
+          "started": 49534.79993488,
+          "status": "INCOMPLETE",
+          "cleanup": {
+            "events": [
+              {
+                "signal": 15,
+                "at": 49534.823786125,
+                "identities": [
+                  1532050,
+                  1532051,
+                  1532097,
+                  1532098
+                ]
+              },
+              {
+                "signal": 9,
+                "at": 49534.908755258,
+                "identities": [
+                  1532050,
+                  1532051,
+                  1532097,
+                  1532098
+                ]
+              }
+            ],
+            "survivors": []
+          },
+          "final_quiescence": {
+            "kernel_echild": true,
+            "at": 49534.92548208,
+            "demonstrated_exits": [
+              [
+                1532050,
+                4953377
+              ],
+              [
+                1532051,
+                4953377
+              ],
+              [
+                1532097,
+                4953480
+              ],
+              [
+                1532098,
+                4953480
+              ]
+            ]
+          },
+          "ended": 49534.925501223,
+          "close_errors": []
+        }
+      ],
+      "proof": {
+        "kernel_echild": true,
+        "at": 49534.936292295,
+        "demonstrated_exits": [
+          [
+            1532050,
+            4953377
+          ],
+          [
+            1532051,
+            4953377
+          ],
+          [
+            1532097,
+            4953480
+          ],
+          [
+            1532098,
+            4953480
+          ]
+        ]
+      }
+    }
+  ],
+  "peers": {
+    "authenticated": [
+      {
+        "peer": {
+          "pid": 1532099,
+          "state": "S",
+          "ppid": 1531920,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953493
+        },
+        "actual_rank_environment": {
+          "RANK": "0",
+          "LOCAL_RANK": "0",
+          "WORLD_SIZE": "4",
+          "NEURON_LOGICAL_NC_CONFIG": "2"
+        },
+        "actual_argv": [
+          "/home/poojith-devan/venv/bin/python",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/checks.py",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/peer.sock"
+        ],
+        "authenticated_ancestry": [
+          {
+            "pid": 1532099,
+            "state": "S",
+            "ppid": 1531920,
+            "pgid": 1531920,
+            "sid": 1531920,
+            "start": 4953493
+          }
+        ],
+        "launcher": {
+          "pid": 1531920,
+          "state": "R",
+          "ppid": 9005,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953054
+        }
+      },
+      {
+        "peer": {
+          "pid": 1532115,
+          "state": "S",
+          "ppid": 1531920,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953506
+        },
+        "actual_rank_environment": {
+          "RANK": "1",
+          "LOCAL_RANK": "1",
+          "WORLD_SIZE": "4",
+          "NEURON_LOGICAL_NC_CONFIG": "2"
+        },
+        "actual_argv": [
+          "/home/poojith-devan/venv/bin/python",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/checks.py",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/peer.sock"
+        ],
+        "authenticated_ancestry": [
+          {
+            "pid": 1532115,
+            "state": "S",
+            "ppid": 1531920,
+            "pgid": 1531920,
+            "sid": 1531920,
+            "start": 4953506
+          }
+        ],
+        "launcher": {
+          "pid": 1531920,
+          "state": "R",
+          "ppid": 9005,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953054
+        }
+      },
+      {
+        "peer": {
+          "pid": 1532131,
+          "state": "R",
+          "ppid": 1531920,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953516
+        },
+        "actual_rank_environment": {
+          "RANK": "2",
+          "LOCAL_RANK": "2",
+          "WORLD_SIZE": "4",
+          "NEURON_LOGICAL_NC_CONFIG": "2"
+        },
+        "actual_argv": [
+          "/home/poojith-devan/venv/bin/python",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/checks.py",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/peer.sock"
+        ],
+        "authenticated_ancestry": [
+          {
+            "pid": 1532131,
+            "state": "R",
+            "ppid": 1531920,
+            "pgid": 1531920,
+            "sid": 1531920,
+            "start": 4953516
+          }
+        ],
+        "launcher": {
+          "pid": 1531920,
+          "state": "R",
+          "ppid": 9005,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953054
+        }
+      },
+      {
+        "peer": {
+          "pid": 1532147,
+          "state": "R",
+          "ppid": 1531920,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953525
+        },
+        "actual_rank_environment": {
+          "RANK": "3",
+          "LOCAL_RANK": "3",
+          "WORLD_SIZE": "4",
+          "NEURON_LOGICAL_NC_CONFIG": "2"
+        },
+        "actual_argv": [
+          "/home/poojith-devan/venv/bin/python",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/checks.py",
+          "/home/poojith-devan/k2-f0f2-repair-independent-tFbwTc/peer.sock"
+        ],
+        "authenticated_ancestry": [
+          {
+            "pid": 1532147,
+            "state": "R",
+            "ppid": 1531920,
+            "pgid": 1531920,
+            "sid": 1531920,
+            "start": 4953525
+          }
+        ],
+        "launcher": {
+          "pid": 1531920,
+          "state": "R",
+          "ppid": 9005,
+          "pgid": 1531920,
+          "sid": 1531920,
+          "start": 4953054
+        }
+      }
+    ],
+    "negatives": [
+      [
+        "duplicate",
+        "DUPLICATE_WORKER_PROCESS"
+      ],
+      [
+        "false_rank",
+        "ACTUAL_WORKER_ENVIRONMENT"
+      ],
+      [
+        "launcher",
+        "LAUNCHER_IS_NOT_WORKER"
+      ],
+      [
+        "duplicate",
+        "DUPLICATE_WORKER_PROCESS"
+      ],
+      [
+        "false_rank",
+        "ACTUAL_WORKER_ENVIRONMENT"
+      ],
+      [
+        "launcher",
+        "LAUNCHER_IS_NOT_WORKER"
+      ],
+      [
+        "duplicate",
+        "DUPLICATE_WORKER_PROCESS"
+      ],
+      [
+        "false_rank",
+        "ACTUAL_WORKER_ENVIRONMENT"
+      ],
+      [
+        "launcher",
+        "LAUNCHER_IS_NOT_WORKER"
+      ],
+      [
+        "duplicate",
+        "DUPLICATE_WORKER_PROCESS"
+      ],
+      [
+        "false_rank",
+        "ACTUAL_WORKER_ENVIRONMENT"
+      ],
+      [
+        "launcher",
+        "LAUNCHER_IS_NOT_WORKER"
+      ]
+    ]
+  },
+  "numerical": {
+    "reference": "Fraction exact sum, binary search finite FP32 lattice, nearest-even",
+    "recurrences": 1072,
+    "F2": [
+      [
+        0,
+        0,
+        "0x0"
+      ],
+      [
+        0,
+        1,
+        "0x0"
+      ],
+      [
+        0,
+        2,
+        "0x0"
+      ],
+      [
+        0,
+        3,
+        "0x0"
+      ],
+      [
+        0,
+        4,
+        "0x0"
+      ],
+      [
+        0,
+        5,
+        "0x0"
+      ],
+      [
+        0,
+        6,
+        "0x0"
+      ],
+      [
+        0,
+        7,
+        "0x0"
+      ],
+      [
+        127,
+        0,
+        "0x0"
+      ],
+      [
+        127,
+        1,
+        "0x0"
+      ],
+      [
+        127,
+        2,
+        "0x10000"
+      ],
+      [
+        127,
+        3,
+        "0x0"
+      ],
+      [
+        127,
+        4,
+        "0x0"
+      ],
+      [
+        127,
+        5,
+        "0x0"
+      ],
+      [
+        127,
+        6,
+        "0x0"
+      ],
+      [
+        127,
+        7,
+        "0x0"
+      ],
+      [
+        128,
+        0,
+        "0x0"
+      ],
+      [
+        128,
+        1,
+        "0x0"
+      ],
+      [
+        128,
+        2,
+        "0x0"
+      ],
+      [
+        128,
+        3,
+        "0x80010000"
+      ],
+      [
+        128,
+        4,
+        "0x0"
+      ],
+      [
+        128,
+        5,
+        "0x0"
+      ],
+      [
+        128,
+        6,
+        "0x0"
+      ],
+      [
+        128,
+        7,
+        "0x0"
+      ],
+      [
+        4095,
+        0,
+        "0x0"
+      ],
+      [
+        4095,
+        1,
+        "0x0"
+      ],
+      [
+        4095,
+        2,
+        "0x0"
+      ],
+      [
+        4095,
+        3,
+        "0x0"
+      ],
+      [
+        4095,
+        4,
+        "0x0"
+      ],
+      [
+        4095,
+        5,
+        "0x0"
+      ],
+      [
+        4095,
+        6,
+        "0x0"
+      ],
+      [
+        4095,
+        7,
+        "0x0"
+      ],
+      [
+        4096,
+        0,
+        "0x0"
+      ],
+      [
+        4096,
+        1,
+        "0x0"
+      ],
+      [
+        4096,
+        2,
+        "0x0"
+      ],
+      [
+        4096,
+        3,
+        "0x0"
+      ],
+      [
+        4096,
+        4,
+        "0x0"
+      ],
+      [
+        4096,
+        5,
+        "0x0"
+      ],
+      [
+        4096,
+        6,
+        "0x0"
+      ],
+      [
+        4096,
+        7,
+        "0x0"
+      ],
+      [
+        8191,
+        0,
+        "0x0"
+      ],
+      [
+        8191,
+        1,
+        "0x0"
+      ],
+      [
+        8191,
+        2,
+        "0x0"
+      ],
+      [
+        8191,
+        3,
+        "0x0"
+      ],
+      [
+        8191,
+        4,
+        "0x10000"
+      ],
+      [
+        8191,
+        5,
+        "0x80010000"
+      ],
+      [
+        8191,
+        6,
+        "0x0"
+      ],
+      [
+        8191,
+        7,
+        "0x0"
+      ]
+    ]
+  }
+}

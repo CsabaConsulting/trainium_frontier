@@ -1,5 +1,20 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 10:36 IST
+
+Confirmed public20M mean0.9883066129 unchanged. Exact36 warm control finished
+at0.9881207925 (3631steps,110.209842s startup,1789.266018s charged), authenticated
+96checks normal/-O. LR.012 formally DISCARD by unchanged selector; Recursive
+INSUFFICIENT for missing trn22 control, not an adopted win.
+Clean e1e2 full cold replay launched10:24:43IST on trn22; four actual workers,
+exact bytes/argv/private caches/original lifetime lock authenticated46checks.
+New startup/BPB pending. trn21 idle>15min,12.17GiB below next diagnostic floors;
+scoped human cleanup approval pending, limited0.439GiB inventory insufficient.
+K2 repaired mechanics passed fresh CPU review only; disabled trn21 binding
+still unqualified. Native clean helper REFUSE for two receipt defects, separate
+repair active. Fullcold, native consistency and human Claude audit still block
+submission. No claim of six ready jobs, new adoption, cache-hit proof or upload.
+
 ## Current — 26 September 10:19 IST
 
 Confirmed public20M mean remains 0.9883066129; no new official score.
