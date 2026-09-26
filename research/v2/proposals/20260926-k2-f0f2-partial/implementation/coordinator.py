@@ -16,6 +16,51 @@ from fixtures import V, T, C, token_id, validate_metadata
 from generate import prepare_fixture, OracleBudget
 
 
+def authenticate_worker(info, hello, launcher, seen, pins, root, worker_path, python_path):
+    """Kernel peer + distinct process + live ancestry + actual exec environment."""
+    rank = hello.get('rank')
+    key = (info['pid'],info['start'])
+    require(type(rank) is int and rank in range(4), 'RANK_IDENTITY')
+    require(info['pid'] != launcher['pid'], 'LAUNCHER_IS_NOT_WORKER')
+    require(key not in seen and all(pid != info['pid'] for pid,start in seen), 'DUPLICATE_WORKER_PROCESS')
+    require(hello.get('pid') == info['pid'] and hello.get('start') == info['start'] and
+            hello.get('world') == 4 and hello.get('pins') == pins, 'PEER_SOURCE_IDENTITY')
+    proc = Path('/proc/%d' % info['pid'])
+    with (proc/'environ').open('rb') as stream:
+        raw_env = stream.read(65537)
+    require(len(raw_env) <= 65536, 'WORKER_ENV_CAP')
+    wanted = {'RANK':str(rank),'LOCAL_RANK':str(rank),'WORLD_SIZE':'4','NEURON_LOGICAL_NC_CONFIG':'2'}
+    actual = {}
+    for pair in raw_env.split(b'\0'):
+        name, sep, value = pair.partition(b'=')
+        if name in (b'RANK',b'LOCAL_RANK',b'WORLD_SIZE',b'NEURON_LOGICAL_NC_CONFIG'):
+            name = name.decode('ascii')
+            require(name not in actual, 'DUPLICATE_WORKER_ENV_KEY')
+            actual[name] = value.decode('ascii')
+    require(actual == wanted, 'ACTUAL_WORKER_ENVIRONMENT')
+    del raw_env  # Never persist unrelated environment/credentials.
+    with (proc/'cmdline').open('rb') as stream:
+        raw_argv = stream.read(4097)
+    require(len(raw_argv) <= 4096, 'WORKER_ARGV_CAP')
+    argv = raw_argv.rstrip(b'\0').decode().split('\0')
+    require(argv and Path(argv[0]).parent == Path(python_path).parent and
+            os.path.samefile(argv[0],python_path), 'ACTUAL_WORKER_INTERPRETER')
+    expected = [argv[0],str(worker_path),str(root)]
+    require(argv in (expected,[expected[0],'-u',*expected[1:]]), 'ACTUAL_WORKER_ARGV')
+    require(os.path.samefile(proc/'exe',python_path), 'ACTUAL_WORKER_EXECUTABLE')
+    ancestry, ancestor, visited = [], info, set()
+    while ancestor['pid'] != launcher['pid']:
+        require(ancestor['pid'] not in visited and ancestor['ppid'] > 1, 'PEER_NOT_OWNED')
+        visited.add(ancestor['pid'])
+        ancestry.append(ancestor)
+        ancestor = identity(ancestor['ppid'])
+    require(ancestor['start'] == launcher['start'] and ancestor['state'] != 'Z', 'TORCHRUN_REUSED_OR_EXITED')
+    require(identity(info['pid'])['start'] == info['start'], 'WORKER_IDENTITY_CHANGED')
+    seen.add(key)
+    return dict(peer=info, actual_rank_environment=actual, actual_argv=argv,
+                authenticated_ancestry=ancestry, launcher=launcher)
+
+
 def canonical(writer, deadline):
     budget, cases = OracleBudget(), {}
     for name in ('F0', 'F2'):
@@ -126,23 +171,26 @@ def main():
         child = subprocess.Popen(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone',
             '--nproc_per_node=4', str(HERE / 'worker.py'), str(root)],
             stdin=subprocess.DEVNULL, pass_fds=(int(os.environ['K2_LOCK_FD']),))
+        launcher = identity(child.pid)
+        seen_workers = set()
         for _ in range(4):
             sock, _ = listener.accept()
             sock.settimeout(min(80, remaining(work_deadline)))
             info, hello = peer(sock), receive(sock)
             rank = hello.get('rank')
             require(type(rank) is int and rank in range(4) and rank not in clients, 'RANK_IDENTITY')
-            require(hello.get('pid') == info['pid'] and hello.get('start') == info['start'] and
-                    hello.get('world') == 4 and hello.get('pins') == pins, 'PEER_SOURCE_IDENTITY')
-            # Parent/ancestor proof: peer must descend from our exact torchrun.
-            ancestor, seen = info, set()
-            while ancestor['pid'] != child.pid:
-                require(ancestor['pid'] not in seen and ancestor['ppid'] > 1, 'PEER_NOT_OWNED')
-                seen.add(ancestor['pid'])
-                ancestor = identity(ancestor['ppid'])
-            require(ancestor['start'] == identity(child.pid)['start'], 'TORCHRUN_REUSED')
+            try:
+                authenticated = authenticate_worker(info,hello,launcher,seen_workers,pins,root,
+                    HERE/'worker.py',Path('/home/ubuntu/workspace/native_venv/bin/python'))
+            except BaseException:
+                sock.close()
+                raise
             clients[rank] = sock, info
-            writer.record('rank%d-environment.json' % rank, hello)
+            writer.record('rank%d-environment.json' % rank, dict(hello=hello,authenticated=authenticated))
+        require(len(seen_workers) == 4, 'FOUR_DISTINCT_WORKER_PROCESSES_REQUIRED')
+        for sock,info in clients.values():
+            current=identity(info['pid'])
+            require(current['start']==info['start'] and current['state']!='Z', 'ADMITTED_WORKER_EXITED_OR_REUSED')
         first_used, later_used, first_receipts, compiled_receipts = 0.0, 0.0, {}, {}
         for ordinal, (fixture, kind) in enumerate(ROUTES):
             began = time.monotonic()

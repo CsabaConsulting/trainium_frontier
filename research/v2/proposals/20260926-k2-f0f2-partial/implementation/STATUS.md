@@ -6,3 +6,9 @@ scientific source/default change, canonical state change or launch performed.
 Tiny normal/optimized fault and oracle receipts are retained. Independent harness
 review is pending; implementer does not approve this packet. See
 IMPLEMENTATION_SPEC.md for exact scope, donor adaptations and unobserved gates.
+
+Original packet0ef8a56a was independently REFUSED for four mechanics/provenance
+defects. Repair candidate addresses those defects with new tiny real-process
+regressions; see REPAIR_SPEC.md. Original refusal/probes are unchanged. Fresh
+independent review remains required. No host/native/scientific/protected-source
+action was taken; all caps, consumer/oracle and disabled binding are preserved.

@@ -1,5 +1,9 @@
 # F0/F2 fixed-purpose packet — implementation candidate, default disabled
 
+Mechanics repair note: REPAIR_SPEC.md supersedes the original helper lifetime,
+finalization and peer-admission descriptions below. The original independent
+refusal remains preserved; repair is not approval or launch authority.
+
 Authority is the separately selected `20260926-k2-f0f2-partial` SPEC/JSON at
 Researcher ccece0f3 / canonical24b6b096 and selection922fcbf3. This implementation
 does not edit that contract or the full six-fixture contract. It is not a release,

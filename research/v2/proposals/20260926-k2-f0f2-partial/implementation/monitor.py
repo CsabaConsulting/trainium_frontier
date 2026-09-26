@@ -153,6 +153,18 @@ class Processes:
         return [dict(pid=p, start=s) for p, (s, fd) in self.known.items()
                 if not select.select([fd], [], [], 0)[0]]
 
+    def quiescent(self):
+        """Final kernel child proof, including helpers created after earlier stop."""
+        require(not self.alive(), 'OWNED_CHILDREN_STILL_LIVE')
+        self.reap()
+        require(not self.alive(), 'CHILD_APPEARED_DURING_REAP')
+        while True:
+            try:
+                pid, status = os.waitpid(-1, os.WNOHANG)
+                require(pid != 0, 'KERNEL_CHILDREN_REMAIN')
+            except ChildProcessError:
+                return dict(kernel_echild=True, at=time.monotonic(), demonstrated_exits=self.exits.copy())
+
     def stop(self, term_deadline, kill_deadline):
         events = []
         for sig, deadline in ((signal.SIGTERM, term_deadline), (signal.SIGKILL, kill_deadline)):
