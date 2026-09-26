@@ -61,7 +61,9 @@ def main():
     nan = p.blob(struct.pack('<I',0x7fc00000),'torch.float32',(1,),blobs)
     p.require(not nan['finite'] and nan['nonfinite'][0]['tag'] == 'NaN', 'NAN_TAG')
     json.dumps(p.comparison(nan,z,blobs), allow_nan=False)
-    tests += ['signed_zero_rejected','nan_json_safe']
+    all_nan = p.blob(struct.pack('<I',0x7fc00000)*(p.V*p.C),'torch.float32',(p.V,p.C),blobs)
+    p.require(all_nan['nonfinite_count'] == p.V*p.C and len(all_nan['nonfinite']) == 16, 'BOUNDED_NAN_TAGS')
+    tests += ['signed_zero_rejected','nan_json_safe','all_nan_tags_bounded_full_bytes_retained']
     disabled = subprocess.run([sys.executable,'-I','-B',str(Path(p.__file__).resolve())], capture_output=True,text=True)
     p.require(disabled.returncode == 0 and json.loads(disabled.stdout)['native_imported'] is False, 'DISABLED')
     tests.append('default_disabled')

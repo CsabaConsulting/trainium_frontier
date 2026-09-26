@@ -79,8 +79,9 @@ def blob(raw, dtype, shape, blobs):
         result.update(nonzero=sum((b & 0x7fffffff) != 0 for b in bits),
                       finite=all((b & 0x7f800000) != 0x7f800000 for b in bits),
                       negative_zero=sum(b == 0x80000000 for b in bits),
-                      nonfinite=[dict(index=i, tag='NaN' if b & 0x7fffff else '-Infinity' if b >> 31 else 'Infinity')
-                                 for i, b in enumerate(bits) if b & 0x7f800000 == 0x7f800000])
+                      nonfinite_count=sum(b & 0x7f800000 == 0x7f800000 for b in bits),
+                      nonfinite=[dict(index=i, tag='NaN' if bits[i] & 0x7fffff else '-Infinity' if bits[i] >> 31 else 'Infinity')
+                                 for i in [i for i,b in enumerate(bits) if b & 0x7f800000 == 0x7f800000][:16]])
     return result
 
 
