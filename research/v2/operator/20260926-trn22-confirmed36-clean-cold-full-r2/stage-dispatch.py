@@ -4,8 +4,8 @@ from pathlib import Path
 if sys.flags.optimize:raise RuntimeError('NORMAL_PYTHON_REQUIRED')
 repo=Path('/home/poojith-devan/Desktop/Trainium');own=Path('/home/poojith-devan/Desktop/Trainium-trn22-queue-operator')
 rel='research/v2/proposals/20260926-confirmed36-clean-cold-full-trn22-r2';d=own/rel
-frozen='d74ba2f8d367c61a00f172f9cb7ca0e1145140ca'
-pins={'NATIVE_BINDING.disabled.json':'65ad17ce3a00e3de228d5fb7296f09a6bf5a8578c2b36ef5dccf57859f4c60bb','EXPERIMENT_PROPOSAL.json':'475e62406dc419dea2e218e1a5a631b80a55c8571efb482ea0690d4d913d0069','host_driver.py':'ee5bc9f7a984c77b2c489eb5f361be37949de29f7b48637c58eb3a384c27dd90','MANIFEST.sha256.json':'92c37438fc3eed5519e28a583f4a45207fd7199925b9f7b037edfb5d59a4b4ce'}
+frozen='13c90714ba9cdfe5df788cae1ed5607c23afcca5'
+pins={'NATIVE_BINDING.disabled.json':'2d71861029094a7f2e8a4ee640fa0c450bc9650f65142f7bd38854fbe7a16a72','EXPERIMENT_PROPOSAL.json':'475e62406dc419dea2e218e1a5a631b80a55c8571efb482ea0690d4d913d0069','host_driver.py':'23c8ad2f6037a6f479e0049473686146bc249b1edf535427725e107da1ac5061','lifetime_guard.py':'e461ec5c76c784fd51471c9e8c268cdde42fe1def68b31bfc9524480f980c312','MANIFEST.sha256.json':'93b9df5252e3a0df541f4151ff5b43fdb930b51395ed61edf492a53a95c1a1d9'}
 for n,h in pins.items():
  raw=(d/n).read_bytes();assert hashlib.sha256(raw).hexdigest()==h,n
  assert raw==subprocess.check_output(['git','show',frozen+':'+rel+'/'+n],cwd=own),'FROZEN_PACKET_CHANGED'
@@ -16,7 +16,8 @@ for n,h in json.loads(manifest_raw)['files'].items():
 b=json.loads((d/'NATIVE_BINDING.disabled.json').read_bytes())
 assert b['host']=='trn22' and b['label']=='fs-20260926-confirmed36-clean-coldfull-trn22-r2'
 source=subprocess.check_output(['git','show',b['source_commit']+':'+b['source_git_path']],cwd=own);assert hashlib.sha256(source).hexdigest()==b['source_sha256']
-files={n:(d/n).read_bytes() for n in ('NATIVE_BINDING.disabled.json','EXPERIMENT_PROPOSAL.json','host_driver.py','MANIFEST.sha256.json','package/launch-command.txt','package/provenance.json')}
+files={n:(d/n).read_bytes() for n in ('NATIVE_BINDING.disabled.json','EXPERIMENT_PROPOSAL.json','host_driver.py','lifetime_guard.py','MANIFEST.sha256.json','package/launch-command.txt','package/provenance.json')}
+assert hashlib.sha256(files['lifetime_guard.py']).hexdigest()==b['lifetime_guard_sha256']
 files['package/train.py']=source
 assert hashlib.sha256(files['package/launch-command.txt']).hexdigest()==b['package_launch_sha256']
 assert hashlib.sha256(files['package/provenance.json']).hexdigest()==b['package_provenance_sha256']
@@ -33,7 +34,7 @@ assert all(re.fullmatch(r'[0-9a-f]{40}',v) for v in (prior_commit,release_commit
 assert release_path.startswith('research/v2/verification/') and release_path.endswith('.md') and '..' not in Path(release_path).parts
 assignment=(repo/release_path).read_bytes()
 assert assignment==subprocess.check_output(['git','show',release_commit+':'+release_path],cwd=repo),'RELEASE_CHANGED'
-for value in (b['label'],b['source_sha256'],pins['NATIVE_BINDING.disabled.json'],pins['host_driver.py'],prior_commit):
+for value in (b['label'],b['source_sha256'],pins['NATIVE_BINDING.disabled.json'],pins['host_driver.py'],pins['lifetime_guard.py'],prior_commit):
  assert value in assignment.decode(),'RELEASE_PIN_MISMATCH'
 files['SUPERVISOR_ASSIGNMENT.md']=assignment
 cold_root='/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260926-confirmed36-clean-cold-trn22-r2-packet'
