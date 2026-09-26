@@ -128,14 +128,27 @@ Run locally (stdlib only):
     /usr/bin/python3 -B research/v2/proposals/20260926-clock36-anchored-warm-control/test_packet.py
     /usr/bin/python3 -O -B research/v2/proposals/20260926-clock36-anchored-warm-control/test_packet.py
 
-Seven test methods with many negative subcases pass both modes. Real tiny
+Eight test methods with many negative subcases pass both modes. Real tiny
 filesystem fixtures test0444/0600, opened identity, wrong stat/hash, symlink,
 hardlink and module shadowing. Pure fixtures test precise directory invariants,
 inclusive180/1800 boundaries, budget/NaN failures, inherited preflight failures,
 pass_fds, and13 mocked success/failure compositions. Mocks never execute any
-child or device command. No test failures occurred; raw normal/-O output is
-retained. No tensor/model/SDK import, data read, host operation or actual source
+child or device command. The original seven-method suite missed a raw-projection
+precision bug. The added direct-raw test reproduced that original failure; the
+corrected eight-method suite passes both modes, with all raw outputs retained.
+No tensor/model/SDK import, data read, host operation or actual source
 execution was performed.
+
+Original e1fdcff8 remains preserved/REFUSED. It rounded four mtime_ns/ctime_ns
+integers through JavaScript Number. This successor replaces the anchor directly
+from authenticated raw fc48525f using Python's integer-preserving JSON parser;
+the executable driver changes only its binding SHA constant. The new test
+authenticates the actual raw file, compares the complete original anchor object,
+enumerates all >2^53 numbers, and rejects float/rounded/off-by-one mutations.
+receipts/exact-integer-audit.json lists every such binding/raw/packet JSON field.
+The raw file has six large integers: four anchor timestamps plus two unrelated
+LR012 checkpoint timestamps; only the four exact anchor values belong here.
+The unchanged Researcher audit-normal/optimized files already had exact values.
 
 These are Implementer tests, not independent review. Pending: fresh independent
 mechanical review, distinct anchor-contract acceptance, source/runtime gate

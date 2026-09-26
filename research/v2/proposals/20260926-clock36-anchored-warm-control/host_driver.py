@@ -48,7 +48,7 @@ def phase(name,command,env,lock_fd):
         out.write(name.upper()+'_END_UTC='+utc()+'\n'); out.flush()
     with (ROOT/('run-exit-code.txt' if name=='training' else 'eval-exit-code.txt')).open('x') as f: f.write(str(rc)+'\n')
     return rc
-PLAN_SHA = '0b00f5ac6ec2ca70af255de51c23345a1a081d8d69f3e2dd1a1d3419f6d609ea'
+PLAN_SHA = 'e71a92a55043871b7dd5660c191fad4135d20384e6fa1be3b6edc91398d83e10'
 STAT_FIELDS = ('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_mtime_ns','st_ctime_ns')
 ANCESTOR_STABLE_FIELDS = ('st_dev','st_ino','st_mode','st_uid','st_gid')
 

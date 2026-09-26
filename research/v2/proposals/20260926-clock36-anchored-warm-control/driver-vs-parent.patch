@@ -1,5 +1,5 @@
 --- research/v2/proposals/20260926-startup-adjusted-full-trn21-replication/host_driver.py	2026-09-26 09:05:36.571546393 +0530
-+++ research/v2/proposals/20260926-clock36-anchored-warm-control/host_driver.py	2026-09-26 09:11:58.501797365 +0530
++++ research/v2/proposals/20260926-clock36-anchored-warm-control/host_driver.py	2026-09-26 09:19:44.690132969 +0530
 @@ -1 +1 @@
 -"""Exact startup-clock cross-host replication then fresh public20M under one lifetime lock."""
 +"""Disabled anchored-source full control composition; source/harness/support unchanged."""
@@ -48,7 +48,7 @@
 -except Exception as exc:
 -    record('terminal.json',{'utc':utc(),'label':LABEL,'status':'FULL_DRIVER_FAILED','error':str(exc),'no_automatic_next_job':True})
 -    raise
-+PLAN_SHA = '0b00f5ac6ec2ca70af255de51c23345a1a081d8d69f3e2dd1a1d3419f6d609ea'
++PLAN_SHA = 'e71a92a55043871b7dd5660c191fad4135d20384e6fa1be3b6edc91398d83e10'
 +STAT_FIELDS = ('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_mtime_ns','st_ctime_ns')
 +ANCESTOR_STABLE_FIELDS = ('st_dev','st_ino','st_mode','st_uid','st_gid')
 @@ -69,0 +55,196 @@

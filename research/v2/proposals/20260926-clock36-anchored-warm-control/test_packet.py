@@ -28,6 +28,25 @@ def module(text,name):
 def driver():return module(SOURCE,'host_driver')
 CHECKS=module((HERE/'identity_checks.py').read_text(),'identity_checks')
 def digest(data):return hashlib.sha256(data).hexdigest()
+def large_numbers(value,path=()):
+    if isinstance(value,dict):
+        return {p:v for k,x in value.items() for p,v in large_numbers(x,path+(k,)).items()}
+    if isinstance(value,list):
+        return {p:v for k,x in enumerate(value) for p,v in large_numbers(x,path+(str(k),)).items()}
+    return {path:value} if type(value) in (int,float) and abs(value)>2**53 else {}
+def require_raw_anchor(plan,raw):
+    if digest(raw)!='fc48525fee3d026bd2fdda02daeb5ca8d1ef78369d321158711b978b30d67ccf':
+        raise ValueError('RAW_SHA')
+    # Default Python json parsing preserves arbitrary-precision integer tokens.
+    evidence=json.loads(raw)['remote']['completed_parent_metadata_only']
+    if plan['anchor_observation']!=evidence:
+        raise ValueError('ACTUAL_RAW_ANCHOR_MISMATCH')
+    wanted={('anchor_observation',path,key):item[key] for path,item in evidence.items()
+            for key in ('mtime_ns','ctime_ns')}
+    actual=large_numbers(plan)
+    if actual!=wanted or any(type(v) is not int for v in actual.values()):
+        raise ValueError('LARGE_INTEGER_FIELDS_OR_TYPES')
+    return actual
 def create(path,data=b'x',mode=0o600):
     path.parent.mkdir(parents=True,exist_ok=True)
     with os.fdopen(os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,mode),'wb') as stream:stream.write(data)
@@ -82,6 +101,24 @@ class Fixture:
     def snapshot(self):return self.d.anchored_inputs(CHECKS,self.plan)
 
 class Packet(unittest.TestCase):
+    def test_exact_integer_anchor_against_actual_raw(self):
+        raw=(REPO/PLAN['anchor_raw_path']).read_bytes()
+        self.assertEqual(digest(raw),PLAN['anchor_raw_sha256'])
+        # Use the original authenticated remote observation, never audit-normal
+        # or the already projected binding as the reference.
+        self.assertEqual(len(require_raw_anchor(PLAN,raw)),4)
+        remote=json.loads(raw)
+        raw_large=large_numbers(remote)
+        self.assertEqual(len(raw_large),6)
+        self.assertTrue(all(type(v) is int for v in raw_large.values()))
+        for path,value in large_numbers(PLAN).items():
+            for replacement in (int(float(value)),float(value),value+1):
+                broken=copy.deepcopy(PLAN);cursor=broken
+                for key in path[:-1]:cursor=cursor[key]
+                cursor[path[-1]]=replacement
+                with self.subTest(path=path,replacement=repr(replacement)),self.assertRaises(ValueError):
+                    require_raw_anchor(broken,raw)
+        with self.assertRaisesRegex(ValueError,'RAW_SHA'):require_raw_anchor(PLAN,raw+b' ')
     def fixture(self):
         temp=tempfile.TemporaryDirectory(prefix='anchored-packet-fixture-');self.addCleanup(temp.cleanup)
         f=Fixture(Path(temp.name));self.addCleanup(f.close);return f

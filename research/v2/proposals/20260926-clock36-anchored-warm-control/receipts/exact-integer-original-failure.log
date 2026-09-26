@@ -1,0 +1,21 @@
+Base frozen commit: e1fdcff81e44c864188410c30a55b53e48ce8751
+Added direct raw regression before correcting the binding.
+Command: /usr/bin/python3 -B research/v2/proposals/20260926-clock36-anchored-warm-control/test_packet.py Packet.test_exact_integer_anchor_against_actual_raw
+exit_code: 1
+test_exact_integer_anchor_against_actual_raw (__main__.Packet.test_exact_integer_anchor_against_actual_raw) ... ERROR
+
+======================================================================
+ERROR: test_exact_integer_anchor_against_actual_raw (__main__.Packet.test_exact_integer_anchor_against_actual_raw)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/poojith-devan/Desktop/Trainium-clock36-anchored-warm-control-packet-20260926/research/v2/proposals/20260926-clock36-anchored-warm-control/test_packet.py", line 109, in test_exact_integer_anchor_against_actual_raw
+    self.assertEqual(len(require_raw_anchor(PLAN,raw)),4)
+                         ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/poojith-devan/Desktop/Trainium-clock36-anchored-warm-control-packet-20260926/research/v2/proposals/20260926-clock36-anchored-warm-control/test_packet.py", line 43, in require_raw_anchor
+    raise ValueError('ACTUAL_RAW_ANCHOR_MISMATCH')
+ValueError: ACTUAL_RAW_ANCHOR_MISMATCH
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (errors=1)
