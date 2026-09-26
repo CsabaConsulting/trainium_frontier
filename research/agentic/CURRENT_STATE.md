@@ -1,5 +1,35 @@
 # Current state
 
+## 00:08 UTC / 05:38 IST: K2 native dispatched; P parked, quality run continuing
+
+Exact symmetric K2 qualification ACTUAL dispatch00:08:48.310143UTC,PID3101403,
+label fs-20260926-k2-symmetric-consumer-trn21-r1. Fresh source/CPU review
+completed00:06:01:48cases/6,291,456bytes/17negatives; root816 artifact/raw checks
+normal/-O. No native success/speed claim. One600+60s4rank/LNC2 test released
+6fd5f333 after127 mechanics checks and original-lock fresh idle/disk/hash checks.
+Initial dispatcher observed; under-lock/fourworker evidence still retrieving.
+
+P r2 launched00:05:29, failed00:05:38 after8.79s. Readiness repair and version
+passed,86files copied; decoder hit GENERATED_SCRATCH_CAP at271389612bytes,
+2954156 above256MiB, TERM-stopped with zero output. Raw72087392/canonical8422c6cc,
+22files authenticated, external00:06:30 proves5PIDs/descendants gone/devicesidle/
+original lock free. PARKED after one diagnosedretry; no third attempt or capraise.
+Preserve source profiles andcopies; free19.76GB remains above native10.5GiBgate.
+
+trn22 full36 continues:00:05:12 step2660,266379tok/s,492sremaining,20Mevalattached.
+No new score. Existing conditional W1 release follows its full/eval/quiescence.
+bcbd6x-cache fullquality fallback now conditionally released40b7d400 AFTER K2
+terminal/retrieval/explicitquiescence; independent196checks/rootreplaynormal/-O,
+existing117MCPU/cold493gate. K2 first, no newLR or source mutation. Current
+state activeassignment advances with actual boundaries; no secondlauncher.
+
+Compiler evidencef478b234 proves actual retained-directory compilation, not
+cache hits/cause: firststep783.64s, nextfour~.49s. Two complete raw input hashes
+will be locally joined to normal closed all4rank CSVs after currentrun ends.
+No extra hardware experiment/livecapture. Confirmedmean.9901674436550496;
+new75b9 .989662 is DISCARD under unchangedthreshold; .986340didnotconfirm.
+No upload-ready file or six-ready-jobs claim. GoalACTIVE.
+
 ## 00:00 UTC / 05:30 IST: new full result, no adoption; one host training
 
 75b944 architecture+Recursive scored fresh20M **0.9896621160468637**,3629steps,

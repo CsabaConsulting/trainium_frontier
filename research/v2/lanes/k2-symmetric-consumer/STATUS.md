@@ -1,5 +1,21 @@
 # K2 symmetric grid2 — 26 September 05:17 IST
 
+## 05:38 IST: new-evidence source gate passed; native actually dispatched
+
+Fresh input-only Astra with NEW versioned primary API documentation plus exact
+unchanged checker/reference completed00:06:01UTC. Source/CPU-onlyPASS,48cases,
+17negativecontrols,6,291,456 outputbytes exact; no nativeclaim. Root816checks
+normal/-O authenticate419files and rawcases. Reportarchive6fd5f333 at
+research/v2/verification/20260926-fresh-astra-k2-symmetric-api/.
+The original missing-evidence REFUSE below is preserved, not silentlyoverridden.
+
+Separate one-shot native release6fd5f333, exact710ea677 mechanical127checks
+replayed normal/-O. P r2 terminal/quiescence authenticated; actual trn21dispatch
+00:08:48.310143UTC PID3101403, originalflock/freshchecks, tiny600+60s4rank/LNC2.
+Fourworker/underlock evidence retrieving; no consumer output/timing yet.
+All20cases150bytecomparisons/rank and explicit descendantpostflight required.
+No fullmodel/autograd-production/speed/BPB/adoption/uploadauthority.
+
 05:19IST update (correcting the earlier rounded05:20 label): fresh review
 completed05:17:21IST, archived5ac75f7b. **REFUSE**
 because packet lacked version-specific API support evidence for grid/address

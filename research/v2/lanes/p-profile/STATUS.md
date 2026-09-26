@@ -1,5 +1,18 @@
 # P status — 2026-09-26 IST
 
+## 05:38 IST: parked after diagnosed retry, no decoded attribution
+
+Original r1 failed initial Go readiness under inherited512MiB before copying.
+Exact r2 repair99d7c261 launched00:05:29UTC after independent116checks/root
+replay; actual readiness under16GiB passed and restored512MiB, versionpassed,
+86files copied. Decoder then refused GENERATED_SCRATCH_CAP after1.446s,
+271389612bytes sampled/2954156 overshoot, no stdout/summary. Trackedchild
+3101016 TERM-stopped, full driver8.791s. Raw72087392/canonical8422c6cc preserves
+22files104923bytes; external00:06:30 provesall5PIDs/descendants/device/lockclear.
+Park this route, no third attempt/capraise. Originaltrace and copies retained;
+post-decode original/copy rehash did NOT complete. No measured device-kernel
+cost/MFU/bottleneck claim. K2 source-qualified tiny native is next, independently.
+
 ## 05:17 IST conditional decoder handoff
 
 Exactb529468f repairs late-descendant success classification only. Independent
