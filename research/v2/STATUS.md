@@ -1,5 +1,17 @@
 # Workflow installation and incremental launch status
 
+## 14:42 IST: minimal K2 repair qualified for one native retry
+
+Exacta3181d0d changes only dtype guard and error to permit official-loader
+int32 as well as int64. Bothdtype CPU/OFF3/ON3 passed; fresh isolated reviewer
+b689fb6e executed independent32 metadata/reference comparisons, gather/FP32,
+snapshot and14 invalid-input checks, PASS_FOR_ONE_NATIVE_RETRY. Root verified
+full-source/diff hashes. No native support or speedup asserted. Durable release
+assignments/20260926-k2-native-index-repair.md and completed proposal0b2f5694
+are committed2ad051aa; soleOperator preparing unique retry, no new review wait.
+If not launch-ready09:14:07UTC, existing bounded P3 is selected fallback.
+trn21 control remains protected. First failure is retained, not hidden.
+
 ## 14:39 IST: storage resolved; K2 first native attempt failed before step 0
 
 Both 400GiB disks and root filesystems are verified expanded, about158/160GiB
