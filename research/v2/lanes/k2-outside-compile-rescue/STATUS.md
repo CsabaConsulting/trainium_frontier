@@ -1,5 +1,13 @@
 # K2 rescue status
 
+26 September18:13IST: fresh isolated reviewer wrote REVIEW.md/REVIEW_RECEIPT
+PASS_NATIVE_TIMING_SCOPE, then final delivery hit model usage limit. Root
+verified all6 recorded file hashes and replayed its own reference test:
+6cases,12microsteps,40 exact tensors PASS. This is helper routing/CPU surrogate
+and supplied AOT-call-target scope only; NOT native or submission compliance.
+Actual native201 four workers/compiler still live12:41:07UTC. No measured
+startup/net/speed result yet. No reviewer restart or launch reattempt.
+
 26 September18:07IST: actual cold native201 launchedtrn21 at12:36:47.789868UTC,
 label fs-20260926-k2-outside-compile-native201-trn21-r1, source949f. Four
 workers3343658–61/original596823 held/device/compiler verified12:37:02UTC.

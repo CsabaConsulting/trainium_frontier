@@ -1,0 +1,35 @@
+{
+  "status": "PASS_NATIVE_TIMING_SCOPE",
+  "source_sha256": "949f262c092c141f715bdd71532c42e0bcf502d926a1ee20bc885a2255062daa",
+  "source_hash_independently_recomputed": false,
+  "source_hash_basis": "Supplied review task and matching CPU_RECEIPT; full source intentionally excluded",
+  "fresh_context": true,
+  "reviewer_id": "/root/k2_rescue_timing_review",
+  "independent_cpu_test_exit_code": 0,
+  "independent_cpu_test_command": "/home/poojith-devan/venv/bin/python /home/poojith-devan/Desktop/Trainium/research/v2/lanes/k2-outside-compile-rescue/reviewer_reference_test.py",
+  "torch_version": "2.13.0+cpu",
+  "cpu_threads": 1,
+  "test_cases": 6,
+  "accumulation_microsteps": 12,
+  "exact_tensor_comparisons": 40,
+  "supplied_aot_graphs_parsed": 3,
+  "diff_sha256": "a5aa9780289ff5d0363d5bd56b367ba9e409274a9ab3542bedd2ec9483a3b058",
+  "spec_sha256": "5f7baa8a3c3875db37e2813cfe588c10afa04fe14173fe52db7919cd1b298684",
+  "cpu_receipt_sha256": "f87fcf409d2d0e1f9f8a627a285685ae185cde279e320ff2ebf9d1c80ae91c3b",
+  "aot_graphs_sha256": "4a834781f8a619710d2a257ae7579fa3db71b1ee75e8d28157adc8b71b279708",
+  "review_sha256": "3595a38a9d8c2fb7eb62707c3a7a3469bae027a13538957242a0352101f886e0",
+  "independent_cpu_test_sha256": "b9d6e516516ec7848be1db9ce33b4063e692dd277c06c8e6e778f3835a5249ed",
+  "verified": [
+    "Diff-only source scope: helper boundary and batch/LR parser additions",
+    "Extracted helper routing, repeated IDs, absent-attention layers, missing value tables, int32/int64",
+    "Exact outputs and accumulated gradients against independently stacked-row CPU reference",
+    "All supplied AOT graph call targets inspected for lookup-related operations"
+  ],
+  "unsupported": [
+    "Native Neuron compatibility or native results",
+    "Full-source identity independently recomputed",
+    "Independent NKI math or full-model correctness",
+    "Submission compliance audit or submission approval",
+    "Timing, matched-baseline net-token qualification, or adoption"
+  ]
+}

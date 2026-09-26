@@ -27,6 +27,12 @@ prose ONLY for this research-only timing. CPU/OFF evidence, exact hashes,
 original lifetime lock, fresh idle/device/resources and budget checks remain.
 No new agents, implied review PASS, upload or table qualification follows.
 
+Narrow review lane now: human says review continues in parallel while timing
+runs. Exactly one fresh isolated reviewer /root/k2_rescue_timing_review gets
+diff/spec/gate receipts only and executes its own small CPU reference. Root
+acts as host Operator; no new implementer/helper/analyst. This scoped review
+does not restore prior racing/concurrency. No reviewPASS until actual result.
+
 Latest18:00IST preparation amendment: after current warmdowns, one host gets
 K2 rescue native201 timing ahead of momentum150; the other gets momentum150.
 Prefer trn21 for K2, trn22 for momentum, while preserving attached evaluations.

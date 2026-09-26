@@ -1,5 +1,20 @@
 # Workflow installation and incremental launch status
 
+## Momentum150 live; both warmdowns did not improve — 26 September18:13IST
+
+trn22 .85 fresh20M=.9870423776947318, raw same-host delta+.0002693098493;
+1922steps, warm startup812.708s, charged1788.862s, no cold qualification.
+39 raw files authenticated; ledger appended once. Unchanged selector INSUFFICIENT
+because historic batch comparator roles remain intact, no fabricated adoption.
+Momentum150 actual dispatch12:42:10UTC; four workers3453091–94 and original
+lock verified12:42:23UTC. trn21 K2 four workers/compiler live12:41:07UTC.
+Reviewer wrote source-scope PASS and own CPU test before final-delivery quota
+error. Root verified6 hashes and replayed6cases/12microsteps/40 exact tensors.
+No native or submission PASS follows. Do not restart reviewer or either host job.
+Confirmed base mean.986879270651192 unchanged. Next normal host check~13:03UTC;
+K2 fifth-boundary update may be observed earlier for the requested timing report.
+This goal turn=PROGRESS: completed .85 evidence, actual next host launch, review.
+
 ## K2 research timing actually live —26 September18:07IST
 
 Direct human waiver removes prelaunch independent review ONLY for this timing;

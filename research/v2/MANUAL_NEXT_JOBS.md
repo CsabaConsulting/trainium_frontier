@@ -1,75 +1,26 @@
-# Manual next jobs — current human momentum150 order
+# Manual next jobs — verified 26 September 18:13 IST
 
-LATEST override: trn21 is reserved for K2 rescue native201 timing, pending
-independent review and exact release. Do NOT run the old trn21 momentum/LR/
-control command chain below. trn22 momentum150 remains next; its old LR/control
-successor blocks below are also superseded and will be refused by the queue.
-Overnight cold
-clean batch/LR replay and seed43 confirmation precede remaining scalar arms.
-K2 launched18:06:47IST under explicit human research-only review waiver;
-source review remains pending before submission use. Do NOT rerun its label.
-Cold/seed packets are now registered, but cold
-cannot dispatch until its explicit K2 predecessor is collected; seed cannot
-dispatch until the cold bundle exists and passes source/budget/terminal checks.
-No stale scheduler may launch a duplicate job. Current trn21 job is K2, not
-the completed warmdown. Its known201step timing terminal can be collected by
-the same guarded collector after descendants/device/lock are quiescent.
+Run commands from /home/poojith-devan/Desktop/Trainium. Root is sole Operator.
+Current consumed jobs: trn21-k2rescue (18:06:47 IST), trn22-muon150 (18:12:10).
+Both have four verified workers and their original lifetime locks held.
+NEVER rerun either label. Warmdown .60 and .85 are complete and archived.
 
-## Latest overnight commands — supersede old LR/control successors
+## Current ordered work
 
-After K2 timing and final-source choice, sole Operator authenticates its result
-and only then supplies its retrieved predecessor bundle to:
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-finalcold research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
-```
-
-This cold command is intentionally blocked until the K2 predecessor is
-registered/reviewed/completed. If K2 qualifies, tables timing preempts this
-slot; amend its predecessor before dispatch, never bypass the guard.
-
-After the cold final run AND trn22 momentum finish, collect both once, then:
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
-```
-
-Seed43 retains same clean source; warm research only, no favorable-seed choice.
-Only after actual cold result, create a uniquely named Downloads audit folder
-with exact train.py, accepted launch command, Claude brief and cold receipts.
-No upload or audit ACCEPT may be assumed from local packaging.
-
-Running: trn21 warmdown0.60, launched17:05:44IST; trn22 warmdown0.85,
-launched17:13:51IST on26 September. Do NOT rerun either label.
-The latest human order replaces opposite-warmdown fallbacks with momentum150.
-Confirmed batch262144/LR.021/ordinary.75 remains the final-package candidate;
-Recursive stack and LR.02625 did not improve the matched public20M results.
-
-## Next three jobs per host
-
-| Host | First | Second fallback | Third fallback |
+| Host | Running | Next | Following |
 |---|---|---|---|
-| trn21 | trn21-muon150 | trn21-lr0168 | trn21-control |
-| trn22 | trn22-muon150 | trn22-lr0168 | trn22-control |
+| trn21 | K2 native201 | Qualified tables timing, otherwise trn21-finalcold | Remaining scalar arm after final-candidate decision |
+| trn22 | momentum150 | trn22-finalseed43 after authenticated final cold | Remaining scalar arm after final-candidate decision |
 
-muon150 changes ONLY MUON_MOMENTUM_WARMUP_STEPS300 ->150 on the confirmed base;
-source4b0641db9f009af1601ff48e6944a0c6d851164f42011f026d06ed20761c3020.
-CPU scalar/reference and byte/AST checks PASS; this is the human-selected
-scalar in unchanged reviewed logic, not a claimed new independent review.
-The later LR fallback uses original momentum300, LR.0168, ordinary.75; it
-does NOT silently stack an unscored momentum change. Final controls are genuine
-prospectively labelled baseline runs. All seed42, full1800, fresh20M/context1024.
-Later measured winners or qualified K2 may replace fallbacks; update this file
-and queue/predecessors before doing so. Original ledger roles remain intact.
+Tables are conditional on net tokens >=+3% and acceptable native loss/correctness.
+They have no released packet yet. Do not launch an old table source.
+Remaining LR/control packets are prepared but removed from the active queue:
+do not use old command chains. Rebind the queue and exact predecessor before use.
+There are not three unconditional ready successors per host; do not claim otherwise.
+No schedule stack: it lost. Final candidate is batch262144/LR.021/.75/momentum300
+until a measured confirmed winner supersedes it.
 
-## Read-only check
-
-Run from the laptop; no AI subscription/API call is needed by these commands:
+## Read-only observation
 
 ```bash
 cd /home/poojith-devan/Desktop/Trainium
@@ -77,83 +28,65 @@ python3 research/v2/operator/20260926-operator-recovery/manual_job.py status trn
 python3 research/v2/operator/20260926-operator-recovery/manual_job.py status trn22
 ```
 
-If training OR attached evaluation is active, leave it alone. Check again in
-20–30minutes. Never delete a lock, restart a consumed label or use python -O.
-The collect step below succeeds only after terminal evidence and actual
-device/process/lock quiescence; on failure preserve the error and stop.
-If a results-bundle already exists, verify it rather than recollecting it.
+Preserve active train AND attached eval. Routine checks every20–30minutes.
+An observation timeout is not a failed run. Never unlink/replace a lock.
 
-## trn21: run ONE applicable block after its predecessor finishes
+## K2 terminal and safe cold successor
 
-Current warmdown.60 -> momentum150:
+Collect ONCE only after terminal, all descendants absent, idle device and free
+original lock. Existing bundles must be authenticated, never overwritten.
 
 ```bash
-cd /home/poojith-devan/Desktop/Trainium
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-warmdown060 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-muon150 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-muon150 research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-warmdown060/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-k2rescue
+python3 research/v2/lanes/k2-outside-compile-rescue/analyze_native.py research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
 ```
 
-Momentum150 -> standalone LR.0168 on the original confirmed batch/LR base:
+If K2 qualifies, tables preempt this slot and require a newly bound packet/queue.
+Otherwise, after timing completed successfully but failed the net screen:
 
 ```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-muon150 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-muon150/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-finalcold research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-k2rescue/results-bundle.json
 ```
 
-LR.0168 -> genuine baseline control:
+A crashed timing predecessor currently fails this launcher's terminal-success
+guard. Preserve the failure and independently prove idle, then log and implement
+a narrowly bound failed-predecessor handoff; never fake a successful receipt.
+Source review is NOT a gate for the already launched research timing. Its later
+source-scope PASS does not substitute for actual native evidence or Claude audit.
+
+## Momentum terminal and seed43 successor
 
 ```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-lr0168 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn21-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn21-lr0168/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-muon150
 ```
 
-## trn22: run ONE applicable block after its predecessor finishes
-
-Current warmdown.85 -> momentum150:
+Seed43 requires BOTH completed momentum and actual clean candidate cold result:
 
 ```bash
-cd /home/poojith-devan/Desktop/Trainium
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-warmdown085 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-muon150 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-muon150 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-warmdown085/results-bundle.json
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-finalcold
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py check trn22-finalseed43
+python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-finalseed43 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
 ```
 
-Momentum150 -> standalone LR.0168:
+Seed43 uses identical clean cd0c source, warm research only. It measures seed
+variation, not a matched causal gain versus seed42. Submission retains seed42.
+If momentum wins, confirm/rebind deliberately rather than silently change packets.
 
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-muon150 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-lr0168 research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-muon150/results-bundle.json
-```
+## Guards and handoff
 
-LR.0168 -> genuine baseline control:
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/manual_job.py collect trn22-lr0168 && python3 research/v2/operator/20260926-operator-recovery/manual_job.py launch trn22-control research/v2/operator/20260926-operator-recovery/manual-jobs/trn22-lr0168/results-bundle.json
-```
-
-After a control finishes, use collect trn21-control or collect trn22-control.
-These commands archive, but do NOT adopt a change or submit. Root authenticates
-metrics, appends one actual ledger row and runs unchanged decide.py.
-
-Local-only authentication after collection (replace key with the actual job):
-
-```bash
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn21-warmdown060
-python3 research/v2/operator/20260926-operator-recovery/analyze_current.py trn22-warmdown085
-```
-
-This emits ledger-candidate.json beside the raw bundle; it does NOT append to
-the ledger, adopt a result or fabricate a control. Cold proof includes the
-actual preflight's empty-cache evidence and the measured fifth boundary.
-
-## What launch does: lock, checks, launch
-
-The command authenticates exact source/argv/proposal/packet, copies over the
-pinned SSH connection, hashes on the host, then uses the existing dispatcher.
-Inside original exclusive nonblocking flock it checks ps AND neuron-ls,
-fuser, STOP, disk/RAM, source/prepare/harness, unused label and old queue-runner
-absence. It reacquires the SAME lock and repeats checks at actual launch,
-retaining it through training, attached evaluation and all owned descendants.
-Host execution is detached; laptop shutdown does not kill the running job.
-It is not a bare torchrun or an autonomous unverified scheduler.
-
+The launch command authenticates frozen source, argv, proposal and packet; hashes
+the staged host files; checks ps AND neuron-ls, fuser, STOP, disk/RAM, original
+lock identity, prepare/harness and unused label. It repeats checks inside the
+original exclusive flock at dispatch and retains that lock through all train,
+eval and owned descendants. Detached host jobs survive laptop shutdown.
 Lock: /home/ubuntu/.cache/trainium_freshstart/device0.lock
-Original identities: trn21=66305:596823, trn22=66305:832589.
-Busy/unknown/error -> refuse, never force. Never replace/unlink the lock.
-trn21 currently uses private cold training caches; trn22 existing research
-caches. A warm result is not submission-cold evidence. Final package needs
-genuine cold replay, fresh20M, Claude audit and Poojith's upload.
+Identities: trn21=66305:596823; trn22=66305:832589.
+Busy/unknown/mismatch means refuse, never force or duplicate.
+
+After actual cold full run/fresh20M, prepare a unique Downloads audit folder:
+exact train.py, unchanged accepted launch, Claude brief and measured receipts.
+Do not overwrite old Downloads or claim upload-ready before Claude audit.
+Poojith alone uploads. Warm startup never qualifies a submission.
