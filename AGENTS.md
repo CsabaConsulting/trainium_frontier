@@ -2,6 +2,18 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+## Newest human order — adopt batch/LR, stop first K2, cap compact startup
+
+Read `workflow/BATCH_BASE_AND_COMPACT_K2_LIMIT_2026-09-26.md` FIRST.
+Human orders exact662c/trn21 stopped now via owned-job safe cleanup, overriding
+older preserve-current662 prose. Adopt batch262144/LR.021 source8c6 as research
+base (two-host mean.98687927065), then immediate full batch/LR+Recursive stack
+ontrn21. Compactf804/trn22 continues only up to1300s cold startup. Report its
+fifth-boundary startup immediately; net>=3% releases eligible table follow-ups;
+net-fail but steady>=10% keeps a compile agent and both hosts on stacks;
+otherwise close K2 and move to LR/warmdown brackets. No unknown metric passes.
+Original locks, source/accounting/quality checks and human-only upload remain.
+
 ## Newest direct amendment — net tokens and Muon compile cost
 
 Read `workflow/NET_TOKENS_AND_MUON_COMPILE_2026-09-26.md` first.
