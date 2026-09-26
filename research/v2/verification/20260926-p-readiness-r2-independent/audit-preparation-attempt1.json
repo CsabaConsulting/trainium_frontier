@@ -1,0 +1,11 @@
+{
+  "scope": "Reviewer fixture-only initial schema mistake; no candidate or runtime issue",
+  "result": {
+    "chunk_id": "fc3113",
+    "wall_time_seconds": 0.427572832,
+    "exit_code": 1,
+    "original_token_count": 112,
+    "output": "Traceback (most recent call last):\n  File \"/home/poojith-devan/Desktop/Trainium-base-cache-full-trn21-20260926/research/v2/verification/20260926-p-readiness-r2-independent/audit.py\", line 98, in <module>\n    ck('original raw preserved '+name,git(REF,REL+'original-failure/'+name)==failure['files'][name]['text'].encode())\n                                                                             ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\nKeyError: 'text'\n"
+  },
+  "repair": "Original immutable failure bundle uses base64, not text. Decode validated base64 and authenticate all raw file hashes/sizes."
+}
