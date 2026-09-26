@@ -1,5 +1,28 @@
 # Current state
 
+## 04:29 UTC / 09:59 IST: live jobs protected; full replay safety hold
+
+Confirmed public20M mean remains0.9883066128526815. Actual04:28:39 trn21
+anchored control is at2480steps, finite loss2.7984,268251tok/s,582s remaining.
+Actual04:28:20 trn22 clean cold-r2 has four workers and compiler descendants,
+but no printed step/fifth boundary yet; no cold pass. Raw072e5641/canonicalf972a386.
+
+Fresh independent full-cold mechanics review REFUSE is archived at
+`research/v2/verification/20260926-clean-fullcold-mechanics-fresh/REPORT.md`.
+The exact protected harness child drops its lock FD; CPU timeout124 can leave
+that child alive after outer flock exits. This is not an observed native orphan
+or scientific failure. Existing healthy jobs remain untouched; no full replay
+or successor is released. A separate Implementer is repairing only the fixed-job
+guardian, with fresh fault review required. All-owned-process/device postflight
+remains mandatory, not just parent exit. Native B1/B2 consistency/causality also
+remains pending for the clean source; ordinary B1 public eval cannot replace it.
+
+Audit-only e1e2 source, exact unchanged command, rules and audit brief are in
+`/home/poojith-devan/Downloads/Trainium-clock36-CLAUDE-AUDIT-e1e2f686`.
+Clearly labelled NOT READY TO SUBMIT. No Claude audit, native cold acceptance,
+full-cold score or upload-ready claim. K2 partial diagnostic remains local code;
+exact36 batch proposal is completed but unimplemented/non-launchable.
+
 ## 04:17 UTC / 09:47 IST: both hosts active; clean cold retry running
 
 Confirmed public20M/context1024 mean remains 0.9883066128526815. Completed

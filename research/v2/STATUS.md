@@ -1,5 +1,15 @@
 # Workflow installation and incremental launch status
 
+## Current — 26 September 09:59 IST
+
+Confirmed mean0.9883066129 unchanged. Actual09:58 trn21 control is healthy
+at2480steps/268251tok/s; trn22 clean cold-five still compiling, no fifth boundary
+or gate pass yet. Both original locks held. Independent CPU timeout test found
+a genuine descendant/lock-lifetime defect; full replay remains REFUSE while a
+separate Implementer repairs its fixed-job guardian. Healthy live jobs preserved.
+Audit-only clean copy is in Downloads/Trainium-clock36-CLAUDE-AUDIT-e1e2f686;
+not ready for submission. No new BPB or six-ready queue claim.
+
 ## Current — 26 September 09:47 IST
 
 Confirmed mean0.9883066129 unchanged. Recursive0.9880425233 and LR.012

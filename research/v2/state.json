@@ -1,4 +1,14 @@
 {
+  "lifetime_lock_review_20260926_0429z": {
+    "status": "FULL_COLD_REPLAY_MECHANICS_REFUSE_PENDING_FIXED_JOB_REPAIR",
+    "report": "research/v2/verification/20260926-clean-fullcold-mechanics-fresh/REPORT.md",
+    "report_sha256": "0d2c947f30adfa8260bd538bf237972ae7afad7d0fb4fdc026171f455791ff08",
+    "finding": "Independent exact-harness CPU timeout reproduction leaves a live child without original lock FD after outer exit124; competing flock succeeds. No native orphan or current-job failure claimed.",
+    "action": "Preserve healthy live jobs. No successor/full replay release before scoped fixed-job repair and fresh independent fault review. Require explicit all-observed-process and device postflight regardless of parent exit.",
+    "implementer": "/root/fullcold_lifetime_guard_impl",
+    "launch_authorized": false,
+    "submission_ready": false
+  },
   "latest_runtime_20260926_0008z": {
     "supersedes": "Earlier current-host and next-slot snapshots only; raw historical facts remain",
     "trn21": "Exact710ea677 symmetricK2 actualdispatch00:08:48.310143UTC PID3101403 after original-lock/freshchecks; underlock/fourworker evidence retrieving, no native acceptance",
