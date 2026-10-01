@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn24",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_more_20261001",
+    "expected_commit": "a35b6581629bc34a58ebd5c0ca68785dd5ab7f86",
+    "label": "fs-20261001-deadline-middle6rms-r3",
+    "purpose": "Preregistered six-block half-resolution deadline test; launch only after clean matched-evaluation postflight and before 06:02 UTC",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "3550s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_more_20261001/deadline/run_more.py",
+      "--variant",
+      "middle6rms",
+      "--label",
+      "fs-20261001-deadline-middle6rms-r3"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_more_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "fingerprint_paths": [
+      "candidates/middle6rms/train.py",
+      "deadline/run_more.py",
+      "deadline/check_more.py",
+      "deadline/build_more.py",
+      "deadline/evaluate_match.py"
+    ]
+  },
+  "requested_at": "2026-10-01T06:01:40.526478+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-middle6rms-r3\", \"pid\": 200699, \"commit\": \"a35b6581629bc34a58ebd5c0ca68785dd5ab7f86\", \"hostname\": \"ip-172-31-47-242\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_more_20261001/research/run-logs/fs-20261001-deadline-middle6rms-r3.log\", \"started_at\": \"2026-10-01T06:01:45.796636+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

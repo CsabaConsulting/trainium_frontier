@@ -1,0 +1,9 @@
+DEADLINE_START {"variant": "middle6", "source_sha256": "30ce86a69e3fb66adc5935e3b054d2e24ec613990bc8b6d66bec310ddb3fc5a6", "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb", "time_budget_seconds": 1800, "fresh_cache": "/home/ubuntu/trainium_freshstart_deadline_more_20261001/out/fs-20261001-deadline-middle6-r3/caches"}
+[W1001 06:01:49.520202825 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+MORE_CPU_CHECK {"passed": true, "receipts": [{"variant": "middle6", "source_sha256": "30ce86a69e3fb66adc5935e3b054d2e24ec613990bc8b6d66bec310ddb3fc5a6", "passed": true, "shape": [2, 32, 128], "nonzero_mlp_outputs": true, "strict_causality": true, "batch_independence": true, "checkpoint_exact": true, "disabled_parent_outputs_and_gradients_exact": true, "finite_parameter_gradients": 65}, {"variant": "middle6rms", "source_sha256": "e75e17ae0e8edc5172bcabac29da98a54c6d2890a77ec4f7be4786621be3666f", "passed": true, "shape": [2, 32, 128], "nonzero_mlp_outputs": true, "strict_causality": true, "batch_independence": true, "checkpoint_exact": true, "disabled_parent_outputs_and_gradients_exact": true, "finite_parameter_gradients": 65}]}
