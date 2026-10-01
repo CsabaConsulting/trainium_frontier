@@ -12,8 +12,10 @@ Completed first-wave scores: rmsfp32 0.9639958848 (one run, small gain near nois
 
 Preservation: deadline/preserve.py PID receipt out/preservation-process.json mirrors all requests and pushes small evidence until 07:15 UTC. deadline/checkpoint_watch.py independently retrieves completed checkpoints into ignored out/checkpoints, verifies SHA and byte count, and writes tracked receipts. Heavy weights remain on hosts and local disk, not GitHub. Raw logs, launches, preflight/postflight, hashes, CPU/native gates are under research/run-logs. Use the existing private out/evidence-backup.lock for manual Git staging/commit/push. Never stage master clone dirty .memsearch files. No cron or systemd changes were made.
 
-Potential replacement files already committed: candidates/headbias/train.py and candidates/dualhead/train.py. Common launch command (95 characters):
+Potential replacement files already committed: candidates/headbias/train.py and candidates/dualhead/train.py. Common launch command (98 characters):
 
 NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --tbl_freeze_tokens 0
 
 The user handles portal submission. Report actual score and remaining deadline promptly if a meaningful checked win appears; do not claim a portal result from a public diagnostic.
+
+A fifth-host follow-up uses evaluate_wait_lnc1.py on trn25 to repeat headbias trained scoring at LNC1, after its native single-core compatibility job released cleanly. Its separate single_eval_dispatch.py controller has its own bounded wait, agent/socket, request, source pin and hash-verified VPC transfer. This is independent of both source-host scoring and the LNC2 spare score; no inference score has returned yet.
