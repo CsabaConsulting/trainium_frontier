@@ -14,3 +14,24 @@ PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 0, "exact": true}
 PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 1, "exact": true}
 PAIR_CHECK {"passed": true, "receipts": [{"variant": "mlpnki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"variant": "mlp6nki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"native_forward_backward_exact": true, "shapes": 3, "parities": 2, "all_four_ops": true, "references_computed_on_cpu": true}]}
 DEADLINE_TRAIN_COMPLETE {"elapsed_seconds": 2449.478483603103, "checkpoint": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/out/fs-20261001-deadline-mlpnki-r2/train/final.pt", "checkpoint_bytes": 587788926, "checkpoint_sha256": "84cec0d04c04514c5b9766218d0c3abe5db56d563409efd8ad6e3ed84957c5f6"}
+DEADLINE_EVAL_LOG_BEGIN
+[W1001 06:13:09.989034341 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+{
+  "eval_over_timeout": false,
+  "eval_seconds": 796.1712494401727,
+  "eval_timeout": 1200,
+  "num_bytes": 83462186,
+  "num_tokens": 20971520,
+  "total_nats": 56633684.0,
+  "val_bpb": 0.9789479400176823
+}
+
+DEADLINE_FINISH {"variant": "mlpnki", "elapsed_seconds": 3259.2350017321296, "source_sha256": "dda10a911daac69e1458afea7e90f8c6041c1e937e1b37ff775294452396f816", "checkpoint_sha256": "84cec0d04c04514c5b9766218d0c3abe5db56d563409efd8ad6e3ed84957c5f6"}
+EXPERIMENT_POSTFLIGHT {"label": "fs-20261001-deadline-mlpnki-r2", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/research/run-logs/fs-20261001-deadline-mlpnki-r2.postflight.json"}
