@@ -1,0 +1,15 @@
+DEADLINE_START {"variant": "mlp6nki", "source_sha256": "39c39a8f0efa82ce3ed8fd55a2a6875c4590cbf9668c652bf79b597adba4dd37", "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb", "fresh_cache": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/out/fs-20261001-deadline-mlp6nki-r2/caches", "time_budget_seconds": 1800}
+[W1001 05:32:53.478174495 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+PAIR_NATIVE_CASE {"shape": [2, 512, 128], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 512, 128], "parity": 1, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 1024, 1024], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 1024, 1024], "parity": 1, "exact": true}
+PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 1, "exact": true}
+PAIR_CHECK {"passed": true, "receipts": [{"variant": "mlpnki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"variant": "mlp6nki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"native_forward_backward_exact": true, "shapes": 3, "parities": 2, "all_four_ops": true, "references_computed_on_cpu": true}]}

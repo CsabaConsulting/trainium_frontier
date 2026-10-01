@@ -7,3 +7,9 @@ DEADLINE_START {"variant": "mlpnki", "source_sha256": "dda10a911daac69e1458afea7
   previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
        new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
 PAIR_NATIVE_CASE {"shape": [2, 512, 128], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 512, 128], "parity": 1, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 1024, 1024], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [2, 1024, 1024], "parity": 1, "exact": true}
+PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 0, "exact": true}
+PAIR_NATIVE_CASE {"shape": [32, 1024, 1024], "parity": 1, "exact": true}
+PAIR_CHECK {"passed": true, "receipts": [{"variant": "mlpnki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"variant": "mlp6nki", "cpu_logits_and_all_gradients_exact": true, "nonzero_mlp_down_weights_tested": true}, {"native_forward_backward_exact": true, "shapes": 3, "parities": 2, "all_four_ops": true, "references_computed_on_cpu": true}]}
