@@ -1,0 +1,48 @@
+{
+  "request": {
+    "host": "trn23",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001",
+    "expected_commit": "650448fbbc06a5078c61062485c9d384cf3b3695",
+    "label": "fs-20261001-deadline-mlp6nki-r2",
+    "purpose": "NKI recovery of causal MLP sharing with native parity before fresh training",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "4200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/deadline/run_pairs.py",
+      "--variant",
+      "mlp6nki",
+      "--label",
+      "fs-20261001-deadline-mlp6nki-r2"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv"
+    },
+    "fingerprint_paths": [
+      "candidates/middle/train.py",
+      "candidates/mlp/train.py",
+      "candidates/mlp6/train.py",
+      "candidates/rmsfp32/train.py",
+      "candidates/mimetic/train.py",
+      "candidates/control/train.py",
+      "candidates/mlpnki/train.py",
+      "candidates/mlp6nki/train.py",
+      "deadline/pair_resampling.py",
+      "deadline/check_pairs.py",
+      "deadline/run_pairs.py"
+    ]
+  },
+  "requested_at": "2026-10-01T05:32:46.054740+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-mlp6nki-r2\", \"pid\": 156715, \"commit\": \"650448fbbc06a5078c61062485c9d384cf3b3695\", \"hostname\": \"ip-172-31-41-233\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/research/run-logs/fs-20261001-deadline-mlp6nki-r2.log\", \"started_at\": \"2026-10-01T05:32:51.283399+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
