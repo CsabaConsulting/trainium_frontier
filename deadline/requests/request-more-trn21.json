@@ -1,0 +1,35 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_more_20261001",
+  "expected_commit": "a35b6581629bc34a58ebd5c0ca68785dd5ab7f86",
+  "label": "fs-20261001-deadline-middle6-r3",
+  "purpose": "Preregistered six-block half-resolution deadline test; launch only after clean matched-evaluation postflight and before 06:02 UTC",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "3550s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_more_20261001/deadline/run_more.py",
+    "--variant",
+    "middle6",
+    "--label",
+    "fs-20261001-deadline-middle6-r3"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_more_20261001",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "fingerprint_paths": [
+    "candidates/middle6/train.py",
+    "deadline/run_more.py",
+    "deadline/check_more.py",
+    "deadline/build_more.py",
+    "deadline/evaluate_match.py"
+  ]
+}

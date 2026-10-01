@@ -1,0 +1,28 @@
+MORE_CPU_CHECK {"passed": true, "receipts": [{"variant": "middle6", "source_sha256": "30ce86a69e3fb66adc5935e3b054d2e24ec613990bc8b6d66bec310ddb3fc5a6", "passed": true, "shape": [2, 32, 128], "nonzero_mlp_outputs": true, "strict_causality": true, "batch_independence": true, "checkpoint_exact": true, "disabled_parent_outputs_and_gradients_exact": true, "finite_parameter_gradients": 65}, {"variant": "middle6rms", "source_sha256": "e75e17ae0e8edc5172bcabac29da98a54c6d2890a77ec4f7be4786621be3666f", "passed": true, "shape": [2, 32, 128], "nonzero_mlp_outputs": true, "strict_causality": true, "batch_independence": true, "checkpoint_exact": true, "disabled_parent_outputs_and_gradients_exact": true, "finite_parameter_gradients": 65}]}
+
+[W1001 05:52:12.849827407 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+
+STATIC middle6 0 check passed
+ [W1001 05:52:15.626232890 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+
+STATIC middle6rms 0 check passed
+ [W1001 05:52:17.070830669 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+
