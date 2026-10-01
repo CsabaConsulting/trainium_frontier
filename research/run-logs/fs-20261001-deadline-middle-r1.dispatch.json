@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_20261001",
+    "expected_commit": "7f0927d2c021c97794f5e6943ce097e6789968f3",
+    "label": "fs-20261001-deadline-middle-r1",
+    "purpose": "middle isolated deadline test",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "4800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_20261001/deadline/run_candidate.py",
+      "--variant",
+      "middle",
+      "--label",
+      "fs-20261001-deadline-middle-r1"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "fingerprint_paths": [
+      "candidates/middle/train.py",
+      "candidates/mlp/train.py",
+      "candidates/mlp6/train.py",
+      "candidates/rmsfp32/train.py",
+      "candidates/mimetic/train.py",
+      "candidates/control/train.py"
+    ]
+  },
+  "requested_at": "2026-10-01T04:58:08.366471+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-middle-r1\", \"pid\": 1937150, \"commit\": \"7f0927d2c021c97794f5e6943ce097e6789968f3\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_20261001/research/run-logs/fs-20261001-deadline-middle-r1.log\", \"started_at\": \"2026-10-01T04:58:15.978530+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
