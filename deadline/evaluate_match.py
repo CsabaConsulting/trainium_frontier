@@ -23,6 +23,17 @@ def main():
     # O3 flags with no caller compiler override. Scoring is not training.
     os.environ['NEURON_LOGICAL_NC_CONFIG'] = '2'
     os.environ.pop('NEURON_CC_FLAGS', None)
+    cache = ROOT / 'out' / args.label / 'eval-caches'
+    for key, sub in [('NEURON_COMPILE_CACHE_DIR', 'compiler'),
+                     ('NEURON_COMPILE_CACHE_URL', 'compiler'),
+                     ('TORCH_NEURONX_HLO_CACHE_DIR', 'hlo'),
+                     ('TORCH_NEURONX_NEFF_CACHE_DIR', 'neff'),
+                     ('TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR', 'local'),
+                     ('TORCH_NEURONX_DEBUG_DIR', 'debug'),
+                     ('TORCHINDUCTOR_CACHE_DIR', 'inductor')]:
+        path = cache / sub
+        path.mkdir(parents=True, exist_ok=False if sub != 'compiler' else True)
+        os.environ[key] = str(path)
     import torch
     import prepare
     started = time.monotonic()
