@@ -65,3 +65,63 @@ num_params=113,388,053 flops_per_token=6.929111e+08
 torch.compile enabled (backend=neuron)
 micro_tokens=131,072 grad_accum_steps=2 pack_factor=32
 flat weights: 68 parameters in one fp32 buffer of 121,634,816 elements (stride 30,408,704), 40 Linear bf16 views, 46 cat pieces, reduce_mode=reduce_scatter_avg
+W1001 06:05:47.665000 2002514 torch/distributed/elastic/agent/server/api.py:739] Received 15 death signal, shutting down workers
+W1001 06:05:47.666000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002530 closing signal SIGTERM
+W1001 06:05:47.666000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002531 closing signal SIGTERM
+W1001 06:05:47.666000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002532 closing signal SIGTERM
+W1001 06:05:47.666000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002533 closing signal SIGTERM
+W1001 06:05:47.670000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002530 closing signal SIGTERM
+W1001 06:05:47.670000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002531 closing signal SIGTERM
+W1001 06:05:47.670000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002532 closing signal SIGTERM
+W1001 06:05:47.670000 2002514 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2002533 closing signal SIGTERM
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 731, in run
+    result = self._invoke_run(role)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 908, in _invoke_run
+    time.sleep(monitor_interval)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+                                                              ^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 2002514 got signal: 15
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 308, in launch_agent
+    result = agent.run()
+             ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/metrics/api.py", line 134, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 740, in run
+    self._shutdown(e.sigval)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/local_elastic_agent.py", line 416, in _shutdown
+    self._pcontext.close(death_sig)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 661, in close
+    self._close(death_sig=death_sig, timeout=timeout)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 1024, in _close
+    handler.proc.wait(time_to_wait)
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2047, in _wait
+    time.sleep(delay)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 2002514 got signal: 15
