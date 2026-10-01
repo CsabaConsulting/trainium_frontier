@@ -2,17 +2,17 @@
 
 1 October 2026 · Poojith Devan
 
-We took the team's official val_bpb from 1.0246 to 0.9647, breaking 1.0 for the first time on 19 September. The model is a 113M-parameter transformer trained from scratch in 30 minutes on one Trainium2 chip, with custom NKI kernels. Our final score sits 0.0085 above the top-10 cutoff of 0.9562, a gap worth about 21% more effective training.
+We took the team's official val_bpb from 1.0246 to 0.9645, breaking 1.0 for the first time on 19 September. The model is a 113M-parameter transformer trained from scratch in 30 minutes on one Trainium2 chip, with custom NKI kernels. Our final score sits 0.0090 above the top-10 cutoff of 0.9555, a gap worth about 22% more effective training.
 
 Team: Csaba Toth (team lead) and Poojith Devan.
 
 ## Score history
 
-![Official val_bpb fell from 1.0246 to 0.9647 in 16 days](score_history.png)
+![Official val_bpb fell from 1.0246 to 0.9645 by 1 October](score_history.png)
 
-*Source: team submissions page on the competition portal; 14 official scores, 14 to 30 Sep 2026, times in IST.*
+*Source: team submissions page on the competition portal; 16 official scores, 14 Sep to 1 Oct 2026, times in IST.*
 
-Eleven of the 13 scored submissions from 19 September onward set a new team best. One more, on 30 September, failed at scoring; the fix is described below. Earlier submissions, from 6 to 13 September, scored between 1.038 and 1.159.
+Twelve of the 15 scored submissions from 19 September onward set a new team best, the last a re-run of the final file on 1 October. One more, on 30 September, failed at scoring; the fix is described below. Earlier submissions, from 6 to 13 September, scored between 1.038 and 1.159.
 
 ## What moved the score
 
@@ -53,11 +53,11 @@ The fixed file scored 0.9669 that afternoon. Any submission with multi-core NKI 
 
 ## Where the wall is
 
-Reaching the top 10 needed about 21% more effective training, and nothing we could build and verify in the time left came close.
+Reaching the top 10 needed about 22% more effective training, and nothing we could build and verify in the time left came close.
 
 - **Speed:** about 342k tokens per second at under 40% MFU. The step is limited by memory traffic: DMA engines are busy 87% of the time, and spills make up 57% of HBM bytes, more than twice the 25% level that AWS's profiler flags as excessive ([Neuron Explorer docs](https://github.com/aws-neuron/aws-neuron-sdk/blob/master/tools/neuron-explorer/overview-summary-page.rst)).
 - **Exchange rate:** each 1% more training steps is worth about 0.0004 bpb in our runs.
-- **The gap:** 0.0085 bpb to the final top-10 cutoff of 0.9562, or about 21% more effective training.
+- **The gap:** 0.0090 bpb to the top-10 cutoff of 0.9555, or about 22% more effective training.
 - **The field:** the one top-10 team that published its recipe, Trainium of Thought, runs about 7% faster than we do (about 367k tokens per second). At our rate that edge is worth about 0.003, so speed alone does not explain the board ([their write-up](https://ritwikareddykancharla.github.io/projects/trainium-of-thought.html)).
 
 Two routes have enough headroom: a fused MLP kernel that keeps the 4,096-wide hidden layer on chip, which attacks the spill traffic directly, or a sparse model that does less compute per token. Both are multi-week builds, out of reach inside Phase 1.

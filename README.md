@@ -1,6 +1,6 @@
 # AWS Trainium Frontier: Phase 1 final package
 
-**Best official val_bpb: 0.9647** (submission `sub-b6bcf387`, 30 Sep 2026, 21:03 IST), down from 1.0246 on 14 September. The team's first score below 1.0 was 0.9929 on 19 September.
+**Best official val_bpb: 0.9645** (submissions `sub-5566f549` and `sub-1ba931fa` on 1 Oct 2026, re-runs of the final file; its first run, `sub-b6bcf387` on 30 Sep, scored 0.9647), down from 1.0246 on 14 September. The team's first score below 1.0 was 0.9929 on 19 September.
 
 Team: Csaba Toth (team lead) and Poojith Devan.
 
@@ -8,7 +8,7 @@ Team: Csaba Toth (team lead) and Poojith Devan.
 
 | Path | What it is |
 | --- | --- |
-| `submission/train.py` | The exact file behind `sub-b6bcf387`. SHA256 `2b4b1ac0d7cd39628ee20282122797abd5f88a5bfc30d7d5115b45289d172894`. |
+| `submission/train.py` | The exact file behind `sub-b6bcf387`, `sub-5566f549` and `sub-1ba931fa`. SHA256 `2b4b1ac0d7cd39628ee20282122797abd5f88a5bfc30d7d5115b45289d172894`. |
 | `submission/LAUNCH_COMMAND.txt` | The launch command used for every run and upload. |
 | `writeup/WRITEUP.md` | Technical writeup: score history, what moved the score, the engineering, the scoring crash and its fix, where the wall is, and what we ruled out. |
 | `results/official_submissions.csv` | Every official submission from the portal, with scores and notes. |
@@ -29,10 +29,10 @@ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --t
 python prepare.py eval-public --train-py train.py --checkpoint out/final.pt
 ```
 
-Leave `NEURON_CC_FLAGS` unset: `train.py` sets its own compiler flags, including `--optlevel=3`. Cold start (compile) is about 600 s, inside the 900 s cap. On our hosts the file scored 0.964447 and 0.964228 on the public dev set; the official platform scored it 0.9647.
+Leave `NEURON_CC_FLAGS` unset: `train.py` sets its own compiler flags, including `--optlevel=3`. Cold start (compile) is about 600 s, inside the 900 s cap. On our hosts the file scored 0.964447 and 0.964228 on the public dev set; the official platform scored it 0.9647, 0.9645 and 0.9645 on three separate runs.
 
 ## Key numbers
 
-- 11 new team bests in the final 12 days (13 scored submissions from 19 to 30 September).
+- 12 new team bests from 19 September to 1 October (15 scored submissions).
 - About 342k tokens per second; about 3,020 steps and 600M tokens in the 30-minute budget.
-- Top-10 cutoff at the close of Phase 1: 0.9562, so the final file was 0.0085 short, about 21% more effective training at our measured rate of 0.0004 bpb per 1% more steps.
+- Top-10 cutoff on the morning of 1 October: 0.9555, so the final file was 0.0090 short, about 22% more effective training at our measured rate of 0.0004 bpb per 1% more steps.
