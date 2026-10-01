@@ -9,7 +9,7 @@ softcap-15 logits are shared by training and the saved-weight evaluation hook.
 Native NKI kernels implement rotary RMS normalization, causal convolution and
 softcap cross-entropy, including their backward passes. The MLP's custom
 autograd uses PyTorch matrix operations. Base parameters and optimizer state are
-FP32; the table and its RMS state are BF16; normalized branch inputs and the residual stream are BF16 on Neuron,
+FP32; table values are BF16 and its RMS state/denominator are FP32; normalized branch inputs and the residual stream are BF16 on Neuron,
 with explicit FP32 normalization/loss/optimizer statistics as implemented below.
 Muon updates matrix weights; AdamW updates embeddings, scalar gates, the 2-D
 value gate and convolutions. Four LNC2 ranks average then clip gradients and

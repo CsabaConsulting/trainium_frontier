@@ -85,6 +85,8 @@ def main():
  assert len(command)==76 and len(command)<=256
  for name,source in inputs.items():
   original=source.read_text();clean=folded_source(original)
+  if name=='rmsfp32':
+   clean=clean.replace('FP32; the table and its RMS state are BF16;', 'FP32; table values are BF16 and its RMS state/denominator are FP32;')
   assert canonical(original)==canonical(clean),(name,'executable AST changed')
   # Main CLI still explicitly defaults the table freeze boundary to zero.
   assert "parser.add_argument('--tbl_freeze_tokens', type=int, default=0" in clean

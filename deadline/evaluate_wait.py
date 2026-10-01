@@ -85,8 +85,8 @@ def main():
         assert small['num_tokens']==batch['num_tokens']==262144
         assert small['num_bytes']==batch['num_bytes'] and difference <= 5e-5,(small,batch)
         print('DEADLINE_BATCH_EQUIVALENCE '+json.dumps(dict(prefix_b1=small,prefix_b32=batch,bpb_abs_diff=difference)),flush=True)
-        full=prepare.evaluate_bpb(model,tok,32,1024,device,max_tokens=2621440,timeout_seconds=600)
-        assert full['num_tokens']==2621440 and not full['eval_over_timeout']
+        full=prepare.evaluate_bpb(model,tok,32,1024,device,max_tokens=20971520,timeout_seconds=600)
+        assert full['num_tokens']==20971520 and not full['eval_over_timeout']
         assert 0 < full['val_bpb'] < 100
         print('DEADLINE_SPARE_SCORE '+json.dumps(full),flush=True)
         x,_,_=next(prepare.make_eval_dataloader(tok,32,1024,'public_val',device))
