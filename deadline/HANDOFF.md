@@ -1,0 +1,19 @@
+# Deadline campaign handoff — 2026-10-01 06:41 UTC
+
+Official closing: 06:59 UTC. Frozen phase1-final source at b2405bd7 remains the recommended fallback: official 0.9645, matched public20M historical mean 0.96433779426305065. No new experiment has shown the required roughly 0.009 improvement. Do not replace submission/train.py on a training-loss or component-speed result.
+
+Final full-budget training runs are headbias (trn21) and dualhead (trn24), immutable source e196c743c553edcce5f2c90e83cec39160bec667, remote /home/ubuntu/trainium_freshstart_deadline_heads_20261001. Requests are request-head-trn21.json and request-head-trn24.json; labels fs-20261001-deadline-headbias-r4 and fs-20261001-deadline-dualhead-r4. Estimated checkpoint times 06:51–06:53 UTC. Their original drivers independently score the trained checkpoints with the unchanged official prepare.py on exact historical public20M after native correctness and 2M batch1/batch32 numerical agreement. The outer guardians are bounded at 3000 seconds and must complete scoped cleanup.
+
+Spare scoring source fd73c9656104f735064b408104dd029599021d9b includes evaluate_wait.py. Local spare_dispatch.py (PID receipt out/spare-dispatch-process.json) deploys guarded warm scorers on trn22/headbias and trn23/dualhead. It forwards a dedicated local agent containing only the existing trn2 SSH key to the user-owned source hosts, pins receiving SSH host keys from trusted existing sessions, and transfers only size/hash-verified completed checkpoints over private VPC SSH. It never interrupts training or modifies SSH authorization. The agent is terminated in its controller finally block. No private key is copied to any host. Source and requests precede each launch.
+
+The spare scorer warms the same model and trusted scorer with random weights, explicitly no quality claim. After a ready receipt and checkpoint hash/configuration gate, it loads actual trained weights and scores exact public20M with a 262144-token batch1/batch32 agreement gate, native causality, batch independence and unchanged checkpoint hash. The original 2M gate/final scorer remains an independent check. A successful spare score must have a .spare-eval.json receipt and a clean postflight before recommending its train.py.
+
+Completed first-wave scores: rmsfp32 0.9639958848 (one run, small gain near noise; not promoted), mimetic 0.9648058195, middle 0.9879614192, mlpnki 0.9789479400, mlp6nki 0.9909858483. NKI sharing recovered speed but lost quality. Six-block attention arms were intentionally stopped during compilation and cleaned; no score. All four full-width head/NKI-sharing models passed random-weight LNC1 finite-output/causal/batch checks at 06:36; this is compatibility proof only.
+
+Preservation: deadline/preserve.py PID receipt out/preservation-process.json mirrors all requests and pushes small evidence until 07:15 UTC. deadline/checkpoint_watch.py independently retrieves completed checkpoints into ignored out/checkpoints, verifies SHA and byte count, and writes tracked receipts. Heavy weights remain on hosts and local disk, not GitHub. Raw logs, launches, preflight/postflight, hashes, CPU/native gates are under research/run-logs. Use the existing private out/evidence-backup.lock for manual Git staging/commit/push. Never stage master clone dirty .memsearch files. No cron or systemd changes were made.
+
+Potential replacement files already committed: candidates/headbias/train.py and candidates/dualhead/train.py. Common launch command (95 characters):
+
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --tbl_freeze_tokens 0
+
+The user handles portal submission. Report actual score and remaining deadline promptly if a meaningful checked win appears; do not claim a portal result from a public diagnostic.
