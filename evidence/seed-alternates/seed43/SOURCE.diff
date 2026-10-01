@@ -1,0 +1,11 @@
+--- research/v2/proposals/20260930-r168-flags-t3-opt3-laneb-f1/train.py
++++ research/v2/proposals/20261001-r200-t3-seed43/train.py
+@@ -1991,7 +1991,7 @@
+     parser.add_argument('--tbl_freeze_tokens', type=int, default=0, help='Freeze D2 table after the completed global-token boundary; 0 continues updates.')
+     args = parser.parse_args()
+     device_type = detect_device_type()
+-    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=42)
++    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=43)
+     global COMPUTE_DTYPE
+     COMPUTE_DTYPE = compute_dtype_for(device)
+     print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')

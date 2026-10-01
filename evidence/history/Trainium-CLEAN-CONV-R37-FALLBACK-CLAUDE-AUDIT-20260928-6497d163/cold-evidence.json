@@ -1,0 +1,1295 @@
+{
+  "schema": "round48_wednesday_fallback_evidence_v1",
+  "status": "PREPARED_FOR_CLAUDE_AUDIT_NOT_SUBMISSION_READY",
+  "source_sha256": "6497d163d930275dfbc0bb494fbb546456478e3751119dcc1baf918f5638f9d3",
+  "source_bytes": 84679,
+  "parent_source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+  "canonical_source_path": "research/v2/proposals/20260928-clean-conv-eval-path/train.py",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+  "launch_command_with_trailing_newline": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py\n",
+  "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+  "launch_file_bytes": 77,
+  "requested_fallback_authority": "workflow/ROUND48_2026-09-28.md item4",
+  "quality_claim": {
+    "new_recipe_win": false,
+    "new_two_cold_mean_le_0_9750": false,
+    "fallback_requires_new_quality_gain": false,
+    "description": "Requested R48 fallback. New-candidate quality threshold is separate; parent scores and saved-checkpoint identity do not establish a new recipe gain."
+  },
+  "candidate_cold_training": {
+    "measured": false,
+    "run_count": 0,
+    "startup_seconds": null,
+    "charged_seconds": null,
+    "reason": "Only saved-parent-checkpoint re-evaluation was performed for exact6497 in these receipts. Do not relabel parent cold runs as candidate training."
+  },
+  "parent_cold_training": {
+    "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+    "run_count": 8,
+    "arithmetic_mean_public20m": 0.9766558936725348,
+    "min_public20m": 0.9762047132468297,
+    "max_public20m": 0.9770444483226206,
+    "max_cold_seconds": 684.2424941670615,
+    "max_charged_seconds": 1789.570305465022,
+    "runs": [
+      {
+        "label": "fs-20260928-conv-dw-store-full-trn21-r1",
+        "host": "trn21",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "f0d8dfaa3135aae375c83579de6c0b5efcb917be1dadf319065932758f54dbe1",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "2a62b708a6e4edd51d2eb0af4ac0e6adcc7a3da895a1983cb939f462581889b1",
+        "eval_log_sha256": "b8a6aebd195a89f15c88dc2616193d1057a90994ae11038abe425b0df0f71fef",
+        "rehearsal_sha256": "ae3e8bdd9db422440b7b587e549be549462b43e2aea10dac19a11db0203054be",
+        "preflight_sha256": "c56fe9110c100ea3ef5a7022080746e72e4f5f26363b1b34b99ce777cb0a4ff5",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 651.5250374421012,
+        "charged_through_process_exit_seconds": 1788.7870391348843,
+        "over_budget": false,
+        "steps": 2750,
+        "public20m_bpb": 0.976737732406918,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "13bcdc17a7a2648a772c845047c5511dd70642a9d614faf6b0d287682d374310",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3414218,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3414219,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3414220,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3414221,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3414222,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_full_trn21_r1/out/fs-20260928-conv-dw-store-full-trn21-r1-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3414223,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-confirm-full-trn22-r1",
+        "host": "trn22",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-confirmation-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "fa0776f29f4bf1f1b31374cf9f1d29a3616363909e1f88e488b60ae6902f0f3a",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "192c9213ab86ea5f9c947e319dc626d99e634751527f9c83bbfe01355e981b10",
+        "eval_log_sha256": "18ecbc24e10c32af888f64e82fcf1f05653ecb368272c2f2bd139a67fec86a88",
+        "rehearsal_sha256": "8d51be4d71f5d3913be297fb0900c921c8654580c200db98ad8377be5a4cb2bd",
+        "preflight_sha256": "9e6ae0ec673cfa171d0200ba2043f00997fed70494384f3aaac5e50c7fffcf6e",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 677.7090184979606,
+        "charged_through_process_exit_seconds": 1789.1989635939244,
+        "over_budget": false,
+        "steps": 2748,
+        "public20m_bpb": 0.9765959903809508,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "3ae3345002d426c8cb1fae1e76a40ff7e1d3abd5cecec66ebe62525a19c52e2d",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3145990,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3145991,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3145992,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3145993,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3145994,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_confirm_full_trn22_r1/out/fs-20260928-conv-dw-store-confirm-full-trn22-r1-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3145995,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn22-r1",
+        "host": "trn22",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "686ecc94bb17db72dc57d1962aa3dde55b28ba8c88bde3320a31d38bb937ceee",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "9acf5c5f1c0158ce619c662d874002703e141c7e9765215b14cfe00e71165c26",
+        "eval_log_sha256": "0d6af93639d5039265312353fcd6f81acdb53fd306b1f6cd93701c257ce5e4cf",
+        "rehearsal_sha256": "ca655f9e3e88ad70b09167e502301cc9b82222decdfc6d43432387cf9884ff06",
+        "preflight_sha256": "1ece7f107a14ef80b335ac41c00cff8409e95bac441082178863b97cc15e54ca",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 670.2221396220848,
+        "charged_through_process_exit_seconds": 1788.9657829888165,
+        "over_budget": false,
+        "steps": 2750,
+        "public20m_bpb": 0.9765682642578225,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "26f1349427693b42cb6d2e39e099d52f1123d68e8ee1fdefd4acc80dde1a61bb",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3147526,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3147527,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3147528,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3147529,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3147530,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r1/out/fs-20260928-conv-dw-store-filler-full-trn22-r1-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3147531,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn21-r1",
+        "host": "trn21",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "8b1b821e72981db084bfc3d5c2ff70bd78fabed85dbaa4d88400c3495b4229ea",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "692eeaef8b74d66a387decac8e18d617ad90c9d9740efad6c209f9d5a095e2cc",
+        "eval_log_sha256": "f12e92437da2891a8503ae575fcb46c8322a7cb14d489b0f46b2e8f969be857c",
+        "rehearsal_sha256": "c7ea0b63cb9b700dd5d2731e7d33807f00d039e5e612ae43d68245ad2707df88",
+        "preflight_sha256": "de03e2cfdade0f5d4aa38aea0e31a06daeb68a6866a6e65a7277acd45eff160b",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 644.1687107621692,
+        "charged_through_process_exit_seconds": 1789.570305465022,
+        "over_budget": false,
+        "steps": 2751,
+        "public20m_bpb": 0.9769419100667623,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "5959f4866cc56e74e66e403e22b09aee77746600165635060823ee078ec1d583",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3424309,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3424310,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3424311,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3424312,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3424313,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r1/out/fs-20260928-conv-dw-store-filler-full-trn21-r1-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3424314,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn22-r2",
+        "host": "trn22",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-r2-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "4ee223f060f6c457474ccafc34a2918af0e241660892568dd6adf61edbd6b543",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "3e27089977d762e386142b79eb35460a421bea7b34c19d498bd8c68942f3f751",
+        "eval_log_sha256": "878c7ac2ea43068e7f5c0ea6d64d593130192e8450124e907036c1b7ef06c51e",
+        "rehearsal_sha256": "84ff58923a6a366bf86c8377b4bbb45e808ddf697fb665f83889a490db7627f4",
+        "preflight_sha256": "7ec0f0dcb9216f2741f40834a2c6a14765b0274420df28900413af46b7343a3d",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 675.4978872938082,
+        "charged_through_process_exit_seconds": 1789.192851702217,
+        "over_budget": false,
+        "steps": 2743,
+        "public20m_bpb": 0.9770444483226206,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "b14b175119bcc2c7343129baf1ea089c2ab5db41414e81fa85ea4b183942ad8b",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3151906,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3151907,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3151908,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3151909,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3151910,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3151911,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn21-r2",
+        "host": "trn21",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-r2-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "5b30a0c3963d5933d0677c5173088227d07170de4c2c5f833aa195ac6ced08d8",
+        "eval_log_sha256": "2c099efc9abcda2df8d36c82ce78e2443b050823f33377d266cfe956a5562b7a",
+        "rehearsal_sha256": "b70c4b0f9c5127fe2734e7023ce0927e452af626ed127d8d1cec77a9b46b0de8",
+        "preflight_sha256": "8c566def773a25ad1cd97bc6be99764240f9249adefa9dc58449a9093848e94b",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 650.7380700521171,
+        "charged_through_process_exit_seconds": 1788.9089364169631,
+        "over_budget": false,
+        "steps": 2751,
+        "public20m_bpb": 0.9762047132468297,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "bfa639d62547d6e17bda0fe992b5a56d2832741cb836a0a4bd1fd405fc144c45",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3428872,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3428873,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3428887,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3428894,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3428895,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3428896,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn22-r3",
+        "host": "trn22",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-r3-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "1a93745b2b3320471af8633e5837571ff0a2e4b8bd6540a793ca02ddf201e448",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "32f0428286412ee4b1cfc446fb95fb25647348335a193ba21c39caa92c31014b",
+        "eval_log_sha256": "6d2ecc3f858b72a7ebe92fc726f169b5c93693aa2a45889e7dbdc68f606fc0e7",
+        "rehearsal_sha256": "fcf5edd77c54c97768da59bac96e70bffb4c71e2e8a065e035f20d3723d1be4b",
+        "preflight_sha256": "42e47dbf790afdce9bdf77c1497297d6360758320da8c4e210f8080f67911337",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 684.2424941670615,
+        "charged_through_process_exit_seconds": 1789.14596384787,
+        "over_budget": false,
+        "steps": 2748,
+        "public20m_bpb": 0.9766242696436925,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "7ba52e1d9c390005295512bc28b28e605710f54bc1d6b9efd073ae7720aa93f7",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3153536,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3153537,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3153538,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3153539,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3153540,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3153541,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      },
+      {
+        "label": "fs-20260928-conv-dw-store-filler-full-trn21-r3",
+        "host": "trn21",
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "evidence_scope": "PARENT_B585_COLD_RUN_NOT_6497_TRAINING",
+        "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-r3-preparation/artifacts/results-bundle.json",
+        "archive_sha256": "7668120fe27ce7d9ab2e7bdb65d887e1702ffd4136ad657a49875279e64262b2",
+        "archive_members_authenticated": 42,
+        "training_log_sha256": "685f4e02ee35d6833d414245a865eae1fe8c067b994a221a273ddc079f2c60ab",
+        "eval_log_sha256": "b658bb5d96db82a6cc35959c2f787629657991552dc188f4a3a9dab22d4272f4",
+        "rehearsal_sha256": "e3806105d770c51224d3fb311654bdf4e6509c12c1c1d47f82bd5167056fa125",
+        "preflight_sha256": "2e0b1622d4e20b697864e5d55e6fa6bd7e3bba7bf62a3f638a6ff1a0e673eac7",
+        "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+        "cold_startup_seconds": 659.0673163060565,
+        "charged_through_process_exit_seconds": 1789.257341004908,
+        "over_budget": false,
+        "steps": 2751,
+        "public20m_bpb": 0.9765298210546822,
+        "eval_tokens": 20971520,
+        "eval_context": 1024,
+        "checkpoint_sha256": "25d3d42cb854f6374504a397cbee7b2a7a9f1aa4c9cf9d9e9820964f31c5a0c0",
+        "checkpoint_bytes": 453044690,
+        "cache_preflight": {
+          "fresh_cache_absent_then_created_empty": [
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/compiler",
+              "device": 66305,
+              "inode": 3430440,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/debug",
+              "device": 66305,
+              "inode": 3430441,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/hlo",
+              "device": 66305,
+              "inode": 3430442,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/inductor",
+              "device": 66305,
+              "inode": 3430443,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/local",
+              "device": 66305,
+              "inode": 3430444,
+              "created_empty": true
+            },
+            {
+              "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r3/out/fs-20260928-conv-dw-store-filler-full-trn21-r3-packet/cold-training-caches/neff",
+              "device": 66305,
+              "inode": 3430445,
+              "created_empty": true
+            }
+          ],
+          "eval_cache_mode": "EXISTING_SHARED_RESEARCH_CACHE_PRESERVED"
+        }
+      }
+    ]
+  },
+  "r37_native_identity": {
+    "verdict": "PASS_R37_NATIVE_SAVED_CHECKPOINT_IDENTITY",
+    "source_sha256": "6497d163d930275dfbc0bb494fbb546456478e3751119dcc1baf918f5638f9d3",
+    "original_source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+    "checkpoint_sha256": "7ba52e1d9c390005295512bc28b28e605710f54bc1d6b9efd073ae7720aa93f7",
+    "checkpoint_bytes": 453044690,
+    "checkpoint_before_after_and_original_identity": "EXACT",
+    "prepare_and_harness_retained_identity": "EXACT",
+    "results_bundle_sha256": "8f9e6f172ba31f7f8e001573fede97d2ee0843970c8a3faf0f7d69392618bd31",
+    "released_packet_sha256": "1e809c3e1cc07d0ce78440522cacf2a6a81dc7814e1788b17a5401958a6ebf7d",
+    "reference_bundle_sha256": "1a93745b2b3320471af8633e5837571ff0a2e4b8bd6540a793ca02ddf201e448",
+    "bundle_members_verified": 33,
+    "packet_members_verified": 14,
+    "packet_members_equal_to_runtime": 13,
+    "reference_members_verified": 42,
+    "eval_device": "neuron",
+    "batch_size": 1,
+    "context": 1024,
+    "eval_tokens": 20971520,
+    "eval_bytes": 83462186,
+    "total_nats": 56499256,
+    "original_val_bpb": 0.9766242696436925,
+    "candidate_val_bpb": 0.9766242696436925,
+    "absolute_bpb_delta": 0,
+    "maximum_absolute_bpb_delta": 0.00001,
+    "eval_seconds": 692.0614540490787,
+    "eval_over_timeout": false,
+    "guardian_events_verified": 55,
+    "guardian_and_final_idle": "PASS",
+    "checker_command": "python3 -B research/v2/verification/20260928-r37-eval-path-independent/check_native_identity.py",
+    "checker_exit_code": 0,
+    "checker_sha256": "70206e611ac3f1563c4afa7a8cff7eab761beaf7f965d51aac0a494ff5430f9c",
+    "training_performed": false,
+    "host_calls_by_verifier": 0,
+    "quality_improvement_claim": false,
+    "submission_authorized": false
+  },
+  "r37_original_reference": {
+    "actual_result_sha256": "362cd0e1338a8c6d4a11cd31aac91701c8a8b380da567c1616287c3fc72db6be",
+    "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-r3-preparation/artifacts/results-bundle.json",
+    "archive_sha256": "1a93745b2b3320471af8633e5837571ff0a2e4b8bd6540a793ca02ddf201e448",
+    "batch_size": 1,
+    "checkpoint_bytes": 453044690,
+    "checkpoint_path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/train/out/final.pt",
+    "checkpoint_sha256": "7ba52e1d9c390005295512bc28b28e605710f54bc1d6b9efd073ae7720aa93f7",
+    "eval_bytes": 83462186,
+    "eval_tokens": 20971520,
+    "label": "fs-20260928-conv-dw-store-filler-full-trn22-r3",
+    "original_public20m_bpb": 0.9766242696436925,
+    "original_source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+    "packet_sha256": "d2a07a6c3612bfb11db1516cbe87bfb44855c0679a8e15304dfae5f980baa6b2",
+    "sequence_length": 1024
+  },
+  "r37_checkpoint_receipt": {
+    "bytes": 453044690,
+    "ctime_ns": 1790564400500740000,
+    "device": 66305,
+    "inode": 3154948,
+    "mtime_ns": 1790564400500740000,
+    "path": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r3/out/fs-20260928-conv-dw-store-filler-full-trn22-r3-packet/train/out/final.pt",
+    "sha256": "7ba52e1d9c390005295512bc28b28e605710f54bc1d6b9efd073ae7720aa93f7",
+    "stable": true
+  },
+  "r37_eval_rehearsal": {
+    "returncode": 0,
+    "wall_seconds": 704.7584941799287,
+    "step_boundaries": 0,
+    "mode": "eval",
+    "fresh_empty_sdk_caches": {}
+  },
+  "r37_archive": {
+    "path": "research/v2/operator/20260928-r37-saved-checkpoint-eval/artifacts/results-bundle.json",
+    "sha256": "8f9e6f172ba31f7f8e001573fede97d2ee0843970c8a3faf0f7d69392618bd31",
+    "members": {
+      "operator-launch.json": {
+        "sha256": "bda27201e622ffed0897d07ab05cfc87d38c9dcf05925638a62aa4fba45a514c",
+        "bytes": 477
+      },
+      "under-lock-idle.json": {
+        "sha256": "f8d539603b7701e9a7f632e464dd9ffd44cbfc0bdeaa47eaf86418600ef1fbee",
+        "bytes": 1414
+      },
+      "EXPERIMENT_PROPOSAL.json": {
+        "sha256": "16a5005993892388f7d4cc0777c6ea62ceda5f30b3f055d32c9c59be5acec07f",
+        "bytes": 7908
+      },
+      "host_driver.py": {
+        "sha256": "ab44c84dbabaeef11ccdecb3ca431e66ed59feb56339e587bb329194067ba645",
+        "bytes": 12929
+      },
+      "idle_guard.py": {
+        "sha256": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+        "bytes": 7507
+      },
+      "dispatch_driver.py": {
+        "sha256": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a",
+        "bytes": 1483
+      },
+      "package/train.py": {
+        "sha256": "6497d163d930275dfbc0bb494fbb546456478e3751119dcc1baf918f5638f9d3",
+        "bytes": 84679
+      },
+      "package/launch-command.txt": {
+        "sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+        "bytes": 77
+      },
+      "package/provenance.json": {
+        "sha256": "9bda5f3d582bd8fecc71e503ccf7041090fd5bec3ed72b81ed138faf4d80f73d",
+        "bytes": 1310
+      },
+      "dispatch.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "outer-flock-exit.json": {
+        "sha256": "f3642c4892d7b18fead5733de4aaf37f769c572dd3023cf963aa966ae4f68116",
+        "bytes": 556
+      },
+      "outer-flock.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "terminal.json": {
+        "sha256": "9da669ca5d43bcda69e431d340518e368e012116e7646c5964922bde51cf7917",
+        "bytes": 306
+      },
+      "fresh-public20m-launch.json": {
+        "sha256": "7d7068cdce98ce8a99c782319a993789df2fc8d7160096e7a1ee2f45f6e478a2",
+        "bytes": 3404
+      },
+      "fresh-public20m.log": {
+        "sha256": "ff45263cebf9fa4207dc00c55a4f8f067f4b37d03b2e722c2808bb1a10f1f51e",
+        "bytes": 2863
+      },
+      "eval/rehearsal.json": {
+        "sha256": "aa7a35e02966ec2d234223011df4fc94d1d3f392329850b2da4880b7b549e485",
+        "bytes": 133
+      },
+      "eval-exit-code.txt": {
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "bytes": 2
+      },
+      "checkpoint-before.json": {
+        "sha256": "593075c7d7e4af2ca02582a31593d401769408d5a17d4056de5e17dd0b0c6552",
+        "bytes": 405
+      },
+      "checkpoint-after.json": {
+        "sha256": "593075c7d7e4af2ca02582a31593d401769408d5a17d4056de5e17dd0b0c6552",
+        "bytes": 405
+      },
+      "eval-preflight.json": {
+        "sha256": "4c26320943ae36c71c28b8164fe84bbbcd18a4b80d1ed53b5cf7a242317d4e82",
+        "bytes": 363
+      },
+      "eval-preflight-fuser.json": {
+        "sha256": "e9be039e4c2a3716d8b4bf87a504ed87a289fb1542232733d1f4e11120076d0f",
+        "bytes": 54
+      },
+      "INDEPENDENT_REVIEW.json": {
+        "sha256": "57cc2f8d2e9fa15685e4e389ea02150a9e33b0b8980abcf3b7696081035a2687",
+        "bytes": 2113
+      },
+      "SCIENTIFIC_SOURCE_REVIEW.json": {
+        "sha256": "aa4f1705104352d86a9f9bef31d67ef32d806291a164b58369424b9af3d21414",
+        "bytes": 1462
+      },
+      "REFERENCE.json": {
+        "sha256": "a4967dfa16b90e1b1a4f19db63bdb569d8de6cd9e873a62d6bbd4a247a09e961",
+        "bytes": 1012
+      },
+      "lifetime_guard.py": {
+        "sha256": "5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e",
+        "bytes": 13057
+      },
+      "lifetime-events.jsonl": {
+        "sha256": "373d9325ced925657c681e6fa1fa85403aa162ebe61fc78bc249154a445367cd",
+        "bytes": 11323
+      },
+      "operator-preflight.json": {
+        "sha256": "b7ddcd464c8585d0382846787c603783f70cfd6ab868e9e353e6d550fa6bede1",
+        "bytes": 3256
+      },
+      "NATIVE_BINDING.json": {
+        "sha256": "7005229a967457423e77cabee16feaee36d60b8d4651771893547b5c2acf58d8",
+        "bytes": 7062
+      },
+      "RELEASE.json": {
+        "sha256": "34d7e4075715f9e90cc9d06174e46d6fa586841578b920f9df4b18e031814f27",
+        "bytes": 1931
+      },
+      "postflight-under-lock-idle.json": {
+        "sha256": "552c66ab65d00dcd8c9cf3ce8c2aa3a47f44c6c82b84dd688211b4143a425628",
+        "bytes": 1414
+      },
+      "postflight-fuser.json": {
+        "sha256": "e9be039e4c2a3716d8b4bf87a504ed87a289fb1542232733d1f4e11120076d0f",
+        "bytes": 54
+      },
+      "independent-release-idle.json": {
+        "sha256": "501ef36708df3300abaf9c5f89d933642c7c4522c846a73d4674dbb60f045e2c",
+        "bytes": 927
+      },
+      "source-git-prelaunch.json": {
+        "sha256": "072dc8d4dd2d1e9172d836e065b8bbe5a52fcbe6a5b1ef5b21f210e92de47c72",
+        "bytes": 1698
+      }
+    }
+  },
+  "origin_file_manifest": {
+    "research/v2/verification/20260928-r37-eval-path-independent/REVIEW.md": {
+      "sha256": "0597b9c0595136123c9b30db5ddbf2f5b64f6c8cfdd26b2765d1d2c9c40f3ea2",
+      "bytes": 6415
+    },
+    "research/v2/verification/20260928-r37-eval-path-independent/RECEIPT.json": {
+      "sha256": "aa4f1705104352d86a9f9bef31d67ef32d806291a164b58369424b9af3d21414",
+      "bytes": 1462
+    },
+    "research/v2/verification/20260928-r37-eval-path-independent/NATIVE_IDENTITY_REVIEW.md": {
+      "sha256": "ac08da5446806555cd13c05cd51e0ddc77398692762d7e907cc946b8650893a3",
+      "bytes": 4063
+    },
+    "research/v2/verification/20260928-r37-eval-path-independent/NATIVE_IDENTITY_VERDICT.json": {
+      "sha256": "9fc25ab1aec025a9f711a58a64434200345990ae9ad85ab746e7558ec2be7d86",
+      "bytes": 1718
+    },
+    "research/v2/operator/20260928-r37-saved-checkpoint-eval/artifacts/packet.released.json": {
+      "sha256": "1e809c3e1cc07d0ce78440522cacf2a6a81dc7814e1788b17a5401958a6ebf7d",
+      "bytes": 200672
+    },
+    "workflow/ROUND48_2026-09-28.md": {
+      "sha256": "5e1c043aeb5068e5631776e1ac2a73f327ddf0aebd9685e5cedebb2a4c2af833",
+      "bytes": 1816
+    },
+    "workflow/REJECTION_CHECKLIST_2026-09-28_0315.md": {
+      "sha256": "71717878b1c070bb7bce459579ae31f8b26b6339db9c7661859db1f19b9b9612",
+      "bytes": 1715
+    }
+  },
+  "parent_conv_cpu_evidence": {
+    "scope": "Inherited b585 CONV proof only; not candidate6497 native cold training",
+    "changed_helper_lines": {
+      "candidate": [
+        510,
+        524
+      ],
+      "parent": [
+        510,
+        518
+      ]
+    },
+    "cpu_archive_sha256": "384a711ffb5a6540998b83ebaecbcfadc1277d832b176f7fe2ab3f6af939d70a",
+    "cpu_cases": [
+      {
+        "dtype": "bfloat16",
+        "lanes": 1,
+        "shape_b_t_c": [
+          1,
+          128,
+          128
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          256,
+          1024
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          4,
+          384,
+          1024
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          1024,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 1,
+        "shape_b_t_c": [
+          1,
+          128,
+          128
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          256,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          4,
+          384,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          1024,
+          1024
+        ]
+      }
+    ],
+    "cpu_receipt_sha256": "0eb5861ebdfee3d4988803dc175f47b3455138ca6359c2be45cd6f2713ae4c20",
+    "cpu_scope": "actual installed NKI CPU simulation of exact old/new forward, dx and partials; not native compilation, scheduling, physical DMA, optimizer or whole-model proof",
+    "cpu_worker_sha256": "3c05287ba3258b1a544bdb1db1401f45ae586cbbd3885ee25deac02b9a034355",
+    "inherited_clean_cpu": {
+      "receipt_sha256": "1a851945f7a51a29d88d7c801eef80834a043df575cd34cc9fccf76c15a5e0b2",
+      "scope": "Reduced three-batch BF16 CPU fallback/unowned optimizer identity to500f; not native or whole-model CONV proof."
+    },
+    "outside_changed_helper_byte_identical": true,
+    "retained_compiler_defaults": "if __name__ == '__main__':\n    os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')\nos.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')\nos.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1')",
+    "scientific_diff_sha256": "9604021602a0b685cffa46cc5d2a6475e4b1125b76c2d2b5c651f5fb7018be8c",
+    "source_review_path": "research/v2/verification/20260928-conv-store-full-fresh/REVIEW.json",
+    "source_review_sha256": "9aea733d794f30f14c8166618d4f6810938bcbf4f0436599893ac77d3d3d5eb1",
+    "source_review_verdict": "PASS_SOURCE_READINESS_FOR_ONE_RESEARCH_FULL",
+    "unchanged_ast_sha256": {
+      "CausalConv": "53223305f16d806f3513e437ca22b71a5160805635f2fbbcc1637860d11be248",
+      "CausalSelfAttention": "784ace75fcad4ed80dba93fd31f5609c822c38daeb0bf5c1fa1582a07ec02f5e",
+      "GPT": "737e2fb2eb99d378ef0af13eccc5e6518090d333b843ce126278d53c2e934514",
+      "GPTConfig": "59e0d58fb7a175061e8efad002e5db9780a006500389e5e7905fe012e4953b41",
+      "MLP": "e363b553b190c828ce076cdf837c143633b1cb9be4d28e6aa17052b046313e83",
+      "OwnedOptimizer": "61c2527d16285c828edbc0710a4d8f15123eb16009b171b1bee623324304a461",
+      "load_for_eval": "b2962f9abc64d3ba393d8f20f94badcca07461ab1c8404df275caf19286595a8",
+      "main": "17910c7f717b07fc8f7a9c53bf25cd3b7dc39ef9a71ce70b69e6e18d9a4541fc",
+      "make_plan": "da9f7d91815b7449a3a836c27c898961bd4b20ac26cf8e056a0a6dfff882d0d3",
+      "save_checkpoint": "78709984b041f4550c904d1e9f9ec98aa99e053e8b16a94f21bb0a9a3a3c62bf"
+    }
+  },
+  "retained_parent_inventory": [
+    {
+      "checklist_5_pass": false,
+      "cumulative_bytes_written": null,
+      "excluded": "Outer source checkout, shared evaluation/data caches, other jobs, deleted/overwritten/transient bytes and write amplification.",
+      "helper_sha256": "e1155c6ac8323ed7cd37b5ddcda9e4f36ecdc4ee38ee3417a3089cadabba65fc",
+      "metadata": {
+        "cumulative_bytes_written": null,
+        "elapsed_seconds": 0.02912897104397416,
+        "entries_by_kind": {
+          "directory": 572,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "entries_seen": 1170,
+        "hardlink_aliases": 0,
+        "host": "trn22",
+        "interpretation": "Observed inode totals, hardlinks deduplicated; st_blocks*512 is not exclusive physical storage. Never cumulative writes or checklist PASS.",
+        "issue_count": 0,
+        "issues": [],
+        "largest10_regular_files": [
+          {
+            "allocated_bytes": 453050368,
+            "device": 66305,
+            "inode": 3153417,
+            "logical_bytes": 453044690,
+            "path": "train/out/final.pt"
+          },
+          {
+            "allocated_bytes": 76894208,
+            "device": 66305,
+            "inode": 3152270,
+            "logical_bytes": 76892061,
+            "path": "cold-training-caches/neff/a3/ed/a3ed1f7adf016b72a2c1821e1fb12d2a.neff"
+          },
+          {
+            "allocated_bytes": 38891520,
+            "device": 66305,
+            "inode": 3152261,
+            "logical_bytes": 38890845,
+            "path": "cold-training-caches/neff/48/4b/484b08652ccec36d0204c32943461583.neff"
+          },
+          {
+            "allocated_bytes": 1949696,
+            "device": 66305,
+            "inode": 3152984,
+            "logical_bytes": 1948649,
+            "path": "cold-training-caches/neff/c6/46/c646abf73a5a1f9dc00600ecf234c515.neff"
+          },
+          {
+            "allocated_bytes": 1396736,
+            "device": 66305,
+            "inode": 3153259,
+            "logical_bytes": 1396354,
+            "path": "cold-training-caches/neff/6d/67/6d67af18eba030622e955124633d33b7.neff"
+          },
+          {
+            "allocated_bytes": 1036288,
+            "device": 66305,
+            "inode": 3152988,
+            "logical_bytes": 1034835,
+            "path": "cold-training-caches/neff/9a/b6/9ab6258eff1f56f6e57a2a84e459a95d.neff"
+          },
+          {
+            "allocated_bytes": 1003520,
+            "device": 66305,
+            "inode": 3153047,
+            "logical_bytes": 1001476,
+            "path": "cold-training-caches/neff/5a/af/5aaf77b54b24a16f34067086e330d707.neff"
+          },
+          {
+            "allocated_bytes": 966656,
+            "device": 66305,
+            "inode": 3153053,
+            "logical_bytes": 965943,
+            "path": "cold-training-caches/neff/88/cb/88cb6e7171ca0f1a481751292715a715.neff"
+          },
+          {
+            "allocated_bytes": 925696,
+            "device": 66305,
+            "inode": 3152958,
+            "logical_bytes": 924578,
+            "path": "cold-training-caches/neff/7c/d2/7cd2ea226c4f97b4512238fc402e245b.neff"
+          },
+          {
+            "allocated_bytes": 630784,
+            "device": 66305,
+            "inode": 3153045,
+            "logical_bytes": 627377,
+            "path": "cold-training-caches/neff/2f/a5/2fa5c63ac485cc0dd2c850cba57f14f1.neff"
+          }
+        ],
+        "max_entries": 100000,
+        "observed_lower_bound": false,
+        "packet_sha256": "3fb39a7f72a9dcc1ea08bf9372f0780460b5c21b5ff905972252f82bead73800",
+        "root": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet",
+        "scope": "Non-atomic retained namespace only; excludes all paths outside binding.root.",
+        "seconds_limit": 10,
+        "skipped_mount_or_device_entries": 0,
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "status": "COMPLETE",
+        "unique_allocated_bytes_by_kind": {
+          "directory": 2367488,
+          "other": 0,
+          "regular": 581951488,
+          "symlink": 0
+        },
+        "unique_dev_inode_count": 1171,
+        "unique_inodes_by_kind": {
+          "directory": 572,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "unique_logical_bytes_by_kind": {
+          "directory": 2367488,
+          "other": 0,
+          "regular": 580846832,
+          "symlink": 0
+        }
+      },
+      "path": "research/v2/operator/20260928-cold-artifact-inventory/ACTUAL_TRN22_R2.json",
+      "receipt_utc": "2026-09-28T02:18:26.612733+00:00",
+      "recorded_payload_sha256": "2d50be1801cdfb5d9839496775c46dc4833050a3a0a4b8316c44f218e96139ab",
+      "sha256": "d517300f10344e7f49692d366697bc4859e3e8621bd2c2fa9a2be2a86cbfb488"
+    },
+    {
+      "checklist_5_pass": false,
+      "cumulative_bytes_written": null,
+      "excluded": "Outer source checkout, shared evaluation/data caches, other jobs, deleted/overwritten/transient bytes and write amplification.",
+      "helper_sha256": "e1155c6ac8323ed7cd37b5ddcda9e4f36ecdc4ee38ee3417a3089cadabba65fc",
+      "metadata": {
+        "cumulative_bytes_written": null,
+        "elapsed_seconds": 0.027689108857885003,
+        "entries_by_kind": {
+          "directory": 571,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "entries_seen": 1169,
+        "hardlink_aliases": 0,
+        "host": "trn21",
+        "interpretation": "Observed inode totals, hardlinks deduplicated; st_blocks*512 is not exclusive physical storage. Never cumulative writes or checklist PASS.",
+        "issue_count": 0,
+        "issues": [],
+        "largest10_regular_files": [
+          {
+            "allocated_bytes": 453050368,
+            "device": 66305,
+            "inode": 3430339,
+            "logical_bytes": 453044690,
+            "path": "train/out/final.pt"
+          },
+          {
+            "allocated_bytes": 76881920,
+            "device": 66305,
+            "inode": 3429181,
+            "logical_bytes": 76874132,
+            "path": "cold-training-caches/neff/f4/2a/f42a9f44350c95debc4c5171e2079a97.neff"
+          },
+          {
+            "allocated_bytes": 38887424,
+            "device": 66305,
+            "inode": 3429175,
+            "logical_bytes": 38885124,
+            "path": "cold-training-caches/neff/82/36/8236e8b2f84b9a46b287e5285a305225.neff"
+          },
+          {
+            "allocated_bytes": 1949696,
+            "device": 66305,
+            "inode": 3430097,
+            "logical_bytes": 1948707,
+            "path": "cold-training-caches/neff/0a/ac/0aac8757b640b18698b91219fc6873f7.neff"
+          },
+          {
+            "allocated_bytes": 1396736,
+            "device": 66305,
+            "inode": 3430103,
+            "logical_bytes": 1396343,
+            "path": "cold-training-caches/neff/0a/95/0a952a2645b9225ea6f208e3f25abab6.neff"
+          },
+          {
+            "allocated_bytes": 1036288,
+            "device": 66305,
+            "inode": 3430009,
+            "logical_bytes": 1035836,
+            "path": "cold-training-caches/neff/2a/9e/2a9e996d9b34f6ca21d8eabf64bd06f4.neff"
+          },
+          {
+            "allocated_bytes": 1003520,
+            "device": 66305,
+            "inode": 3430036,
+            "logical_bytes": 1001716,
+            "path": "cold-training-caches/neff/5e/e8/5ee85114f93c0043852f79280476b0d4.neff"
+          },
+          {
+            "allocated_bytes": 966656,
+            "device": 66305,
+            "inode": 3430024,
+            "logical_bytes": 965841,
+            "path": "cold-training-caches/neff/df/4d/df4d513c632a87bfe1e3de34cd10c064.neff"
+          },
+          {
+            "allocated_bytes": 925696,
+            "device": 66305,
+            "inode": 3429922,
+            "logical_bytes": 925069,
+            "path": "cold-training-caches/neff/67/54/6754aa54299184e7f7da8eb9c2fcd330.neff"
+          },
+          {
+            "allocated_bytes": 630784,
+            "device": 66305,
+            "inode": 3430042,
+            "logical_bytes": 627138,
+            "path": "cold-training-caches/neff/59/90/59902b4e674580e326997dfefdf13268.neff"
+          }
+        ],
+        "max_entries": 100000,
+        "observed_lower_bound": false,
+        "packet_sha256": "a33849f790b2bba93ce2cbb32dc362c2962e455dd037d361adf07985b9860ea3",
+        "root": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet",
+        "scope": "Non-atomic retained namespace only; excludes all paths outside binding.root.",
+        "seconds_limit": 10,
+        "skipped_mount_or_device_entries": 0,
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "status": "COMPLETE",
+        "unique_allocated_bytes_by_kind": {
+          "directory": 2363392,
+          "other": 0,
+          "regular": 581931008,
+          "symlink": 0
+        },
+        "unique_dev_inode_count": 1170,
+        "unique_inodes_by_kind": {
+          "directory": 571,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "unique_logical_bytes_by_kind": {
+          "directory": 2363392,
+          "other": 0,
+          "regular": 580826391,
+          "symlink": 0
+        }
+      },
+      "path": "research/v2/operator/20260928-cold-artifact-inventory/ACTUAL_TRN21_R2.json",
+      "receipt_utc": "2026-09-28T02:29:32.717782+00:00",
+      "recorded_payload_sha256": "abcad4914feae6d2d36737fee86f1b84e26d517de1de9bdf75ca931c71f06841",
+      "sha256": "5cf754d0879ce7b5f7fbe3ee997b4c14c93dc192fb0425ff1d3150660b28d92f"
+    }
+  ],
+  "cumulative_bytes_written": {
+    "checkpoint": null,
+    "logs": null,
+    "caches": null,
+    "total": null,
+    "status": "UNKNOWN_NOT_RECONSTRUCTED",
+    "reason": "Retained inode occupancy is not cumulative writes. Shared caches, overwritten/deleted/transient bytes and write amplification are excluded. No no-large-leftovers claim."
+  },
+  "rejection_checklist": [
+    {
+      "id": 1,
+      "status": "FAIL (pending evidence)",
+      "requirement": "Only train.py; exact bare command; clean scoring-box imports",
+      "evidence": "train.py lines 36–44 and main 1351; exact source/hash and launch bytes match the native R37 bundle; candidate evaluation imported successfully in the existing native_venv.",
+      "gap": "No separate organizer-clean-runtime training/import proof for exact 6497. Existing-environment success is not that proof."
+    },
+    {
+      "id": 2,
+      "status": "PASS (scoped)",
+      "requirement": "Trained model, shared causal forward/attention/MLP path",
+      "evidence": "MLP 781–791 removes the self.training disjunct; causal SDPA 736; GPT 925–949; strict weights_only load 1285–1301. Independent source routing review and actual saved-checkpoint public20M identity delta 0.",
+      "gap": "Identity applies to one saved checkpoint at context 1024, batch 1. It is not universal bit identity or a new quality gain; non-BF16/unsupported shapes retain the shared shape/dtype fallback."
+    },
+    {
+      "id": 3,
+      "status": "FAIL (pending evidence)",
+      "requirement": "No prohibited data/network/weights/local-path/cache dependence",
+      "evidence": "Training uses provided TRAIN loader at 1384 and fixed tokenizer at 1362; own-checkpoint loader at 1291. No added data, networking or weight source. Parent empty-cache receipts and unchanged source diff are retained.",
+      "gap": "Optional /tmp/neuron_cache default remains at 38; R37 evaluation used an existing shared research cache. Complete clean-runtime I/O/cache-independence proof is unavailable. No forbidden-data access is alleged."
+    },
+    {
+      "id": 4,
+      "status": "FAIL (pending exact-source measurement)",
+      "requirement": "Measured empty-cache startup <=900s and charged training <=1800s",
+      "evidence": "All eight exact b585 parent runs PASS: cold 644.168710762–684.242494167s; charged 1788.787039135–1789.570305465s. Six empty training-cache receipts per run in cold-evidence.json.",
+      "gap": "No exact 6497 cold training run is claimed. Training source routing is unchanged, but docstring/source changes may affect compiler cache keys. Parent provenance is not a newly measured 6497 startup. Audit must assess sufficiency for this requested fallback; no new run is authorized by this package."
+    },
+    {
+      "id": 5,
+      "status": "FAIL (unknown cumulative writes)",
+      "requirement": "Total checkpoint/log/cache bytes written; no large leftovers",
+      "evidence": "Saved checkpoint is 453,044,690 bytes; retained parent r2 packet inventories are hash-bound in cold-evidence.json.",
+      "gap": "Cumulative writes, overwritten/deleted/transient files and complete historical/shared-cache occupancy are unknown/null. Retained files include a checkpoint and NEFFs; retained occupancy is not cumulative writes. No cleanup or absence-of-leftovers claim."
+    },
+    {
+      "id": 6,
+      "status": "FAIL (pending environment proof)",
+      "requirement": "No hidden required env beyond command; default features ON",
+      "evidence": "Fixed source recipe; optional compiler/cache setdefaults at 36–39. Bare command is unchanged, exact archived file SHA256 61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db.",
+      "gap": "Provided-runtime sufficiency with no extra environment has not been separately established for 6497. Research launcher/cache isolation settings are not asserted required or portable."
+    },
+    {
+      "id": 7,
+      "status": "PASS (source scope)",
+      "requirement": "Fixed seed; no new timing-dependent selector",
+      "evidence": "Seed 42 at 1356; unchanged LR/Muon/MTP/batch schedules and budget logic; exact diff affects only MLP mode predicate and six docstrings.",
+      "gap": "Wall-clock schedules retain ordinary variation in data-to-schedule alignment. No deterministic cross-run bitwise trajectory is claimed."
+    },
+    {
+      "id": 8,
+      "status": "PASS (source scope)",
+      "requirement": "Readable CLEAN source and documented kernels/shared path",
+      "evidence": "Six convolution helper docstrings at 469, 478, 497, 514, 531, 561; existing NKI kernel docs at 180, 227, 314, 382; shared MLP shape/dtype fallback comment 784. Exact seven-edit diff is reproduced in DIFF_AND_MANIFEST.md.",
+      "gap": "This is the frozen reviewed CLEAN cleanup, not a new cleanup pass or an assertion that every generic helper needs no further editorial review."
+    }
+  ],
+  "audit": {
+    "parent_b585": "SOURCE_AUDIT_ACCEPT",
+    "parent_audit_path": "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/CLAUDE_AUDIT_RESULT.md",
+    "parent_audit_sha256": "b37601233f9ce326273f7ee34c226ff3e8cb25f02123deac7c3bcae520d13d22",
+    "parent_cold_evidence_sha256": "29045b688ae00d12429a2c3ed602495eaad2a8d5635528d6fe8843759c20e6fe",
+    "cleanup6497": "PENDING_NOT_REQUESTED_EXTERNALLY_BY_PORTER",
+    "root_package_scope_review": "PENDING",
+    "submission_authorized": false,
+    "human_upload_only": true
+  },
+  "package_assembly": {
+    "role": "PORTER evidence assembly",
+    "scientific_source_edit": false,
+    "host_calls": 0,
+    "model_execution": 0,
+    "checkpoint_copy": false,
+    "data_copy": false,
+    "external_audit_call": false,
+    "upload": false,
+    "protected_existing_package_manifest": {
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/train.py": {
+        "sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "bytes": 84085
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/DIFF_AND_MANIFEST.md": {
+        "sha256": "be6facd1f911c84eda566e0e64bdb5103f9cb1a0c8fd9a5f7fe05ea909dc581b",
+        "bytes": 2233
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/cold-evidence.json": {
+        "sha256": "29045b688ae00d12429a2c3ed602495eaad2a8d5635528d6fe8843759c20e6fe",
+        "bytes": 36232
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/CLAUDE_AUDIT_RESULT.md": {
+        "sha256": "b37601233f9ce326273f7ee34c226ff3e8cb25f02123deac7c3bcae520d13d22",
+        "bytes": 2989
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/AUDIT_BRIEF.md": {
+        "sha256": "107aacb3cd4f7f8a36918d075ec57774c0df23440ac9167ad644ee7e38177394",
+        "bytes": 12269
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-0800-b585d0a6/audited_parent.py": {
+        "sha256": "881a4f491d256fb89af33246a3b568fc3ffead9616070eea1860d7d8f7f9f749",
+        "bytes": 83562
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-b585d0a6/train.py": {
+        "sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "bytes": 84085
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-b585d0a6/DIFF_AND_MANIFEST.md": {
+        "sha256": "d6d46d6cbedfa143e72cb4821c9aa0841afe7ea9f91c99eaa2aa73d564a0c8c4",
+        "bytes": 2232
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-b585d0a6/cold-evidence.json": {
+        "sha256": "cf5149286d92aeb86fd64f7aea41a500b6a93c2198b6004f141e041da879a15e",
+        "bytes": 11788
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-b585d0a6/AUDIT_BRIEF.md": {
+        "sha256": "6ebf42f4c396c5898131b28fe0a326d3e9a77e39e2a7c5d4a5e945a09ac2339e",
+        "bytes": 8714
+      },
+      "/home/poojith-devan/Downloads/Trainium-CLEAN-CONV-CLAUDE-AUDIT-20260928-b585d0a6/audited_parent.py": {
+        "sha256": "881a4f491d256fb89af33246a3b568fc3ffead9616070eea1860d7d8f7f9f749",
+        "bytes": 83562
+      }
+    }
+  },
+  "instability_conclusion": "Unchanged: no exact new stability arm established; report research/v2/research_cycles/20260928-round48-instability.md. No scientific change from that analysis."
+}

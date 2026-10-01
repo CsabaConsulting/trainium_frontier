@@ -1,0 +1,16 @@
+experiment,kind,result,compared_with,decision
+Progressive depth stacking (4 layers then 8 at 50% of the run),quality,public-dev val_bpb 1.0113 (+0.047),final file mean 0.9643,closed
+Optimizer and initialization bundle (scalar AdamW betas 0.9/0.99; residual init 1.1; split convex cooldown; mimetic V/O init; cautious decay on AdamW groups),quality,two-seed mean 0.9705 (seed 42: 0.9762; seed 43: 0.9647),final file mean 0.9643,closed
+Asymmetric logit rescaling,quality,0.9656 (+0.0012),final file mean 0.9643,closed
+Three-target objective (t+1; t+2; t+3),quality,0.9654 (+0.0010),final file mean 0.9643,closed
+Warmdown 0.50 instead of 0.75,quality,0.9654 (+0.0010),final file mean 0.9643,closed
+Embedding learning rate x2,quality,0.9650 (+0.0006),final file mean 0.9643,closed
+Key-offset attention,speed,+20.4% step time,same-host control,closed
+--disable-dge,speed,-21.5% tokens/s,same-host control,closed
+Fused QKV projection,speed,-5.0% tokens/s,same-host control,closed
+--tensorizer-options=--vectorize-strided-dma,speed,-0.34% tokens/s,same-host control,closed
+--model-type=transformer,speed,-0.25% tokens/s,same-host control,closed
+Host-sync packing (semantics-preserving),speed,-0.13% tokens/s,same-host control,closed
+Attention backward with mixed_precision=False,speed,+0.14% tokens/s (gate +1%),same-host control,closed
+Sequence-length warmup (512 then 1024 tokens),speed,cold start 1043 s (cap 900 s),compile-only test,closed
+Document masking via the attention kernels' packing bounds,quality,not run: the kernel's packed path requires attention scale 1.0,n/a,parked

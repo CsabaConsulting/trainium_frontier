@@ -1,0 +1,49 @@
+{
+  "schema": "independent-round13-gate-routing-review-v1",
+  "recorded_utc": "2026-09-27T08:25:34Z",
+  "timestamp_scope": "actual clock read before receipt creation",
+  "source_sha256": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+  "verdict": "CONFIRMED_CONTRACT_ROUTING_MISMATCH",
+  "tensor": "transformer.h.7.attn.ve_gate.weight",
+  "shape": [8, 32],
+  "dtype": "torch.float32",
+  "actual_group_index": 5,
+  "actual_kind": "muon",
+  "actual_initial_lr": 0.021,
+  "actual_initial_weight_decay": 0.2,
+  "parameter_tensor_count": 65,
+  "group_count": 9,
+  "every_parameter_exactly_once": true,
+  "scalar_unet_gate_assignment": "four1D tensors correctly remain AdamW lr0.2 wd0",
+  "recommended_gate_only_group": {
+    "kind": "adamw",
+    "lr": 0.021,
+    "lr_basis": "existing MATRIX_LR with existing shared LR schedule, no embedding width scale",
+    "betas": [0.9, 0.95],
+    "eps": 1e-10,
+    "weight_decay": 0.0,
+    "moment_dtype": "float32",
+    "policy_sources": ["train.py:3322", "workflow/proposals/research-v2/train.py:2187"]
+  },
+  "primary_sources_opened": [
+    "https://github.com/KellerJordan/modded-nanogpt/pull/187",
+    "https://github.com/KellerJordan/modded-nanogpt/pull/168"
+  ],
+  "cpu_check": {
+    "script": "research/v2/research_cycles/20260927-round13-gate-reference-verification.py",
+    "sha256": "30e102e7ebfd2e2dbb86cb2cb1dceec921b5ae68afaff14595b614784dfa0e69",
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -B research/v2/research_cycles/20260927-round13-gate-reference-verification.py",
+    "exit_code": 0,
+    "torch_version": "2.13.0+cpu",
+    "production_meta_inventory": true,
+    "synthetic_adam_steps": 4,
+    "max_fp64_reference_error": 8.742936333239193e-09,
+    "moment_dtype_verified": "float32"
+  },
+  "candidate_code_changed": false,
+  "host_calls": 0,
+  "native_execution": false,
+  "bpB_gain_proven": false,
+  "normuon_orientation_bug_claimed": false,
+  "launch_authorized": false
+}

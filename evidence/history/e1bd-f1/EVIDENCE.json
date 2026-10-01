@@ -1,0 +1,475 @@
+{
+  "automated_acceptance": false,
+  "claude_verdict": null,
+  "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --tbl_freeze_tokens 0",
+  "completed_f1_full_receipts_in_this_draft": 0,
+  "exact_source_diagnostics": [
+    {
+      "case": "01-f1-lnc1",
+      "proof": {
+        "case": "01-f1-lnc1",
+        "checkpoint_sha256": "3a0004d915883002980c884fa16a07aec76eed812cb70c683d96cec807ce683f",
+        "exit_code": 0,
+        "full_run_authorized": false,
+        "official_score_claim": false,
+        "original_guardian_released": true,
+        "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+        "status": "PUBLIC2M_DIAGNOSTIC_COMPLETE_NOT_OFFICIAL_SCORE",
+        "terminal_sha256": "9120d7358236b3843fe24d80048f1f8579381f4118b01f7de959c72d6b52ddb0",
+        "timing_authorized": false,
+        "training": false,
+        "worker_result": {
+          "case": "01-f1-lnc1",
+          "ce2_path": "NOT_CALLED_BY_DOCUMENTED_TRUSTED_LOGITS_EVALUATION",
+          "checkpoint_bytes": 587788862,
+          "checkpoint_sha256": "3a0004d915883002980c884fa16a07aec76eed812cb70c683d96cec807ce683f",
+          "checkpoint_unchanged": true,
+          "comparison": {
+            "absolute_delta": 0.0,
+            "comparison_is_not_source_or_launch_approval": true,
+            "delta_from_unset": 0.0,
+            "expected_tolerance": 0,
+            "val_bpb_10dp": "0.9617131519",
+            "within_expected_tolerance": true
+          },
+          "comparison_unset_bpb": 0.9617131518505532,
+          "elapsed_seconds": 115.77191560389474,
+          "error": null,
+          "evaluator_unchanged": true,
+          "exact_source_execution": true,
+          "launch_authorized": false,
+          "lnc_at_start": "1",
+          "loaded_context": {
+            "added_compile_wrapper": false,
+            "added_hooks": false,
+            "attention_module_lane_b": [],
+            "device": "neuron",
+            "distributed_initialized": false,
+            "has_nki": true,
+            "lane_b": false,
+            "laneb_wrappers_imported": false,
+            "model_class": "GPT",
+            "package_provenance": {
+              "ami_image_creation_time": null,
+              "distributions": {
+                "nki-library": {
+                  "found": false
+                },
+                "torch-neuronx": {
+                  "dist_info": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info",
+                  "dist_info_ctime_ns": 1787600809814249549,
+                  "dist_info_mtime_ns": 1787600809814249549,
+                  "files": {
+                    "INSTALLER": {
+                      "bytes": 2,
+                      "ctime_ns": 1787600809814249549,
+                      "mtime_ns": 1787600809809691665,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/INSTALLER",
+                      "present": true,
+                      "sha256": "e6184ce10e266134fdcfa401e8f1a95005bcd4f18d16b62b757323e2833fe9a9",
+                      "text": "uv"
+                    },
+                    "RECORD": {
+                      "bytes": 1653,
+                      "ctime_ns": 1787600809814249549,
+                      "metadata_entries": [
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/INSTALLER",
+                          "sha256=5hhM4Q4mYTT9z6QB6PGpUAW81PGNFrYrdXMj4oM_6ak",
+                          "2"
+                        ],
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/RECORD",
+                          "",
+                          ""
+                        ],
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/REQUESTED",
+                          "sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+                          "0"
+                        ]
+                      ],
+                      "mtime_ns": 1787600809814249549,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/RECORD",
+                      "present": true,
+                      "record_content_not_copied": true,
+                      "record_rows": 15,
+                      "sha256": "09ebbcf863428417a75dfd8c3ef54bc9db118deff25b66ebfc34cc1f538528ba"
+                    },
+                    "REQUESTED": {
+                      "bytes": 0,
+                      "ctime_ns": 1787600809800295689,
+                      "mtime_ns": 1787600809800295689,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/REQUESTED",
+                      "present": true,
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                      "text": ""
+                    }
+                  },
+                  "found": true,
+                  "metadata_unchanged": true,
+                  "name": "torch-neuronx",
+                  "version": "2.11.3.0.0+unknown.dev"
+                }
+              },
+              "imports": {
+                "nkilib": {
+                  "already_imported": true,
+                  "discovery_only_no_added_import": true,
+                  "origin": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/__init__.py",
+                  "search_locations": [
+                    "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib"
+                  ]
+                },
+                "torch_neuronx": {
+                  "already_imported": true,
+                  "discovery_only_no_added_import": true,
+                  "origin": "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py",
+                  "search_locations": [
+                    "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx"
+                  ]
+                }
+              },
+              "installation_performed": false,
+              "installed_after_ami": null,
+              "network_access": false,
+              "provenance_verdict": "UNKNOWN: file mtimes alone do not establish AMI inclusion or install time.",
+              "schema": "r155-readonly-package-provenance-v1",
+              "source_or_sdk_changed": false
+            },
+            "rope_lane_query": {
+              "batch_size": 1,
+              "call": "_rope_lanes(batch_size * context, context)",
+              "context": 1024,
+              "error": null,
+              "model_or_kernel_hook": false,
+              "result": 1,
+              "rows": 1024
+            },
+            "source_module_cc_flags": "--optlevel=1",
+            "source_module_lnc": "1"
+          },
+          "official_environment_known": false,
+          "official_score_claim": false,
+          "path_evidence": "Successful unchanged model(x) plus loaded branch predicates; inference, not instrumentation",
+          "phase": "complete",
+          "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "process_override": null,
+          "public_diagnostic_only": true,
+          "result": {
+            "eval_over_timeout": false,
+            "eval_seconds": 102.9091965649277,
+            "eval_timeout": 900,
+            "num_bytes": 8418678,
+            "num_tokens": 2097152,
+            "total_nats": 5611964.5,
+            "val_bpb": 0.9617131518505532
+          },
+          "schema": "r153-single-process-public2m-eval-diagnostic-v1",
+          "source_configuration": {
+            "kernel_body_override": false,
+            "nki_lanes": 1,
+            "process_override": false,
+            "rope_lanes": 1,
+            "source_defined": true,
+            "z10_rope_wrap_nki": true
+          },
+          "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+          "source_unchanged": true,
+          "tokenizer_before": {
+            "token_bytes.pt": {
+              "bytes": 34373,
+              "device": 66305,
+              "inode": 842308,
+              "mtime_ns": 1789127658569555398,
+              "sha256": "3de03cf6f8e16a9397fecd0cebd04f435f11994b215a5c785787fcc15adb0e15"
+            },
+            "tokenizer.pkl": {
+              "bytes": 94580,
+              "device": 66305,
+              "inode": 842307,
+              "mtime_ns": 1789127658569213370,
+              "sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc"
+            }
+          },
+          "tokenizer_unchanged": true,
+          "training": false
+        }
+      },
+      "raw_archive": {
+        "bytes": 211913,
+        "path": "research/v2/operator/20260930-r158-e1bd-f1-exact-eval-trn21-preparation/cases/01-f1-lnc1/collect-20260930T084026316343Z.json",
+        "sha256": "7c2ffe78f6bde5cb44e607d2f896ece59144bd973ac8a3e3ad178ac8e9e7468f"
+      }
+    },
+    {
+      "case": "02-f1-unset",
+      "proof": {
+        "case": "02-f1-unset",
+        "checkpoint_sha256": "3a0004d915883002980c884fa16a07aec76eed812cb70c683d96cec807ce683f",
+        "exit_code": 0,
+        "full_run_authorized": false,
+        "official_score_claim": false,
+        "original_guardian_released": true,
+        "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+        "status": "PUBLIC2M_DIAGNOSTIC_COMPLETE_NOT_OFFICIAL_SCORE",
+        "terminal_sha256": "976c20eb25435aa7341f1966aa3d54d33a5b2600250c12258365f1a08da5914c",
+        "timing_authorized": false,
+        "training": false,
+        "worker_result": {
+          "case": "02-f1-unset",
+          "ce2_path": "NOT_CALLED_BY_DOCUMENTED_TRUSTED_LOGITS_EVALUATION",
+          "checkpoint_bytes": 587788862,
+          "checkpoint_sha256": "3a0004d915883002980c884fa16a07aec76eed812cb70c683d96cec807ce683f",
+          "checkpoint_unchanged": true,
+          "comparison": {
+            "absolute_delta": 0.0,
+            "comparison_is_not_source_or_launch_approval": true,
+            "delta_from_unset": 0.0,
+            "expected_tolerance": 0,
+            "val_bpb_10dp": "0.9617131519",
+            "within_expected_tolerance": true
+          },
+          "comparison_unset_bpb": 0.9617131518505532,
+          "elapsed_seconds": 115.8756597340107,
+          "error": null,
+          "evaluator_unchanged": true,
+          "exact_source_execution": true,
+          "launch_authorized": false,
+          "lnc_at_start": null,
+          "loaded_context": {
+            "added_compile_wrapper": false,
+            "added_hooks": false,
+            "attention_module_lane_b": [],
+            "device": "neuron",
+            "distributed_initialized": false,
+            "has_nki": true,
+            "lane_b": false,
+            "laneb_wrappers_imported": false,
+            "model_class": "GPT",
+            "package_provenance": {
+              "ami_image_creation_time": null,
+              "distributions": {
+                "nki-library": {
+                  "found": false
+                },
+                "torch-neuronx": {
+                  "dist_info": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info",
+                  "dist_info_ctime_ns": 1787600809814249549,
+                  "dist_info_mtime_ns": 1787600809814249549,
+                  "files": {
+                    "INSTALLER": {
+                      "bytes": 2,
+                      "ctime_ns": 1787600809814249549,
+                      "mtime_ns": 1787600809809691665,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/INSTALLER",
+                      "present": true,
+                      "sha256": "e6184ce10e266134fdcfa401e8f1a95005bcd4f18d16b62b757323e2833fe9a9",
+                      "text": "uv"
+                    },
+                    "RECORD": {
+                      "bytes": 1653,
+                      "ctime_ns": 1787600809814249549,
+                      "metadata_entries": [
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/INSTALLER",
+                          "sha256=5hhM4Q4mYTT9z6QB6PGpUAW81PGNFrYrdXMj4oM_6ak",
+                          "2"
+                        ],
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/RECORD",
+                          "",
+                          ""
+                        ],
+                        [
+                          "torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/REQUESTED",
+                          "sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+                          "0"
+                        ]
+                      ],
+                      "mtime_ns": 1787600809814249549,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/RECORD",
+                      "present": true,
+                      "record_content_not_copied": true,
+                      "record_rows": 15,
+                      "sha256": "09ebbcf863428417a75dfd8c3ef54bc9db118deff25b66ebfc34cc1f538528ba"
+                    },
+                    "REQUESTED": {
+                      "bytes": 0,
+                      "ctime_ns": 1787600809800295689,
+                      "mtime_ns": 1787600809800295689,
+                      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch_neuronx-2.11.3.0.0+unknown.dev.dist-info/REQUESTED",
+                      "present": true,
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                      "text": ""
+                    }
+                  },
+                  "found": true,
+                  "metadata_unchanged": true,
+                  "name": "torch-neuronx",
+                  "version": "2.11.3.0.0+unknown.dev"
+                }
+              },
+              "imports": {
+                "nkilib": {
+                  "already_imported": true,
+                  "discovery_only_no_added_import": true,
+                  "origin": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/__init__.py",
+                  "search_locations": [
+                    "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib"
+                  ]
+                },
+                "torch_neuronx": {
+                  "already_imported": true,
+                  "discovery_only_no_added_import": true,
+                  "origin": "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py",
+                  "search_locations": [
+                    "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx"
+                  ]
+                }
+              },
+              "installation_performed": false,
+              "installed_after_ami": null,
+              "network_access": false,
+              "provenance_verdict": "UNKNOWN: file mtimes alone do not establish AMI inclusion or install time.",
+              "schema": "r155-readonly-package-provenance-v1",
+              "source_or_sdk_changed": false
+            },
+            "rope_lane_query": {
+              "batch_size": 1,
+              "call": "_rope_lanes(batch_size * context, context)",
+              "context": 1024,
+              "error": null,
+              "model_or_kernel_hook": false,
+              "result": 1,
+              "rows": 1024
+            },
+            "source_module_cc_flags": "--optlevel=1",
+            "source_module_lnc": null
+          },
+          "official_environment_known": false,
+          "official_score_claim": false,
+          "path_evidence": "Successful unchanged model(x) plus loaded branch predicates; inference, not instrumentation",
+          "phase": "complete",
+          "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+          "process_override": null,
+          "public_diagnostic_only": true,
+          "result": {
+            "eval_over_timeout": false,
+            "eval_seconds": 101.84258463489823,
+            "eval_timeout": 900,
+            "num_bytes": 8418678,
+            "num_tokens": 2097152,
+            "total_nats": 5611964.5,
+            "val_bpb": 0.9617131518505532
+          },
+          "schema": "r153-single-process-public2m-eval-diagnostic-v1",
+          "source_configuration": {
+            "kernel_body_override": false,
+            "nki_lanes": 1,
+            "process_override": false,
+            "rope_lanes": 1,
+            "source_defined": true,
+            "z10_rope_wrap_nki": true
+          },
+          "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+          "source_unchanged": true,
+          "tokenizer_before": {
+            "token_bytes.pt": {
+              "bytes": 34373,
+              "device": 66305,
+              "inode": 842308,
+              "mtime_ns": 1789127658569555398,
+              "sha256": "3de03cf6f8e16a9397fecd0cebd04f435f11994b215a5c785787fcc15adb0e15"
+            },
+            "tokenizer.pkl": {
+              "bytes": 94580,
+              "device": 66305,
+              "inode": 842307,
+              "mtime_ns": 1789127658569213370,
+              "sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc"
+            }
+          },
+          "tokenizer_unchanged": true,
+          "training": false
+        }
+      },
+      "raw_archive": {
+        "bytes": 215472,
+        "path": "research/v2/operator/20260930-r158-e1bd-f1-exact-eval-trn21-preparation/cases/02-f1-unset/collect-20260930T084329340223Z.json",
+        "sha256": "02c7eff48788894e7ec5d11bf7da3cd34a497c30180860dd49ed5fddc518a8c6"
+      }
+    }
+  ],
+  "full": {
+    "actual_completed_receipt": null,
+    "final_disk_or_total_writes": null,
+    "fresh_public20m_score": null,
+    "launch": {
+      "automatic_next_job": false,
+      "dispatch_pid": 1589834,
+      "host": "trn21",
+      "label": "fs-20260930-r158-e1bd-f1-full-trn21-r1",
+      "root": "/home/ubuntu/trainium_freshstart_20260930_r158_e1bd_f1_full_trn21_r1/out/fs-20260930-r158-e1bd-f1-full-trn21-r1-packet",
+      "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+      "status": "DETACHED_DISPATCH_STARTED",
+      "utc": "2026-09-30T09:12:40.894068+00:00"
+    },
+    "launch_receipt": {
+      "bytes": 6108,
+      "path": "research/v2/operator/20260930-r158-e1bd-f1-full-trn21-preparation/launch-result.json",
+      "sha256": "96aebe4cbef7e6591aff1d4f38ab709765fa54401d89ada46363b64e2dab2c74"
+    },
+    "measured_full_charged_seconds": null,
+    "measured_full_cold_seconds": null,
+    "packet": {
+      "bytes": 1847273,
+      "path": "research/v2/operator/20260930-r158-e1bd-f1-full-trn21-preparation/artifacts/packet.json",
+      "sha256": "04d5cc3170b13a6ebba761a25f93d08fff0ee5759ce4ea2c849e85e0e2588a6e"
+    }
+  },
+  "historical_parent": {
+    "evidence": {
+      "bytes": 49815,
+      "path": "/home/poojith-devan/Downloads/Trainium-STATE-LIVE/audit-e1bd/cold-evidence.json",
+      "sha256": "a836f8852c3c64f07ea4e0c79182f3179928f7b9329ab10bff669163022c687d"
+    },
+    "historical_mean_not_f1_mean": 0.9671172862498154,
+    "parent_receipt_count": 2,
+    "substitution_scope": "Explicit R158 rationale only; not an actual second F1 run"
+  },
+  "host_calls": 0,
+  "local_numerical_execution": false,
+  "official_crash_cause": "UNKNOWN",
+  "package_accepted": false,
+  "parent_sha256": "e1bd539f49658a01bf3188b70e5c04eecdb85427cc9e55db96abf487fad5a310",
+  "schema": "r162-e1bd-f1-export-draft-evidence-v1",
+  "source_cpu": {
+    "bytes": 9540,
+    "path": "research/v2/verification/20260930-r158-e1bd-f1-independent/FINAL_REVIEW.json",
+    "sha256": "e18a626152f3ae41d4fe5cbab105715634e548f831b30e10c050451e1402d29c"
+  },
+  "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936",
+  "status": "EXPORT_DRAFT_NOT_READY",
+  "timing": {
+    "comparison": {
+      "bytes": 59761,
+      "path": "research/v2/operator/20260930-r158-e1bd-f1-native60-trn21-preparation/ACTUAL_COMPARISON.json",
+      "sha256": "589ecf2e587aeb352e082a04968b0a7cd923955bed4437621e36f0c6824f35d6"
+    },
+    "exact_source_executed": false,
+    "numerical_noise_threshold": null,
+    "raw_archive": {
+      "bytes": 958307,
+      "path": "research/v2/operator/20260930-r158-e1bd-f1-native60-trn21-preparation/artifacts/results-bundle.json",
+      "sha256": "6178c1cfa337bd13d786cee6f7c4c1747c9bce523c90d397a4db1212decc4c02"
+    },
+    "root_disposition": {
+      "bytes": 1698,
+      "path": "research/v2/operator/20260930-r158-e1bd-f1-full-trn21-preparation/ROOT_NOISE_DISPOSITION.r162.json",
+      "sha256": "a960eaabceec4867b8fc59190f4205660fd0ac56342b7848cb32294a1d1d5e3b"
+    },
+    "timed_source_sha256": "65c5e37b3e7074000f0a0cc0239d8aaf7445a773cba1c1600dc3180113c1ae2e"
+  },
+  "upload_performed": false
+}

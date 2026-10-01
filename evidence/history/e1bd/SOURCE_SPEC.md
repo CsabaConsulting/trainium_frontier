@@ -1,0 +1,7 @@
+# R109b CE2 + FLATCACHE + Z
+
+Explicit stack-confirmation authorized by R109b; exact Z0c2b plus existing FLAT9ac223d0, exact CE2a129bad4 four edits. No schedule change, seed42. All original causal objectives, tables and saved state keys retained. CE2 shares target1 LSE and rounds the combined logit gradient once to BF16; this is deliberately not a bit-exact claim. Original SDPA global setting is unchanged. FLAT uses original owner-major buffer and differentiable flat cast. No kernel edit beyond the independently reviewed CE2 constituent.
+
+R109b permits this combined FULL after SDPA timing fails, subject to Root selection, exact combined CPU and independent source review. Constituent CPU/native results are provenance only, not combined evidence. Existing normal FULL 26GiB entry/22GiB runtime,900s cold,1800s budget, four LNC2 ranks, fresh public20M unchanged. Adopt <=Z .9695241004219639-.0004. No automatic launch/upload/adoption.
+
+Combined CPU contract: bounded instance-only 1CPU/nice19, no cold-compile overlap. Reuse original FLAT four-rank three-update/two-micro fixture and strict plain checkpoint tests with unchanged tolerances; additionally tiny shared attention+CE2 CPU forward/backward through the flat cast and refresh across >=3 updates, compared against a plain-parameter reference; actual module flag and CE2 constituent AST authenticated. Native CE2 kernel body unchanged versus actual simulator receipt423669; no new kernel/speed gate. Worker/actuals pending, not evidence.

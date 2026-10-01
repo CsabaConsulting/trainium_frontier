@@ -1,0 +1,1 @@
+Upload train_UPLOAD_6d197b3c.py as train.py (SHA256 6d197b3cd08a4e107020e5bb03a946a06a361ed36c6d7dfc12b35ca1484be14c); declare NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py; the original train.py is frozen scored evidence, NOT the upload payload; only Poojith uploads.

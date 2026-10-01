@@ -1,0 +1,11 @@
+# LaneB-F1 actual FULL receipt handoff — Claude review requested
+
+Exact source02c758a9 / packetc2ec474c now has one authenticated research FULL: fresh public20M/T1024 BPB **0.9662405945335955**, cold **646.3923283990007 s**, charged-through-exit **1793.4267480380367 s**. This is not an official score or a package-compliance verdict.
+
+Original source export17 files/manifestc37d6bb5 remains byte-for-byte unchanged, including its historical pending fields. This new subdirectory supplies the actual receipt, exact raw-byte envelopes, member index, cold/checkpoint/terminal evidence and checklist addendum. It does not overwrite or reinterpret any separately written Claude verdict.
+
+The source-only R163 review handoff was already authorized. FINALIZATION_INSTRUCTIONS.r2.md is the unchanged e1bd-F1 donor policy document; its stage separation and unknown-telemetry rules apply here, while its arm-specific source/packet/receipt IDs remain historical donor context and are not LaneB-F1 evidence. All LaneB-F1 identities are pinned in this handoff. Per those rules, audit handoff does not await Claude acceptance; the exact final bytes/receipt references still need a separate independent integrity check. This exporter performs only self-consistency checks and records that independent final check as pending. Claude verdict remains NULL here, accepted_for_upload=false, no upload/submission action.
+
+R158 allows the historical LaneB receipts to cover the second receipt under unchanged explicit-LNC2 training. They remain historical LaneB, not a second actual F1 FULL, independent seeds or an F1-only mean. Existing LNC1/unset public2M proofs used the parent checkpoint8334b60b; this FULL uses its own authenticated checkpoint. Matched60 executed derivative547c, not exact02c758a9.
+
+Cumulative/transient/overwritten checkpoint/log/cache I/O, full residual inventory, backup state and pristine organiser environment remain UNKNOWN/unmeasured where absent. These are disclosed facts, not new experiment, launch or handoff gates. Item4's cold/budget requirements now have measured PASS evidence; other checklist judgments remain for the audit. Only ../train.py is the proposed payload. No source, evaluator, host, checkpoint tensor or global state is modified.

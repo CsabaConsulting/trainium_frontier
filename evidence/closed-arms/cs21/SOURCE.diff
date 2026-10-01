@@ -1,0 +1,11 @@
+--- research/v2/proposals/20260930-r168-flags-t3-opt3-laneb-f1/train.py
++++ research/v2/proposals/20260930-r172-cs21-mtpw75-t3/train.py
+@@ -907,7 +907,7 @@
+ 
+ def mtp_auxiliary_weight(progress: float) -> float:
+     # Host-side schedule only; every model invocation still receives a[2] tensor.
+-    return 0.5 * max(0.0, 1.0 - max(0.0, progress) / (2.0 / 3.0))
++    return 0.75 * max(0.0, 1.0 - max(0.0, progress) / (2.0 / 3.0))
+ 
+ def mtp_cross_entropy(logits, targets, weights, reduction):
+     """Parameter-free k1/k2 objective, inspired by modded-nanogpt PR178.

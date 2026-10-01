@@ -1,0 +1,306 @@
+{
+  "clock_calls": [
+    {
+      "expression": "time.monotonic()",
+      "line": 35
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2047
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2059
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2169
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2174
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2056
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2121
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2125
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2131
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2162
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2164
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2106
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2148
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2185
+    }
+  ],
+  "compiler_main_block": {
+    "a3_reference": {
+      "bytes": 100757,
+      "path": "/home/poojith-devan/Desktop/Trainium/research/v2/proposals/20260929-r69-a3-noproj-id/train.py",
+      "sha256": "c5ef8414e2df998a9b52eeb2e249b66c0110a3c37869e676719e93975a3432b4"
+    },
+    "byte_identical_to_A3": true,
+    "scope": "Byte-preservation fact only; no claim that main/import compiler settings are identical.",
+    "source_lines": [
+      36,
+      37
+    ],
+    "statement_sha256": "617d18838159d139fdfb6cfc5bcc2f7cf767c33bf3faf920632af3a0ca174c89"
+  },
+  "environment_calls": [
+    {
+      "expression": "os.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')",
+      "line": 38
+    },
+    {
+      "expression": "os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1')",
+      "line": 39
+    },
+    {
+      "expression": "os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')",
+      "line": 37
+    },
+    {
+      "expression": "os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out')",
+      "line": 1988
+    },
+    {
+      "expression": "os.environ.get('NEURON_LOGICAL_NC_CONFIG', '')",
+      "line": 2190
+    }
+  ],
+  "explicit_io_calls": [
+    {
+      "expression": "torch.save(payload, path)",
+      "line": 1917
+    },
+    {
+      "expression": "torch.load(checkpoint_path, map_location='cpu', weights_only=True)",
+      "line": 1926
+    },
+    {
+      "expression": "ensure_tokenizer(build_if_missing=False)",
+      "line": 1998
+    },
+    {
+      "expression": "make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device)",
+      "line": 2023
+    }
+  ],
+  "imports": [
+    {
+      "line": 26,
+      "statement": "from __future__ import annotations"
+    },
+    {
+      "line": 27,
+      "statement": "import argparse"
+    },
+    {
+      "line": 28,
+      "statement": "import gc"
+    },
+    {
+      "line": 29,
+      "statement": "import json"
+    },
+    {
+      "line": 30,
+      "statement": "import math"
+    },
+    {
+      "line": 31,
+      "statement": "import os"
+    },
+    {
+      "line": 32,
+      "statement": "import time"
+    },
+    {
+      "line": 33,
+      "statement": "from dataclasses import asdict, dataclass"
+    },
+    {
+      "line": 34,
+      "statement": "from pathlib import Path"
+    },
+    {
+      "line": 40,
+      "statement": "import torch"
+    },
+    {
+      "line": 41,
+      "statement": "import torch.distributed as dist"
+    },
+    {
+      "line": 42,
+      "statement": "import torch.distributed._functional_collectives as funcol"
+    },
+    {
+      "line": 43,
+      "statement": "import torch.nn as nn"
+    },
+    {
+      "line": 44,
+      "statement": "import torch.nn.functional as F"
+    },
+    {
+      "line": 45,
+      "statement": "from prepare import TOKENIZER_VOCAB_SIZE, TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS, TRAIN_STARTUP_STEPS_EXCLUDED, TRAIN_TIME_BUDGET_SECONDS, ensure_tokenizer, get_dist_info, make_dataloader, print0, record_step_boundary"
+    },
+    {
+      "line": 195,
+      "statement": "import nki"
+    },
+    {
+      "line": 196,
+      "statement": "import nki.language as nl"
+    },
+    {
+      "line": 197,
+      "statement": "import nki.isa as nisa"
+    },
+    {
+      "line": 327,
+      "statement": "from torch_neuronx import wrap_nki as _wrap_rope_norm_nki"
+    },
+    {
+      "line": 660,
+      "statement": "from torch_neuronx import wrap_nki as _wrap_softcap_ce_nki"
+    },
+    {
+      "line": 712,
+      "statement": "from torch_neuronx import wrap_nki as _wrap_conv2_nki"
+    },
+    {
+      "line": 974,
+      "statement": "from torch_neuronx import wrap_nki as _wrap_laneb_nki"
+    },
+    {
+      "line": 976,
+      "statement": "from nkilib.core.attention.attention_cte import attention_cte as _laneb_cte_kernel"
+    },
+    {
+      "line": 977,
+      "statement": "from nkilib.core.attention.attention_bwd import attention_bwd as _laneb_bwd_kernel"
+    },
+    {
+      "line": 979,
+      "statement": "from nkilib_src.nkilib.core.attention.attention_cte import attention_cte as _laneb_cte_kernel"
+    },
+    {
+      "line": 980,
+      "statement": "from nkilib_src.nkilib.core.attention.attention_bwd import attention_bwd as _laneb_bwd_kernel"
+    }
+  ],
+  "kernel_docstrings": [
+    {
+      "end_line": 253,
+      "has_docstring": true,
+      "line": 200,
+      "name": "_rope_norm_fwd"
+    },
+    {
+      "end_line": 325,
+      "has_docstring": true,
+      "line": 256,
+      "name": "_rope_norm_bwd"
+    },
+    {
+      "end_line": 435,
+      "has_docstring": true,
+      "line": 370,
+      "name": "_softcap_ce_fwd"
+    },
+    {
+      "end_line": 496,
+      "has_docstring": true,
+      "line": 438,
+      "name": "_softcap_ce_bwd"
+    },
+    {
+      "end_line": 587,
+      "has_docstring": true,
+      "line": 499,
+      "name": "_softcap_ce2_fwd"
+    },
+    {
+      "end_line": 659,
+      "has_docstring": true,
+      "line": 590,
+      "name": "_softcap_ce2_bwd"
+    },
+    {
+      "end_line": 757,
+      "has_docstring": true,
+      "line": 742,
+      "name": "_conv2_forward"
+    },
+    {
+      "end_line": 829,
+      "has_docstring": true,
+      "line": 806,
+      "name": "_conv2_backward"
+    },
+    {
+      "end_line": 1011,
+      "has_docstring": true,
+      "line": 988,
+      "name": "_LaneBWrappedAttention"
+    },
+    {
+      "end_line": 1032,
+      "has_docstring": true,
+      "line": 1014,
+      "name": "_lane_b_native_attention"
+    },
+    {
+      "end_line": 1118,
+      "has_docstring": false,
+      "line": 1116,
+      "name": "_fused_mlp_kernel"
+    },
+    {
+      "end_line": 1143,
+      "has_docstring": false,
+      "line": 1126,
+      "name": "_FusedMLP"
+    }
+  ],
+  "line_count": 2630,
+  "scope": "Static AST inventory only, not dynamic compliance, dependency availability, semantic equivalence or dead-code proof.",
+  "source_imported_or_executed": false,
+  "source_reference": {
+    "bytes": 145833,
+    "path": "/home/poojith-devan/Desktop/Trainium/research/v2/proposals/20260930-r113-laneb-wrapped-ce2-flat-z/train.py",
+    "sha256": "dcdef066d8d0827f4ecdf0a80f8517e5348af28eea7acc06e03df4db49d4e90d"
+  },
+  "targets_none_return_lines": [
+    1411
+  ],
+  "training_mode_attribute_uses": []
+}

@@ -1,0 +1,116 @@
+--- research/v2/proposals/20260929-r109-ce2-flat-zbundle/train.py
++++ research/v2/proposals/20260930-r113-laneb-wrapped-ce2-flat-z/train.py
+@@ -49,6 +49,7 @@
+ N_EMBD = 1024
+ MLP_RATIO = 4
+ ATTN_SCALE = 0.0
++LANE_B = True
+ N_KV_HEADS = 0
+ DEVICE_BATCH_SIZE = 1
+ TOTAL_BATCH_SIZE = 262144
+@@ -183,6 +184,7 @@
+     tbl_every: int = 2
+     d2_two_site: bool = False
+     tbl_freeze_tokens: int = 0
++    lane_b: bool = False
+ COMPUTE_DTYPE: torch.dtype = torch.bfloat16
+ 
+ def norm(x: torch.Tensor) -> torch.Tensor:
+@@ -966,11 +968,76 @@
+             return _RopeNormNKI.apply(x, cos, sin)
+     return norm(apply_rotary_emb(x, cos, sin))
+ 
++# R113: the native-tested R110 wrapped channel-major pair, not the older address adapter.
++# No CPU/timing/environment switch selects a different train/eval graph on Neuron.
++try:
++    from torch_neuronx import wrap_nki as _wrap_laneb_nki
++    try:
++        from nkilib.core.attention.attention_cte import attention_cte as _laneb_cte_kernel
++        from nkilib.core.attention.attention_bwd import attention_bwd as _laneb_bwd_kernel
++    except ImportError:
++        from nkilib_src.nkilib.core.attention.attention_cte import attention_cte as _laneb_cte_kernel
++        from nkilib_src.nkilib.core.attention.attention_bwd import attention_bwd as _laneb_bwd_kernel
++    _LANEB_CTE = _wrap_laneb_nki(_laneb_cte_kernel)[2]
++    _LANEB_BWD = _wrap_laneb_nki(_laneb_bwd_kernel)[2]
++except ImportError:
++    _LANEB_CTE = None
++    _LANEB_BWD = None
++
++
++class _LaneBWrappedAttention(torch.autograd.Function):
++    """R110 native-tested channel-major Function; copies are explicit model costs."""
++    @staticmethod
++    def forward(ctx, q_c, k_c, v_c, scale):
++        b, h, d, t = v_c.shape
++        v_t = v_c.reshape(b * h, d, t).transpose(1, 2).contiguous()
++        o, neg_max, sum_recip = _LANEB_CTE(
++            q_c, k_c, v_t, scale=scale, causal_mask=True, tp_q=False,
++            tp_k=False, tp_out=True, cache_softmax=True)
++        lse = -(neg_max.float() + torch.log(sum_recip.float()))
++        lse = lse.reshape(b, h, 128, t // 128).contiguous()
++        ctx.save_for_backward(q_c, k_c, v_c, o, lse)
++        ctx.scale = scale
++        return o
++
++    @staticmethod
++    def backward(ctx, d_o):
++        q_c, k_c, v_c, o, lse = ctx.saved_tensors
++        b, h, d, t = v_c.shape
++        outs = _LANEB_BWD(
++            q_c.view(b, h, d, t), k_c.view(b, h, d, t), v_c,
++            o.view(b, h, d, t), d_o.contiguous().view(b, h, d, t), lse,
++            use_causal_mask=True, mixed_precision=True, softmax_scale=ctx.scale)
++        return outs[0].view(b * h, d, t), outs[1].view(b * h, d, t), outs[2], None
++
++
++def _lane_b_native_attention(q, k, v, scale):
++    """B,H,T,D in/out; same native path for training and targets=None evaluation."""
++    if _LANEB_CTE is None or _LANEB_BWD is None:
++        raise RuntimeError('LANEB_NATIVE_LIBRARY_UNAVAILABLE')
++    if q.ndim != 4 or q.shape != k.shape or q.shape != v.shape:
++        raise ValueError('LANEB_EQUAL_BHTD_REQUIRED')
++    b, h, t, d = q.shape
++    if b < 1 or h < 1 or t < 512 or t % 512 or d < 1 or d > 128:
++        raise ValueError('LANEB_NATIVE_SHAPE_UNSUPPORTED')
++    if q.dtype != torch.bfloat16 or k.dtype != q.dtype or v.dtype != q.dtype:
++        raise ValueError('LANEB_BF16_REQUIRED')
++    if q.device != k.device or q.device != v.device:
++        raise ValueError('LANEB_SAME_DEVICE_REQUIRED')
++    scale = d ** -0.5 if scale is None else scale
++    q_c = q.transpose(2, 3).reshape(b * h, d, t).contiguous()
++    k_c = k.transpose(2, 3).reshape(b * h, d, t).contiguous()
++    v_c = v.transpose(2, 3).contiguous()
++    o = _LaneBWrappedAttention.apply(q_c, k_c, v_c, scale)
++    return o.view(b, h, d, t).transpose(2, 3)
++
++
+ class CausalSelfAttention(nn.Module):
+ 
+     def __init__(self, config: GPTConfig, layer_idx: int=0):
+         super().__init__()
+         self.n_head = config.n_head
++        self.lane_b = config.lane_b
+         self.n_embd = config.n_embd
+         self.head_dim = config.n_embd // config.n_head
+         assert self.head_dim * self.n_head == self.n_embd
+@@ -1025,7 +1092,10 @@
+         q = q.transpose(1, 2)
+         k = k.transpose(1, 2)
+         v = v.transpose(1, 2)
+-        y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
++        if self.lane_b and q.device.type == 'neuron':
++            y = _lane_b_native_attention(q, k, v, self.attn_scale)
++        else:
++            y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+         y = y.transpose(1, 2).contiguous().view(b, t, c)
+         if bigram_ve is not None and self.d1_injection == 'attention_pre_projection':
+             y = y + self.bigram_delta(x_v, bigram_ve)
+@@ -1348,7 +1418,7 @@
+ 
+ def build_config(*, d1_detached: bool=True, d1_injection: str='embedding_pre_norm', tbl_every: int=2, d2_two_site: bool=True, tbl_freeze_tokens: int=286000000) -> GPTConfig:
+     """Bare candidate training is ON; legacy saved GPTConfig dictionaries default OFF."""
+-    return GPTConfig(sequence_len=SEQ_LEN, vocab_size=TOKENIZER_VOCAB_SIZE, n_layer=DEPTH, n_head=N_EMBD // HEAD_DIM, n_embd=N_EMBD, mlp_ratio=MLP_RATIO, attn_scale=ATTN_SCALE, n_kv_heads=N_KV_HEADS, d1_detached=d1_detached, d1_injection=d1_injection, tbl_every=tbl_every, d2_two_site=d2_two_site, tbl_freeze_tokens=tbl_freeze_tokens)
++    return GPTConfig(sequence_len=SEQ_LEN, vocab_size=TOKENIZER_VOCAB_SIZE, n_layer=DEPTH, n_head=N_EMBD // HEAD_DIM, n_embd=N_EMBD, mlp_ratio=MLP_RATIO, attn_scale=ATTN_SCALE, n_kv_heads=N_KV_HEADS, lane_b=LANE_B, d1_detached=d1_detached, d1_injection=d1_injection, tbl_every=tbl_every, d2_two_site=d2_two_site, tbl_freeze_tokens=tbl_freeze_tokens)
+ POLAR_EXPRESS_COEFFS = [(8.156554524902461, -22.48329292557795, 15.878769915207462), (4.042929935166739, -2.808917465908714, 0.5000178451051316), (3.8916678022926607, -2.772484153217685, 0.5060648178503393), (3.285753657755655, -2.3681294933425376, 0.46449024233003106), (2.3465413258596377, -1.7097828382687081, 0.42323551169305323)]
+ _MUON_COMPILED: dict[tuple, object] = {}
+ 

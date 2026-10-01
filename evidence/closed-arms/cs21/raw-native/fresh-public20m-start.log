@@ -1,0 +1,19 @@
+FRESH-PUBLIC20M_START_UTC=2026-09-30T15:25:44.471949+00:00
+ISOLATED_SUBMISSION {"mode": "eval", "sandbox": "/home/ubuntu/trainium_freshstart_20260930_r173_cs21_mtpw75_t3_full_trn21_r1/out/fs-20260930-r173-cs21-mtpw75-t3-full-trn21-r1-packet/eval", "files": ["prepare.py", "train.py"], "train_sha256": "e056552274ac7ed3ec977589cda03428984ec373d1dc724e42f2698841645f82", "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb", "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --tbl_freeze_tokens 0", "fresh_empty_sdk_caches": {}}
+[W930 15:25:46.895035265 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+check passed
+REHEARSAL_COMMAND ["/home/ubuntu/workspace/native_venv/bin/python", "prepare.py", "eval-public", "--train-py", "train.py", "--checkpoint", "/home/ubuntu/trainium_freshstart_20260930_r173_cs21_mtpw75_t3_full_trn21_r1/out/fs-20260930-r173-cs21-mtpw75-t3-full-trn21-r1-packet/train/out/final.pt", "--device", "neuron", "--batch-size", "1", "--seq-len", "1024", "--eval-tokens", "20971520", "--timeout-seconds", "1200"]
+[W930 15:25:48.343265093 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.

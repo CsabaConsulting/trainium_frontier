@@ -1,0 +1,468 @@
+{
+  "schema": "trainium.independent_prospective_admission_review.v1",
+  "reviewer": "standing_research_verifier",
+  "independent": true,
+  "author_implementation_involvement": false,
+  "reviewed_at_utc": "2026-09-27T09:50:46Z",
+  "verdict": "PASS_LOCAL_PROSPECTIVE_ADMISSION_ONLY",
+  "integration_diff": {
+    "path": "research/v2/operator/20260927-nki-dpre-1510-preparation/INTEGRATION.diff",
+    "sha256": "6df7fdb5c1834a8167233ec9eb76b829b0a3e433f45e11aad5c79b70ea7b95ab"
+  },
+  "gate": {
+    "path": "research/v2/operator/20260927-nki-dpre-1510-preparation/gate.py",
+    "sha256": "eeba7ce10c68be3c3d6ce971b38a613055816b7896d0c9d15245174972489676"
+  },
+  "inspected_artifacts": {
+    "build_py_sha256": "468b5353f9522b74f0e1a8f5938e3a259f041cb09ca8d08b442b82f46fea2fdf",
+    "prepare_integration_sha256": "600bc86def3990d7201d10f8dc54d02f87ec188b5e33af53029c6953d28dae4b",
+    "test_gate_sha256": "738affaec16232116491bc2312007518a0ca98d407ab86bd0e8a4df247a95074",
+    "test_integration_sha256": "db9e3fc963d2b0efd2ad96b96ecc37b37713e0271a32db4c3c4346d11b50bbd1",
+    "author_receipt_sha256": "ba349da1b6ac784a17c597ab1d5a78326e63f0c9fb13a708a42c71719435af86",
+    "existing_read_only_git_gate_sha256": "d84f74e38f734de5835e92fe94e45d219aec9f7b1246efc4ecfa051309ea911c"
+  },
+  "exact_active_preconditions": {
+    "build_sha256": "9509b53eb9a1b95dd6414d920681fa87b89feac41f658c9c916d2d3763a94601",
+    "manual_job_sha256": "01717a02f94336167901772e0ce12d52bb69ad84aebf4c611be982fc9009d716",
+    "release_root_sha256": "4dbf2f6fb593b2053fc0496e9f10b162c65d742f40b521e54193578e2c96cb52"
+  },
+  "exact_prospective_sources": {
+    "build_sha256": "bd3c539b55f262e89a0581c1bd30dafae0a4430d8ccd89700824aa49a7b3e4fe",
+    "manual_job_sha256": "3def737a1ab36df6bc986eca3f0ac0288e9c59c84f4ec4de7c71b8aa750d984f",
+    "release_root_sha256": "a0352237267b5c24096e5373500c2fabbe615af20452c8e05988b8fc418aa1bf"
+  },
+  "source_cpu_review_reused": {
+    "source_sha256": "0bc973832a707893c73304449e219759f5431c672a919103e1247ffabc91c869",
+    "parent_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+    "receipt_path": "research/v2/research_cycles/20260927-mlp-dpre-gatefixed-verification.json",
+    "receipt_sha256": "7a7500952f14aad4d15bc328df8ce055e52cc1b18948c264dcb4382dde96977a",
+    "classification": "EXISTING_INDEPENDENT_SOURCE_CPU_EVIDENCE_NOT_NATIVE_PROOF"
+  },
+  "local_test_replay": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /home/poojith-devan/venv/bin/python -B -m unittest -v test_gate test_integration",
+    "cwd": "research/v2/operator/20260927-nki-dpre-1510-preparation",
+    "exit_code": 0,
+    "test_groups": 4,
+    "elapsed_seconds": 1.29,
+    "packet_reconstruction_claim_reproduced": 104,
+    "guard_comparison_claim_reproduced": 312,
+    "role_scenarios": "Both actual 15:10 host-role alternatives, missing role, wrong/obsolete alternatives, post-attempt checks, obsolete attempt refusal, temporary-fixture cancellation preservation.",
+    "scope": "Role claim/rebind calls operated only inside TemporaryDirectory fixtures, not active jobs."
+  },
+  "git_apply_check": {
+    "command": "git apply --check research/v2/operator/20260927-nki-dpre-1510-preparation/INTEGRATION.diff",
+    "exit_code": 0
+  },
+  "independent_reference": {
+    "path": "research/v2/research_cycles/20260927-nki-dpre-admission-reference-verification.py",
+    "sha256": "aca4b6e1652b2e385d9aa54be3e22a49c7d8afbd73e47dfd240cb05a837f11b1",
+    "command": "PYTHONDONTWRITEBYTECODE=1 /home/poojith-devan/venv/bin/python -B research/v2/research_cycles/20260927-nki-dpre-admission-reference-verification.py",
+    "exit_code": 0,
+    "checks": {
+      "verdict": "PASS_LOCAL_PROSPECTIVE_ADMISSION_ONLY",
+      "patch_sha256": "6df7fdb5c1834a8167233ec9eb76b829b0a3e433f45e11aad5c79b70ea7b95ab",
+      "original_sha256": [
+        "9509b53eb9a1b95dd6414d920681fa87b89feac41f658c9c916d2d3763a94601",
+        "01717a02f94336167901772e0ce12d52bb69ad84aebf4c611be982fc9009d716",
+        "4dbf2f6fb593b2053fc0496e9f10b162c65d742f40b521e54193578e2c96cb52"
+      ],
+      "prospective_sha256": [
+        "bd3c539b55f262e89a0581c1bd30dafae0a4430d8ccd89700824aa49a7b3e4fe",
+        "3def737a1ab36df6bc986eca3f0ac0288e9c59c84f4ec4de7c71b8aa750d984f",
+        "a0352237267b5c24096e5373500c2fabbe615af20452c8e05988b8fc418aa1bf"
+      ],
+      "packets": 104,
+      "existing_packets": 102,
+      "packet_members": 1456,
+      "original_guard_byte_comparisons": 312,
+      "unchanged_manual_functions": [
+        "sha",
+        "load_body",
+        "c239_qualification_contract",
+        "is_round7",
+        "round7_contract",
+        "successor_timing_packet",
+        "successor_full_packet",
+        "stack_ramp_packet",
+        "selected_stack_bigram_packet",
+        "norm_full_packet",
+        "norm_fallback_outcome",
+        "checked_packet",
+        "connector",
+        "remote",
+        "timing_predecessor_outcome",
+        "collect",
+        "status",
+        "status_one",
+        "_status_bindings"
+      ],
+      "stage_only_exact_base_predicate_changed": true,
+      "release_only_metadata_changed": true,
+      "new_bindings": {
+        "trn22-nki-dpre-gatefixed-native60-r5": {
+          "packet_sha256": "00a0481d686f209d3f272aff5ec761f2d02117f9a65f9a0bf76662003a479324",
+          "source_sha256": "0bc973832a707893c73304449e219759f5431c672a919103e1247ffabc91c869",
+          "source_bundle_sha256": "3091589eb29e2181f513ee1b2bf9218902549c48e0525b5c2788b16889de9804",
+          "predecessor": "trn22-r13-muoneq-gatefixed-full-r3",
+          "administrative_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "scientific_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "source_snapshot_clean_committed_bytes_exact": true,
+          "exact_guard_hashes": {
+            "lifetime_guard.py": "5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e",
+            "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+            "dispatch_driver.py": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"
+          }
+        },
+        "trn22-nki-dpre-gatefixed-native60-r6": {
+          "packet_sha256": "ef2834a461745b4a5212c611ddf807782240daa2f64ec5a2ac149c2e8609075b",
+          "source_sha256": "0bc973832a707893c73304449e219759f5431c672a919103e1247ffabc91c869",
+          "source_bundle_sha256": "aefbdae6ab514af744fd0365c0c40e216bc74cb1aa46c8e452ebff141f6fccc2",
+          "predecessor": "trn22-r13-c3-adamw-cooldown040-gatefixed-full-r5",
+          "administrative_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "scientific_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "source_snapshot_clean_committed_bytes_exact": true,
+          "exact_guard_hashes": {
+            "lifetime_guard.py": "5df6897deeaea3435a963f79b912ce49f320d3a65624f60a89762249c67ecb6e",
+            "idle_guard.py": "adafb54a98527570a76af19ec2785e68496bf1027c51c4127664435c8c963737",
+            "dispatch_driver.py": "c71474bc920f1bdba8f577d072497c4b94ca2c0318c29d39a37555da57ea041a"
+          }
+        }
+      },
+      "mutation_refusals": [
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.source_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.source_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.scientific_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.scientific_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.research_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.independent_review_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.host",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.predecessor",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.steps",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.no_eval",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.full_run_authorized",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.bpb_adoption_authorized",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "binding.root",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "rehash_file.package/train.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "rehash_file.INDEPENDENT_REVIEW_RECEIPT.json",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "rehash_file.lifetime_guard.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "rehash_file.idle_guard.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "mutation": "rehash_file.dispatch_driver.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.source_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.source_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.scientific_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.scientific_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.research_base_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.independent_review_sha256",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.host",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.predecessor",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.steps",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.no_eval",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.full_run_authorized",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.bpb_adoption_authorized",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "binding.root",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "rehash_file.package/train.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "rehash_file.INDEPENDENT_REVIEW_RECEIPT.json",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "rehash_file.lifetime_guard.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "rehash_file.idle_guard.py",
+          "refused": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "mutation": "rehash_file.dispatch_driver.py",
+          "refused": true
+        }
+      ],
+      "actual_stage_base_predicate_cases": [
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "queue_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "admitted_by_base_predicate": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "queue_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r5",
+          "queue_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "queue_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "admitted_by_base_predicate": true
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "queue_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "trn22-nki-dpre-gatefixed-native60-r6",
+          "queue_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "packet_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "admitted_by_base_predicate": true
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "packet_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "packet_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "packet_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "packet_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "admitted_by_base_predicate": true
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "packet_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "packet_base": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "packet_base": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+          "admitted_by_base_predicate": false
+        },
+        {
+          "key": "ordinary-arm",
+          "queue_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "packet_base": "1111111111111111111111111111111111111111111111111111111111111111",
+          "admitted_by_base_predicate": true
+        }
+      ],
+      "source_pin_refused": true,
+      "review_pin_refused": true,
+      "active_bytes_unchanged": true,
+      "host_calls": 0,
+      "source_changed": false,
+      "release_or_role_calls": false,
+      "elapsed_seconds": 1.6715576630085707
+    },
+    "fixture_corrections": "The verifier's own initial builder-restoration fixture consumed one original newline; its source-poison wrapper then lacked the folder.name interface. Both test-only fixtures were corrected. No integration/gate/source/packet bytes changed."
+  },
+  "findings": [
+    {
+      "verdict": "PASS",
+      "topic": "Exact change surface",
+      "reason": "Only two new exact keys/derivations, pinned builder admission, their administrative-base predicate and release reporting metadata. Removing the added builder block restores the original bytes; all other manual functions including checked_packet/remote/collect/status remain AST-identical; stage differs only at the identified base assertion."
+    },
+    {
+      "verdict": "PASS",
+      "topic": "Lifetime and original host gates",
+      "reason": "All 312 original lifetime/idle/dispatch guards are byte-identical across 104 reconstructed packets. Existing actual predecessor/archive/postflight, controller stops/breakers, one-shot attempt, own-host source/command, device/disk/idle and under-lock lifecycle remain on the common stage path. No stage/release/host function was executed by the verifier."
+    },
+    {
+      "verdict": "PASS",
+      "topic": "Scientific versus administrative ancestry",
+      "reason": "Only the two exact NKI keys compare authoritative queue research_base.source_sha256 to pinned c239 administrative ancestry. Packet base/scientific base are independently fixed to500f, source to0bc97383, review to7a750095 and all immutable source/guard members are exact. Six actual new-key base-predicate cases reject queued500f or an unrelated selected base; nine ordinary-arm cases retain the original equality. Thirty-eight packet/file mutations plus direct source/review-parent poison tests refuse stale or altered science."
+    },
+    {
+      "verdict": "PASS_WITH_EXISTING_CONTROLLER_CONTRACT",
+      "topic": "Future adoption",
+      "reason": "The fail-closed adoption signal remains the existing authoritative queue research_base.source_sha256 field. If that field changes after any adoption, these exact packets refuse stage until revised/reviewed. As with the original controller, unrecorded adoption or leaving authoritative state stale is not detectable from prose and is not authorized by this review. No new native prerequisite is imposed."
+    },
+    {
+      "verdict": "PASS",
+      "topic": "One timing role and scope",
+      "reason": "One shared singleton permits only the r5 or r6 alternative matching the actual selected trn22 own predecessor; obsolete/different attempts are refused. Original one-shot launch guard still refuses reattempts of the same label. Both new packets remain disabled, no_eval, steps60, full_run_authorized=false and bpb_adoption_authorized=false."
+    },
+    {
+      "verdict": "PASS",
+      "topic": "Comparator honesty",
+      "reason": "Fresh same-host500f control fields remain pending/null until archive authentication. Native dispatch/finite execution/loss/throughput/cold-accounted gain are NOT_ESTABLISHED. No inherited BPB or speed claim and no public evaluation in this timing."
+    }
+  ],
+  "blockers": [],
+  "authority": {
+    "apply_diff": false,
+    "active_release": false,
+    "launch": false,
+    "full_run": false,
+    "adoption": false,
+    "submission": false
+  },
+  "operational_effects": {
+    "active_bytes_unchanged": true,
+    "active_roles_or_queue_changed": false,
+    "host_calls": 0,
+    "native_compiler_or_simulator_calls": 0,
+    "training_source_edited": false,
+    "new_native_prerequisites": false
+  }
+}

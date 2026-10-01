@@ -1,0 +1,17 @@
+module: /tmp/claude-0/-home-claude/e1fbea70-9e4a-5ab1-9e49-65b6b2bde8d7/scratchpad/audit/candidate_train.py HAS_NKI: False
+NEURON_CC_FLAGS set at import: --optlevel=1 | NEURON_COMPILE_CACHE_DIR: /tmp/neuron_cache
+config: GPTConfig(sequence_len=1024, vocab_size=8192, n_layer=8, n_head=8, n_embd=1024, mlp_ratio=4, attn_scale=0.0, n_kv_heads=0)
+params: 113,256,724
+attention layers: [0, 2, 4, 6, 7] | value-embed layers: ['7'] | unet gates: 4
+[PASS] T1 causality (eval, full 8-layer U-Net): max|dlogits[<k]|=0.000e+00, future positions changed by 4.375e+00
+[PASS] T2 batch independence (B1 vs B3, CPU): max|diff|=0.000e+00
+[PASS] T3 train-mode vs eval-mode forward (MLP routes differ): max|diff|=0.000e+00
+[PASS] T4 _FusedMLP fwd/bwd vs autograd (bf16): fwd rel=0.00e+00; grad rel x=0.00e+00 up=0.00e+00 down=0.00e+00
+[PASS] T5 save_checkpoint -> load_for_eval (weights_only) identical logits: max|diff|=0.000e+00, eval=True, frozen=True, hooks=0, seq_len=8192
+   checkpoint keys: ['meta', 'model_config', 'model_state'] | model_config: {'sequence_len': 1024, 'vocab_size': 8192, 'n_layer': 8, 'n_head': 8, 'n_embd': 1024, 'mlp_ratio': 4, 'attn_scale': 0.0, 'n_kv_heads': 0}
+[PASS] T6 conv kernel math vs eager conv1d (fwd, dx, dw, causal): fwd rel=3.5e-08 dx rel=3.5e-08 dw rel=5.2e-07
+[PASS] T7 rope+norm kernel math fwd/bwd vs eager autograd: fwd rel=0.0e+00 bwd rel=5.6e-08
+[PASS] T8 softcap-CE kernel math fwd/bwd vs eager: loss rel=4.7e-08 grad rel=6.0e-08
+[PASS] T9 schedule clock helper (LR only; stop clock separate): startup 860s->0.0, startup 1000s->130.0 (charged excess), post-boundary->123.0
+
+SUMMARY: 9/9 PASS

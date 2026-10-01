@@ -1,0 +1,699 @@
+{
+  "schema": "trainium.independent_source_cpu_review.v1",
+  "reviewed_at_utc": "2026-09-27T09:43:28Z",
+  "reviewer": "standing_research_verifier",
+  "independent": true,
+  "author_source_involvement": false,
+  "verdict": "PASS_SOURCE_CPU_ONLY_ALL_FOUR",
+  "parent_source_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+  "parent_source_path": "research/v2/proposals/20260927-r13-gate-adamw-c239/train.py",
+  "comparison_control": "Fresh authentic gatefixed500f control; not historical c239 for causal science attribution.",
+  "review_priority": [
+    "clip0",
+    "QK120",
+    "warm40",
+    "bigram"
+  ],
+  "arms": {
+    "clip0": {
+      "verdict": "PASS_SOURCE_CPU_ONLY",
+      "source_path": "research/v2/proposals/20260927-clip0-gatefixed/train.py",
+      "source_sha256": "31595afc34617e401977edca06749adf7aa98307d10b740ddb0f21cd94b3faf9",
+      "spec_sha256": "e3a8412970b1c601b01b88a1f1120e4e0983c91fd2a846391eb93f45dab36657",
+      "author_cpu_receipt_sha256": "673776445aca9660702b1a96385ca3bc17bfa9ef78adc1623fbb989290576774",
+      "author_cpu_receipt_classification": "AUTHOR_EVIDENCE_ONLY_NOT_INDEPENDENT",
+      "artifacts": {
+        "train.py": "31595afc34617e401977edca06749adf7aa98307d10b740ddb0f21cd94b3faf9",
+        "SPEC.md": "e3a8412970b1c601b01b88a1f1120e4e0983c91fd2a846391eb93f45dab36657",
+        "EDITS.json": "6445122a39187832daab3ff6e7a0877c29dd38fce33092ffcc8d67107dd569d1",
+        "change.patch": "fc7583ab03141812ea246ee15bed4a673cd237ef083a066397c19625d83c7cd9",
+        "CPU_RECEIPT.json": "673776445aca9660702b1a96385ca3bc17bfa9ef78adc1623fbb989290576774",
+        "test_cpu.py": "7e315c19abbb10a94c858d4cbc74cd2127d6121f818b24229c2a04a769de7b12",
+        "EXPERIMENT_PROPOSAL.json": "b0aa7757947f757f396c5cab9574902ccffd339de517acada24d4d594e73aa26"
+      },
+      "blockers": [],
+      "restrictions": [
+        "No native launch, adoption or submission authority in this source/CPU receipt."
+      ],
+      "checks": {
+        "parameter_tensors": 65,
+        "parameter_elements": 113256724,
+        "matrix_gates": {
+          "transformer.h.7.attn.ve_gate.weight": [
+            8,
+            32
+          ]
+        },
+        "exact_optimizer_owner_coverage": true,
+        "exact_science_edits_unchanged": true,
+        "exact_union_both_directions": true,
+        "gate_removal_recovers_old_science": true,
+        "main_save_load_sync_clip_ast_unchanged": true,
+        "old_source_sha256": "b17d21da95dbd50cac5d6c8ebaa6eba2b6b7cc9ba27ae2bc3a68e69341decd5e",
+        "science_edit_count": 1,
+        "finite_nonzero_all_parameter_gradients_after_nonzero_fixture": true,
+        "bf16_ce_inputs": [
+          "torch.bfloat16",
+          "torch.bfloat16"
+        ],
+        "prefix_causality": true,
+        "sequence_one_finite": true,
+        "independent_batch_rows": true,
+        "actual_load_for_eval_strict_weights_only_same_dtype_parity": true,
+        "evaluator_model_frozen": true,
+        "shared_train_eval_model": true,
+        "tiny_width": 128,
+        "tiny_sequence": 7,
+        "synthetic_cpu_loss": 4.851016521453857,
+        "own_reference": [
+          {
+            "magnitude": 0,
+            "average_before_clip": true,
+            "all_nonmissing_gradients_synchronized": true,
+            "off_norm_preserved": true,
+            "outside_clip_list_synchronized": true
+          },
+          {
+            "magnitude": 0.01,
+            "average_before_clip": true,
+            "all_nonmissing_gradients_synchronized": true,
+            "off_norm_preserved": true,
+            "outside_clip_list_synchronized": true
+          },
+          {
+            "magnitude": 100,
+            "average_before_clip": true,
+            "all_nonmissing_gradients_synchronized": true,
+            "off_norm_preserved": true,
+            "outside_clip_list_synchronized": true
+          }
+        ]
+      }
+    },
+    "QK120": {
+      "verdict": "PASS_SOURCE_CPU_ONLY",
+      "source_path": "research/v2/proposals/20260927-qk-scale120-gatefixed/train.py",
+      "source_sha256": "0c02018753cba1947c3ed7f75e7871feab1e4fa15ab62258522e06b44289fe63",
+      "spec_sha256": "46583e3333311c0f59c03e5d15c5f36ac784ae9022923ed0498c9190c1770ecc",
+      "author_cpu_receipt_sha256": "bd6b25b7a6f597d31000a6eea1242492043e14f155d893aeb7719722005621ee",
+      "author_cpu_receipt_classification": "AUTHOR_EVIDENCE_ONLY_NOT_INDEPENDENT",
+      "artifacts": {
+        "train.py": "0c02018753cba1947c3ed7f75e7871feab1e4fa15ab62258522e06b44289fe63",
+        "SPEC.md": "46583e3333311c0f59c03e5d15c5f36ac784ae9022923ed0498c9190c1770ecc",
+        "EDITS.json": "7e7f806eec50f0c539486fa21c28e160d2e61d90fa3e296213adc676e175ade1",
+        "change.patch": "f2458ab5668bff51e69043d5c0d2e8fa71de485b2f62ddbdff34605dc704f36c",
+        "CPU_RECEIPT.json": "bd6b25b7a6f597d31000a6eea1242492043e14f155d893aeb7719722005621ee",
+        "test_cpu.py": "e3a6a855abc8f7feaad41a3e99dccb8622e119bfaf022304eea6e4f8c8e21654",
+        "EXPERIMENT_PROPOSAL.json": "bce48ea90cd934e69eae52b670aae434f91e7f4aa66d4b9f16c7d9f48e2a04f1"
+      },
+      "blockers": [],
+      "restrictions": [
+        "No native launch, adoption or submission authority in this source/CPU receipt."
+      ],
+      "checks": {
+        "parameter_tensors": 65,
+        "parameter_elements": 113256724,
+        "matrix_gates": {
+          "transformer.h.7.attn.ve_gate.weight": [
+            8,
+            32
+          ]
+        },
+        "exact_optimizer_owner_coverage": true,
+        "exact_science_edits_unchanged": true,
+        "exact_union_both_directions": true,
+        "gate_removal_recovers_old_science": true,
+        "main_save_load_sync_clip_ast_unchanged": true,
+        "old_source_sha256": "4b92ff94e803c30c962557f048ca2493bade01a67c2d951bb52875408ad0c35d",
+        "science_edit_count": 1,
+        "finite_nonzero_all_parameter_gradients_after_nonzero_fixture": true,
+        "bf16_ce_inputs": [
+          "torch.bfloat16",
+          "torch.bfloat16"
+        ],
+        "prefix_causality": true,
+        "sequence_one_finite": true,
+        "independent_batch_rows": true,
+        "actual_load_for_eval_strict_weights_only_same_dtype_parity": true,
+        "evaluator_model_frozen": true,
+        "shared_train_eval_model": true,
+        "tiny_width": 128,
+        "tiny_sequence": 7,
+        "synthetic_cpu_loss": 4.8510003089904785,
+        "own_reference": {
+          "head_dim": 128,
+          "actual_scale": 0.10606601717798211,
+          "post_normalization_sdpa": true,
+          "independent_masked_softmax_max_abs_error": 0.0001220703125,
+          "independent_input_gradient_max_abs_error": 0.00048828125,
+          "integrated_oracle_dtype": "BF16 inputs/output, FP32 softmax reference",
+          "float64_formula_cases": [
+            {
+              "head_dim": 16,
+              "forward_gradient_max_abs_error": 6.661338147750939e-16
+            },
+            {
+              "head_dim": 128,
+              "forward_gradient_max_abs_error": 1.3877787807814457e-15
+            }
+          ],
+          "rejects_double_1p2_scaling": true,
+          "positive_config_scale_is_intentionally_overridden": true
+        }
+      }
+    },
+    "warm40": {
+      "verdict": "PASS_SOURCE_CPU_ONLY",
+      "source_path": "research/v2/proposals/20260927-warmdown040-gatefixed/train.py",
+      "source_sha256": "43511a00ea3b0e306b87904ce3ef2779ed0b129d47d4c710b4eb3318f75f924e",
+      "spec_sha256": "29afe000de90cc9578221b1251925da50f93bd6c1c6bb6a43b3078117542538e",
+      "author_cpu_receipt_sha256": "499ed2f6d2a9ae9673745453723e6f181524983ae1bdb1320d926ccf2e28cdc3",
+      "author_cpu_receipt_classification": "AUTHOR_EVIDENCE_ONLY_NOT_INDEPENDENT",
+      "artifacts": {
+        "train.py": "43511a00ea3b0e306b87904ce3ef2779ed0b129d47d4c710b4eb3318f75f924e",
+        "SPEC.md": "29afe000de90cc9578221b1251925da50f93bd6c1c6bb6a43b3078117542538e",
+        "EDITS.json": "3621276945be8bbabddac5910375876cbf7772c748c70a63c428dff618fd0abb",
+        "change.patch": "9adc4a01f608c771cdeed1616ded7d12c9d73f7e0e73df19b908736ce26309b4",
+        "CPU_RECEIPT.json": "499ed2f6d2a9ae9673745453723e6f181524983ae1bdb1320d926ccf2e28cdc3",
+        "test_cpu.py": "9fdf4817e82a247ac3275e989c773ee97476d33adbc8517ed6902634b8385cf0",
+        "EXPERIMENT_PROPOSAL.json": "dee1508e0f5c3b765993cf52444efe282ede5a6790850d0025fddc85b877539e"
+      },
+      "blockers": [],
+      "restrictions": [
+        "No native launch, adoption or submission authority in this source/CPU receipt."
+      ],
+      "checks": {
+        "parameter_tensors": 65,
+        "parameter_elements": 113256724,
+        "matrix_gates": {
+          "transformer.h.7.attn.ve_gate.weight": [
+            8,
+            32
+          ]
+        },
+        "exact_optimizer_owner_coverage": true,
+        "exact_science_edits_unchanged": true,
+        "exact_union_both_directions": true,
+        "gate_removal_recovers_old_science": true,
+        "main_save_load_sync_clip_ast_unchanged": true,
+        "old_source_sha256": "c298b7fe0370cc85b9f3a80c807f6b379029e62f9e1fa8c48af64071d55cc0d0",
+        "science_edit_count": 1,
+        "finite_nonzero_all_parameter_gradients_after_nonzero_fixture": true,
+        "bf16_ce_inputs": [
+          "torch.bfloat16",
+          "torch.bfloat16"
+        ],
+        "prefix_causality": true,
+        "sequence_one_finite": true,
+        "independent_batch_rows": true,
+        "actual_load_for_eval_strict_weights_only_same_dtype_parity": true,
+        "evaluator_model_frozen": true,
+        "shared_train_eval_model": true,
+        "tiny_width": 128,
+        "tiny_sequence": 7,
+        "synthetic_cpu_loss": 4.851016521453857,
+        "own_reference": {
+          "boundary_cases": [
+            {
+              "step": 0,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 0,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 0,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 0,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 1,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 1,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 1,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 39,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 39,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 39,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 40,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 40,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 40,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 300,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 300,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 300,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.249999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.25,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.599999,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.6,
+              "lr_multiplier": 1
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.600001,
+              "lr_multiplier": 0.999997625
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.75,
+              "lr_multiplier": 0.64375
+            },
+            {
+              "step": 999,
+              "charged_fraction": 0.9,
+              "lr_multiplier": 0.2875
+            },
+            {
+              "step": 999,
+              "charged_fraction": 1,
+              "lr_multiplier": 0.05
+            },
+            {
+              "step": 999,
+              "charged_fraction": 1.05,
+              "lr_multiplier": 0.05
+            }
+          ],
+          "warmup_branch_cases": 5,
+          "warmup_default": 0,
+          "final_lr_fraction": 0.05,
+          "all_actual_groups_decay": true,
+          "charged_start_seconds": 1080,
+          "adamw_wd_betas_eps_unchanged": true,
+          "muon_wd_momentum_beta2_unchanged": true
+        }
+      }
+    },
+    "bigram": {
+      "verdict": "PASS_SOURCE_CPU_ONLY",
+      "source_path": "research/v2/proposals/20260927-bigram8192-direct-gatefixed/train.py",
+      "source_sha256": "584f38a7f047e415113ff56000e05ac9771ca643b90a32e1200780050542ee0f",
+      "spec_sha256": "0e053a037c8b8dd7911ea0da90f4e1f5b3e4836bb64615124bc051d6b82a6905",
+      "author_cpu_receipt_sha256": "b79059903758bea3daf918009e93d7bb06ed0a910c251dca5ae160b54cb4b113",
+      "author_cpu_receipt_classification": "AUTHOR_EVIDENCE_ONLY_NOT_INDEPENDENT",
+      "artifacts": {
+        "train.py": "584f38a7f047e415113ff56000e05ac9771ca643b90a32e1200780050542ee0f",
+        "SPEC.md": "0e053a037c8b8dd7911ea0da90f4e1f5b3e4836bb64615124bc051d6b82a6905",
+        "EDITS.json": "281efb468ead282290f2e78a7df28c1f43dce950cafe38a4b6b604264ead5748",
+        "change.patch": "4cf38a464549d147e8cf46663b3ca9349e815b5a00481407447266eb02aa0787",
+        "CPU_RECEIPT.json": "b79059903758bea3daf918009e93d7bb06ed0a910c251dca5ae160b54cb4b113",
+        "test_cpu.py": "0c277e4dbc58ad2da00d02fb7cfe38b93edf0f42eeed53dc854c3bd5cab56850",
+        "EXPERIMENT_PROPOSAL.json": "294a9c5889db2521948e53f43ab6ca4baa7e0bf14419c3e39e33686105d219d0"
+      },
+      "blockers": [],
+      "restrictions": [
+        "COMPILE60_ONLY_NO_FULL_RUN_AUTHORITY",
+        "Native direct-parameter indexing/compiler viability UNKNOWN; old failures not reversed by CPU evidence."
+      ],
+      "checks": {
+        "parameter_tensors": 67,
+        "parameter_elements": 121645340,
+        "matrix_gates": {
+          "transformer.h.7.attn.ve_gate.weight": [
+            8,
+            32
+          ]
+        },
+        "exact_optimizer_owner_coverage": true,
+        "exact_science_edits_unchanged": true,
+        "exact_union_both_directions": true,
+        "gate_removal_recovers_old_science": true,
+        "main_save_load_sync_clip_ast_unchanged": true,
+        "old_source_sha256": "0a524fba6b56a2550d957678b3f93f9d17190700afb8832ecb3e3bb42a37ffce",
+        "science_edit_count": 7,
+        "finite_nonzero_all_parameter_gradients_after_nonzero_fixture": true,
+        "bf16_ce_inputs": [
+          "torch.bfloat16",
+          "torch.bfloat16"
+        ],
+        "prefix_causality": true,
+        "sequence_one_finite": true,
+        "independent_batch_rows": true,
+        "actual_load_for_eval_strict_weights_only_same_dtype_parity": true,
+        "evaluator_model_frozen": true,
+        "shared_train_eval_model": true,
+        "tiny_width": 128,
+        "tiny_sequence": 7,
+        "synthetic_cpu_loss": 4.851063251495361,
+        "own_reference": {
+          "hash_reference_pairs": 256,
+          "hash_dtype": "int32",
+          "production_token_products_int32_safe": true,
+          "row_start_pad": 8192,
+          "no_future_dependence": true,
+          "collision_repetitions": 1025,
+          "collision_fp32_sum": 1.25,
+          "flag_off_parent_state_output_gradients_exact": true,
+          "flag_off_optimizer_policy_exact": true,
+          "actual_flag_off_checkpoint_reload_parity": true,
+          "zero_table_parent_output_and_common_gradients_exact": true,
+          "zero_table_initial_scale_gradient_zero": true,
+          "zero_table_initial_table_gradient_nonzero": true,
+          "initialization_common_weights_rng_exact": true,
+          "shared_lookup_count_train": 1,
+          "shared_lookup_count_eval": 1,
+          "independent_per_use_lookup_forward_bitwise": true,
+          "table_optimizer_policy": {
+            "kind": "adamw",
+            "lr": 0.2598076211353316,
+            "betas": [
+              0.8,
+              0.95
+            ],
+            "eps": 1e-10,
+            "weight_decay": 0.001,
+            "initial_lr": 0.2598076211353316,
+            "initial_betas": [
+              0.8,
+              0.95
+            ]
+          },
+          "scale_optimizer_policy": {
+            "kind": "adamw",
+            "lr": 0.2,
+            "betas": [
+              0.9,
+              0.95
+            ],
+            "eps": 1e-10,
+            "weight_decay": 0,
+            "initial_lr": 0.2,
+            "initial_betas": [
+              0.9,
+              0.95
+            ]
+          }
+        }
+      }
+    }
+  },
+  "own_reference": {
+    "path": "research/v2/research_cycles/20260927-r12-remaining-gatefixed-reference-verification.py",
+    "sha256": "d8a6e742c49bd5e68a9dae6e406f6a7d211f34f0862f2989d40616095146371f",
+    "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/poojith-devan/venv/bin/python research/v2/research_cycles/20260927-r12-remaining-gatefixed-reference-verification.py",
+    "exit_code": 0,
+    "torch_version": "2.13.0+cpu",
+    "elapsed_seconds": 1.1972261019982398,
+    "test_scope": "Actual selected candidate AST definitions, production-width meta optimizer/ownership inventory, width128 synthetic CPU forward/backward/load_for_eval; no train.py runtime import.",
+    "harness_iteration_note": "Initial direct-attention oracle fed FP32 into a BF16-only normalized path, causing a dtype mismatch in the test fixture. Fixture changed to the actual BF16 input contract; candidate source never changed. Final full rerun passed.",
+    "older_receipts": "Old c239 scalar/hash source evidence inspected as context; no old CPU result inherited as new independent proof."
+  },
+  "numerical_evidence_limits": [
+    "Synthetic CPU losses are logic diagnostics, not validation BPB or evidence of gain.",
+    "QK BF16 manual-oracle comparison is tolerance-based: max abs output 0.0001220703125 and input gradient 0.00048828125. Separate FP64 formula/gradient cases max error 1.3877787807814457e-15.",
+    "Four-rank gradient averaging uses a deterministic fake transport executing the actual source sync function; no real collective ran.",
+    "Bigram per-use-lookup oracle establishes forward equality only; no claim that reassociating BF16 shared gradients is exact.",
+    "Production inventory uses meta tensors; whole-model numerical tests use width128/vocab128/context7. No full-width native run or optimizer update was executed."
+  ],
+  "documentation_caveats": [
+    {
+      "scope": [
+        "clip0",
+        "QK120",
+        "warm40"
+      ],
+      "blocking": false,
+      "note": "Final SPEC paragraph contains irrelevant bigram zero-table/gradient prose. It is not evidence for these three arms."
+    },
+    {
+      "scope": [
+        "clip0",
+        "warm40"
+      ],
+      "blocking": false,
+      "note": "Generic SPEC 'bare command/defaults unchanged' is inaccurate for the explicitly named GRAD_CLIP/WARMDOWN_RATIO default. Bare command/main AST unchanged; named scalar default intentionally changes."
+    },
+    {
+      "scope": [
+        "QK120"
+      ],
+      "blocking": false,
+      "note": "The attention scale assignment unconditionally overrides even a positive config.attn_scale. Reviewed intended bare setting uses config.attn_scale=0; no claim of preserving a custom scale override."
+    },
+    {
+      "scope": [
+        "bigram"
+      ],
+      "blocking": false,
+      "note": "New table and per-layer scale parameters intentionally extend optimizer groups. 'No optimizer routing change beyond500f' must be read as existing-parameter routing only; new table follows embedding AdamW and new 1-D scales follow scalar AdamW."
+    }
+  ],
+  "legal_scope": {
+    "evaluator_tokenizer_prepare_scoring_unchanged": true,
+    "main_and_budget_clock_unchanged": true,
+    "external_or_validation_training_data_used": false,
+    "pretrained_weights_used": false,
+    "all_matrix_gates_adamw": true,
+    "scalar_unet_gate_lr": 0.2,
+    "expected_trainium_gain": "UNKNOWN",
+    "native_or_compiler_executed": false,
+    "hosts_or_active_machinery_changed": false,
+    "source_cpu_review_only": true,
+    "launch_authority": false,
+    "adoption_authority": false,
+    "submission_authority": false
+  },
+  "blockers": [],
+  "no_new_native_prerequisites_imposed": true
+}

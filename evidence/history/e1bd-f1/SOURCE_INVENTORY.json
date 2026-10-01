@@ -1,0 +1,984 @@
+{
+  "definitions": [
+    {
+      "docstring": "Depthwise causal conv1d: zero-initialized, so the residual branch it's added into starts as a true no-op.",
+      "kind": "ClassDef",
+      "line": 100,
+      "name": "CausalConv"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 119,
+      "name": "neuron_available"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 126,
+      "name": "detect_device_type"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 135,
+      "name": "init_runtime"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 155,
+      "name": "cleanup_runtime"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 159,
+      "name": "synchronize"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 165,
+      "name": "compute_dtype_for"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 173,
+      "name": "GPTConfig"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 190,
+      "name": "norm"
+    },
+    {
+      "docstring": "softcap(z) = LOGIT_SOFTCAP * tanh(z / LOGIT_SOFTCAP) followed by cross-entropy. On Neuron, contiguous\nfp32 logits with a row count divisible by 128 use the fused NKI kernel pair, which returns the\nunreduced per-token loss; the mean/none reduction is applied here exactly as F.cross_entropy\nwould apply it. Other inputs use the eager chain.",
+      "kind": "FunctionDef",
+      "line": 857,
+      "name": "softcap_cross_entropy"
+    },
+    {
+      "docstring": "Unreduced softcap15 cross-entropy of the same logits against two target tensors of one shape,\nsharing the softcap and the softmax. On Neuron, contiguous fp32/bf16 logits with a row count\ndivisible by 128 use the fused two-target NKI kernel pair (one forward pass, one combined\ngradient); other inputs use the eager chain: one softcap, F.cross_entropy twice. Returns\n(first, second) shaped like the targets, exactly what two softcap_cross_entropy(..., 'none')\ncalls return; any mask/weight/mean reduction stays with the caller.",
+      "kind": "FunctionDef",
+      "line": 884,
+      "name": "softcap_cross_entropy2"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 906,
+      "name": "mtp_auxiliary_weight"
+    },
+    {
+      "docstring": "Parameter-free k1/k2 objective, inspired by modded-nanogpt PR178.\n\nhttps://github.com/KellerJordan/modded-nanogpt/pull/178 (MIT).\nIndependently implemented. No extra head or eval change. Do not branch on\nweights: both same-shape CE calls remain when k2 weight reaches zero.\nPer-row last-position k2 has no valid target, and is masked, never wrapped.",
+      "kind": "FunctionDef",
+      "line": 910,
+      "name": "mtp_cross_entropy"
+    },
+    {
+      "docstring": "Bias-free linear with a differentiable cast cache refreshed after each update.",
+      "kind": "ClassDef",
+      "line": 936,
+      "name": "Linear"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 953,
+      "name": "apply_rotary_emb"
+    },
+    {
+      "docstring": "norm(apply_rotary_emb(x, cos, sin)), fused into one NKI kernel on Neuron when B*T and T are multiples\nof 128 (x is [B, T, H, D]; cos/sin are [1, T, 1, D//2]); otherwise the eager composition.",
+      "kind": "FunctionDef",
+      "line": 961,
+      "name": "rope_norm"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 971,
+      "name": "CausalSelfAttention"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1044,
+      "name": "reference_forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1048,
+      "name": "_fused_mlp_kernel"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1052,
+      "name": "_linear_weight"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 1058,
+      "name": "_FusedMLP"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 1077,
+      "name": "MLP"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 1097,
+      "name": "Block"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 1139,
+      "name": "GPT"
+    },
+    {
+      "docstring": "Bare candidate training is ON; legacy saved GPTConfig dictionaries default OFF.",
+      "kind": "FunctionDef",
+      "line": 1351,
+      "name": "build_config"
+    },
+    {
+      "docstring": "Muon update for one parameter group as a pure function (stacked weights, gradients, momentum and\nsecond-moment buffers in; updated buffers out), written so torch.compile(backend='neuron') can\ntrace it: no torch._foreach_* ops, no in-place ops on inputs, and every per-step scalar (lr,\nlr*wd, momentum, 1-momentum, optionally 1-beta2) arrives as a 0-dim fp32 device tensor so the\nschedule never changes the traced graph. Newton-Schulz orthogonalisation with the Polar Express\ncoefficients, per-row/column second-moment normalisation, and weight decay masked to the\nentries where gradient and weight agree in sign.",
+      "kind": "FunctionDef",
+      "line": 1357,
+      "name": "_muon_math"
+    },
+    {
+      "docstring": "`lr * g` with the dtype behaviour of a 0-dim lr: a dimensioned lr is cast to g's dtype before the\nmultiply; with lr_fp32 the product is formed in fp32 instead.",
+      "kind": "FunctionDef",
+      "line": 1390,
+      "name": "_muon_lr_g"
+    },
+    {
+      "docstring": "Duplicate-safe FP32 accumulation; explicit int64 index_put adapter only.",
+      "kind": "FunctionDef",
+      "line": 1401,
+      "name": "d1_table_grad"
+    },
+    {
+      "docstring": "BF16 historical operation stages; dynamic FP32 0-D LR/correction inputs.",
+      "kind": "FunctionDef",
+      "line": 1407,
+      "name": "d1_rms_step"
+    },
+    {
+      "docstring": "End-run diagnostic on a clone; never changes a trained table or master.",
+      "kind": "FunctionDef",
+      "line": 1418,
+      "name": "d2_table_rank_max_abs_diff"
+    },
+    {
+      "docstring": "Z7: a 0-dim FP32 device scalar refilled in place from a host buffer (the\nMuonAdamW._device_scalar pattern) instead of a fresh torch.tensor(...)\nallocation plus H2D copy on every call. The copy is skipped when the value\nis unchanged (the compiled consumers only read the scalar). fill_ rounds a\nPython number to FP32 exactly as torch.tensor(value, dtype=float32) does.",
+      "kind": "ClassDef",
+      "line": 1430,
+      "name": "_PersistentScalar"
+    },
+    {
+      "docstring": "Training-only replicated state; never a model Parameter/module/checkpoint key.\n\nEach incoming leaf gradient already includes LOSS_SCALE/grad_accum_now.\nUndo only grad_accum_now and weight by microbatch token count; divide by\nall pending tokens once, so every2 retains a token-weighted mean of BOTH\nsteps even across the batch-ramp boundary. No extra world-size division.",
+      "kind": "ClassDef",
+      "line": 1450,
+      "name": "DetachedTableUpdate"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 1555,
+      "name": "MuonAdamW"
+    },
+    {
+      "docstring": "Average every available gradient across the training ranks.",
+      "kind": "FunctionDef",
+      "line": 1819,
+      "name": "sync_gradients"
+    },
+    {
+      "docstring": "Average all dense gradients once; R50 table is excluded from every clip group.",
+      "kind": "FunctionDef",
+      "line": 1827,
+      "name": "clip_and_sync_gradients"
+    },
+    {
+      "docstring": "One all-rank decision BEFORE branching into or refusing table AVG/RMS.\n\nLocal clock estimates are advisory inputs only. MAX makes epoch freeze,\nforce-partial and deadline refusal identical on every rank. No rank-local\ndeadline exception may occur between this control and the table collective.",
+      "kind": "FunctionDef",
+      "line": 1833,
+      "name": "synchronized_table_control"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1846,
+      "name": "save_checkpoint"
+    },
+    {
+      "docstring": "Return the trained model in eval mode. The rotary tables are not parameters and are sized for\nsequences up to EVAL_MIN_SEQ_LEN, so evaluation may use a longer context than training did.",
+      "kind": "FunctionDef",
+      "line": 1852,
+      "name": "load_for_eval"
+    },
+    {
+      "docstring": "Optimizer progress only; never change the actual budget/stop clock.\n\nReconstruct process age from the existing step-start sample, without a new\nclock read. Preserve charged excess above the same capped startup allowance.\nAfter the fifth boundary, the unchanged budget reset already accounts for it.",
+      "kind": "FunctionDef",
+      "line": 1870,
+      "name": "startup_adjusted_schedule_elapsed"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1882,
+      "name": "lr_multiplier"
+    },
+    {
+      "docstring": "Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then a cooldown towards\nMUON_MOMENTUM_FINAL over the last MUON_MOMENTUM_COOLDOWN_FRAC of the wall-clock budget.",
+      "kind": "FunctionDef",
+      "line": 1892,
+      "name": "muon_momentum"
+    },
+    {
+      "docstring": "One-way 1->2 accumulation transition; never changes microbatch shapes.",
+      "kind": "FunctionDef",
+      "line": 1902,
+      "name": "_batch_ramp_accum"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1907,
+      "name": "_synchronized_batch_ramp_accum"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1918,
+      "name": "main"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2127,
+      "name": "make_plan"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 2156,
+      "name": "OwnedOptimizer"
+    },
+    {
+      "docstring": "The per-shape Muon body _muon_step uses (the same _MUON_COMPILED entry, so the same NEFF on the device).",
+      "kind": "FunctionDef",
+      "line": 2225,
+      "name": "_muon_body_for"
+    },
+    {
+      "docstring": "flat fp32 -> flat bf16 once per step; returns the per-Linear bf16 views. Backward: one cat + one fp32 add.",
+      "kind": "ClassDef",
+      "line": 2246,
+      "name": "_FlatCast"
+    },
+    {
+      "docstring": "Install after model.to(device) and setup_optimizer(), before compile_core and before the first\nrefresh; replaces OwnedOptimizer, refresh_weight_cache, optimizer.zero_grad and clip_and_sync_gradients.",
+      "kind": "ClassDef",
+      "line": 2263,
+      "name": "FlatWeights"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2557,
+      "name": "selected_lanes"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 103,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 109,
+      "name": "forward"
+    },
+    {
+      "docstring": "Fused rms_norm(rope(x)) for x [BT, H, D], cos/sin [T, D//2].\n\nlanes: physical cores in the matching launch grid (Z10). Row tiles are\ninterleaved over nl.program_id(0) exactly as _softcap_ce_fwd does; every\ntile is independent, so the per-lane assignment changes no arithmetic.\nWith lanes == 1 the loop is the original single-core loop.",
+      "kind": "FunctionDef",
+      "line": 200,
+      "name": "_rope_norm_fwd"
+    },
+    {
+      "docstring": "Gradient of _rope_norm_fwd w.r.t. x (cos/sin are constants).\n\nlanes: same launch-grid sharding as _rope_norm_fwd (Z10).",
+      "kind": "FunctionDef",
+      "line": 256,
+      "name": "_rope_norm_bwd"
+    },
+    {
+      "docstring": "Launch grid for the rope kernels: selected_lanes on the row count, and the\nsequence length must also split into whole 128-row tiles per lane.",
+      "kind": "FunctionDef",
+      "line": 331,
+      "name": "_rope_lanes"
+    },
+    {
+      "docstring": "Makes the fused rope+norm kernel differentiable so it can train.",
+      "kind": "ClassDef",
+      "line": 337,
+      "name": "_RopeNormNKI"
+    },
+    {
+      "docstring": "Compute unreduced loss and saved logsumexp with unchanged softcap15.\n\nArgs:\n    z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in\n        SBUF; all loss arithmetic and saved statistics remain FP32.\n    tgt: FP32 [N, 1] class indices, exact integers in [0, V).\n    lanes: Physical cores in the matching launch grid.\n    target_gather: Gather one SBUF element per row instead of mask/sum.\nReturns:\n    FP32 [N, 1] loss and logsumexp, as in the original kernel.",
+      "kind": "FunctionDef",
+      "line": 370,
+      "name": "_softcap_ce_fwd"
+    },
+    {
+      "docstring": "Return [N, V] gradients, normally in the logits dtype.\n\nArgs:\n    z, tgt, lse: Same inputs and saved logsumexp as forward.\n    g: Arbitrary FP32 [N, 1] upstream loss gradient.\n    lanes: Physical cores in the matching launch grid.\n    round_bf16_output: Separately gated head-only contract. Preserve\n        FP32 logits/arithmetic, but round the output to BF16 for a\n        consumer that already has that backward cast boundary.\nReturns:\n    Original FP32 softcap15/CE derivative, rounded at the output when\n    the input was BF16 or round_bf16_output is enabled. The latter\n    requires a matching consumer boundary; it is not exact for an\n    arbitrary FP32-logit leaf's gradient.",
+      "kind": "FunctionDef",
+      "line": 438,
+      "name": "_softcap_ce_bwd"
+    },
+    {
+      "docstring": "Two-target softcap15 cross-entropy forward sharing one softmax pass.\n\nSame tiling, sharding, softcap and precision as _softcap_ce_fwd: the\nexp/sum pass is stabilised by the first target's softcapped logit, so\nloss1 and the saved logsumexp come from the same instructions as the\nsingle-target kernel; loss2 = logsumexp - softcap(z[tgt2]) is one extra\n[128, 1] gather and subtract per tile. Used by the MTP objective, whose\ntwo targets share every logit-sized quantity.\n\nArgs:\n    z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in\n        SBUF; all loss arithmetic and saved statistics remain FP32.\n    tgt1, tgt2: FP32 [N, 1] class indices, exact integers in [0, V).\n    lanes: Physical cores in the matching launch grid.\n    target_gather: Gather one SBUF element per row instead of mask/sum.\nReturns:\n    FP32 [N, 1] loss1, loss2 and logsumexp.",
+      "kind": "FunctionDef",
+      "line": 499,
+      "name": "_softcap_ce2_fwd"
+    },
+    {
+      "docstring": "Return ONE [N, V] gradient for both targets, normally in the logits dtype.\n\nPer row, with p = softmax(softcap(z)) rebuilt from the saved logsumexp:\ndz = ((g1 + g2) * p - g1 * onehot(tgt1) - g2 * onehot(tgt2)) * (1 - tanh(z / 15)^2),\ni.e. the sum of the two _softcap_ce_bwd gradients autograd used to add\non [N, V]. The instruction sequence is _softcap_ce_bwd's with the\ncombined coefficient (g1 + g2) and one extra one-hot subtraction.\n\nArgs:\n    z, tgt1, tgt2, lse: Same inputs and saved logsumexp as forward.\n    g1, g2: Arbitrary FP32 [N, 1] upstream gradients of loss1 and loss2.\n    lanes: Physical cores in the matching launch grid.\n    round_bf16_output: Same head-only contract as _softcap_ce_bwd.\nReturns:\n    FP32 softcap15/CE derivative, rounded at the output when the input\n    was BF16 or round_bf16_output is enabled (as _softcap_ce_bwd).",
+      "kind": "FunctionDef",
+      "line": 590,
+      "name": "_softcap_ce2_bwd"
+    },
+    {
+      "docstring": "Makes the fused softcap+cross-entropy kernel differentiable.\n\nForward returns the UNREDUCED per-token loss, exactly like\nF.cross_entropy(..., reduction=\"none\"); mean/none handling stays in the\ncaller so this changes no reduction semantics.",
+      "kind": "ClassDef",
+      "line": 666,
+      "name": "_SoftcapCrossEntropyNKI"
+    },
+    {
+      "docstring": "Two-target softcap+cross-entropy sharing one softmax pass (the MTP objective).\n\nForward returns the two UNREDUCED per-token losses, exactly like two\nF.cross_entropy(..., reduction=\"none\") calls on the same softcapped\nlogits; mask/weight/mean handling stays in the caller. Backward runs\none kernel that writes the combined [N, V] gradient, replacing the two\nsingle-target backward passes and the [N, V] add autograd used to emit.",
+      "kind": "ClassDef",
+      "line": 688,
+      "name": "_SoftcapCrossEntropy2NKI"
+    },
+    {
+      "docstring": "Broadcast the previous/current [2, C] taps to [128, C] SBUF tiles.",
+      "kind": "FunctionDef",
+      "line": 714,
+      "name": "_conv2_taps"
+    },
+    {
+      "docstring": "Write one causal 128-token tile, zero-padding only the first previous row.",
+      "kind": "FunctionDef",
+      "line": 723,
+      "name": "_conv2_fwd_tile"
+    },
+    {
+      "docstring": "Return causal two-tap [B, T, C] outputs with disjoint batch ownership per lane.",
+      "kind": "FunctionDef",
+      "line": 742,
+      "name": "_conv2_forward"
+    },
+    {
+      "docstring": "Store unchanged FP32 128-token dW reductions in one contiguous channel row.",
+      "kind": "FunctionDef",
+      "line": 759,
+      "name": "_conv2_dw_partial"
+    },
+    {
+      "docstring": "Write one dX tile and both FP32 dW partials, respecting sequence boundaries.",
+      "kind": "FunctionDef",
+      "line": 776,
+      "name": "_conv2_bwd_tile"
+    },
+    {
+      "docstring": "Return dX and FP32 [B, T/128, 2, C, 1] partials for the later sum/casts.",
+      "kind": "FunctionDef",
+      "line": 806,
+      "name": "_conv2_backward"
+    },
+    {
+      "docstring": null,
+      "kind": "ClassDef",
+      "line": 833,
+      "name": "_Conv2NKI"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 939,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 943,
+      "name": "refresh_weight_cache"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 946,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 973,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 997,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1036,
+      "name": "bigram_delta"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1061,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1067,
+      "name": "backward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1079,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1085,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1099,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1107,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1141,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1178,
+      "name": "init_weights"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1212,
+      "name": "_precompute_rotary_embeddings"
+    },
+    {
+      "docstring": "Estimate FLOPs per token (forward + backward). Attention QK^T and AV are O(T) per token.",
+      "kind": "FunctionDef",
+      "line": 1222,
+      "name": "estimate_flops"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1232,
+      "name": "setup_optimizer"
+    },
+    {
+      "docstring": "R54: authoritative row-local self-at-t0 int32 hash, called by forward.",
+      "kind": "FunctionDef",
+      "line": 1277,
+      "name": "bigram_hash"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1283,
+      "name": "compile_core"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1289,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1307,
+      "name": "forward_core"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1438,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1443,
+      "name": "get"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1458,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1485,
+      "name": "accumulate"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1508,
+      "name": "finish_step"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1522,
+      "name": "_update"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1557,
+      "name": "__init__"
+    },
+    {
+      "docstring": "Carry a per-step hyperparameter in a persistent device tensor rather than a Python float, so the\ntraced Neuron graph is identical on every step.",
+      "kind": "FunctionDef",
+      "line": 1561,
+      "name": "_device_scalar"
+    },
+    {
+      "docstring": "Per-parameter (lr, momentum) multipliers of a group as [K, 1, 1] tensors, built once per group.\nReturns None when the group has none (the case in this configuration).",
+      "kind": "FunctionDef",
+      "line": 1575,
+      "name": "_muon_depth_dev"
+    },
+    {
+      "docstring": "Write the per-parameter (momentum, 1-momentum) pair into two fp32 [K, 1, 1] rows; both products are\nformed in float64 and rounded once, clamped to a valid lerp weight.",
+      "kind": "FunctionDef",
+      "line": 1593,
+      "name": "_fill_depth_momentum"
+    },
+    {
+      "docstring": "(momentum, 1-momentum) per parameter as two [K, 1, 1] fp32 device views behind one host->device copy;\nNone when the group has no multipliers.",
+      "kind": "FunctionDef",
+      "line": 1601,
+      "name": "_muon_depth_mom"
+    },
+    {
+      "docstring": "(lr*ratio, lr*ratio*wd, momentum, 1-momentum, 1-beta2) as five 0-dim fp32 device views behind one\nhost->device copy. The lr products are formed in fp32 and 1-momentum in float64 so they match the\neager path bit for bit.",
+      "kind": "FunctionDef",
+      "line": 1620,
+      "name": "_muon_compile_scalars"
+    },
+    {
+      "docstring": "Shared prologue: parameters that have a gradient this step, lazily created state, per-parameter step\ncounters, and the per-parameter bias corrections as scalar lists.",
+      "kind": "FunctionDef",
+      "line": 1660,
+      "name": "_adamw_state"
+    },
+    {
+      "docstring": "AdamW for one group with batched torch._foreach_* calls (one launch per stage instead of one per\nparameter). Bit-identical to the per-parameter form: grad.square() as _foreach_mul(g, g),\nper-parameter bias corrections as scalar lists, and the weight-decay multiply skipped when\nweight_decay == 0 (an exact no-op).",
+      "kind": "FunctionDef",
+      "line": 1689,
+      "name": "_adamw_step_foreach"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1715,
+      "name": "_muon_step"
+    },
+    {
+      "docstring": "update_adamw=False runs only the Muon groups and leaves the AdamW groups' gradients accumulating.",
+      "kind": "FunctionDef",
+      "line": 1807,
+      "name": "step"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 1957,
+      "name": "fetch"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2158,
+      "name": "__init__"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2195,
+      "name": "step"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2212,
+      "name": "state_dict"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2217,
+      "name": "load_state_dict"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2250,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2258,
+      "name": "backward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2270,
+      "name": "__init__"
+    },
+    {
+      "docstring": "One launch instead of optimizer.zero_grad over every parameter.",
+      "kind": "FunctionDef",
+      "line": 2394,
+      "name": "zero_grad"
+    },
+    {
+      "docstring": "One bf16 cast of the flat master; every Linear._cached_weight becomes a view of it (no launches).",
+      "kind": "FunctionDef",
+      "line": 2398,
+      "name": "refresh"
+    },
+    {
+      "docstring": "Backward of _FlatCast: ONE cat of the 40 bf16 weight gradients (zero views fill the non-Linear and\npadding slots) and ONE fp32 accumulate. Adding the exact fp32 value of each bf16 gradient to the fp32\nslot is today's ToCopyBackward cast followed by the fp32 AccumulateGrad add; the zero pieces add\nexactly 0 to the non-Linear slots, whose own fp32 gradients arrive through their pre-bound .grad views.",
+      "kind": "FunctionDef",
+      "line": 2405,
+      "name": "_accumulate_linear_grads"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2422,
+      "name": "_reduce_scatter"
+    },
+    {
+      "docstring": "clip_grad_norm_ over all dense gradients, from the owned shard: local sum of squares, one scalar\nall_reduce, coefficient max_norm / (norm + 1e-6) clamped to 1, one multiply. No .item(), no branch.",
+      "kind": "FunctionDef",
+      "line": 2431,
+      "name": "_clip_"
+    },
+    {
+      "docstring": "MuonAdamW._muon_step on the owned stacked views: the stacked gradient is a view of the reduced\nshard and the stacked weights a view of `send` (the owned master shard); the unchanged _muon_math body\n(the same compiled specialisation key) returns the new stack, which is copied into `send` once.",
+      "kind": "FunctionDef",
+      "line": 2445,
+      "name": "_muon_group"
+    },
+    {
+      "docstring": "MuonAdamW._adamw_step_foreach with the parameter/gradient lists replaced by views of `send` and of\nthe reduced shard; the same expression sequence, state keyed by the real Parameters.",
+      "kind": "FunctionDef",
+      "line": 2488,
+      "name": "_adamw_group"
+    },
+    {
+      "docstring": "clip_and_sync_gradients + OwnedOptimizer.step + refresh_weight_cache, flat.",
+      "kind": "FunctionDef",
+      "line": 2524,
+      "name": "step"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2545,
+      "name": "state_dict"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 2550,
+      "name": "load_state_dict"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 341,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 359,
+      "name": "backward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 675,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 682,
+      "name": "backward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 699,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 706,
+      "name": "backward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 836,
+      "name": "forward"
+    },
+    {
+      "docstring": null,
+      "kind": "FunctionDef",
+      "line": 848,
+      "name": "backward"
+    }
+  ],
+  "io_environment_time_seed_calls": [
+    {
+      "expression": "time.monotonic()",
+      "line": 36
+    },
+    {
+      "expression": "os.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')",
+      "line": 40
+    },
+    {
+      "expression": "os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1')",
+      "line": 41
+    },
+    {
+      "expression": "os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')",
+      "line": 39
+    },
+    {
+      "expression": "torch.manual_seed(seed)",
+      "line": 137
+    },
+    {
+      "expression": "torch.save(payload, path)",
+      "line": 1849
+    },
+    {
+      "expression": "torch.load(checkpoint_path, map_location='cpu', weights_only=True)",
+      "line": 1858
+    },
+    {
+      "expression": "model.load_state_dict(payload['model_state'], strict=True)",
+      "line": 1864
+    },
+    {
+      "expression": "ensure_tokenizer(build_if_missing=False)",
+      "line": 1930
+    },
+    {
+      "expression": "make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device)",
+      "line": 1955
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 1979
+    },
+    {
+      "expression": "os.environ.get('NEURON_LOGICAL_NC_CONFIG')",
+      "line": 37
+    },
+    {
+      "expression": "ctx.save_for_backward(x, up, down, relu)",
+      "line": 1063
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 1991
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2101
+    },
+    {
+      "expression": "save_checkpoint(checkpoint_path, orig_model, {'step': step, 'total_train_tokens': total_train_tokens, 'budget_elapsed_before_save': budget_elapsed_before_save, 'world_size': world_size, 'compiled': True})",
+      "line": 2103
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2106
+    },
+    {
+      "expression": "self.raw_load_state_dict(payload['optimizer'])",
+      "line": 2220
+    },
+    {
+      "expression": "self.raw_load_state_dict(payload['optimizer'])",
+      "line": 2553
+    },
+    {
+      "expression": "ctx.save_for_backward(x3, cos2, sin2)",
+      "line": 353
+    },
+    {
+      "expression": "ctx.save_for_backward(z, tgt, lse)",
+      "line": 678
+    },
+    {
+      "expression": "ctx.save_for_backward(z, tgt1, tgt2, lse)",
+      "line": 702
+    },
+    {
+      "expression": "ctx.save_for_backward(xx, wt)",
+      "line": 842
+    },
+    {
+      "expression": "os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out')",
+      "line": 1920
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 1988
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2053
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2057
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2063
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2094
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2096
+    },
+    {
+      "expression": "payload.get('schema')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('rank')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('world_size')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('pad_singleton_muon')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('adamw_math_mode')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('entries')",
+      "line": 2218
+    },
+    {
+      "expression": "payload.get('schema')",
+      "line": 2551
+    },
+    {
+      "expression": "payload.get('rank')",
+      "line": 2551
+    },
+    {
+      "expression": "payload.get('world_size')",
+      "line": 2551
+    },
+    {
+      "expression": "payload.get('pad_singleton_muon')",
+      "line": 2551
+    },
+    {
+      "expression": "payload.get('adamw_math_mode')",
+      "line": 2551
+    },
+    {
+      "expression": "payload.get('entries')",
+      "line": 2551
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2038
+    },
+    {
+      "expression": "os.environ.get('NEURON_LOGICAL_NC_CONFIG', '')",
+      "line": 2122
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2080
+    },
+    {
+      "expression": "time.monotonic()",
+      "line": 2117
+    }
+  ],
+  "scope": "AST source occurrences, not runtime trace or compliance verdict",
+  "source_sha256": "25c5aec53ad7cc20f4dadf437d3ebe6dfa4f4be0214ab39d638a45df5ec7f936"
+}

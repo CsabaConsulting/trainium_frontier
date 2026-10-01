@@ -1,0 +1,81 @@
+{
+  "schema": "standing-research-source-legality-review-v1",
+  "recorded_utc": "2026-09-27T08:23:01Z",
+  "timestamp_scope": "actual clock tool read before final receipt update",
+  "cycle": "research/v2/research_cycles/20260927-1345-research.md",
+  "cycle_sha256": "3e3f1f008590e392fa1ffdae5f0ae95e666dee45243d498d6f769293860cd4fc",
+  "next_arms_sha256": "47787c900ac5ac63f5323452b3c371a18d51ec3a309be5efa5adc71d9f7a1d19",
+  "reviewed_brief_sha256": "30ad499da554f3005270dab8ade0eb6adf80e4b1b0f46d54c78db61dd0c8ffa5",
+  "corrected_brief_sha256": "2efa306e2ea075355c1021d3ace7acef26b2abc9fc76d0fe631228097b48e6a4",
+  "parent_sha256": "c23935404ac44314e333ddf3608a6c671f4526263a3348eb901bb3f8d4ca05b0",
+  "ledger_cutoff_sha256": "c4761ee68b9eec0fe56e4105d83734e1457bea3b67deb2541086aa7d5a6a2b9d",
+  "ledger_cutoff_rows": 81,
+  "independent_verifier": true,
+  "primary_urls_opened": [
+    "https://github.com/aws-neuron/nki-library/blob/2.32/src/nkilib_src/nkilib/experimental/loss/cross_entropy.py",
+    "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation_reduce.html",
+    "https://github.com/KellerJordan/modded-nanogpt/pull/178",
+    "https://arxiv.org/html/2601.02031v1",
+    "https://github.com/karpathy/nanochat/blob/master/dev/LOG.md",
+    "https://arxiv.org/abs/2512.17351",
+    "https://arxiv.org/abs/2109.08668",
+    "https://trainium-frontier.devpost.com/rules"
+  ],
+  "verdicts": [
+    {
+      "arm": "mtp_shared_statistics_ce",
+      "verdict": "PASS_FOR_IMPLEMENTATION_ONLY",
+      "scope": "bounded off-host prototype preserving exact c239 objective and rounding contract",
+      "before_native": ["disclose and check target-dependent FP32 LSE differences", "preserve separately rounded BF16 branch gradients or explicitly test numerical change", "native registration and production compile", "independent source and correctness review", "prespecified timing evidence and separately authorized host allocation"],
+      "expected_local_bpb_gain": null
+    },
+    {
+      "arm": "early_k3_mtp",
+      "verdict": "PASS_FOR_IMPLEMENTATION_ONLY",
+      "scope": "only third training target with retained c239 k2 schedule and unchanged input/evaluation paths",
+      "before_native": ["T>=3 and within-row target/mask tests", "actual implementation gradient and disabled-path checks", "compile/cost and native correctness checks", "exact proposal and separate host allocation"],
+      "expected_local_bpb_gain": null
+    },
+    {
+      "arm": "output_head_mean_centering",
+      "verdict": "PASS_FOR_IMPLEMENTATION_ONLY",
+      "scope": "training-only FP32 head projection after owner all-gather before cache refresh, including initialization",
+      "before_native": ["replica equality", "owner/send/cache ordering", "unchanged Adam states and constants", "one projection per update", "checkpoint and load equivalence", "cold/whole-step cost check and separate host allocation"],
+      "expected_local_bpb_gain": null
+    }
+  ],
+  "cpu_reference": {
+    "script": "research/v2/research_cycles/20260927-1345-reference-verification.py",
+    "sha256": "73581c5e6c40be034170895dffcb21e3493819e6f0ad2e87cbc48ba22230c2d1",
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -B research/v2/research_cycles/20260927-1345-reference-verification.py",
+    "status": "PASS",
+    "cases_dual_target": 216,
+    "max_dual_loss_error": 3.552713678800501e-15,
+    "max_finite_difference_gradient_error": 1.788009740266716e-10,
+    "bf16_split_sum": 0.1064453125,
+    "bf16_round_once": 0.10693359375,
+    "cases_k3": 24,
+    "max_k3_mask_error": 2.220446049250313e-16,
+    "head_centering_softcap_probability_delta": 0.011787773121306078,
+    "actual_c239_cpu_cases": 72,
+    "torch_version": "2.13.0+cpu",
+    "max_c239_loss_error": 4.717766728390416e-06,
+    "max_c239_gradient_error": 1.9348184054912565e-08,
+    "copied_comparison_keys_verified": 108,
+    "prior_harness_failure": "row74 lacked label; corrected reference auditor to use existing manual_job_key, no model or evidence change"
+  },
+  "brief_documentation_status": "CORRECTED_BY_RESEARCHER_AND_INDEPENDENTLY_RECHECKED",
+  "brief_documentation_issues": [
+    "Cold s column includes generic startup_s and explicitly warm run values; does not establish cold provenance",
+    "Row53 recorded steady_tok_s299332.55915718625 should be labeled distinctly rather than omitted as UNKNOWN"
+  ],
+  "brief_documentation_resolution": "Corrected startup heading/provenance and distinct row53 steady statistic verified; 81 inventory rows and 108 copied comparison keys still match cutoff",
+  "host_calls": 0,
+  "native_execution": false,
+  "training_run": false,
+  "queue_changed": false,
+  "source_changed": false,
+  "state_changed": false,
+  "launch_authorized": false,
+  "submission_authorized": false
+}

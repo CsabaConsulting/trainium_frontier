@@ -1,0 +1,130 @@
+{
+  "additional_tests_requested": [],
+  "adoption_authorized": false,
+  "author_all_observed_bit_equal": false,
+  "author_checkpoint_scope": "tiny supplied fixture strict plain roundtrip only; not production checkpoint",
+  "author_cpu21_vs_cpu22_host_only_byte_reversal": true,
+  "author_cpu_graph_counts": [
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    }
+  ],
+  "author_cpu_graph_counts_after_step0": [
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    },
+    {
+      "bw": 1,
+      "fw": 1
+    }
+  ],
+  "author_cpu_receipt": {
+    "binding_sha256": "cf28fc065fa9d40cb617cce11d8893049d70777f1962f8aba39aa32c239c3719",
+    "path": "research/v2/operator/20260929-r109-ce2-flat-author-cpu-trn21-preparation/collect-20260929T175243570052Z.json",
+    "raw_stdout_sha256": "bbdc08c772ceab9b2b8fa3a9b2df762f62ce07524999278c97c5b0e8391e7342",
+    "result_bytes": 117585,
+    "result_file": "result.json",
+    "result_sha256": "ce8ad078ce2c5b5a02509e4e70d329fba776f98e3bdfc53fc5a18e8241749f43",
+    "root": "/home/ubuntu/trainium_cpu_20260929_r109_ce2_flat_author_trn21_r1",
+    "sha256": "d2413cc2552fc7dd61a14c21b760d2cb8a0490606ced76fd9a453d9941fa6307",
+    "source_sha256": "e1bd539f49658a01bf3188b70e5c04eecdb85427cc9e55db96abf487fad5a310",
+    "status": "PASS_INSTANCE_CPU_R109_COMBINED_FLAT",
+    "terminal_sha256": "7a5dc2dacb8bbe8f6aba468bc403bbc424e67b7b5453c8ce998b2b76b61b86fd",
+    "worker_sha256": "73f200a663cc15af9593fdde4f9be27a71c17e83461a7d5d6149ce7b97ad39b6"
+  },
+  "author_four_rank_receipts": 4,
+  "author_max_relative_max": 1.2247335028887054e-08,
+  "author_max_relative_rms": 2.0313947673480953e-09,
+  "author_native_graph_count_measured": false,
+  "author_observations": 492,
+  "author_result_sha256": "ce8ad078ce2c5b5a02509e4e70d329fba776f98e3bdfc53fc5a18e8241749f43",
+  "author_worker_sha256": "73f200a663cc15af9593fdde4f9be27a71c17e83461a7d5d6149ce7b97ad39b6",
+  "ce2_native_kernel_wrapper_objective_AST_exact_component": true,
+  "component_ce2_sha256": "a129bad49977fc0bb815905fff1f0e5109201871c7a4f8876cfca8e2d82ec725",
+  "component_flat_sha256": "9ac223d07dd337ddd319438b2f6cf7d2eeecd0a2f40d8a0d5924306907e50312",
+  "configuration_scope": {
+    "FLAT_WEIGHTS": true,
+    "MTP_FUSED_CE": true,
+    "n_embd": 1024,
+    "n_head": 8,
+    "n_layer": 8,
+    "seed": 42,
+    "tbl_freeze_tokens": 0
+  },
+  "diff_sha256": "e62b0bbf314c8e8b2005c94ae72971277ebaf81321fcdf6b4b20df727ca6d0ff",
+  "effective_scored_verdict": "ACCEPT_SOURCE_CORRECTNESS_ONLY",
+  "exact_constituent_composition_verified": true,
+  "flat_optimizer_refresh_checkpoint_AST_exact_component": true,
+  "fresh_session": false,
+  "full_authorized": false,
+  "full_run_authorized": false,
+  "independent_review": true,
+  "independently_derived_ce2_hunks": 4,
+  "launch_authorized": false,
+  "limitations": [
+    "Actual combined author and independent receipts authenticated; all evidence is scoped CPU/source evidence, not native combined performance.",
+    "Own tiny reference tests extracted flat cast/refresh/accumulation and CPU CE2 fallback, not distributed optimizer/native NKI or whole model.",
+    "Generic AdamW missing-gradient skip semantics differ in flat mode; review is restricted to the fixed production use with participating dense parameters.",
+    "CE2 combined BF16 output-gradient rounding and optional reduced-precision SDPA are not bit-exact parent claims.",
+    "Returned CPU ATen attention dtype does not establish internal saved-P dtype or native memory savings.",
+    "Existing independent session is reused accurately; no fresh-session claim."
+  ],
+  "native_authorized": false,
+  "native_timing_pass_claimed": false,
+  "new_timing_gate_added": false,
+  "own_actual_receipt": {
+    "binding_sha256": "130fd3a964b34d2e4fbeb246c2d03ab4ebb85122f58ad34558282a9a40e0be2f",
+    "path": "research/v2/operator/20260929-r109-ce2-flat-ownref-cpu-trn21-preparation/collect-20260929T175428031442Z.json",
+    "raw_stdout_sha256": "83a9100cba1b75b2272746d4bd51ed4ef746ac9629c0d695d07411ab6e994528",
+    "result_bytes": 7421,
+    "result_file": "result.json",
+    "result_sha256": "b956518d9c9b14d8e8e076cc32a83d96cd84a505e6536ed2f7fc5f7d91a77bd0",
+    "root": "/home/ubuntu/trainium_cpu_20260929_r109_ce2_flat_ownref_trn21_r1",
+    "sha256": "d72d1e15a6466d5488dd3036e81eb03b63a7a17373ca2b265a7042488e1a9924",
+    "source_sha256": "e1bd539f49658a01bf3188b70e5c04eecdb85427cc9e55db96abf487fad5a310",
+    "status": "PASS_INDEPENDENT_COMBINED_FLAT_CE2_CPU",
+    "terminal_sha256": "4b0b730baa91f3ada6385c8ffe1f609cfdcb2bf3590c743fd875d3878174d11d",
+    "worker_sha256": "eb221ef58af23831e46b666ff27494d8851b37fc1c736e51a23ce6cd118bf3de"
+  },
+  "own_check_groups": 6,
+  "own_cpu_worker_path": "research/v2/reviews/20260929-r109-combined-flat-independent/worker.py",
+  "own_cpu_worker_sha256": "eb221ef58af23831e46b666ff27494d8851b37fc1c736e51a23ce6cd118bf3de",
+  "own_max_relative_rms": 8.519140762870313e-08,
+  "own_metrics": 49,
+  "own_microsteps": 6,
+  "own_updates": 3,
+  "parent_sha256": "0c2bd7cc926e51d248873e72ffb344ba7dc49a30219ed5ec23b01130f345944e",
+  "reverse_diff_parent_hash_verified": true,
+  "schema": "r109-independent-scored-source-review-v1",
+  "sdpa_import_flag_enabled": false,
+  "shared_model_eval_checkpoint_table_AST_unchanged": true,
+  "source_sha256": "e1bd539f49658a01bf3188b70e5c04eecdb85427cc9e55db96abf487fad5a310",
+  "source_static_blocking_defects": [],
+  "spec_sha256": "1d8cbe9c190879fe4a389337fe3621493ec98fea6d436546dbe23cec0a4df7f8",
+  "stack_diff_hunks": 12,
+  "status": "PASS_INDEPENDENT_SCORED_SOURCE_REVIEW_ONLY",
+  "upload_authorized": false,
+  "verdict": "ACCEPT"
+}

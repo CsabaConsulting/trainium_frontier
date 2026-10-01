@@ -1,0 +1,497 @@
+--- uploaded-b585/train.py
++++ frozen-D2-b758/train.py
+@@ -165,6 +165,11 @@
+     attn_scale: float = 0.0
+     n_kv_heads: int = 0
+     mtp: bool = True
++    d1_detached: bool = False
++    d1_injection: str = 'embedding_pre_norm'
++    tbl_every: int = 2
++    d2_two_site: bool = False
++    tbl_freeze_tokens: int = 0
+ COMPUTE_DTYPE: torch.dtype = torch.bfloat16
+ 
+ def norm(x: torch.Tensor) -> torch.Tensor:
+@@ -466,6 +471,7 @@
+     from torch_neuronx import wrap_nki as _wrap_conv2_nki
+ 
+     def _conv2_taps(wt, channels):
++        """Broadcast the previous/current [2, C] taps to [128, C] SBUF tiles."""
+         prev = nl.ndarray((128, channels), dtype=wt.dtype, buffer=nl.sbuf)
+         curr = nl.ndarray((128, channels), dtype=wt.dtype, buffer=nl.sbuf)
+         pattern = [[0, 128], [1, channels]]
+@@ -474,6 +480,7 @@
+         return (prev, curr)
+ 
+     def _conv2_fwd_tile(x, out, prev_w, curr_w, batch, start, channels, first):
++        """Write one causal 128-token tile, zero-padding only the first previous row."""
+         prev = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+         curr = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+         nisa.dma_copy(dst=curr, src=x[batch, start:start + 128, :])
+@@ -492,6 +499,7 @@
+ 
+     @nki.jit
+     def _conv2_forward(x, wt, lanes: int=1):
++        """Return causal two-tap [B, T, C] outputs with disjoint batch ownership per lane."""
+         batch, length, channels = x.shape
+         assert length % 128 == 0 and channels % 128 == 0
+         assert wt.shape == (2, channels)
+@@ -508,6 +516,7 @@
+         return out
+ 
+     def _conv2_dw_partial(xpart, grad, ones, partials, batch, tile, tap, channels):
++        """Store unchanged FP32 128-token dW reductions in one contiguous channel row."""
+         prod = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+         nisa.tensor_tensor(dst=prod, data1=xpart, data2=grad, op=nl.multiply)
+         packed = nl.ndarray((1, channels), dtype=nl.float32, buffer=nl.sbuf)
+@@ -524,6 +533,7 @@
+         nisa.dma_copy(dst=partials.ap(pattern=[[channels, 1], [1, channels]], offset=offset), src=packed)
+ 
+     def _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones, batch, tile, length, channels, first, last):
++        """Write one dX tile and both FP32 dW partials, respecting sequence boundaries."""
+         start = tile * 128
+         xp = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+         xc = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+@@ -553,6 +563,7 @@
+ 
+     @nki.jit
+     def _conv2_backward(x, grad, wt, lanes: int=1):
++        """Return dX and FP32 [B, T/128, 2, C, 1] partials for the later sum/casts."""
+         batch, length, channels = x.shape
+         assert length % 128 == 0 and channels % 128 == 0
+         assert grad.shape == x.shape and wt.shape == (2, channels)
+@@ -707,13 +718,21 @@
+         self.c_v = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False)
+         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
+         self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
++        self.d1_injection = config.d1_injection
++        self.d2_two_site = config.d1_detached and config.d2_two_site and layer_idx == 7
++        if self.d2_two_site:
++            with torch.random.fork_rng(devices=[]):
++                self.bigram_gate = Linear(32, self.n_head, bias=False)
+         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if layer_idx % 2 == (config.n_layer - 1) % 2 else None
+ 
+-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, bigram_ve: torch.Tensor | None=None) -> torch.Tensor:
+         b, t, c = x_q.shape
+         q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
+         k = self.c_k(x_k).view(b, t, self.n_kv_heads, self.head_dim)
+-        v = self.c_v(x_v).view(b, t, self.n_kv_heads, self.head_dim)
++        v = self.c_v(x_v)
++        if bigram_ve is not None and (self.d2_two_site or self.d1_injection in ('value_pre_view', 'value_pre_view_contiguous_gate')):
++            v = v + self.bigram_delta(x_v, bigram_ve)
++        v = v.view(b, t, self.n_kv_heads, self.head_dim)
+         if self.n_kv_heads != self.n_head:
+             k = k.repeat_interleave(self.kv_repeat, dim=2).contiguous()
+             v = v.repeat_interleave(self.kv_repeat, dim=2).contiguous()
+@@ -729,8 +748,17 @@
+         v = v.transpose(1, 2)
+         y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+         y = y.transpose(1, 2).contiguous().view(b, t, c)
++        if bigram_ve is not None and self.d1_injection == 'attention_pre_projection':
++            y = y + self.bigram_delta(x_v, bigram_ve)
+         return self.c_proj(y)
+ 
++    def bigram_delta(self, x_v: torch.Tensor, bigram_ve: torch.Tensor) -> torch.Tensor:
++        gate_input = x_v[..., 32:64]
++        if self.d1_injection == 'value_pre_view_contiguous_gate':
++            gate_input = gate_input.contiguous()
++        gate = 2 * torch.sigmoid(self.bigram_gate(gate_input))
++        return gate.to(bigram_ve.dtype).repeat_interleave(self.head_dim, dim=-1) * bigram_ve
++
+ def reference_forward(x, up, down):
+     relu = F.relu(F.linear(x, up.to(x.dtype)))
+     return (F.linear(relu.square(), down.to(x.dtype)), relu)
+@@ -775,7 +803,8 @@
+     def forward(self, x: torch.Tensor) -> torch.Tensor:
+         tokens = x.numel() // x.shape[-1]
+         tile = min(512, tokens // 2)
+-        if not self.training or x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
++        # Keep the eager fallback for non-BF16 inputs or unsupported token tiling.
++        if x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
+             h = self.c_fc(x)
+             return self.c_proj(F.relu(h).square())
+         up = _linear_weight(self.c_fc, x.dtype)
+@@ -793,15 +822,24 @@
+         self.x0_lambda = nn.Parameter(torch.zeros(1))
+         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if self.attn is not None else None
+ 
+-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, bigram_ve: torch.Tensor | None=None) -> torch.Tensor:
+         x = self.resid_lambda.to(x.dtype) * x + self.x0_lambda.to(x.dtype) * x0
+         if self.attn is None:
+             return x + self.mlp(norm(x))
+         q_in = k_in = v_in = x
+         if self.local_conv is not None:
+             x = x + self.local_conv(norm(x))
+-        attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin)
++        if bigram_ve is None:
++            # Exact parent evaluation order matters for BF16 backward accumulation.
++            attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin)
++        else:
++            q_norm = norm(q_in)
++            k_norm = norm(k_in)
++            v_norm = norm(v_in)
++            attn_out = self.attn(q_norm, k_norm, v_norm, ve, cos, sin, bigram_ve)
+         x = x + attn_out
++        if bigram_ve is not None and self.attn.d1_injection == 'residual_post_attention':
++            x = x + self.attn.bigram_delta(v_norm, bigram_ve)
+         x = x + self.mlp(norm(x))
+         return x
+ 
+@@ -812,6 +850,15 @@
+         if config.n_layer != 8:
+             raise ValueError('this submission requires exactly eight layers')
+         self.config = config
++        if config.d1_injection != 'embedding_pre_norm':
++            raise ValueError('unsupported pinned D1 injection site')
++        if config.tbl_every not in (1, 2):
++            raise ValueError('tbl_every must be explicitly selected as 1 or 2')
++        if type(config.d2_two_site) is not bool or type(config.tbl_freeze_tokens) is not int or config.tbl_freeze_tokens < 0:
++            raise ValueError('D2 boolean and nonnegative integer token-freeze configuration required')
++        if config.d2_two_site and (not config.d1_detached or config.n_embd < 64 or config.n_kv_heads not in (0, config.n_head)):
++            raise ValueError('D2 requires enabled D1, width>=64 and full query/value heads')
++        self.__dict__['_d1_compiled_core'] = None
+         padded_vocab_size = (config.vocab_size + 63) // 64 * 64
+         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
+         self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)
+@@ -825,6 +872,14 @@
+         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
+         self.register_buffer('cos', cos, persistent=False)
+         self.register_buffer('sin', sin, persistent=False)
++        if config.d1_detached:
++            table_shape = (262144, 256) if config.d2_two_site else (524288, 128)
++            self.register_buffer('value_bigram_table', torch.zeros(*table_shape, dtype=torch.bfloat16), persistent=True)
++            self.value_bigram_gate_logit = nn.Parameter(torch.zeros((), dtype=torch.float32))
++            with torch.random.fork_rng(devices=[]):
++                self.value_bigram_proj = Linear(128, config.n_embd, bias=False)
++                if config.d2_two_site:
++                    self.value_bigram_proj7 = Linear(128, config.n_embd, bias=False)
+ 
+     @torch.no_grad()
+     def init_weights(self) -> None:
+@@ -853,6 +908,14 @@
+         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
+         self.cos.copy_(cos)
+         self.sin.copy_(sin)
++        if self.config.d1_detached:
++            self.value_bigram_table.zero_()
++            with torch.random.fork_rng(devices=[]):
++                torch.nn.init.uniform_(self.value_bigram_proj.weight, -s, s)
++                if self.config.d2_two_site:
++                    torch.nn.init.uniform_(self.value_bigram_proj7.weight, -s, s)
++                    self.transformer.h[7].attn.bigram_gate.weight.zero_()
++            self.value_bigram_gate_logit.zero_()
+ 
+     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int=ROPE_BASE):
+         device = self.transformer.wte.weight.device
+@@ -886,7 +949,13 @@
+             if block.attn is not None:
+                 matrix_params.extend(block.attn.parameters())
+             matrix_params.extend(block.mlp.parameters())
++        if self.config.d1_detached:
++            matrix_params.append(self.value_bigram_proj.weight)
++            if self.config.d2_two_site:
++                matrix_params.append(self.value_bigram_proj7.weight)
+         gate_params = [p for name, p in self.named_parameters() if p.ndim == 2 and 'gate' in name]
++        if self.config.d1_detached:
++            gate_params.append(self.value_bigram_gate_logit)
+         gate_ids = {id(p) for p in gate_params}
+         matrix_params = [p for p in matrix_params if id(p) not in gate_ids]
+         scalar_params.extend(self.unet_skip_gates)
+@@ -915,12 +984,50 @@
+                 group['initial_betas'] = tuple(group['betas'])
+         return opt
+ 
+-    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean', mtp_weights: torch.Tensor | None=None):
++    def bigram_hash(self, idx: torch.Tensor) -> torch.Tensor:
++        """R54: authoritative row-local self-at-t0 int32 hash, called by forward."""
++        cur = idx.to(torch.int32)
++        prev = torch.cat((cur[:, :1], cur[:, :-1]), dim=1)
++        return torch.remainder(torch.bitwise_xor(prev * 120193, cur * 128201), self.value_bigram_table.shape[0] - 1)
++
++    def compile_core(self, backend: str) -> None:
++        # A plain callable, not a registered submodule/checkpoint namespace.
++        self.__dict__['_d1_compiled_core'] = torch.compile(self.forward_core, backend=backend, dynamic=False)
++
++    def forward(self, idx: torch.Tensor, targets: torch.Tensor | None=None, loss_reduction: str='mean', mtp_weights: torch.Tensor | None=None, table_context: dict | None=None):
++        rows = None
++        if self.config.d1_detached:
++            hash_ids = self.bigram_hash(idx)
++            rows = self.value_bigram_table[hash_ids]
++            if table_context is not None:
++                if table_context or not torch.is_grad_enabled():
++                    raise ValueError('new empty training context with gradients enabled required')
++                rows = rows.detach().requires_grad_(True)
++                # Keep this microbatch's IDs independent of reusable loader storage.
++                table_context.update(indices=hash_ids.detach().clone(), leaf=rows, tokens=idx.numel())
++        elif table_context is not None:
++            raise ValueError('table context supplied while D1 is disabled')
++        core = self.__dict__.get('_d1_compiled_core')
++        if core is None:
++            core = self.forward_core
++        return core(idx, rows, targets, loss_reduction, mtp_weights)
++
++    def forward_core(self, idx: torch.Tensor, rows: torch.Tensor | None, targets: torch.Tensor | None=None, loss_reduction: str='mean', mtp_weights: torch.Tensor | None=None):
+         _b, t = idx.shape
+         assert t <= self.config.sequence_len
+         cos = self.cos[:, :t]
+         sin = self.sin[:, :t]
+         x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
++        bigram_ve7 = None
++        if self.config.d1_detached:
++            if rows is None:
++                raise ValueError('D1 core requires the shared-forward lookup values')
++            rows0 = rows[..., :128] if self.config.d2_two_site else rows
++            projected = self.value_bigram_proj(rows0)
++            if self.config.d2_two_site:
++                bigram_ve7 = self.value_bigram_proj7(rows[..., 128:256])
++            gate = (2 * torch.sigmoid(self.value_bigram_gate_logit)).to(x.dtype)
++            x = x + gate * projected
+         x = norm(x)
+         x0 = x
+         unet_skips: list[torch.Tensor] = []
+@@ -928,7 +1035,10 @@
+             if i >= self.unet_n_enc:
+                 x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()
+             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if block.attn is not None and str(i) in self.value_embeds else None
+-            x = block(x, x0, ve, cos, sin)
++            if self.config.d2_two_site and i == 7:
++                x = block(x, x0, ve, cos, sin, bigram_ve7)
++            else:
++                x = block(x, x0, ve, cos, sin)
+             if i < self.unet_n_enc:
+                 unet_skips.append(x)
+         x = norm(x)
+@@ -941,9 +1051,9 @@
+             return mtp_cross_entropy(logits, targets, mtp_weights, loss_reduction)
+         return softcap_cross_entropy(logits, targets, loss_reduction)
+ 
+-def build_config() -> GPTConfig:
+-    """The fixed training shape; checkpoint reconstruction uses its saved GPTConfig."""
+-    return GPTConfig(sequence_len=SEQ_LEN, vocab_size=TOKENIZER_VOCAB_SIZE, n_layer=DEPTH, n_head=N_EMBD // HEAD_DIM, n_embd=N_EMBD, mlp_ratio=MLP_RATIO, attn_scale=ATTN_SCALE, n_kv_heads=N_KV_HEADS)
++def build_config(*, d1_detached: bool=True, d1_injection: str='embedding_pre_norm', tbl_every: int=2, d2_two_site: bool=True, tbl_freeze_tokens: int=286000000) -> GPTConfig:
++    """Bare candidate training is ON; legacy saved GPTConfig dictionaries default OFF."""
++    return GPTConfig(sequence_len=SEQ_LEN, vocab_size=TOKENIZER_VOCAB_SIZE, n_layer=DEPTH, n_head=N_EMBD // HEAD_DIM, n_embd=N_EMBD, mlp_ratio=MLP_RATIO, attn_scale=ATTN_SCALE, n_kv_heads=N_KV_HEADS, d1_detached=d1_detached, d1_injection=d1_injection, tbl_every=tbl_every, d2_two_site=d2_two_site, tbl_freeze_tokens=tbl_freeze_tokens)
+ POLAR_EXPRESS_COEFFS = [(8.156554524902461, -22.48329292557795, 15.878769915207462), (4.042929935166739, -2.808917465908714, 0.5000178451051316), (3.8916678022926607, -2.772484153217685, 0.5060648178503393), (3.285753657755655, -2.3681294933425376, 0.46449024233003106), (2.3465413258596377, -1.7097828382687081, 0.42323551169305323)]
+ _MUON_COMPILED: dict[tuple, object] = {}
+ 
+@@ -991,6 +1101,103 @@
+         return lr * g.float()
+     return lr * g
+ 
++def d1_table_grad(gbuf: torch.Tensor, indices: torch.Tensor, leaf_gradient: torch.Tensor, objective_weight: torch.Tensor) -> torch.Tensor:
++    """Duplicate-safe FP32 accumulation; explicit int64 index_put adapter only."""
++    rows = indices.reshape(-1).to(torch.int64)
++    values = leaf_gradient.reshape(-1, gbuf.shape[1]).float() * objective_weight
++    return torch.index_put(gbuf, (rows,), values, accumulate=True)
++
++def d1_rms_step(table: torch.Tensor, gradient: torch.Tensor, square_avg: torch.Tensor, lr: torch.Tensor, correction: torch.Tensor):
++    """BF16 historical operation stages; dynamic FP32 0-D LR/correction inputs."""
++    squared = (gradient * gradient).to(torch.bfloat16)
++    second = torch.lerp(square_avg, squared, 0.001).to(torch.bfloat16)
++    denom = (second / correction).to(torch.bfloat16).sqrt().to(torch.bfloat16)
++    denom = (denom + 1e-10).to(torch.bfloat16)
++    update = (gradient / denom).to(torch.bfloat16)
++    updated = (table.float() - lr * update.float()).to(torch.bfloat16)
++    return updated, second, torch.zeros_like(gradient, dtype=torch.float32)
++
++class DetachedTableUpdate:
++    """Training-only replicated state; never a model Parameter/module/checkpoint key.
++
++    Each incoming leaf gradient already includes LOSS_SCALE/grad_accum_now.
++    Undo only grad_accum_now and weight by microbatch token count; divide by
++    all pending tokens once, so every2 retains a token-weighted mean of BOTH
++    steps even across the batch-ramp boundary. No extra world-size division.
++    """
++    def __init__(self, model: GPT, *, compile_backend: str | None=None):
++        if not model.config.d1_detached:
++            raise ValueError('D1 updater requires enabled table')
++        self.table = model.value_bigram_table
++        if self.table.dtype != torch.bfloat16 or self.table.requires_grad:
++            raise ValueError('persistent BF16 non-autograd table buffer required')
++        self.every = model.config.tbl_every
++        self.d2_two_site = model.config.d2_two_site
++        self.freeze_tokens = model.config.tbl_freeze_tokens if self.d2_two_site else 0
++        self.frozen = False
++        self.initial_lr = EMBEDDING_LR * (model.config.n_embd / 768) ** (-0.5)
++        self.gbuf = torch.zeros_like(self.table, dtype=torch.float32)
++        self.square_avg = torch.zeros_like(self.table, dtype=torch.bfloat16)
++        self.pending_tokens = 0
++        self.pending_steps = 0
++        self.update_count = 0
++        self.grad_function = d1_table_grad
++        self.rms_function = d1_rms_step
++        if compile_backend is not None:
++            self.grad_function = torch.compile(d1_table_grad, backend=compile_backend, fullgraph=True, dynamic=False)
++            self.rms_function = torch.compile(d1_rms_step, backend=compile_backend, fullgraph=True, dynamic=False)
++
++    @torch.no_grad()
++    def accumulate(self, context: dict, *, accumulation_steps: int) -> None:
++        if self.frozen:
++            # Retain the same compiled core/leaf backward graph; skip dense scatter.
++            context.clear()
++            return
++        leaf = context['leaf']
++        indices = context['indices']
++        tokens = int(context['tokens'])
++        if leaf.grad is None or leaf.grad.shape[:-1] != indices.shape or indices.dtype != torch.int32:
++            raise RuntimeError('missing/mismatched D1 leaf gradient or int32 indices')
++        if accumulation_steps < 1 or tokens <= 0:
++            raise ValueError('positive objective/token normalization required')
++        weight = torch.tensor(accumulation_steps * tokens, dtype=torch.float32, device=self.table.device)
++        self.gbuf = self.grad_function(self.gbuf, indices, leaf.grad, weight)
++        self.pending_tokens += tokens
++        context.clear()
++
++    @torch.no_grad()
++    def finish_step(self, *, loader_epoch: int, force: bool=False, abort: bool=False, freeze: bool=False) -> bool:
++        if abort:
++            raise RuntimeError('all-rank table control refused the charged training deadline')
++        if self.frozen:
++            return False
++        self.pending_steps += 1
++        if self.pending_steps < self.every and not (force or freeze):
++            return False
++        self._update(loader_epoch=loader_epoch)
++        if freeze:
++            self.frozen = True
++        return True
++
++    @torch.no_grad()
++    def _update(self, *, loader_epoch: int) -> None:
++        if self.pending_tokens <= 0:
++            raise RuntimeError('table update without accumulated training tokens')
++        # One cast only, at the explicitly selected dense BF16 AVG/RMS boundary.
++        gradient = (self.gbuf / self.pending_tokens).to(torch.bfloat16)
++        if dist.is_available() and dist.is_initialized():
++            dist.all_reduce(gradient, op=dist.ReduceOp.AVG)
++        self.update_count += 1
++        rate = self.initial_lr * 1.0 if self.d2_two_site else (0.0 if loader_epoch >= 2 else self.initial_lr * 1.0)
++        lr = torch.tensor(rate, dtype=torch.float32, device=self.table.device)
++        correction = torch.tensor(1.0 - 0.999 ** self.update_count, dtype=torch.float32, device=self.table.device)
++        updated, second, cleared = self.rms_function(self.table, gradient, self.square_avg, lr, correction)
++        self.table.copy_(updated)
++        self.square_avg.copy_(second)
++        self.gbuf = cleared
++        self.pending_tokens = 0
++        self.pending_steps = 0
++
+ class MuonAdamW(torch.optim.Optimizer):
+ 
+     def __init__(self, param_groups):
+@@ -1264,11 +1471,24 @@
+             dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)
+ 
+ def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], *, max_norm: float) -> None:
+-    """Average the accumulated gradients across ranks, then clip them to a global norm of max_norm."""
++    """Average all dense gradients once; R50 table is excluded from every clip group."""
+     sync_gradients(model)
+     if max_norm > 0:
+         torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=None)
+ 
++def synchronized_table_control(loader_epoch: int, previous_epoch: int, force: bool, expired: bool, device, freeze: bool=False):
++    """One all-rank decision BEFORE branching into or refusing table AVG/RMS.
++
++    Local clock estimates are advisory inputs only. MAX makes epoch freeze,
++    force-partial and deadline refusal identical on every rank. No rank-local
++    deadline exception may occur between this control and the table collective.
++    """
++    control = torch.tensor([max(loader_epoch, previous_epoch), int(force), int(expired), int(freeze)],
++                           dtype=torch.int32, device=device)
++    if dist.is_available() and dist.is_initialized():
++        dist.all_reduce(control, op=dist.ReduceOp.MAX)
++    return int(control[0].item()), bool(control[1].item()), bool(control[2].item()), bool(control[3].item())
++
+ def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+     payload = {'model_state': {k: v.detach().cpu() for k, v in model.state_dict().items()}, 'model_config': asdict(model.config), 'meta': meta}
+@@ -1344,6 +1564,7 @@
+ def main() -> None:
+     parser = argparse.ArgumentParser(description='CLEAN-GATEFIX fixed Phase 1 training recipe')
+     parser.add_argument('--out-dir', type=str, default=os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out'), help='Checkpoint output directory.')
++    parser.add_argument('--tbl_freeze_tokens', type=int, default=286000000, help='Freeze D2 table after the completed global-token boundary; 0 continues updates.')
+     args = parser.parse_args()
+     device_type = detect_device_type()
+     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=42)
+@@ -1353,7 +1574,7 @@
+     print0(f'training target={NUM_STEPS} steps max_seconds={MAX_TRAIN_SECONDS} official_budget={TRAIN_TIME_BUDGET_SECONDS}s')
+     print0(f'gradient_clip={GRAD_CLIP:g} clip_after_reduce={True}')
+     tokenizer = ensure_tokenizer(build_if_missing=False)
+-    config = build_config()
++    config = build_config(tbl_freeze_tokens=args.tbl_freeze_tokens)
+     print0(f'model_config={json.dumps(asdict(config), indent=2)}')
+     model = GPT(config)
+     model.init_weights()
+@@ -1363,7 +1584,10 @@
+     print0(f'num_params={num_params:,} flops_per_token={flops_per_token:e}')
+     orig_model = model
+     compile_backend = 'neuron' if device_type == 'neuron' else 'inductor'
+-    model = torch.compile(model, backend=compile_backend, dynamic=False)
++    if config.d1_detached:
++        model.compile_core(compile_backend)
++    else:
++        model = torch.compile(model, backend=compile_backend, dynamic=False)
+     print0(f'torch.compile enabled (backend={compile_backend})')
+     world_tokens_per_micro = DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN * world_size
+     if TOTAL_BATCH_SIZE % world_tokens_per_micro != 0:
+@@ -1384,9 +1608,12 @@
+         return (xb, yb, state)
+     x, y, loader_state = fetch()
+     optimizer = model.setup_optimizer()
++    table_update = DetachedTableUpdate(orig_model, compile_backend=compile_backend) if config.d1_detached else None
+     assert dist.is_initialized() and dist.get_world_size() == 4
+     owned_optimizer = OwnedOptimizer(optimizer)
+     cached_linears = [m for m in model.modules() if isinstance(m, Linear)]
++    table_epoch = 1
++    # Persistent table buffer is absent from parameters, main AVG, clip and ownership.
+     clip_main_params = list(orig_model.parameters())
+     loop_started = time.monotonic()
+     budget_started = loop_started
+@@ -1414,9 +1641,15 @@
+         mtp_progress = startup_adjusted_schedule_elapsed(step, elapsed, budget_started) / MAX_TRAIN_SECONDS
+         mtp_weights = torch.tensor([1.0, mtp_auxiliary_weight(mtp_progress)], dtype=torch.float32, device=device)
+         for micro_index in range(grad_accum_now):
+-            loss = model(x, y, mtp_weights=mtp_weights)
++            table_context = {} if table_update is not None else None
++            if table_context is None:
++                loss = model(x, y, mtp_weights=mtp_weights)
++            else:
++                loss = model(x, y, mtp_weights=mtp_weights, table_context=table_context)
+             last_loss = loss.detach()
+             loss.backward(gradient=ramp_backward_seed)
++            if table_update is not None:
++                table_update.accumulate(table_context, accumulation_steps=grad_accum_now)
+             x, y, loader_state = fetch()
+         clip_and_sync_gradients(model, clip_main_params, max_norm=GRAD_CLIP)
+         schedule_elapsed = startup_adjusted_schedule_elapsed(step, elapsed, budget_started)
+@@ -1430,6 +1663,18 @@
+                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress)
+                 group['beta2'] = 0.9
+         owned_optimizer.step(update_adamw=True)
++        if table_update is not None:
++            # Local estimates cannot independently select a replicated-table collective.
++            remaining = MAX_TRAIN_SECONDS - (time.monotonic() - budget_started)
++            estimated_step = max(recent_step_times[-20:], default=0.0)
++            local_force = step + 1 >= NUM_STEPS or (step >= TRAIN_STARTUP_STEPS_EXCLUDED and remaining <= CHECKPOINT_RESERVE_SECONDS + 2 * estimated_step)
++            completed_tokens = total_train_tokens + grad_accum_now * world_tokens_per_micro
++            local_freeze = table_update.freeze_tokens > 0 and completed_tokens >= table_update.freeze_tokens and not table_update.frozen
++            next_epoch, force_table, abort_table, freeze_table = synchronized_table_control(int(loader_state['epoch']), table_epoch, local_force, remaining <= 0.0, device, local_freeze)
++            table_epoch = next_epoch
++            table_update.finish_step(loader_epoch=table_epoch, force=force_table, abort=abort_table, freeze=freeze_table)
++            if freeze_table:
++                print0(f'D2_TABLE_FROZEN step={step} global_tokens={completed_tokens} threshold={table_update.freeze_tokens} updates={table_update.update_count}; gate/projections continue')
+         for m in cached_linears:
+             m.refresh_weight_cache(COMPUTE_DTYPE)
+         synchronize(device)
+@@ -1470,6 +1715,10 @@
+         step += 1
+         if int(control[1].item()) != 0:
+             break
++    if table_update is not None:
++        if table_update.pending_tokens:
++            raise RuntimeError('unfinished every2 group; refuse dropping gradients or post-loop/post-budget update')
++        print0(f'D1_TABLE_COMPLETE updates={table_update.update_count} pending_tokens=0; all updates inside recorded steps')
+     checkpoint_path = Path(args.out_dir) / 'final.pt'
+     budget_elapsed_before_save = time.monotonic() - budget_started
+     if rank == 0:

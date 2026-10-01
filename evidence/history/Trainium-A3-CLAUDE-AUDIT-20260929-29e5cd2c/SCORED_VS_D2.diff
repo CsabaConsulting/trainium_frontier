@@ -1,0 +1,80 @@
+--- D2-CONTINUE-b758/train.py
++++ R69A3-NOPROJ-ID/train.py
+@@ -858,6 +858,8 @@
+             raise ValueError('D2 boolean and nonnegative integer token-freeze configuration required')
+         if config.d2_two_site and (not config.d1_detached or config.n_embd < 64 or config.n_kv_heads not in (0, config.n_head)):
+             raise ValueError('D2 requires enabled D1, width>=64 and full query/value heads')
++        if config.d2_two_site and config.n_embd != 128 * config.n_head:
++            raise ValueError('D2 NOPROJ-ID requires 128 channels per head')
+         self.__dict__['_d1_compiled_core'] = None
+         padded_vocab_size = (config.vocab_size + 63) // 64 * 64
+         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
+@@ -878,8 +880,6 @@
+             self.value_bigram_gate_logit = nn.Parameter(torch.zeros((), dtype=torch.float32))
+             with torch.random.fork_rng(devices=[]):
+                 self.value_bigram_proj = Linear(128, config.n_embd, bias=False)
+-                if config.d2_two_site:
+-                    self.value_bigram_proj7 = Linear(128, config.n_embd, bias=False)
+ 
+     @torch.no_grad()
+     def init_weights(self) -> None:
+@@ -913,7 +913,6 @@
+             with torch.random.fork_rng(devices=[]):
+                 torch.nn.init.uniform_(self.value_bigram_proj.weight, -s, s)
+                 if self.config.d2_two_site:
+-                    torch.nn.init.uniform_(self.value_bigram_proj7.weight, -s, s)
+                     self.transformer.h[7].attn.bigram_gate.weight.zero_()
+             self.value_bigram_gate_logit.zero_()
+ 
+@@ -951,8 +950,6 @@
+             matrix_params.extend(block.mlp.parameters())
+         if self.config.d1_detached:
+             matrix_params.append(self.value_bigram_proj.weight)
+-            if self.config.d2_two_site:
+-                matrix_params.append(self.value_bigram_proj7.weight)
+         gate_params = [p for name, p in self.named_parameters() if p.ndim == 2 and 'gate' in name]
+         if self.config.d1_detached:
+             gate_params.append(self.value_bigram_gate_logit)
+@@ -1025,7 +1022,7 @@
+             rows0 = rows[..., :128] if self.config.d2_two_site else rows
+             projected = self.value_bigram_proj(rows0)
+             if self.config.d2_two_site:
+-                bigram_ve7 = self.value_bigram_proj7(rows[..., 128:256])
++                bigram_ve7 = rows[..., 128:256].repeat(1, 1, self.config.n_head)
+             gate = (2 * torch.sigmoid(self.value_bigram_gate_logit)).to(x.dtype)
+             x = x + gate * projected
+         x = norm(x)
+@@ -1116,6 +1113,19 @@
+     update = (gradient / denom).to(torch.bfloat16)
+     updated = (table.float() - lr * update.float()).to(torch.bfloat16)
+     return updated, second, torch.zeros_like(gradient, dtype=torch.float32)
++
++@torch.no_grad()
++def d2_table_rank_max_abs_diff(table: torch.Tensor) -> float:
++    """End-run diagnostic on a clone; never changes a trained table or master."""
++    if not (dist.is_available() and dist.is_initialized()):
++        return 0.0
++    reference = table.detach().clone()
++    dist.broadcast(reference, src=0)
++    difference = table.detach().cpu().float()
++    difference.sub_(reference.cpu().float()).abs_()
++    maximum = torch.tensor(float(difference.max().item()), dtype=torch.float32, device=table.device)
++    dist.all_reduce(maximum, op=dist.ReduceOp.MAX)
++    return float(maximum.item())
+ 
+ class DetachedTableUpdate:
+     """Training-only replicated state; never a model Parameter/module/checkpoint key.
+@@ -1719,6 +1729,13 @@
+         if table_update.pending_tokens:
+             raise RuntimeError('unfinished every2 group; refuse dropping gradients or post-loop/post-budget update')
+         print0(f'D1_TABLE_COMPLETE updates={table_update.update_count} pending_tokens=0; all updates inside recorded steps')
++        if table_update.d2_two_site:
++            rank_check_started = time.monotonic()
++            table_max_abs_diff = d2_table_rank_max_abs_diff(table_update.table)
++            rank_check_seconds = time.monotonic() - rank_check_started
++            print0(f'D2_TABLE_RANK_CONSISTENCY world_size={world_size} max_abs_diff_vs_rank0={table_max_abs_diff:.9g} method=cloned_rank0_broadcast_host_fp32_max_scalar_allreduce diagnostic_seconds={rank_check_seconds:.6f}')
++            if not math.isfinite(table_max_abs_diff):
++                raise RuntimeError('nonfinite end-run table rank-consistency diagnostic')
+     checkpoint_path = Path(args.out_dir) / 'final.pt'
+     budget_elapsed_before_save = time.monotonic() - budget_started
+     if rank == 0:

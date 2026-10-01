@@ -1,0 +1,30 @@
+[
+  [
+    "they do not select a different model or inspect scoring inputs.\n",
+    "they do not select a different model or inspect scoring inputs.\nSPMD grids follow the documented LNC contract: a [2] grid requests two physical cores, so the same kernels run under the trainer's LNC=2 and any evaluator core configuration.\n"
+  ],
+  [
+    "_PROCESS_STARTED = time.monotonic()\n",
+    "_PROCESS_STARTED = time.monotonic()\n_NKI_LANES = 2 if os.environ.get('NEURON_LOGICAL_NC_CONFIG') == '2' else 1\n"
+  ],
+  [
+    "        return lanes if t % (_NKI_PARTITION * lanes) == 0 else 1\n",
+    "        return min(lanes if t % (_NKI_PARTITION * lanes) == 0 else 1, _NKI_LANES)\n"
+  ],
+  [
+    "            lanes = 2 if x.shape[0] % 2 == 0 else 1\n",
+    "            lanes = 2 if x.shape[0] % 2 == 0 and _NKI_LANES == 2 else 1\n"
+  ],
+  [
+    "    return 2 if rows >= 512 and rows % 256 == 0 else 1\n",
+    "    return min(2 if rows >= 512 and rows % 256 == 0 else 1, _NKI_LANES)\n"
+  ],
+  [
+    "    _LANEB_CTE = _wrap_laneb_nki(_laneb_cte_kernel)[2]\n",
+    "    _LANEB_CTE = _wrap_laneb_nki(_laneb_cte_kernel)[_NKI_LANES]\n"
+  ],
+  [
+    "    _LANEB_BWD = _wrap_laneb_nki(_laneb_bwd_kernel)[2]\n",
+    "    _LANEB_BWD = _wrap_laneb_nki(_laneb_bwd_kernel)[_NKI_LANES]\n"
+  ]
+]

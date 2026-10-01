@@ -1,0 +1,163 @@
+{
+  "schema": "trainium.independent_prospective_admission_review.v1",
+  "reviewer": "standing_research_verifier",
+  "independent": true,
+  "author_implementation_involvement": false,
+  "reviewed_at_utc": "2026-09-27T09:55:09Z",
+  "verdict": "PASS_LOCAL_PROSPECTIVE_ADMISSION_ONLY",
+  "blockers": [],
+  "corrected_patch": {
+    "path": "research/v2/operator/20260927-clip-qk-1510-preparation/INTEGRATION.diff",
+    "sha256": "4b826f6ed3e5090f2f6def8b6263409b2fa61e56956915b0780b5046cd8c71ef"
+  },
+  "rejected_original": {
+    "path": "research/v2/operator/20260927-clip-qk-1510-preparation/INTEGRATION.before-dispatch-fix.diff",
+    "sha256": "1f3981e3bbe038b2a3a58b4c66bf7a8af941be18bfddb8f294dabfe3bb2912f7",
+    "verdict": "REFUSE_DISPATCH_ROUTING_GAP",
+    "reason": "New QK timing handler was not reached by actual manual dispatcher: generic success bypassed strict 60-step checks and archived NKI failure blocked QK. Independently reproduced both alternatives. Original test replay also failed 3/4 groups after NKI install because it imported obsolete9509 preparation; revised prepare reads exact installedbd3c/3def."
+  },
+  "exact_active_preconditions": {
+    "build_sha256": "bd3c539b55f262e89a0581c1bd30dafae0a4430d8ccd89700824aa49a7b3e4fe",
+    "manual_job_sha256": "3def737a1ab36df6bc986eca3f0ac0288e9c59c84f4ec4de7c71b8aa750d984f",
+    "release_root_sha256": "a0352237267b5c24096e5373500c2fabbe615af20452c8e05988b8fc418aa1bf"
+  },
+  "exact_prospective_sources": {
+    "build_sha256": "a593f500416383e9c1477937ebf7996a50e8e064e8318d3866aa330b2fdf929a",
+    "manual_job_sha256": "2f6d9907855c114710b28a06662d5471ed2d61ee56f6b7fbbc98fff9bb655cbb",
+    "release_root_sha256": "a0352237267b5c24096e5373500c2fabbe615af20452c8e05988b8fc418aa1bf"
+  },
+  "gate_sha256": "ec7ae91b935de8228eef0eec1119847f6a00a0da8d97e138269bd07cf6814f4e",
+  "preparation_sha256": "0430c7ff8cd5ab1f96a57bc96fa02ca3440c8615cd21fb74f9310ad116278219",
+  "extension_sha256": "4a759dbe06b3becd045947e3d85606b7aee196e50ec9e261b0cdb2018309127b",
+  "test_local_sha256": "bdbb3b252d4c590a20e56ada0966e60e654357f0e753d2bea3db8363a90fff15",
+  "author_fix_receipt_sha256": "5d8e8b6b0cc466f331e9817e3ed84332a46adf867e8c2876ff7dd8b7512b94c3",
+  "independent_source_review_reused": {
+    "path": "research/v2/research_cycles/20260927-r12-remaining-gatefixed-verification.json",
+    "sha256": "e323718e064a40e8b85b612c81a78d888d7e608cf07388808f05eeed78d4b0cb",
+    "new_science_gate": false
+  },
+  "local_replay": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /home/poojith-devan/venv/bin/python -B -m unittest -v test_local",
+    "cwd": "research/v2/operator/20260927-clip-qk-1510-preparation",
+    "exit_code": 0,
+    "test_groups": 4,
+    "elapsed_seconds": 1.377,
+    "git_apply_check_exit_code": 0,
+    "temporary_role_fixtures_only": true
+  },
+  "own_reference": {
+    "path": "research/v2/research_cycles/20260927-clip-qk-admission-reference-verification.py",
+    "sha256": "b9e85bed959514050f42565fc055de8d52d791d49c5b8e4ba331b2a3ef80951d",
+    "exit_code": 0,
+    "checks": {
+      "verdict": "PASS_LOCAL_PROSPECTIVE_ADMISSION_ONLY",
+      "corrected_diff_sha256": "4b826f6ed3e5090f2f6def8b6263409b2fa61e56956915b0780b5046cd8c71ef",
+      "old_diff_verdict": "REFUSE_DISPATCH_ROUTING_GAP",
+      "old_diff_sha256": "1f3981e3bbe038b2a3a58b4c66bf7a8af941be18bfddb8f294dabfe3bb2912f7",
+      "old_sha256": [
+        "bd3c539b55f262e89a0581c1bd30dafae0a4430d8ccd89700824aa49a7b3e4fe",
+        "3def737a1ab36df6bc986eca3f0ac0288e9c59c84f4ec4de7c71b8aa750d984f"
+      ],
+      "new_sha256": [
+        "a593f500416383e9c1477937ebf7996a50e8e064e8318d3866aa330b2fdf929a",
+        "2f6d9907855c114710b28a06662d5471ed2d61ee56f6b7fbbc98fff9bb655cbb"
+      ],
+      "counts": {
+        "packets": 108,
+        "members": 1512,
+        "guards": 324,
+        "new_packets": 4,
+        "packet_mutations_refused": 52
+      },
+      "bindings": {
+        "trn21-r13-clip0-gatefixed-full-r1": {
+          "packet_sha256": "d6e3cc3fc51c90d21338fc02362189c0b77305a7ffe72385f5e854cf56a0c5d7",
+          "source_sha256": "31595afc34617e401977edca06749adf7aa98307d10b740ddb0f21cd94b3faf9",
+          "predecessor": "trn21-r13-muoneq-gatefixed-full-r3",
+          "clean_exact_snapshot": true
+        },
+        "trn21-r13-clip0-gatefixed-full-r2": {
+          "packet_sha256": "610bcb451bbff8f55aeb5337948829a5ac1fefc079804e0cdc8d5f20cd7f0001",
+          "source_sha256": "31595afc34617e401977edca06749adf7aa98307d10b740ddb0f21cd94b3faf9",
+          "predecessor": "trn21-r13-c3-adamw-cooldown040-gatefixed-full-r5",
+          "clean_exact_snapshot": true
+        },
+        "trn22-r13-qk-scale120-gatefixed-full-r1": {
+          "packet_sha256": "1e936849cab4da5e0d7bece0616ba34acb3cc99cdc7b5837723165e3a07c4e58",
+          "source_sha256": "0c02018753cba1947c3ed7f75e7871feab1e4fa15ab62258522e06b44289fe63",
+          "predecessor": "trn22-nki-dpre-gatefixed-native60-r5",
+          "clean_exact_snapshot": true
+        },
+        "trn22-r13-qk-scale120-gatefixed-full-r2": {
+          "packet_sha256": "75c7f04adf69eede9df92d6a2999385bb01bc98233a565b21051518d951ce563",
+          "source_sha256": "0c02018753cba1947c3ed7f75e7871feab1e4fa15ab62258522e06b44289fe63",
+          "predecessor": "trn22-nki-dpre-gatefixed-native60-r6",
+          "clean_exact_snapshot": true
+        }
+      },
+      "unchanged_manual_functions": [
+        "sha",
+        "load_body",
+        "c239_qualification_contract",
+        "is_round7",
+        "round7_contract",
+        "successor_timing_packet",
+        "successor_full_packet",
+        "stack_ramp_packet",
+        "selected_stack_bigram_packet",
+        "norm_full_packet",
+        "norm_fallback_outcome",
+        "checked_packet",
+        "connector",
+        "remote",
+        "stage",
+        "collect",
+        "status",
+        "status_one",
+        "_status_bindings"
+      ],
+      "stage_ast_identical": true,
+      "release_source_unchanged": true,
+      "dispatch_results": [
+        {
+          "key": "trn22-r13-qk-scale120-gatefixed-full-r1",
+          "old_generic_success_gap_reproduced": true,
+          "old_archived_failure_block_reproduced": true,
+          "new_success_and_archived_failure_classified_not_quality": true,
+          "adverse_dispatch_cases_refused": 12
+        },
+        {
+          "key": "trn22-r13-qk-scale120-gatefixed-full-r2",
+          "old_generic_success_gap_reproduced": true,
+          "old_archived_failure_block_reproduced": true,
+          "new_success_and_archived_failure_classified_not_quality": true,
+          "adverse_dispatch_cases_refused": 12
+        }
+      ],
+      "active_bytes_unchanged": true,
+      "host_calls": 0,
+      "native_calls": 0,
+      "elapsed_seconds": 2.0167230250081047
+    }
+  },
+  "findings": [
+    "Corrected manual routing adds only the two exact QK keys to the existing family timing dispatcher. Both actual old-path defects are reproduced and corrected-path success/failure outcomes remain explicitly not quality/speed verdicts.",
+    "Own review reconstructs108 packets, authenticates1512 members/324 original guards and four clean exact snapshots;52 stale binding/rehashed source-review-guard mutations refuse. Twenty-four extra actual dispatcher adverse cases refuse.",
+    "The entire stage function and checked_packet/remote/collect/status are AST-identical to installedNKI version; release source unchanged. Original own predecessor/archive/postflight/controller/stops/breakers/one-shot/under-lock idle/device/disk/lifetime guards remain mandatory.",
+    "Clip trn21 follows selected own MuonEq or split full; QK trn22 follows selected own NKI60. Role fixtures exercise both mappings without an opposite-host completion prerequisite. Gate claims remain role selection, not terminal evidence.",
+    "Four new packets retain administrative c239 base and independently bound500f scientific base, reviewed exact clip/QK sources, disabled full-run packets and no inherited score. Existing canonical queue-base rebase guard is unchanged; actual adoption must update authoritative state under existing controller contract."
+  ],
+  "limits": [
+    "No real NKI terminal archive exists in these fixtures; they are tests only, not result evidence.",
+    "Fresh500f comparison is pending authentication; no BPB or throughput inferred.",
+    "This is prospective local admission review only, not apply/release/launch/adoption/submission authority."
+  ],
+  "effects": {
+    "active_edits": false,
+    "host_calls": 0,
+    "source_edits": false,
+    "queue_or_role_changes": false,
+    "native_compiler_simulator_calls": 0,
+    "new_science_or_native_prerequisite": false
+  }
+}

@@ -1,0 +1,11 @@
+--- pinned-ace0b4db/verify.py
++++ direct_parent21-exact-legacy-member/in-memory-verify.py
+@@ -91,7 +91,7 @@
+  for name,raw in f.items():assert sha(raw)==packet['files'][name]['sha256'],name
+  assert json.loads(f['NATIVE_BINDING.json'])==b and sha(f['package/train.py'])==job['source_sha256']
+  assert f['package/launch-command.txt']==(COMMAND+'\n').encode()
+- selection=json.loads(f['R98_ROOT_SELECTION.json'])
++ selection=json.loads(f['R100_ROOT_SELECTION.json'])
+  assert selection['host']==job['host']and selection['key']==job['key']and selection['source_sha256']==job['source_sha256']
+  assert b['scientific_configuration']['tbl_freeze_tokens']==0 and b['scientific_configuration']['source_unchanged']is True
+  return packet

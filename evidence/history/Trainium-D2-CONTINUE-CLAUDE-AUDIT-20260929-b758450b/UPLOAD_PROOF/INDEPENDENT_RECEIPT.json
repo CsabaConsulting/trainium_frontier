@@ -1,0 +1,79 @@
+{
+  "authorized_replacements": 3,
+  "bare_args": {
+    "out_dir": "out",
+    "tbl_freeze_tokens": 0
+  },
+  "bare_model_config": {
+    "attn_scale": 0.0,
+    "d1_detached": true,
+    "d1_injection": "embedding_pre_norm",
+    "d2_two_site": true,
+    "mlp_ratio": 4,
+    "mtp": true,
+    "n_embd": 1024,
+    "n_head": 8,
+    "n_kv_heads": 0,
+    "n_layer": 8,
+    "sequence_len": 1024,
+    "tbl_every": 2,
+    "tbl_freeze_tokens": 0,
+    "vocab_size": 8192
+  },
+  "both_explicit_override_modes_equal_parent": true,
+  "candidate_bytes": 99747,
+  "candidate_sha256": "6d197b3cd08a4e107020e5bb03a946a06a361ed36c6d7dfc12b35ca1484be14c",
+  "check_script_sha256": "972dbc87bbaae3dc9db013a51c7272bbe6dd92e2dfa4947217c08e6e46b81432",
+  "complete_byte_allowlist_match": true,
+  "direct_build_config_default": 286000000,
+  "host_calls": false,
+  "method": "Reviewer-authored scalar AST interpreter plus stdlib argparse; no eval/exec, candidate imports, author code, model construction or numerical execution.",
+  "normalized_entire_module_ast_equal": true,
+  "parent_sha256": "b758450b599d4acc5b1fc17d37cccb87421d22bb99c213f6d8ed29fdede13fa8",
+  "reviewer": "/root/r66_upload_fresh_review",
+  "scope": "R66 derivative exactness and recorded config equivalence only; Claude conditional source audit remains bounded, no new native/clean-box/score claim.",
+  "scored_evidence": [
+    {
+      "actual_argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4",
+        "train.py",
+        "--tbl_freeze_tokens",
+        "0"
+      ],
+      "archive_path": "research/v2/operator/20260929-r62-d2-continue-full-trn21-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "5a82d3568173b16eb73d74e5b1484e9835c2b519181c1c68166bee4ecdc6da72",
+      "authenticated_members": 47,
+      "charged_seconds": 1789.2469078660943,
+      "checkpoint_sha256_recorded": "ffd8d27b1e4d50ce5c6da65ab4fdc9884fa5395beb73240fceb1c01d8bf6ec27",
+      "cold_seconds": 645.2149264460895,
+      "host": "trn21",
+      "model_config_equal": true,
+      "training_log_sha256": "d3c2c030bcea19257a444342794ff26158fc77286f59b378fc84ff50e48f2fdb"
+    },
+    {
+      "actual_argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc_per_node=4",
+        "train.py",
+        "--tbl_freeze_tokens",
+        "0"
+      ],
+      "archive_path": "research/v2/operator/20260929-r62-d2-continue-confirm-full-trn22-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "88acaeb5597adced2408f6e38fa840f3489ed48579695e97ea9c502e1ffe1fd8",
+      "authenticated_members": 47,
+      "charged_seconds": 1789.9740794380195,
+      "checkpoint_sha256_recorded": "21c0774bf714fa3e96b3cba561e00f81a8705ab581cbbc079bb1f8c91b344009",
+      "cold_seconds": 676.2203809318598,
+      "host": "trn22",
+      "model_config_equal": true,
+      "training_log_sha256": "1c56139d82380233cc0989c294b1f4a415d66bffec5152ae2f4de76c1568f222"
+    }
+  ],
+  "source_and_package_writes": false,
+  "submission": false,
+  "unchanged_top_level_definitions_excluding_main": 43,
+  "verdict": "PASS_INDEPENDENT_R66_DERIVATIVE_EXACTNESS"
+}

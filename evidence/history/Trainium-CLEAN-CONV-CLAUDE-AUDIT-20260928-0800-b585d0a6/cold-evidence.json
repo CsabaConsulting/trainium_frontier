@@ -1,0 +1,860 @@
+{
+  "actual_cold_runs_observed": 6,
+  "actual_export_completion": "NOT_ASSERTED",
+  "actual_full_archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-r2-preparation/artifacts/results-bundle.json",
+  "actual_result_package_independent_review": "ROOT_REQUIRED_BEFORE_APPLYING_PATCH",
+  "adoption": false,
+  "comparison_parent_sha256": "881a4f491d256fb89af33246a3b568fc3ffead9616070eea1860d7d8f7f9f749",
+  "cumulative_bytes_written": null,
+  "current_score_rule": "ROUND33: exact-source valid cold public20M <=0.97845; no superseded absolute500f band",
+  "exporter_parent_sha256": "b3141d8d6deea41b470e75218d80e3ed5e4be9c01dccc2dde42b519f2a557e2d",
+  "external_claude_exact_source_audit": "PENDING",
+  "full_parser_sha256": "378fa85bc98abf2b7ee4bc3eb7126923bb968d380ae4070a702dbc9ef21425e5",
+  "human_upload_only": true,
+  "identity_adapter_scope": "Only original full-run arm/host/inode literals adapted to each exact pinned packet; all native/source/CPU/budget/checkpoint/Guardian checks retained.",
+  "official_score": false,
+  "projected_net_tokens_1800": null,
+  "recipe_changed": false,
+  "rejection_checklist": [
+    {
+      "claim": "Only train.py, exact launch, clean scoring-box imports",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:40,44,174,441; actual training-launch.json and isolated source in archive 823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c; launch NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "item": 1,
+      "missing_or_limitation": "Exact isolated source/launch succeeded in existing native_venv; organizer clean-runtime import availability remains unverified. Provided prepare is scaffold, not participant payload.",
+      "status": "FAIL"
+    },
+    {
+      "claim": "Same trained causal model and identical train/eval kernel path",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:1278; GPT.forward:918; MLP.forward mode branch:778; unchanged ASTs and CPU receipts in source_and_cpu",
+      "item": 2,
+      "missing_or_limitation": "Strict weights_only loading and shared causal GPT are retained. Inherited not self.training selects ordinary MLP in eval versus eligible _FusedMLP in training. Literal same-kernel requirement/production rounding remains unresolved; CONV did not introduce it.",
+      "status": "FAIL"
+    },
+    {
+      "claim": "No prohibited data/network/weights/local-cache dependency",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:1344,38,1278; archive 823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c#operator-preflight.json and NATIVE_BINDING.json train/eval environments",
+      "item": 3,
+      "missing_or_limitation": "Main uses provided TRAIN assets and fresh initialization, no direct network client. Six empty training caches prove cold training, not complete runtime I/O or cold-eval portability; eval uses recorded research cache paths. Optional cache default is not proven dependence.",
+      "status": "FAIL"
+    },
+    {
+      "claim": "Measured cold <=900s and charged <=1800s",
+      "evidence": "archive 823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c#operator-preflight.json; train/rehearsal.json; cold 650.7380700521171s, charged-through-exit 1788.9089364169631s",
+      "item": 4,
+      "missing_or_limitation": "Applies only to this exact source-matched actual run, not future startup guarantees.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Total checkpoint/log/cache bytes written and no large leftovers",
+      "evidence": "archive 823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c#checkpoint.json, checkpoint-after-postflight.json; retained checkpoint 453044690 bytes; original Guardian idle cleanup; actual retained packet-root inventories d517300f10344e7f49692d366697bc4859e3e8621bd2c2fa9a2be2a86cbfb488, 5cf754d0879ce7b5f7fbe3ee997b4c14c93dc192fb0425ff1d3150660b28d92f",
+      "item": 5,
+      "missing_or_limitation": "Cumulative checkpoint/log/cache writes, overwritten/transient bytes and complete leftovers inventory are unavailable. Retained checkpoint size, archive size/free-space snapshots and idle processes are not total writes or disk cleanup; no deletion authorized. Supplement now inventories two exact r2 packet roots only, with large retained checkpoint/NEFF files. Shared evaluation/data caches and all historical/transient writes remain excluded; row remains FAIL.",
+      "status": "FAIL"
+    },
+    {
+      "claim": "No hidden required environment beyond command; defaults on",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:36-39,45; main:1344; archive 823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c#NATIVE_BINDING.json actual train/eval environments",
+      "item": 6,
+      "missing_or_limitation": "Fixed recipe and retained optional main/import compiler defaults are explicit. Minimal provided-runtime environment sufficiency is not separately proved; external override availability is not evidence it is required.",
+      "status": "FAIL"
+    },
+    {
+      "claim": "Seed42 and no additional time-driven model selector",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:120,1344,1296,1333",
+      "item": 7,
+      "missing_or_limitation": "Scoped source inventory: disclosed wall-clock LR/momentum/WD/MTP/batch schedule, mandatory startup/budget-stop predictor and reporting retained. Not native bitwise replay across variable-speed runs.",
+      "status": "PASS"
+    },
+    {
+      "claim": "Readable CLEAN source, per-kernel docs and shared eval path",
+      "evidence": "train.py SHA256 b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742:1; helper-only diff lines510-524; MLP branch:778; convolution definitions lack docstrings",
+      "item": 8,
+      "missing_or_limitation": "Exact CLEAN+CONV preserved without docstring rebuild. Missing conv/per-helper docstrings and inherited mode branch remain; generic fallback necessity is not blanket-proved. No silently revised source to improve checklist wording.",
+      "status": "FAIL"
+    }
+  ],
+  "released_packet_sha256": "a33849f790b2bba93ce2cbb32dc362c2962e455dd037d361adf07985b9860ea3",
+  "required_cold_runs": 1,
+  "retained_inventory_supplement": [
+    {
+      "checklist_5_pass": false,
+      "cumulative_bytes_written": null,
+      "excluded": "Outer source checkout, shared evaluation/data caches, other jobs, deleted/overwritten/transient bytes and write amplification.",
+      "helper_sha256": "e1155c6ac8323ed7cd37b5ddcda9e4f36ecdc4ee38ee3417a3089cadabba65fc",
+      "metadata": {
+        "cumulative_bytes_written": null,
+        "elapsed_seconds": 0.02912897104397416,
+        "entries_by_kind": {
+          "directory": 572,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "entries_seen": 1170,
+        "hardlink_aliases": 0,
+        "host": "trn22",
+        "interpretation": "Observed inode totals, hardlinks deduplicated; st_blocks*512 is not exclusive physical storage. Never cumulative writes or checklist PASS.",
+        "issue_count": 0,
+        "issues": [],
+        "largest10_regular_files": [
+          {
+            "allocated_bytes": 453050368,
+            "device": 66305,
+            "inode": 3153417,
+            "logical_bytes": 453044690,
+            "path": "train/out/final.pt"
+          },
+          {
+            "allocated_bytes": 76894208,
+            "device": 66305,
+            "inode": 3152270,
+            "logical_bytes": 76892061,
+            "path": "cold-training-caches/neff/a3/ed/a3ed1f7adf016b72a2c1821e1fb12d2a.neff"
+          },
+          {
+            "allocated_bytes": 38891520,
+            "device": 66305,
+            "inode": 3152261,
+            "logical_bytes": 38890845,
+            "path": "cold-training-caches/neff/48/4b/484b08652ccec36d0204c32943461583.neff"
+          },
+          {
+            "allocated_bytes": 1949696,
+            "device": 66305,
+            "inode": 3152984,
+            "logical_bytes": 1948649,
+            "path": "cold-training-caches/neff/c6/46/c646abf73a5a1f9dc00600ecf234c515.neff"
+          },
+          {
+            "allocated_bytes": 1396736,
+            "device": 66305,
+            "inode": 3153259,
+            "logical_bytes": 1396354,
+            "path": "cold-training-caches/neff/6d/67/6d67af18eba030622e955124633d33b7.neff"
+          },
+          {
+            "allocated_bytes": 1036288,
+            "device": 66305,
+            "inode": 3152988,
+            "logical_bytes": 1034835,
+            "path": "cold-training-caches/neff/9a/b6/9ab6258eff1f56f6e57a2a84e459a95d.neff"
+          },
+          {
+            "allocated_bytes": 1003520,
+            "device": 66305,
+            "inode": 3153047,
+            "logical_bytes": 1001476,
+            "path": "cold-training-caches/neff/5a/af/5aaf77b54b24a16f34067086e330d707.neff"
+          },
+          {
+            "allocated_bytes": 966656,
+            "device": 66305,
+            "inode": 3153053,
+            "logical_bytes": 965943,
+            "path": "cold-training-caches/neff/88/cb/88cb6e7171ca0f1a481751292715a715.neff"
+          },
+          {
+            "allocated_bytes": 925696,
+            "device": 66305,
+            "inode": 3152958,
+            "logical_bytes": 924578,
+            "path": "cold-training-caches/neff/7c/d2/7cd2ea226c4f97b4512238fc402e245b.neff"
+          },
+          {
+            "allocated_bytes": 630784,
+            "device": 66305,
+            "inode": 3153045,
+            "logical_bytes": 627377,
+            "path": "cold-training-caches/neff/2f/a5/2fa5c63ac485cc0dd2c850cba57f14f1.neff"
+          }
+        ],
+        "max_entries": 100000,
+        "observed_lower_bound": false,
+        "packet_sha256": "3fb39a7f72a9dcc1ea08bf9372f0780460b5c21b5ff905972252f82bead73800",
+        "root": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn22_r2/out/fs-20260928-conv-dw-store-filler-full-trn22-r2-packet",
+        "scope": "Non-atomic retained namespace only; excludes all paths outside binding.root.",
+        "seconds_limit": 10.0,
+        "skipped_mount_or_device_entries": 0,
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "status": "COMPLETE",
+        "unique_allocated_bytes_by_kind": {
+          "directory": 2367488,
+          "other": 0,
+          "regular": 581951488,
+          "symlink": 0
+        },
+        "unique_dev_inode_count": 1171,
+        "unique_inodes_by_kind": {
+          "directory": 572,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "unique_logical_bytes_by_kind": {
+          "directory": 2367488,
+          "other": 0,
+          "regular": 580846832,
+          "symlink": 0
+        }
+      },
+      "path": "research/v2/operator/20260928-cold-artifact-inventory/ACTUAL_TRN22_R2.json",
+      "receipt_utc": "2026-09-28T02:18:26.612733+00:00",
+      "recorded_payload_sha256": "2d50be1801cdfb5d9839496775c46dc4833050a3a0a4b8316c44f218e96139ab",
+      "sha256": "d517300f10344e7f49692d366697bc4859e3e8621bd2c2fa9a2be2a86cbfb488"
+    },
+    {
+      "checklist_5_pass": false,
+      "cumulative_bytes_written": null,
+      "excluded": "Outer source checkout, shared evaluation/data caches, other jobs, deleted/overwritten/transient bytes and write amplification.",
+      "helper_sha256": "e1155c6ac8323ed7cd37b5ddcda9e4f36ecdc4ee38ee3417a3089cadabba65fc",
+      "metadata": {
+        "cumulative_bytes_written": null,
+        "elapsed_seconds": 0.027689108857885003,
+        "entries_by_kind": {
+          "directory": 571,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "entries_seen": 1169,
+        "hardlink_aliases": 0,
+        "host": "trn21",
+        "interpretation": "Observed inode totals, hardlinks deduplicated; st_blocks*512 is not exclusive physical storage. Never cumulative writes or checklist PASS.",
+        "issue_count": 0,
+        "issues": [],
+        "largest10_regular_files": [
+          {
+            "allocated_bytes": 453050368,
+            "device": 66305,
+            "inode": 3430339,
+            "logical_bytes": 453044690,
+            "path": "train/out/final.pt"
+          },
+          {
+            "allocated_bytes": 76881920,
+            "device": 66305,
+            "inode": 3429181,
+            "logical_bytes": 76874132,
+            "path": "cold-training-caches/neff/f4/2a/f42a9f44350c95debc4c5171e2079a97.neff"
+          },
+          {
+            "allocated_bytes": 38887424,
+            "device": 66305,
+            "inode": 3429175,
+            "logical_bytes": 38885124,
+            "path": "cold-training-caches/neff/82/36/8236e8b2f84b9a46b287e5285a305225.neff"
+          },
+          {
+            "allocated_bytes": 1949696,
+            "device": 66305,
+            "inode": 3430097,
+            "logical_bytes": 1948707,
+            "path": "cold-training-caches/neff/0a/ac/0aac8757b640b18698b91219fc6873f7.neff"
+          },
+          {
+            "allocated_bytes": 1396736,
+            "device": 66305,
+            "inode": 3430103,
+            "logical_bytes": 1396343,
+            "path": "cold-training-caches/neff/0a/95/0a952a2645b9225ea6f208e3f25abab6.neff"
+          },
+          {
+            "allocated_bytes": 1036288,
+            "device": 66305,
+            "inode": 3430009,
+            "logical_bytes": 1035836,
+            "path": "cold-training-caches/neff/2a/9e/2a9e996d9b34f6ca21d8eabf64bd06f4.neff"
+          },
+          {
+            "allocated_bytes": 1003520,
+            "device": 66305,
+            "inode": 3430036,
+            "logical_bytes": 1001716,
+            "path": "cold-training-caches/neff/5e/e8/5ee85114f93c0043852f79280476b0d4.neff"
+          },
+          {
+            "allocated_bytes": 966656,
+            "device": 66305,
+            "inode": 3430024,
+            "logical_bytes": 965841,
+            "path": "cold-training-caches/neff/df/4d/df4d513c632a87bfe1e3de34cd10c064.neff"
+          },
+          {
+            "allocated_bytes": 925696,
+            "device": 66305,
+            "inode": 3429922,
+            "logical_bytes": 925069,
+            "path": "cold-training-caches/neff/67/54/6754aa54299184e7f7da8eb9c2fcd330.neff"
+          },
+          {
+            "allocated_bytes": 630784,
+            "device": 66305,
+            "inode": 3430042,
+            "logical_bytes": 627138,
+            "path": "cold-training-caches/neff/59/90/59902b4e674580e326997dfefdf13268.neff"
+          }
+        ],
+        "max_entries": 100000,
+        "observed_lower_bound": false,
+        "packet_sha256": "a33849f790b2bba93ce2cbb32dc362c2962e455dd037d361adf07985b9860ea3",
+        "root": "/home/ubuntu/trainium_freshstart_20260928_clean_conv_dw_store_filler_full_trn21_r2/out/fs-20260928-conv-dw-store-filler-full-trn21-r2-packet",
+        "scope": "Non-atomic retained namespace only; excludes all paths outside binding.root.",
+        "seconds_limit": 10.0,
+        "skipped_mount_or_device_entries": 0,
+        "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+        "status": "COMPLETE",
+        "unique_allocated_bytes_by_kind": {
+          "directory": 2363392,
+          "other": 0,
+          "regular": 581931008,
+          "symlink": 0
+        },
+        "unique_dev_inode_count": 1170,
+        "unique_inodes_by_kind": {
+          "directory": 571,
+          "other": 0,
+          "regular": 599,
+          "symlink": 0
+        },
+        "unique_logical_bytes_by_kind": {
+          "directory": 2363392,
+          "other": 0,
+          "regular": 580826391,
+          "symlink": 0
+        }
+      },
+      "path": "research/v2/operator/20260928-cold-artifact-inventory/ACTUAL_TRN21_R2.json",
+      "receipt_utc": "2026-09-28T02:29:32.717782+00:00",
+      "recorded_payload_sha256": "abcad4914feae6d2d36737fee86f1b84e26d517de1de9bdf75ca931c71f06841",
+      "sha256": "5cf754d0879ce7b5f7fbe3ee997b4c14c93dc192fb0425ff1d3150660b28d92f"
+    }
+  ],
+  "runs": [
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-r2-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "823ea754bcb22200ad1a62c9760ef86950110061aba9a1856f80fb3a07fec44c",
+      "charged_through_exit_seconds": 1788.9089364169631,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "bfa639d62547d6e17bda0fe992b5a56d2832741cb836a0a4bd1fd405fc144c45"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 650.7380700521171,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "667.971161613008",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56474984.0",
+      "guardian_event_count": 1058,
+      "guardian_phase_exits": 2,
+      "host": "trn21",
+      "key": "trn21-conv-dw-store-filler-full-r2",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2751,
+      "packet_sha256": "a33849f790b2bba93ce2cbb32dc362c2962e455dd037d361adf07985b9860ea3",
+      "phase1_harmonic_tok_s": 293693.1612451128,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.9762047132468297",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "30e72b4f520e41b9ab86e8695cda2cd0e224e92368dde6073eed3087f7ab33a1",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "e67d234fdadbdd848f63533f186af387bf0ba25c72c6d7f408b17fc10afc3104",
+      "terminal_utc": "2026-09-28T02:27:24.709804+00:00"
+    },
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "f0d8dfaa3135aae375c83579de6c0b5efcb917be1dadf319065932758f54dbe1",
+      "charged_through_exit_seconds": 1788.7870391348843,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "13bcdc17a7a2648a772c845047c5511dd70642a9d614faf6b0d287682d374310"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 651.5250374421012,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "661.7127382729668",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56505820.0",
+      "guardian_event_count": 1006,
+      "guardian_phase_exits": 2,
+      "host": "trn21",
+      "key": "trn21-conv-dw-store-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2750,
+      "packet_sha256": "9b2eed84620a0d4abe644cf74e429330ace6d69fd938e8384e22fdc5b05e960f",
+      "phase1_harmonic_tok_s": 293868.6402832238,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.976737732406918",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "59bc75b32b6892f8b4e1d815641f83edd1bff781f341478a5cf2b0e582eb9102",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "ad21a2856eeffafe469e678793075297098d5a73760696e0ff07dc75d1572aee",
+      "terminal_utc": "2026-09-27T23:06:30.746405+00:00"
+    },
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-confirmation-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "fa0776f29f4bf1f1b31374cf9f1d29a3616363909e1f88e488b60ae6902f0f3a",
+      "charged_through_exit_seconds": 1789.1989635939244,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "3ae3345002d426c8cb1fae1e76a40ff7e1d3abd5cecec66ebe62525a19c52e2d"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 677.7090184979606,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "669.8940486479551",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56497620.0",
+      "guardian_event_count": 1046,
+      "guardian_phase_exits": 2,
+      "host": "trn22",
+      "key": "trn22-conv-dw-store-confirm-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2748,
+      "packet_sha256": "1d936f66c916d006241c08b1a86d8361b37b801246d81faab12b0cc511ef5261",
+      "phase1_harmonic_tok_s": 292705.8103802842,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.9765959903809508",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "f9a39580abed0e5ffa1f81cf77638fc90b9ef6e9ff398ab3ff6b48aa05c6f5a7",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "9a660e3608aaaea199c945b35d5fb7fad0f786cb4eb532325e6ca9c3a490630f",
+      "terminal_utc": "2026-09-27T23:59:00.149869+00:00"
+    },
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn21-filler-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "8b1b821e72981db084bfc3d5c2ff70bd78fabed85dbaa4d88400c3495b4229ea",
+      "charged_through_exit_seconds": 1789.570305465022,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "5959f4866cc56e74e66e403e22b09aee77746600165635060823ee078ec1d583"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 644.1687107621692,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "657.087741832016",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56517632.0",
+      "guardian_event_count": 1052,
+      "guardian_phase_exits": 2,
+      "host": "trn21",
+      "key": "trn21-conv-dw-store-filler-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2751,
+      "packet_sha256": "b1a80a28fd68d0653b591f3cfdd0ecc18550f38d17492fec7486601302bf472e",
+      "phase1_harmonic_tok_s": 293769.94315977726,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.9769419100667623",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "ea903177cdc757db04662e9f4a571fbcda89e86d31933f73da3383d746765fdc",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "695b16ed27f8cfe20d5f1447db83bd858924f3ecda5bd953a223e3e3a68d700a",
+      "terminal_utc": "2026-09-28T01:06:05.504918+00:00"
+    },
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "686ecc94bb17db72dc57d1962aa3dde55b28ba8c88bde3320a31d38bb937ceee",
+      "charged_through_exit_seconds": 1788.9657829888165,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "26f1349427693b42cb6d2e39e099d52f1123d68e8ee1fdefd4acc80dde1a61bb"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 670.2221396220848,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "675.4577274969779",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56496016.0",
+      "guardian_event_count": 1036,
+      "guardian_phase_exits": 2,
+      "host": "trn22",
+      "key": "trn22-conv-dw-store-filler-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2750,
+      "packet_sha256": "acd98088d8da21be676bc3377570df1665b63998551d2dd5761cdf325722ff89",
+      "phase1_harmonic_tok_s": 292539.9057000376,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.9765682642578225",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "5d638c74016d22fdf34a74e3763379365d7f7deab69fcaabd040378f4cd2ded4",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "6557017a85389105b8f6aaf9f99126b0a4d7d16dc559d4eb28c10973c87946b6",
+      "terminal_utc": "2026-09-28T00:52:48.895131+00:00"
+    },
+    {
+      "actual_train_tokens": null,
+      "archive_path": "research/v2/operator/20260928-conv-dw-store-full-trn22-filler-r2-preparation/artifacts/results-bundle.json",
+      "archive_sha256": "4ee223f060f6c457474ccafc34a2918af0e241660892568dd6adf61edbd6b543",
+      "charged_through_exit_seconds": 1789.192851702217,
+      "checkpoint": {
+        "bytes": 453044690,
+        "sha256": "b14b175119bcc2c7343129baf1ea089c2ab5db41414e81fa85ea4b183942ad8b"
+      },
+      "cleanup": "ARCHIVED_ORIGINAL_GUARDIAN_OUTER_FLOCK_AND_IDLE_PASS_NOT_CURRENT_ADMISSION",
+      "cold_step4_seconds": 675.4978872938082,
+      "compiler_flags": {
+        "eval_environment": "--optlevel=1",
+        "train_environment": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+      },
+      "eval_context": 1024,
+      "eval_num_bytes": 83462186,
+      "eval_process_seed": 42,
+      "eval_seconds": "672.2161963661201",
+      "eval_tokens": 20971520,
+      "eval_total_nats": "56523564.0",
+      "guardian_event_count": 1050,
+      "guardian_phase_exits": 2,
+      "host": "trn22",
+      "key": "trn22-conv-dw-store-filler-full-r2",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py",
+      "launch_file_sha256": "61a3348a6dc5795ebd8f1a0da90262b19a9a33ba4cb941c09f7c7aa5828fc7db",
+      "maximum_public20m_bpb": "0.97845",
+      "optimizer_steps": 2743,
+      "packet_sha256": "3fb39a7f72a9dcc1ea08bf9372f0780460b5c21b5ff905972252f82bead73800",
+      "phase1_harmonic_tok_s": 292098.8390174065,
+      "phase1_sample_steps": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140,
+        150,
+        160,
+        170,
+        180,
+        190,
+        200
+      ],
+      "projected_net_tokens_1800": null,
+      "public20m_bpb": "0.9770444483226206",
+      "ramp_accounting": null,
+      "ramp_accounting_status": "NOT_ESTABLISHED",
+      "score_rule": "ROUND33_ONE_COLD_MAX_BPB",
+      "seed": 42,
+      "six_empty_training_caches": true,
+      "source_git_commit": "41b049db7820d9186923c6aafd1ef4f73dd117c6",
+      "source_git_receipt_sha256": "c852ab3b2eae40998c422314ae1336d939fa0f640904ddc272478d180bf080f6",
+      "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+      "terminal_sha256": "e78661d0911d2ae0e63f7748b05940ee048a5e5a9242adaf155b881beea071e2",
+      "terminal_utc": "2026-09-28T02:16:13.264408+00:00"
+    }
+  ],
+  "schema": "clean-conv-best-of-six-evidence-v1",
+  "score_gate": "PASS",
+  "selected_checkpoint": {
+    "bytes": 453044690,
+    "sha256": "bfa639d62547d6e17bda0fe992b5a56d2832741cb836a0a4bd1fd405fc144c45"
+  },
+  "six_run_summary": {
+    "count": 6,
+    "first_packaged_key": "trn21-conv-dw-store-full-r1",
+    "human_repackaging_threshold_bpb": "0.0005",
+    "human_repackaging_threshold_crossed": true,
+    "interpretation": "Selected best-of-six same-source replay. Observed spread is not a confidence interval or evidence of a recipe improvement; no official score.",
+    "maximum_public20m_bpb": "0.9770444483226206",
+    "mean_basis": "Decimal arithmetic from six logged serialized BPB values; last decimal can differ from binary-float summation.",
+    "mean_public20m_bpb": "0.9766821764469839833333333333",
+    "mean_public20m_bpb_rounded12": "0.976682176447",
+    "minimum_public20m_bpb": "0.9762047132468297",
+    "selected_key": "trn21-conv-dw-store-filler-full-r2",
+    "selected_minus_first_packaged_bpb": "-0.0005330191600883",
+    "spread_bpb": "0.0008397350757909"
+  },
+  "source_and_cpu": {
+    "changed_helper_lines": {
+      "candidate": [
+        510,
+        524
+      ],
+      "parent": [
+        510,
+        518
+      ]
+    },
+    "cpu_archive_sha256": "384a711ffb5a6540998b83ebaecbcfadc1277d832b176f7fe2ab3f6af939d70a",
+    "cpu_cases": [
+      {
+        "dtype": "bfloat16",
+        "lanes": 1,
+        "shape_b_t_c": [
+          1,
+          128,
+          128
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          256,
+          1024
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          4,
+          384,
+          1024
+        ]
+      },
+      {
+        "dtype": "bfloat16",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          1024,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 1,
+        "shape_b_t_c": [
+          1,
+          128,
+          128
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          256,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          4,
+          384,
+          1024
+        ]
+      },
+      {
+        "dtype": "float32",
+        "lanes": 2,
+        "shape_b_t_c": [
+          2,
+          1024,
+          1024
+        ]
+      }
+    ],
+    "cpu_receipt_sha256": "0eb5861ebdfee3d4988803dc175f47b3455138ca6359c2be45cd6f2713ae4c20",
+    "cpu_scope": "actual installed NKI CPU simulation of exact old/new forward, dx and partials; not native compilation, scheduling, physical DMA, optimizer or whole-model proof",
+    "cpu_worker_sha256": "3c05287ba3258b1a544bdb1db1401f45ae586cbbd3885ee25deac02b9a034355",
+    "inherited_clean_cpu": {
+      "receipt_sha256": "1a851945f7a51a29d88d7c801eef80834a043df575cd34cc9fccf76c15a5e0b2",
+      "scope": "Reduced three-batch BF16 CPU fallback/unowned optimizer identity to500f; not native or whole-model CONV proof."
+    },
+    "outside_changed_helper_byte_identical": true,
+    "retained_compiler_defaults": "if __name__ == '__main__':\n    os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')\nos.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')\nos.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1')",
+    "scientific_diff_sha256": "9604021602a0b685cffa46cc5d2a6475e4b1125b76c2d2b5c651f5fb7018be8c",
+    "source_review_path": "research/v2/verification/20260928-conv-store-full-fresh/REVIEW.json",
+    "source_review_sha256": "9aea733d794f30f14c8166618d4f6810938bcbf4f0436599893ac77d3d3d5eb1",
+    "source_review_verdict": "PASS_SOURCE_READINESS_FOR_ONE_RESEARCH_FULL",
+    "unchanged_ast_sha256": {
+      "CausalConv": "53223305f16d806f3513e437ca22b71a5160805635f2fbbcc1637860d11be248",
+      "CausalSelfAttention": "784ace75fcad4ed80dba93fd31f5609c822c38daeb0bf5c1fa1582a07ec02f5e",
+      "GPT": "737e2fb2eb99d378ef0af13eccc5e6518090d333b843ce126278d53c2e934514",
+      "GPTConfig": "59e0d58fb7a175061e8efad002e5db9780a006500389e5e7905fe012e4953b41",
+      "MLP": "e363b553b190c828ce076cdf837c143633b1cb9be4d28e6aa17052b046313e83",
+      "OwnedOptimizer": "61c2527d16285c828edbc0710a4d8f15123eb16009b171b1bee623324304a461",
+      "load_for_eval": "b2962f9abc64d3ba393d8f20f94badcca07461ab1c8404df275caf19286595a8",
+      "main": "17910c7f717b07fc8f7a9c53bf25cd3b7dc39ef9a71ce70b69e6e18d9a4541fc",
+      "make_plan": "da9f7d91815b7449a3a836c27c898961bd4b20ac26cf8e056a0a6dfff882d0d3",
+      "save_checkpoint": "78709984b041f4550c904d1e9f9ec98aa99e053e8b16a94f21bb0a9a3a3c62bf"
+    }
+  },
+  "source_sha256": "b585d0a647962009ae13068fd0f823e17fd19392b5d0dbf1087e6e5f40e48742",
+  "status": "EVIDENCE_ONLY_NOT_SUBMISSION_READY",
+  "submission_authorized": false
+}

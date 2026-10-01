@@ -1,0 +1,14 @@
+--- LaneB-F1/train.py
++++ 20260930-r168-flags-t3-opt3-laneb-f1/train.py
+@@ -36,9 +36,9 @@
+ _PROCESS_STARTED = time.monotonic()
+ _NKI_LANES = 2 if os.environ.get('NEURON_LOGICAL_NC_CONFIG') == '2' else 1
+ if __name__ == '__main__':
+-    os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')
++    os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=3 --auto-cast matmult --auto-cast-type bf16')
+ os.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')
+-os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1')
++os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=3')
+ import torch
+ import torch.distributed as dist
+ import torch.distributed._functional_collectives as funcol

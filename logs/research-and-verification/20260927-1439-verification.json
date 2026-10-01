@@ -1,0 +1,216 @@
+{
+  "schema": "standing-research-source-legality-review-v1",
+  "recorded_utc": "2026-09-27 09:19:58 UTC",
+  "cycle": "research/v2/research_cycles/20260927-1439-research.md",
+  "cycle_sha256": "028dde6d318d8326804745185b4a08795c84bca272873f87ff41cd9b79352eb8",
+  "next_arms_sha256": "ccc334b2e5387dd6e8c01a9c987226438e7d421cf2d7a2726b06ac9b4cc307fc",
+  "brief_sha256": "3927adad4d31a1e4a940e63360a91c6116b8beeb0b6078d9a8267cbc90de8398",
+  "controlling_directive": "workflow/FINAL_SPRINT_REFRESH_2026-09-27.md",
+  "controlling_directive_sha256": "44003cde884e76cd039de34f238efd91b5f86b390e939809046b76780679693f",
+  "parent_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+  "synthesis_verdict": "SUPPORTED_RESEARCH_SYNTHESIS_NO_NEW_LAUNCH_READY_ARM",
+  "primary_sources": [
+    {
+      "url": "https://github.com/aws-neuron/nki-library/blob/2.32/src/nkilib_src/nkilib/experimental/loss/cross_entropy.py",
+      "supports": "CE on existing logits with saved LSE; documented tiling constraints.",
+      "limit": "Not exact installed version, softcap15 dual-target contract, or local speed. Default chunk32768 exceeds local V8192."
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation_reduce.html",
+      "supports": "Activation plus free-axis reduction; equivalent activation/reduce_cmd API.",
+      "limit": "No speed gain established; already related primitives in local code."
+    },
+    {
+      "url": "https://arxiv.org/abs/2109.08668",
+      "supports": "Depthwise convolution after Q/K/V projections in Primer.",
+      "limit": "Not the proposed pre-snapshot residual move."
+    },
+    {
+      "url": "https://arxiv.org/abs/2512.17351",
+      "supports": "Neighbor-token weighted mixing as architectural context.",
+      "limit": "No result for this exact local wiring or budget."
+    },
+    {
+      "url": "https://github.com/KellerJordan/modded-nanogpt/pull/337/files",
+      "supports": "Longest proper vocabulary-byte prefix, invalid targets ignored, additive same-logit CE, .25/linear-to-zero/zero stage weights.",
+      "limit": "GPT2/CUDA/BF16-to-FP8 upstream kernel; cannot import external tokenizer or kernel as a local native proof."
+    },
+    {
+      "url": "https://github.com/KellerJordan/modded-nanogpt/pull/337",
+      "supports": "8xH100 N10 baseline1390steps/79.273s/loss3.27874 versus prefix1375steps/78.489s/loss3.27848; merge moved table building inside timer.",
+      "limit": "Unequal steps, external loss/time, not Trainium BPB; author reports MTP stacking but not broad weight testing."
+    },
+    {
+      "url": "https://github.com/karpathy/nanochat/blob/master/dev/LOG.md",
+      "supports": "DyT failed d12 and was about10% slower; LeakyReLU squared slightly better per step but worse by wall clock.",
+      "limit": "Transfer counterevidence, not a local experiment."
+    },
+    {
+      "url": "https://trainium-frontier.devpost.com/rules",
+      "supports": "Full chip, fixed budget, provided environment/data, unchanged evaluator, no pretrained/external/CORE training assets.",
+      "limit": "No inference of novel tokenizer-derived-table legality or submission permission."
+    }
+  ],
+  "verdicts": [
+    {
+      "arm": "shared_statistics_k1_k2_ce",
+      "verdict": "PASS_FOR_IMPLEMENTATION_ONLY",
+      "scope": "Carried-forward, bounded off-host feasibility prototype on exact500f; no current queue selection or launch authority.",
+      "reason": "Source supports duplicated statistics and algebra; own216scalar/72actual-source cases pass, but BF16 branch-rounding equality cannot be assumed.",
+      "required": [
+        "Preserve k1/k2 schedule, tail mask, T/(T-1), weights.sum denominator and softcap15.",
+        "Preserve separate branch BF16 rounding or explicitly characterize and obtain review for numerical change; target-centered FP32 reductions differ.",
+        "Production [32,1024,8192] native registration/compile/whole-step evidence and named-op critical-path case remain missing.",
+        "Do not displace active MLP speed lane or approved fleet queue; unchanged evaluator/launch contract."
+      ],
+      "expected_local_bpb_gain": null
+    },
+    {
+      "arm": "conv_before_qkv_snapshot",
+      "verdict": "REFUSE",
+      "scope": "Refuse current implementation/promotion as a new standing-research arm, not a blanket architectural prohibition.",
+      "reason": "Historical Sep24 researched lane with no fresh exact500f selection or matching result. Primer/Canon do not establish this exact move. Latest explicitly ordered sprint arms take precedence.",
+      "smallest_unblock": "Supervisor explicitly selects a new exact-parent proposal with costs and ordinary correctness/native gates; do not resurrect merely by citing papers.",
+      "expected_local_bpb_gain": null
+    },
+    {
+      "arm": "prefix_token_ce",
+      "verdict": "HOLD_FOR_CLAUDE",
+      "scope": "No implementation until exact objective and applicable Poojith/Claude legality/authority decision.",
+      "reason": "Local objective normalization, missing-prefix averaging, progress clock and official-vocabulary-derived table construction/load/timing are unspecified. Upstream external GPT2 must not be imported; merge explicitly counted table creation.",
+      "smallest_unblock": "Define one exact local loss and clock; define table generation solely from unchanged official vocabulary within normal charged/startup accounting, safe invalid indices and unchanged targetless eval, then obtain designated review/human legality decision.",
+      "expected_local_bpb_gain": null
+    }
+  ],
+  "installed_applicability": {
+    "inventory_path": "research/v2/operator/20260926-native-metadata-and-trn22-k2-facts/trn22.json",
+    "inventory_sha256": "f02e57f6bfd37e71a2587820148555c4afa102c48ed5a592c91a469cd62ca963",
+    "torch": "2.11.0+cpu",
+    "torch_neuronx": "2.11.3.0.0+unknown.dev",
+    "nki": "0.5.0+28631259367.ga768afa6",
+    "compiler": "2.26.6360.0+6f180f47",
+    "scope": "Archived distribution metadata re-read, not new runtime attestation. Web2.32 code/currentdocs not proven identical or executable on installed stack; no package change allowed.",
+    "production_logits_shape": [
+      32,
+      1024,
+      8192
+    ],
+    "ranks": 4,
+    "lnc": 2,
+    "softcap": 15,
+    "training_budget_seconds": 1800,
+    "startup_cap_seconds": 900
+  },
+  "reference": {
+    "path": "research/v2/research_cycles/20260927-1439-reference-verification.py",
+    "sha256": "546ea955cb52c367a6865840cb0b60aad7096cfb2ceb1a9d367f437a70d4d923",
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -B research/v2/research_cycles/20260927-1439-reference-verification.py",
+    "results": {
+      "actual_500f_cpu": {
+        "cases": 72,
+        "max_fp32_vs_fp64_loss_error": 0.000004717766728390416,
+        "max_gradient_error": 1.9348184054912565e-8,
+        "native_executed": false,
+        "torch_version": "2.13.0+cpu"
+      },
+      "convolution_snapshot": {
+        "actual_500f_snapshot_before_conv": true,
+        "scope": "Real Block.forward executed with deliberately simple norm/causal-attention/conv stubs, not a full-model equivalence or native check.",
+        "toy_causal_prefix_equal": true,
+        "toy_max_output_delta": 1.3499984741210938,
+        "zero_conv_no_difference": true
+      },
+      "dual_target": {
+        "bf16_counterexample": {
+          "g1": 0.0900156925645696,
+          "g2": 0.0168779423558568,
+          "round_once": 0.10693359375,
+          "separately_rounded_sum": 0.1064453125
+        },
+        "cases": 216,
+        "max_fd_gradient_error": 1.788009740266716e-10,
+        "max_fp64_loss_error": 3.552713678800501e-15
+      },
+      "ledger_inventory": {
+        "claimed_cutoff_currently_matches": false,
+        "claimed_cutoff_sha256": "7c59c6f2d09dc2d282a2276c4165c5d0f50fedce600fd296e1db31f077079f5b",
+        "copied_comparison_keys": 114,
+        "cutoff_rows": 83,
+        "labels_hosts_scores_steps_exact": true,
+        "later_rows_not_silently_incorporated": true,
+        "observed_current_rows": 84,
+        "observed_cutoff_sha256": "3cd1d91ac00e599af8bdd4ee58b8ac5617af58842acd0541fae5265bf45db5cb",
+        "original_cutoff_restored_exactly_in_memory": true,
+        "post_cutoff_change": "Only row83 independent_result_review pending string became the saved independent result receipt binding; metrics unchanged. Row84 is later shape6."
+      },
+      "native_executed": false,
+      "parent_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+      "prefix_logic": {
+        "longest_proper_byte_prefix": [
+          -1,
+          0,
+          1,
+          -1,
+          -1,
+          4,
+          5,
+          -1
+        ],
+        "masked_full_mean": 1.3531406041609557,
+        "missing_prefix_count": 4,
+        "normalization_counterexample": {
+          "add_inside_mtp": 3,
+          "add_outside_mtp": 3.3333333333333335,
+          "normalize_all": 2.5714285714285716
+        },
+        "schedule_boundaries": [
+          [
+            0,
+            0.25
+          ],
+          [
+            0.3333333333333333,
+            0.25
+          ],
+          [
+            0.5,
+            0.125
+          ],
+          [
+            0.6666666666666666,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "tokenizer_or_data_loaded": false,
+        "toy_vocab_size": 8,
+        "valid_only_mean": 2.7062812083219114
+      },
+      "status": "PASS"
+    }
+  },
+  "closed_lane_checks": [
+    "FINAL_SPRINT_REFRESH supersedes prior contract Round12 ordering.",
+    "Earlyk3/headcentering withdrawn; no old MTP/softcap/loader tuning reopened.",
+    "Conv-before-attention documented in research/agentic/DECISION_LOG.md Sep24.",
+    "Prefix CE already Round13 C5 and preparation note, not novel.",
+    "VE/MLP3/MuonEq/dropMLP0/splitcooldown/warmdown/clip/QK/schedule/bigram/dpre are existing prepared lanes."
+  ],
+  "evidence_limits": [
+    "Costs0.5–1developer-day or1–3hours are planning estimates, not measurements;~50–55min baseline full+eval is planning only.",
+    "Packing0.0978341% and long-document1.535759% are existing training-only audit results, not a new independent corpus replay in this cycle.",
+    "Official scores/target/cutoff remain human-reported, separate from local public20M.",
+    "Later shape6 record is outside83-row cycle cutoff; separately authenticated with width in result receipt51d795f0..."
+  ],
+  "host_calls": 0,
+  "native_execution": false,
+  "training_run": false,
+  "queue_changed": false,
+  "source_changed": false,
+  "state_changed": false,
+  "launch_authorized": false,
+  "submission_authorized": false
+}

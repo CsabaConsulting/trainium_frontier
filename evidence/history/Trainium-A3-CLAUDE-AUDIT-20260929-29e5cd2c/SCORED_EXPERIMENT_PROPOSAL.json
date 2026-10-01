@@ -1,0 +1,157 @@
+{
+  "proposal_id": "20260929-r69-a3-noproj-id",
+  "status": "SOURCE_READY_PENDING_ACTUAL_CPU_FRESH_SCORED_REVIEW_AND_ROOT_ADMISSION",
+  "owner_role": "implementer",
+  "launch_authorized": false,
+  "submission_authorized": false,
+  "automatic_successor_authorized": false,
+  "source_sha256": "c5ef8414e2df998a9b52eeb2e249b66c0110a3c37869e676719e93975a3432b4",
+  "worker_sha256": "4d7d418386b28a972ceed76f4b0d4e7302ce08bfe964269ff96a0aec51c8e326",
+  "source_spec_sha256": "90dd5e996131f697d9239b3a1c1d9fa30a09490f6bd894eacd95ee0a4ec57100",
+  "parent_source_sha256": "b758450b599d4acc5b1fc17d37cccb87421d22bb99c213f6d8ed29fdede13fa8",
+  "authority": {
+    "path": "/home/poojith-devan/Downloads/Trainium-STATE-LIVE/CLAUDE_ROUNDS.md",
+    "scope": "Round69 A3+item3 plus Root source/CPU builder delegation",
+    "host_queue": "Separate A3 after admitted predecessor A arms; no host action by builder"
+  },
+  "hypothesis": "Removing the learned layer7 table projection in favor of an identical128-channel slice per head may improve net final BPB.",
+  "single_causal_change": "Fixed block-identity table-value map replaces learned proj7; original per-head gates preserved; separately required charged end-rank diagnostic",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": null,
+  "predicted_bpb_interval": null,
+  "p_improve": null,
+  "candidate_shortlist": [
+    {
+      "idea": "A3 NOPROJ-ID",
+      "why_ranked": "Explicit third Round69 table arm; independent of failed D3 timing"
+    }
+  ],
+  "selection_rationale": "Human-delegated Round69 A3; no implicit stack or D3 reopening",
+  "estimated_host_hours": null,
+  "trainium_feasibility": "Removes131072 production parameters and projection matmul; fixedrepeat lowering/cost unmeasured; no extra native timing gate.",
+  "cheapest_falsifier": "Bounded instance-CPU mapping/gradient/optimizer/shared-forward/checkpoint proof plus independent scored-source review",
+  "evidence": [
+    "workflow/ROUND69_2026-09-29.md",
+    "/home/poojith-devan/Downloads/Trainium-STATE-LIVE/CLAUDE_ROUNDS.md",
+    "research/v2/proposals/20260929-r60-d2-two-site-bigram/train.py"
+  ],
+  "duplicate_search_terms": [
+    "NOPROJ-ID",
+    "fixed block-identity",
+    "R69A3"
+  ],
+  "control": {
+    "name": "D2 CONTINUE",
+    "source_sha256": "b758450b599d4acc5b1fc17d37cccb87421d22bb99c213f6d8ed29fdede13fa8",
+    "reference_public_val_bpb": 0.97255,
+    "actual_comparable_control_binding": null,
+    "box_constraint": "Root binds source/host/seed/budget-matched completed D2 evidence"
+  },
+  "candidate": {
+    "source": "research/v2/proposals/20260929-r69-a3-noproj-id/train.py",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Seven reversible edits: remove proj7 construction/init/optimizer entry, fixed repeat,128-channel/head guard, end-rank diagnostic helper/call",
+    "run_label": "r69-a3-noproj-id-seed42-trn21-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --tbl_freeze_tokens 0",
+    "seed": 42,
+    "seconds": 1800,
+    "raw_cold_limit_seconds": 900,
+    "selected_tbl_freeze_tokens": 0,
+    "inherited_CLI_and_build_default": 286000000
+  },
+  "arithmetic": {
+    "table_shape": [
+      262144,
+      256
+    ],
+    "table_dtype": "BF16",
+    "sink_dtype": "FP32",
+    "RMS_state_dtype": "BF16",
+    "nominal_table_lr": 0.2598076211353316,
+    "beta2": 0.999,
+    "eps": 1e-10,
+    "cadence": "every2 original weighted partial/final flush",
+    "production_heads": 8,
+    "head_dim": 128,
+    "mapping": "rows[...,128:256].repeat(1,1,n_head)",
+    "mapping_parameters": 0,
+    "removed_parameter": "value_bigram_proj7.weight",
+    "removed_production_parameter_count": 131072,
+    "original_2sigmoid_head_gate_preserved": true,
+    "common_RNG_and_weights_CPU_gate": "exact identity required; actual execution pending",
+    "master_added": false,
+    "weight_decay_changes": false
+  },
+  "cpu_contract": {
+    "arguments": [
+      "--base",
+      "--candidate",
+      "--prepare",
+      "--scratch-dir",
+      "--receipt"
+    ],
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "scratch_prefix": "trainium_cpu_20260929_r69_a3_noproj_",
+    "status": "PASS_INSTANCE_CPU_R69_A3_NOPROJ_ID_REFERENCE",
+    "marker": "R69_A3_NOPROJ_ID_CPU_TERMINAL",
+    "checks": 11,
+    "limits": "knownEC2/UID1000,oneCPU,nice19,8GiBAS,300CPU/wall,512MiBfile",
+    "reduced_model": {
+      "layers": 8,
+      "width": 128,
+      "heads": 1,
+      "vocab": 128,
+      "sequence": 16,
+      "batch": 2
+    },
+    "production_table_allocation": [
+      262144,
+      256
+    ],
+    "production_eight_head_mapping_test": true,
+    "full_production_transformer": false,
+    "production_table_optimizer_executed": false,
+    "reduced_checkpoint_roundtrip": true,
+    "distributed_transport_execution": false,
+    "native_execution": false,
+    "data_read": false,
+    "status_of_actual_execution": "NOT_RUN"
+  },
+  "gates": {
+    "author_static": "PASS7_STDLIB_ONLY_0.110_SECONDS",
+    "actual_instance_cpu": null,
+    "fresh_independent_scored_source_review": null,
+    "new_native60_timing_gate": false,
+    "root_machine_source_resource_cold_budget_admission": null,
+    "end_of_A_run_four_rank_table_max_abs_diff": "Required diagnostic implemented, actual full-run evidence pending"
+  },
+  "success_criteria": {
+    "metric": "fresh public20M/context1024 netBPB",
+    "reference": 0.97255,
+    "adopt_delta_lte": -0.0008,
+    "adopt_score_lte": 0.97175,
+    "kill_delta_gte": 0.0005,
+    "kill_score_gte": 0.97305,
+    "correctness": "finite legal cold1800 run, checkpoint load, causal shared eval, all source/resource gates"
+  },
+  "abort_conditions": [
+    "Any source, machine, resource, numerical, checkpoint, cold or budget gate fails",
+    "Missing actual CPU or independent scored-source review",
+    "Fresh public20M delta>=+0.0005"
+  ],
+  "actual_result": null,
+  "verdict": null,
+  "end_run_rank_check": {
+    "prefix": "D2_TABLE_RANK_CONSISTENCY",
+    "method": "privateBF16clonebroadcast,fullhostFP32maxabs_vs_rank0,scalarallreduceMAX",
+    "weights_mutated": false,
+    "charged_before_save": true,
+    "existing_checkpoint_reserve_seconds": 15,
+    "clock_refund": false,
+    "native_cost_measured": false,
+    "automatic_repair": false
+  },
+  "D3_lane_status": "CLOSED_BY_FAILED_8.12_PERCENT_HALF_WIDTH_TIMING_CANNOT_REOPEN"
+}

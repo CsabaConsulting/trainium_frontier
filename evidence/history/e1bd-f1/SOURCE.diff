@@ -1,0 +1,44 @@
+--- research/v2/proposals/20260929-r109-ce2-flat-zbundle/train.py
++++ research/v2/proposals/20260930-r158-e1bd-f1-lncfix/train.py
+@@ -22,6 +22,7 @@
+ calls load_for_eval to load the same causal model with strict saved weights.
+ Compiler defaults below preserve the verified gate-fix compilation policy;
+ they do not select a different model or inspect scoring inputs.
++SPMD grids follow the documented LNC contract: a [2] grid requests two physical cores, so the same kernels run under the trainer's LNC=2 and any evaluator core configuration.
+ """
+ from __future__ import annotations
+ import argparse
+@@ -33,6 +34,7 @@
+ from dataclasses import asdict, dataclass
+ from pathlib import Path
+ _PROCESS_STARTED = time.monotonic()
++_NKI_LANES = 2 if os.environ.get('NEURON_LOGICAL_NC_CONFIG') == '2' else 1
+ if __name__ == '__main__':
+     os.environ.setdefault('NEURON_CC_FLAGS', '--optlevel=1 --auto-cast matmult --auto-cast-type bf16')
+ os.environ.setdefault('NEURON_COMPILE_CACHE_DIR', '/tmp/neuron_cache')
+@@ -330,7 +332,7 @@
+         """Launch grid for the rope kernels: selected_lanes on the row count, and the
+         sequence length must also split into whole 128-row tiles per lane."""
+         lanes = selected_lanes(rows)
+-        return lanes if t % (_NKI_PARTITION * lanes) == 0 else 1
++        return min(lanes if t % (_NKI_PARTITION * lanes) == 0 else 1, _NKI_LANES)
+ 
+     class _RopeNormNKI(torch.autograd.Function):
+         """Makes the fused rope+norm kernel differentiable so it can train."""
+@@ -833,7 +835,7 @@
+         @staticmethod
+         def forward(ctx, x, weight):
+             assert weight.shape == (x.shape[-1], 1, 2)
+-            lanes = 2 if x.shape[0] % 2 == 0 else 1
++            lanes = 2 if x.shape[0] % 2 == 0 and _NKI_LANES == 2 else 1
+             wt = weight[:, 0, :].T.contiguous().to(x.dtype)
+             xx = x.contiguous()
+             y = _conv2_forward_native[lanes](xx, wt, lanes)
+@@ -2555,6 +2557,6 @@
+ def selected_lanes(rows):
+     if rows <= 0 or rows % 128:
+         raise ValueError('the NKI CE adapter requires positive multiples of128 rows')
+-    return 2 if rows >= 512 and rows % 256 == 0 else 1
++    return min(2 if rows >= 512 and rows % 256 == 0 else 1, _NKI_LANES)
+ if __name__ == '__main__':
+     main()

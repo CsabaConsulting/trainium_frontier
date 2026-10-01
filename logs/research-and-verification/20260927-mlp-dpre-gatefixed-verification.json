@@ -1,0 +1,295 @@
+{
+  "schema": "trainium-independent-source-cpu-review-v1",
+  "recorded_utc": "2026-09-27 09:25:41 UTC",
+  "verdict": "PASS_SOURCE_CPU_ONLY",
+  "source": "research/v2/proposals/20260927-mlp-dpre-epilogue-gatefixed/train.py",
+  "source_sha256": "0bc973832a707893c73304449e219759f5431c672a919103e1247ffabc91c869",
+  "parent_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+  "archived_science_source_sha256": "3267c9a5e147caec72eb7070c3b72b225f186714c66a56535536b946c776d0ac",
+  "spec_sha256": "17c2dd692c707e8679f842b3c8039042260afa79d097fc1cdfb6b0b266e6523f",
+  "proposal_sha256": "a9176f8bbbc1a3f2e15d10f52c47f5dd464180814edf907f3fddea9c882537c8",
+  "author_cpu_receipt_sha256": "354e423aeb008653a505cdeb02a17b6e75881771eadd105d2e9a61bf01a165f1",
+  "author_wrapper_receipt_sha256": "23b1877a66367da481341ff09e3e1ac8581f2371a35d8d07d4f27c9cbe922593",
+  "author_static_receipt_sha256": "365cd9bc85d3395938d4dc3bf79ad7dd15f74da362a676b72afb201e528c4901",
+  "reference": {
+    "path": "research/v2/research_cycles/20260927-mlp-dpre-gatefixed-reference-verification.py",
+    "sha256": "a3ccb896f757a9d180a717c7e70be04bb23b666dcb3d156344c840c00882e77e",
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/poojith-devan/venv/bin/python -B research/v2/research_cycles/20260927-mlp-dpre-gatefixed-reference-verification.py",
+    "results": {
+      "actual_nki_simulator_rerun": false,
+      "actual_tile512_production_fake_metadata": true,
+      "archived_native_decorator_sha256": "a8b7bffbf461378b54e6f5b4ad3406b80e069a3d89122712c40df79ebef08914",
+      "bad_inputs_refused": 3,
+      "compiled_aot_cases": [
+        [
+          {
+            "bit_equal": false,
+            "max_abs": 0.000003814697265625,
+            "relative_rms": 0.000006614253115494891
+          },
+          {
+            "bit_equal": false,
+            "max_abs": 0.00000762939453125,
+            "relative_rms": 0.0000017277869959681529
+          },
+          {
+            "bit_equal": true,
+            "max_abs": 0,
+            "relative_rms": 0
+          }
+        ],
+        [
+          {
+            "bit_equal": true,
+            "max_abs": 0,
+            "relative_rms": 0
+          },
+          {
+            "bit_equal": true,
+            "max_abs": 0,
+            "relative_rms": 0
+          },
+          {
+            "bit_equal": true,
+            "max_abs": 0,
+            "relative_rms": 0
+          }
+        ]
+      ],
+      "compiler_rerun": false,
+      "component_reference_cases": [
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 0.00000762939453125,
+            "relative_rms": 1.2332476306859147e-7
+          },
+          "lanes": 1,
+          "shape": [
+            512,
+            128,
+            128
+          ],
+          "tile": 128
+        },
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 0.00048828125,
+            "relative_rms": 0.000017015614801553744
+          },
+          "lanes": 1,
+          "shape": [
+            512,
+            128,
+            128
+          ],
+          "tile": 128
+        },
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 0.001953125,
+            "relative_rms": 0.000022258977499353714
+          },
+          "lanes": 2,
+          "shape": [
+            1024,
+            128,
+            128
+          ],
+          "tile": 512
+        },
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 1.1920928955078125e-7,
+            "relative_rms": 2.9614954246332918e-9
+          },
+          "lanes": 2,
+          "shape": [
+            1024,
+            128,
+            128
+          ],
+          "tile": 512
+        },
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 0.0000019073486328125,
+            "relative_rms": 1.141598107182252e-8
+          },
+          "lanes": 2,
+          "shape": [
+            1024,
+            256,
+            256
+          ],
+          "tile": 128
+        },
+        {
+          "error": {
+            "bit_equal": false,
+            "max_abs": 0.001953125,
+            "relative_rms": 0.00002421574078963378
+          },
+          "lanes": 2,
+          "shape": [
+            1024,
+            256,
+            256
+          ],
+          "tile": 128
+        }
+      ],
+      "elapsed_seconds": 1.8911318460013717,
+      "exact_union_both_directions": true,
+      "kernel_helper_ast_and_byte_identity": true,
+      "matrix_gate_adamw": true,
+      "native_executed": false,
+      "optimizer_policies_and_owner_plan_equal_parent": true,
+      "parent_sha256": "500f80fec9eac2a42d6f0eae646b0e91643d46c4524ee3722e332434751fd368",
+      "poisoned_backward_eager_and_aot_refused": true,
+      "production_matmuls_per_core": 8192,
+      "production_parameter_elements": 113256724,
+      "production_parameter_tensors": 65,
+      "production_tokens_exact_disjoint_coverage": true,
+      "q_rounding_sentinel": {
+        "a": 1.328125,
+        "b": 0.63671875,
+        "omitting_q_rounding": 3.46875,
+        "relu": 2.046875,
+        "required": 3.453125
+      },
+      "reused_archival_evidence": {
+        "results/neff-production-r3/receipt.json": {
+          "scope": "Unchanged author evidence, not independently executed native proof",
+          "sha256": "735d8e8df1c6af92c4d840e2ba9b8db7dbb8667eb81a8ab519223ddb71bc9bb5",
+          "status": "PASS_AUTHOR_OFFLINE_NEFF"
+        },
+        "results/simulator-r2.json": {
+          "scope": "Unchanged author evidence, not independently executed native proof",
+          "sha256": "5f9ea40aa33e52f46f89538745f7ef9fffa57101896b97c4416eea3a4edd1cb3",
+          "status": "PASS_AUTHOR_ACTUAL_NKI_SIMULATOR"
+        }
+      },
+      "scalar_gate_lr": 0.2,
+      "scope": "Own limited CPU interpreter runs actual kernel body; own FP64/BF16 oracle and actual integrated wrapper with archived decorator run on local Torch. This is not AWS simulator/native performance or host compatibility proof.",
+      "source_neff_hash_verified": true,
+      "source_sha256": "0bc973832a707893c73304449e219759f5431c672a919103e1247ffabc91c869",
+      "status": "PASS_INDEPENDENT_SOURCE_CPU_ONLY",
+      "torch_version": "2.13.0+cpu",
+      "wrapper_cases": [
+        {
+          "errors": [
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            }
+          ],
+          "two_microsteps": true,
+          "upstream": "random"
+        },
+        {
+          "errors": [
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            }
+          ],
+          "two_microsteps": true,
+          "upstream": "transpose"
+        },
+        {
+          "errors": [
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            },
+            {
+              "bit_equal": true,
+              "max_abs": 0,
+              "relative_rms": 0
+            }
+          ],
+          "two_microsteps": true,
+          "upstream": "expanded"
+        }
+      ]
+    }
+  },
+  "source_review": {
+    "union": "Removing exactly five gate-policy lines yields archived3267; removing dpre block and native dispatch branch yields parent500f byte-for-byte.",
+    "unchanged": "All other source bytes, forward math, model state shapes, loss, schedules, optimizer/owner policies, evaluation and launch defaults.",
+    "gate": "All existing matrix gate parameters AdamW lr.021 betas(.9,.95) eps1e-10 WD0; scalar U-Net gates unchanged lr.2.",
+    "kernel_files_byte_identical": true,
+    "integrated_ast_comparison": "Exact after mechanical normalization of four integration function names; kernel/helper files themselves byte-identical.",
+    "native_dispatch": "Registered forward only in eligible training BF16 Neuron path. Missing registration raises. CPU route is unchanged parent diagnostic path, not a native fallback.",
+    "shape_scope": "Native integrated registration fixes LNC2 and token_tile512, so N must divide1024; productionN32768/C1024/H4096 passes. SmallN256 CPU wrapper tests use tile128 and are not supported production-native dispatch examples.",
+    "dpre_formula": "Q=BF16(D.T@G.T); twice=BF16(2*saved_ReLU.T); dpre=BF16(Q*twice); remaining dX/dU/dD and casts unchanged.",
+    "memory_scope": "Only dpre[H,N] output HBM; Q/twice/result tiles on-chip. Static capacity guard estimates13MiB at production including4MiB reserve; not a native allocation/spill measurement.",
+    "training_eval": "Train/inference mathematical forward remains the same ordinary linear/ReLU/square/linear; only custom training backward component changes. load_for_eval and targetless model logic are otherwise byte-identical."
+  },
+  "frozen_api_sources": [
+    {
+      "path": "research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/language/tensor.py",
+      "sha256": "66e6c75be3a340475b1affa1b69b820e500fa2953159c13884ce0d4199926691",
+      "checked": "NkiTensor.ap indirect_dim scales scalar offset by original tensor stride; grad offset uses C, saved/output offset uses1."
+    },
+    {
+      "path": "research/v2/analysis/20260926-k2-parser-failure/.venv/lib/python3.12/site-packages/nki/isa/_matmul.py",
+      "sha256": "46e9ac66bfbbc03b04611dffb45f672f1bac097317bbacde0c8ee74afb61d5c3",
+      "checked": "nc_matmul is stationary.T @ moving with explicit first-overwrite/subsequent-accumulate; tile sizes compatible."
+    }
+  ],
+  "source_blockers": [],
+  "native_status": "NOT_ESTABLISHED",
+  "existing_remaining_gates": [
+    "Actual host Torch2.11 native registration/decomposition and changing-upstream/master-gradient correctness remain unproved by local Torch2.13.",
+    "Enclosing production graph compile/cold startup and native component/whole-step timing remain unmeasured; contiguous upstream copy must be counted.",
+    "Existing sole-Operator approval, original machine/lock/predecessor/resource and timing rules remain unchanged. No extra compiler/simulator/native gates are added by this receipt.",
+    "Compare against fresh500f; rebase/review if actual scientific parent changes. No combined historical-c239 delta attribution to NKI alone."
+  ],
+  "archival_scope": "Original actual NKI simulator and production offline NEFF receipts/hashes plus NEFF bytes authenticated for unchanged standalone kernel; author evidence only. No new compiler/simulator invocation, no independent native proof, no integrated-graph NEFF claim.",
+  "expected_local_bpb_gain": null,
+  "native_performance_gain": null,
+  "host_calls": 0,
+  "native_execution": false,
+  "compiler_run": false,
+  "nki_simulator_run": false,
+  "source_changed": false,
+  "queue_changed": false,
+  "state_changed": false,
+  "launch_authorized": false,
+  "adoption_authorized": false,
+  "submission_authorized": false
+}

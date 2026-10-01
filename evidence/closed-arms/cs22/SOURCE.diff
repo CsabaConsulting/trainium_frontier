@@ -1,0 +1,11 @@
+--- research/v2/proposals/20260930-r168-flags-t3-opt3-laneb-f1/train.py
++++ research/v2/proposals/20260930-r172-cs22-attn4-t3/train.py
+@@ -86,7 +86,7 @@
+ VE_GATE_CHANNELS = 32
+ ROPE_BASE = 100000
+ LOCAL_CONV_KERNEL = 2
+-ATTENTION_LAYERS = (0, 2, 4, 6, 7)
++ATTENTION_LAYERS = (0, 2, 4, 7)
+ # Z-bundle switches (OP_INVENTORY.md, "Zero-engineering fixes"). Every switch is
+ # math-identical in forward; Z1 and Z3 change only the BF16 accumulation order of
+ # one gradient sum. Flip one to False to bisect; all default ON.
