@@ -65,3 +65,12 @@ num_params=113,388,053 flops_per_token=6.929111e+08
 torch.compile enabled (backend=neuron)
 micro_tokens=131,072 grad_accum_steps=2 pack_factor=32
 flat weights: 68 parameters in one fp32 buffer of 121,634,816 elements (stride 30,408,704), 40 Linear bf16 views, 46 cat pieces, reduce_mode=reduce_scatter_avg
+muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 1]
+muon step: COMPILED body for (2, 1024, 4096) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 2]
+muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]
+step 00000 | loss 9.0106 | lrm 1.000 | dt 568.49s | tok/s 231 | remaining_steps 999999 | remaining_time 1225s | epoch 1
+step 00001 | loss 8.8381 | lrm 1.000 | dt 3.96s | tok/s 33,075 | remaining_steps 999998 | remaining_time 1220s | epoch 1
+step 00002 | loss 8.4703 | lrm 1.000 | dt 0.40s | tok/s 327,334 | remaining_steps 999997 | remaining_time 1220s | epoch 1
+step 00003 | loss 8.3618 | lrm 1.000 | dt 0.41s | tok/s 320,725 | remaining_steps 999996 | remaining_time 1219s | epoch 1
+step 00004 | loss 8.1552 | lrm 1.000 | dt 0.40s | tok/s 325,021 | remaining_steps 999995 | remaining_time 1800s | epoch 1
+step 00010 | loss 7.1717 | lrm 1.000 | dt 0.40s | tok/s 327,932 | remaining_steps 999989 | remaining_time 1798s | epoch 1
