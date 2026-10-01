@@ -89,7 +89,8 @@ def run(case,env):
  raise TimeoutError('No final checkpoint by bounded transfer cutoff: '+variant)
 
 def main():
- agent_path=ROOT/'out/singleeval-agent.sock'
+ agent_path=ROOT/'out/lnc1.sock'
+ assert len(str(agent_path).encode())<104,'Agent socket path too long'
  assert not agent_path.exists(),'Dedicated agent socket already exists'
  agent=subprocess.Popen(['ssh-agent','-D','-a',str(agent_path)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
  env=os.environ.copy();env['SSH_AUTH_SOCK']=str(agent_path)
