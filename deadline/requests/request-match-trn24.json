@@ -1,0 +1,34 @@
+{
+  "host": "trn24",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_scoring_20261001",
+  "expected_commit": "650448fbbc06a5078c61062485c9d384cf3b3695",
+  "label": "fs-20261001-deadline-rmsfp32-match-r1",
+  "purpose": "Matched historical public20M score and native causality/batch checks for completed rmsfp32",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1850s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_scoring_20261001/deadline/evaluate_match.py",
+    "--variant",
+    "rmsfp32",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_deadline_20261001/out/fs-20261001-deadline-rmsfp32-r1/train/final.pt",
+    "--label",
+    "fs-20261001-deadline-rmsfp32-match-r1"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_scoring_20261001",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "fingerprint_paths": [
+    "candidates/rmsfp32/train.py",
+    "deadline/evaluate_match.py"
+  ]
+}
