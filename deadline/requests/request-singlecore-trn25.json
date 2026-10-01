@@ -1,0 +1,32 @@
+{
+  "host": "trn25",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_checks_20261001",
+  "expected_commit": "7d10e4cabe4a3752042ef8d205be27173579d4c1",
+  "label": "fs-20261001-deadline-singlecore-r5",
+  "purpose": "LNC1 full-width random-weight inference correctness for final head and NKI-sharing candidates; no quality claim",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1000s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_checks_20261001/deadline/check_singlecore.py",
+    "fs-20261001-deadline-singlecore-r5"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_checks_20261001",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "1",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "fingerprint_paths": [
+    "deadline/check_singlecore.py",
+    "candidates/headbias/train.py",
+    "candidates/dualhead/train.py",
+    "candidates/mlpnki/train.py",
+    "candidates/mlp6nki/train.py"
+  ]
+}
