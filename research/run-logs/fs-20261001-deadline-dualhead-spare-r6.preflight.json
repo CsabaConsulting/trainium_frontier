@@ -1,0 +1,163 @@
+{
+  "protocol_version": 2,
+  "started_at": "2026-10-01T06:41:08.907742+00:00",
+  "completed_at": "2026-10-01T06:41:12.039183+00:00",
+  "hostname": "ip-172-31-41-233",
+  "kernel_release": "6.17.0-1019-aws",
+  "boot_id": "d48c885d-49cf-4f10-977e-552f7ee9d46b",
+  "uptime_seconds": 44544.34,
+  "sdk": {
+    "argv": [
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-c",
+      "import importlib.metadata as m,json; print(json.dumps({p:m.version(p) for p in [\"torch\",\"torch-neuronx\",\"neuronx-cc\",\"nki\"]}))"
+    ],
+    "returncode": 0,
+    "stdout": "{\"torch\": \"2.11.0+cpu\", \"torch-neuronx\": \"2.11.3.0.0+unknown.dev\", \"neuronx-cc\": \"2.26.6360.0+6f180f47\", \"nki\": \"0.5.0+28631259367.ga768afa6\"}\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.051132695996784605
+  },
+  "memory_bytes": {
+    "MemTotal": 133975027712,
+    "MemFree": 119483748352,
+    "MemAvailable": 131783884800,
+    "Cached": 13013766144,
+    "SwapTotal": 0,
+    "SwapFree": 0
+  },
+  "disk": {
+    "total_bytes": 206900281344,
+    "used_bytes": 46829015040,
+    "free_bytes": 160054489088,
+    "free_inodes": 25610368
+  },
+  "device_holders": {
+    "argv": [
+      "fuser",
+      "/dev/neuron0"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.0036867279995931312
+  },
+  "neuron_ls": {
+    "argv": [
+      "/opt/aws/neuron/bin/neuron-ls",
+      "--json-output"
+    ],
+    "returncode": 0,
+    "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0c4cc945a88f08838\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.05293030399479903
+  },
+  "neuron_monitor": {
+    "argv": [
+      "timeout",
+      "--kill-after=1s",
+      "3s",
+      "/opt/aws/neuron/bin/neuron-monitor"
+    ],
+    "returncode": 124,
+    "stdout": "{\"neuron_runtime_data\":[],\"system_data\":{\"memory_info\":{\"period\":0.000496969,\"memory_total_bytes\":133975027712,\"memory_used_bytes\":14509604864,\"swap_total_bytes\":0,\"swap_used_bytes\":0,\"error\":\"\"},\"neuron_hw_counters\":{\"period\":0.000506839,\"neuron_devices\":[{\"neuron_device_index\":0,\"mem_ecc_corrected\":0,\"mem_ecc_uncorrected\":0,\"sram_ecc_uncorrected\":0,\"sram_ecc_corrected\":0}],\"error\":\"\"},\"vcpu_usage\":{\"period\":0.000497486,\"average_usage\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"usage_data\":{\"0\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"1\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"10\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"11\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"2\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"3\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"4\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"5\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"6\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"7\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"8\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"9\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0}},\"context_switch_count\":20,\"error\":\"\"}},\"instance_info\":{\"instance_name\":\"\",\"instance_id\":\"i-0c4cc945a88f08838\",\"instance_type\":\"trn2.3xlarge\",\"instance_availability_zone\":\"ap-southeast-4c\",\"instance_availability_zone_id\":\"apse4-az3\",\"instance_region\":\"ap-southeast-4\",\"ami_id\":\"ami-0d5703e99c1589f8d\",\"subnet_id\":\"subnet-0fe22a789fe3a6e7d\",\"error\":\"\"},\"neuron_hardware_info\":{\"neuron_device_type\":\"trainium2\",\"neuroncore_version\":\"v3d\",\"neuron_device_count\":1,\"neuron_device_memory_size\":103079215104,\"neuroncore_per_device_count\":4,\"logical_neuroncore_config\":2,\"error\":\"\"}}\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 3.014316143002361
+  },
+  "kernel_log": {
+    "argv": [
+      "journalctl",
+      "-k",
+      "--no-pager",
+      "-n",
+      "200",
+      "-o",
+      "short-iso",
+      "--since",
+      "2026-10-01T06:26:22.527948+00:00"
+    ],
+    "returncode": 0,
+    "stdout": "2026-10-01T06:41:08+00:00 ip-172-31-41-233 kernel: neuron:npid_attach: neuron:npid_attach: pid=213330, slot=0\n2026-10-01T06:41:08+00:00 ip-172-31-41-233 kernel: neuron:npid_detach: neuron:npid_detach: pid=213330, slot=0\n2026-10-01T06:41:09+00:00 ip-172-31-41-233 kernel: neuron:npid_attach: neuron:npid_attach: pid=213345, slot=0\n2026-10-01T06:41:11+00:00 ip-172-31-41-233 kernel: neuron:npid_detach: neuron:npid_detach: pid=213345, slot=0\n",
+    "stderr": "",
+    "timed_out": false,
+    "seconds": 0.004118023003684357,
+    "relevant_error_lines": []
+  },
+  "relevant_processes": [
+    {
+      "pid": 213325,
+      "ppid": 213324,
+      "process_group": 213325,
+      "session": 213325,
+      "state": "R",
+      "start_ticks": 4454094,
+      "rss_bytes": 19234816,
+      "argv": [
+        "python3",
+        "-c",
+        "\nimport datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, subprocess, sys\nm = json.load(sys.stdin)\nr = pathlib.Path(m['remote'])\nassert r.is_dir(), 'checkout missing'\nsys.path.insert(0, str(r / 'research'))\nfrom fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight\nHOST_DIRECTORY.mkdir(parents=True, exist_ok=True)\nhost_lock = HOST_LOCK.open('a')\nfcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)\n# preflight first cleans only descendants of the previously completed marked\n# job, then checks all device holders. An early fuser assertion would prevent\n# that authorized cleanup if a stale owned descendant still held the device.\nfree = shutil.disk_usage(r).free\nassert free >= 8 * 1024**3, 'less than 8 GiB free'\nsource_paths = ['train.py', 'prepare.py', 'candidates', 'deadline',\n                'research/fresh_start_host.py', 'research/fresh_start_guard.py',\n                'research/fresh_start_launch.py', 'research/fresh_start_sync.py']\ndirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)\nnew = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)\nassert not dirty.strip() and not new.strip(), 'experiment source is not committed'\ncommit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()\nassert commit == m['expected_commit'], 'unexpected source commit: ' + commit\nfdir = r / 'research/run-logs'\nmanifest = fdir / (m['label'] + '.launch.json')\nlog = fdir / (m['label'] + '.log')\nassert not manifest.exists() and not log.exists(), 'label already exists'\nif m.get('runner_owns_manifest'):\n    log = fdir / (m['label'] + '.driver.log')\nassert not log.exists(), 'driver label already exists'\npre = preflight(r, m['label'])\npaths = ['train.py', 'prepare.py', 'deadline/run_candidate.py',\n         'deadline/check_candidates.py', 'deadline/candidate-manifest.json',\n         'research/fresh_start_host.py', 'research/fresh_start_guard.py',\n         'research/fresh_start_launch.py', 'research/fresh_start_sync.py'] + m.get('fingerprint_paths', [])\nm.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),\n         hostname=socket.gethostname(), git_commit=commit, source_dirty=False,\n         preflight_free_bytes=free,\n         source_sha256={p: hashlib.sha256((r / p).read_bytes()).hexdigest() for p in dict.fromkeys(paths)})\nenv = os.environ.copy()\nfor key in ('NEURON_RT_VISIBLE_CORES', 'NEURON_RT_NUM_CORES'):\n    env.pop(key, None)\nenv.update(m['environment'])\nif not m.get('runner_owns_manifest'):\n    with manifest.open('x') as f:\n        json.dump(m, f, indent=2)\njob = fdir / (m['label'] + '.job.json')\nwith job.open('x') as f:\n    json.dump(m, f, indent=2)\nwith log.open('x') as f:\n    p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),\n                          str(job), '--lock-fd', str(host_lock.fileno())],\n                         cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,\n                         start_new_session=True, pass_fds=(host_lock.fileno(),))\nprint(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,\n                     hostname=m['hostname'], log=str(log), started_at=m['started_at'],\n                     protocol_version=2, preflight_passed=pre['passed'])))\n"
+      ],
+      "cwd": "/home/ubuntu",
+      "known_read_only_backup": false
+    }
+  ],
+  "cache_sizes": {
+    "/tmp/neff_cache": {
+      "argv": [
+        "du",
+        "-sk",
+        "/tmp/neff_cache"
+      ],
+      "returncode": 0,
+      "stdout": "4\t/tmp/neff_cache\n",
+      "stderr": "",
+      "timed_out": false,
+      "seconds": 0.0018354509957134724
+    }
+  },
+  "cache_policy": "reuse shared immutable compilation caches; no purge or OS cache drop",
+  "neuron_devices": [
+    {
+      "instance_type": "trn2.3xlarge",
+      "instance_id": "i-0c4cc945a88f08838",
+      "neuron_device": 0,
+      "bdf": "0000:33:00.0",
+      "cpu_affinity": "0-11",
+      "numa_node": "0",
+      "connected_to": null,
+      "nc_count": 4,
+      "logical_neuroncore_config": 2,
+      "memory_size": 103079215104,
+      "neuroncore_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "neuron_processes": []
+    }
+  ],
+  "neuron_process_count": 0,
+  "label": "fs-20261001-deadline-dualhead-spare-r6",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001",
+  "stage": "preflight",
+  "previous_postflight": {
+    "label": "fs-20261001-deadline-mlp6nki-r2",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001",
+    "postflight": "/home/ubuntu/trainium_freshstart_deadline_pairs_20261001/research/run-logs/fs-20261001-deadline-mlp6nki-r2.postflight.json",
+    "host_clean": true,
+    "completed_at": "2026-10-01T06:26:22.527948+00:00"
+  },
+  "cleanup": {
+    "actions": [],
+    "remaining": [],
+    "artifacts_deleted": [],
+    "caches_deleted": [],
+    "driver_modified": false
+  },
+  "failures": [],
+  "passed": true
+}

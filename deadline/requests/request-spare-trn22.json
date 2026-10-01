@@ -1,0 +1,34 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001",
+  "expected_commit": "fd73c9656104f735064b408104dd029599021d9b",
+  "label": "fs-20261001-deadline-headbias-spare-r6",
+  "purpose": "Precompile unchanged inference on an idle spare; score size/hash-verified final checkpoint with native correctness gates",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/deadline/evaluate_wait.py",
+    "--variant",
+    "headbias",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/incoming/final.pt",
+    "--label",
+    "fs-20261001-deadline-headbias-spare-r6"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "fingerprint_paths": [
+    "deadline/evaluate_wait.py",
+    "candidates/headbias/train.py"
+  ]
+}
