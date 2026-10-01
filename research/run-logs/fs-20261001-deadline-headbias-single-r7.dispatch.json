@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn25",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_singleeval_20261001",
+    "expected_commit": "792fff040c52f3231434ce01dbcd6c9e60548e54",
+    "label": "fs-20261001-deadline-headbias-single-r7",
+    "purpose": "Precompile unchanged inference on an idle spare; score size/hash-verified final checkpoint with native correctness gates",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "1600s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_singleeval_20261001/deadline/evaluate_wait_lnc1.py",
+      "--variant",
+      "headbias",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_deadline_singleeval_20261001/out/fs-20261001-deadline-headbias-single-r7/incoming/final.pt",
+      "--label",
+      "fs-20261001-deadline-headbias-single-r7"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_singleeval_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "1",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "fingerprint_paths": [
+      "deadline/evaluate_wait_lnc1.py",
+      "candidates/headbias/train.py"
+    ]
+  },
+  "requested_at": "2026-10-01T06:45:02.763300+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-headbias-single-r7\", \"pid\": 106965, \"commit\": \"792fff040c52f3231434ce01dbcd6c9e60548e54\", \"hostname\": \"ip-172-31-41-184\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_singleeval_20261001/research/run-logs/fs-20261001-deadline-headbias-single-r7.log\", \"started_at\": \"2026-10-01T06:45:07.950039+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
