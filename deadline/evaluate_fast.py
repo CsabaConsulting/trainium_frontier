@@ -35,7 +35,10 @@ def main():
         tok=prepare.ensure_tokenizer(build_if_missing=False)
         model=m.load_for_eval(str(args.checkpoint),device)
         small=prepare.evaluate_bpb(model,tok,1,1024,device,max_tokens=2097152,timeout_seconds=450)
+        assert not small['eval_over_timeout'] and 0 < small['val_bpb'] < 100
         print('DEADLINE_PREFIX_B1 '+json.dumps(small),flush=True)
+        causal=prepare.causality_check(model,tok,1,1024,device);assert causal['passed'],causal
+        print('DEADLINE_CAUSAL '+json.dumps(causal),flush=True)
         batch=prepare.evaluate_bpb(model,tok,32,1024,device,max_tokens=2097152,timeout_seconds=500)
         difference=abs(small['val_bpb']-batch['val_bpb'])
         assert small['num_tokens']==batch['num_tokens']==2097152
@@ -45,7 +48,6 @@ def main():
         assert full['num_tokens']==20971520 and not full['eval_over_timeout']
         assert 0 < full['val_bpb'] < 100
         print('DEADLINE_FAST_SCORE '+json.dumps(full),flush=True)
-        causal=prepare.causality_check(model,tok,1,1024,device);assert causal['passed'],causal
         x,_,_=next(prepare.make_eval_dataloader(tok,32,1024,'public_val',device))
         with torch.no_grad():
             a=model(x);changed=x.clone();changed[31]=torch.flip(changed[31],dims=[0]);b=model(changed)
