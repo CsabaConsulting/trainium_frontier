@@ -10,7 +10,7 @@ Frozen submission: official 0.9645, historical public20M mean 0.9643377942630506
 | Four-block MLP sharing with NKI selection/backward | 0.978947940 | +0.014610146 | Completed valid training, 3040 steps / 602.3M tokens; no quality gain. |
 | Six-block MLP sharing with NKI selection/backward | 0.990985848 | +0.026648054 | Completed valid training, 3327 steps / 659.7M tokens; no quality gain. |
 | Vocabulary logit bias | 0.965380324 | +0.001042530 | Full public20M agrees exactly in LNC1/LNC2 and original independent scorer; native checks passed. No gain. |
-| Two output heads, second using ReLU features | pending | pending | CPU/static gates passed; fresh native training launched 06:10 UTC. |
+| Two output heads, second using ReLU features | 0.981917055 | +0.017579261 | Valid full-budget training; exact public20M complete, native gates and clean postflight passed. No gain. |
 
 The PyTorch MLP-sharing prototypes were stopped because native step times were approximately three times slower. Four explicit NKI operators recovered baseline speed for four-block sharing and about 9% more throughput for six-block sharing. Native outputs and gradients matched CPU references exactly. This is a kernel implementation win, but both final quality results are worse than the frozen baseline. Both jobs completed with clean postflight receipts.
 
@@ -25,3 +25,7 @@ At 06:36 UTC, all four full-width models (headbias, dualhead, mlpnki, mlp6nki) p
 Final head checkpoints were copied locally and size/hash verified. The source-host dual-head evaluation hit its outer deadline timeout after successful full-budget training; the host cleaned successfully. Its separate full20M job on trn23 remains bounded and continues after the submission deadline. No original source-host full score is claimed.
 
 The first three spare-score receipts used only 2621440 tokens because a generator replacement accidentally shortened both the full cap and its count assertion. They are explicitly excluded from this table. Correct full20M recovery uses unchanged prepare.py with literal --eval-tokens 20971520. The output-bias recovery agrees exactly with the original unaffected full scorer and LNC1 scorer, 0.9653803241496522. Inference-only compiled operator caches were reused after clean postflight; no training state or source was modified.
+
+Final disposition: all five hosts released cleanly, with no postflight failures. Best new public20M score is 0.9639958848 for FP32 table RMS state, a one-run 0.0003419094 improvement near observed training noise. No roughly 0.009 leaderboard-sized gain was found. The original official 0.9645 submission was never overwritten. The user received all three readable standalone delivery files and the shared 76-character command before the deadline.
+
+The exact20M dual-head evaluation took 730.83s, versus the output-bias original warm scorer's 177.00s. This is an observed inference-time cost under the unchanged scorer, not evidence that its training kernels were four times slower; native training was approximately 12% slower. The dual head is an unnormalized log-mean-exp combination, so this experiment does not test or rule out an exact normalized mixture-of-softmax architecture with retuned learning rates.
