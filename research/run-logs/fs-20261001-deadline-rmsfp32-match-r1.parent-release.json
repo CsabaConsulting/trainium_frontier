@@ -1,0 +1,164 @@
+{
+  "timestamp": "2026-10-01T05:47:20.045136+00:00",
+  "parent": {
+    "complete": true,
+    "postflight": {
+      "protocol_version": 2,
+      "label": "fs-20261001-deadline-rmsfp32-r1",
+      "remote": "/home/ubuntu/trainium_freshstart_deadline_20261001",
+      "stage": "postflight",
+      "source_commit": "7f0927d2c021c97794f5e6943ce097e6789968f3",
+      "command_returncode": -15,
+      "guard_error": null,
+      "interrupted_signals": [
+        15
+      ],
+      "cleanup": {
+        "actions": [],
+        "remaining": [],
+        "artifacts_deleted": [],
+        "caches_deleted": [],
+        "driver_modified": false
+      },
+      "health": {
+        "protocol_version": 2,
+        "started_at": "2026-10-01T05:46:51.625462+00:00",
+        "completed_at": "2026-10-01T05:46:54.756799+00:00",
+        "hostname": "ip-172-31-47-242",
+        "kernel_release": "6.17.0-1019-aws",
+        "boot_id": "a57e860c-4bba-46fe-875e-7ceef454ad21",
+        "uptime_seconds": 41065.98,
+        "sdk": {
+          "argv": [
+            "/home/ubuntu/workspace/native_venv/bin/python",
+            "-c",
+            "import importlib.metadata as m,json; print(json.dumps({p:m.version(p) for p in [\"torch\",\"torch-neuronx\",\"neuronx-cc\",\"nki\"]}))"
+          ],
+          "returncode": 0,
+          "stdout": "{\"torch\": \"2.11.0+cpu\", \"torch-neuronx\": \"2.11.3.0.0+unknown.dev\", \"neuronx-cc\": \"2.26.6360.0+6f180f47\", \"nki\": \"0.5.0+28631259367.ga768afa6\"}\n",
+          "stderr": "",
+          "timed_out": false,
+          "seconds": 0.0517744950047927
+        },
+        "memory_bytes": {
+          "MemTotal": 133975019520,
+          "MemFree": 121120272384,
+          "MemAvailable": 131859963904,
+          "Cached": 11489013760,
+          "SwapTotal": 0,
+          "SwapFree": 0
+        },
+        "disk": {
+          "total_bytes": 206900281344,
+          "used_bytes": 45378940928,
+          "free_bytes": 161504563200,
+          "free_inodes": 25613799
+        },
+        "device_holders": {
+          "argv": [
+            "fuser",
+            "/dev/neuron0"
+          ],
+          "returncode": 1,
+          "stdout": "",
+          "stderr": "",
+          "timed_out": false,
+          "seconds": 0.004366485001810361
+        },
+        "neuron_ls": {
+          "argv": [
+            "/opt/aws/neuron/bin/neuron-ls",
+            "--json-output"
+          ],
+          "returncode": 0,
+          "stdout": "[\n    {\n        \"instance_type\": \"trn2.3xlarge\",\n        \"instance_id\": \"i-0a9d63b3367e412ea\",\n        \"neuron_device\": 0,\n        \"bdf\": \"0000:33:00.0\",\n        \"cpu_affinity\": \"0-11\",\n        \"numa_node\": \"0\",\n        \"connected_to\": null,\n        \"nc_count\": 4,\n        \"logical_neuroncore_config\": 2,\n        \"memory_size\": 103079215104,\n        \"neuroncore_ids\": [\n            0,\n            1,\n            2,\n            3\n        ],\n        \"neuron_processes\": []\n    }\n]",
+          "stderr": "",
+          "timed_out": false,
+          "seconds": 0.052407160997972824
+        },
+        "neuron_monitor": {
+          "argv": [
+            "timeout",
+            "--kill-after=1s",
+            "3s",
+            "/opt/aws/neuron/bin/neuron-monitor"
+          ],
+          "returncode": 124,
+          "stdout": "{\"neuron_runtime_data\":[],\"system_data\":{\"memory_info\":{\"period\":0.000555841,\"memory_total_bytes\":133975019520,\"memory_used_bytes\":12888424448,\"swap_total_bytes\":0,\"swap_used_bytes\":0,\"error\":\"\"},\"neuron_hw_counters\":{\"period\":0.000537422,\"neuron_devices\":[{\"neuron_device_index\":0,\"mem_ecc_corrected\":0,\"mem_ecc_uncorrected\":0,\"sram_ecc_uncorrected\":0,\"sram_ecc_corrected\":0}],\"error\":\"\"},\"vcpu_usage\":{\"period\":0.000561081,\"average_usage\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":100,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"usage_data\":{\"0\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"1\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"10\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"11\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"2\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"3\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"4\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"5\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"6\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"7\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"8\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0},\"9\":{\"user\":0,\"nice\":0,\"system\":0,\"idle\":0,\"io_wait\":0,\"irq\":0,\"soft_irq\":0}},\"context_switch_count\":34,\"error\":\"\"}},\"instance_info\":{\"instance_name\":\"\",\"instance_id\":\"i-0a9d63b3367e412ea\",\"instance_type\":\"trn2.3xlarge\",\"instance_availability_zone\":\"ap-southeast-4c\",\"instance_availability_zone_id\":\"apse4-az3\",\"instance_region\":\"ap-southeast-4\",\"ami_id\":\"ami-0d5703e99c1589f8d\",\"subnet_id\":\"subnet-0fe22a789fe3a6e7d\",\"error\":\"\"},\"neuron_hardware_info\":{\"neuron_device_type\":\"trainium2\",\"neuroncore_version\":\"v3d\",\"neuron_device_count\":1,\"neuron_device_memory_size\":103079215104,\"neuroncore_per_device_count\":4,\"logical_neuroncore_config\":2,\"error\":\"\"}}\n",
+          "stderr": "",
+          "timed_out": false,
+          "seconds": 3.0145232970025972
+        },
+        "kernel_log": {
+          "argv": [
+            "journalctl",
+            "-k",
+            "--no-pager",
+            "-n",
+            "200",
+            "-o",
+            "short-iso",
+            "--since",
+            "2026-10-01T05:00:08.652726+00:00"
+          ],
+          "returncode": 0,
+          "stdout": "2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_mark: pid:142896  claiming neuron cores: 00-01\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_mark: pid:142898  claiming neuron cores: 04-05\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_mark: pid:142897  claiming neuron cores: 02-03\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_mark: pid:142899  claiming neuron cores: 06-07\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=142897, slot=0\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=142899, slot=1\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=142898, slot=2\n2026-10-01T05:00:15+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=142896, slot=3\n2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: Coalesced 2 reset requests\n2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142897\n2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142896\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142897 completed\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142896 completed\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: Coalesced 2 reset requests\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142899\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142898\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 2\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 3\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 2\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 3\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=143003, slot=4\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=143003, slot=4\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=143014, slot=4\n2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=143014, slot=4\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142899 completed\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142898 completed\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 1\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 0\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 1\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 0\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=143106, slot=4\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=143106, slot=4\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=143109, slot=4\n2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=143109, slot=4\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_unmark: pid:142899  releasing neuron core in range: 06-07\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=142899, slot=1\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_unmark: pid:142898  releasing neuron core in range: 04-05\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=142898, slot=2\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_unmark: pid:142897  releasing neuron core in range: 02-03\n2026-10-01T05:40:05+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=142897, slot=0\n2026-10-01T05:40:06+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_unmark: pid:142896  releasing neuron core in range: 00-01\n2026-10-01T05:40:06+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=142896, slot=3\n2026-10-01T05:40:10+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_mark: pid:180112  claiming neuron cores: 00-07\n2026-10-01T05:40:10+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=180112, slot=0\n2026-10-01T05:40:10+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 180112\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 180112 completed\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 0\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 1\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 2\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_start: Scrubbing nd0 HBM 3\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 0\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 1\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 2\n2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:ncdev_hbm_scrub_wait_for_cmpl: Scrub completed for nd0 HBM 3\n2026-10-01T05:46:49+00:00 ip-172-31-47-242 kernel: neuron:ncrwl_nc_range_unmark: pid:180112  releasing neuron core in range: 00-07\n2026-10-01T05:46:49+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=180112, slot=0\n2026-10-01T05:46:51+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=186421, slot=0\n2026-10-01T05:46:51+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=186421, slot=0\n2026-10-01T05:46:51+00:00 ip-172-31-47-242 kernel: neuron:npid_attach: neuron:npid_attach: pid=186437, slot=0\n2026-10-01T05:46:54+00:00 ip-172-31-47-242 kernel: neuron:npid_detach: neuron:npid_detach: pid=186437, slot=0\n",
+          "stderr": "",
+          "timed_out": false,
+          "seconds": 0.004785516997799277,
+          "relevant_error_lines": [
+            "2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: Coalesced 2 reset requests",
+            "2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142897",
+            "2026-10-01T05:00:16+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142896",
+            "2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142897 completed",
+            "2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142896 completed",
+            "2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: Coalesced 2 reset requests",
+            "2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142899",
+            "2026-10-01T05:00:23+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 142898",
+            "2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142899 completed",
+            "2026-10-01T05:00:33+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 142898 completed",
+            "2026-10-01T05:40:10+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 180112",
+            "2026-10-01T05:40:19+00:00 ip-172-31-47-242 kernel: neuron:nr_reset_thread_fn: nd0: reset request 180112 completed"
+          ]
+        },
+        "relevant_processes": [],
+        "cache_sizes": {},
+        "cache_policy": "reuse shared immutable compilation caches; no purge or OS cache drop",
+        "neuron_devices": [
+          {
+            "instance_type": "trn2.3xlarge",
+            "instance_id": "i-0a9d63b3367e412ea",
+            "neuron_device": 0,
+            "bdf": "0000:33:00.0",
+            "cpu_affinity": "0-11",
+            "numa_node": "0",
+            "connected_to": null,
+            "nc_count": 4,
+            "logical_neuroncore_config": 2,
+            "memory_size": 103079215104,
+            "neuroncore_ids": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "neuron_processes": []
+          }
+        ],
+        "neuron_process_count": 0
+      },
+      "failures": [],
+      "host_clean": true,
+      "completed_at": "2026-10-01T05:46:54.756977+00:00",
+      "artifacts_preserved_on_remote": true,
+      "local_preservation_pending": true
+    },
+    "training": {
+      "elapsed_seconds": 2398.251402609996,
+      "checkpoint": "/home/ubuntu/trainium_freshstart_deadline_20261001/out/fs-20261001-deadline-rmsfp32-r1/train/final.pt",
+      "checkpoint_bytes": 587788862,
+      "checkpoint_sha256": "f77004f04c28a0e3a80a28e0ebf74532be708148a145a40ad06d809343f8fd62"
+    },
+    "within_budget": true
+  }
+}
