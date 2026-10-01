@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn25",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+    "expected_commit": "e196c743c553edcce5f2c90e83cec39160bec667",
+    "label": "fs-20261001-deadline-mimetic-fastcheck-r4",
+    "purpose": "Prove accelerated unchanged evaluation agrees with completed mimetic matched B1 score",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/deadline/evaluate_fast.py",
+      "--variant",
+      "mimetic",
+      "--label",
+      "fs-20261001-deadline-mimetic-fastcheck-r4",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_deadline_20261001/out/fs-20261001-deadline-mimetic-r1/train/final.pt"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "fingerprint_paths": [
+      "candidates/mimetic/train.py",
+      "deadline/run_heads.py",
+      "deadline/check_heads.py",
+      "deadline/build_heads.py",
+      "deadline/evaluate_fast.py"
+    ]
+  },
+  "requested_at": "2026-10-01T06:10:24.158024+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-mimetic-fastcheck-r4\", \"pid\": 62948, \"commit\": \"e196c743c553edcce5f2c90e83cec39160bec667\", \"hostname\": \"ip-172-31-41-184\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_heads_20261001/research/run-logs/fs-20261001-deadline-mimetic-fastcheck-r4.log\", \"started_at\": \"2026-10-01T06:10:29.367175+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn24",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+    "expected_commit": "e196c743c553edcce5f2c90e83cec39160bec667",
+    "label": "fs-20261001-deadline-dualhead-r4",
+    "purpose": "Final output-head test with unchanged training budget and batch-equivalence-checked public20M scoring",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "3000s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/deadline/run_heads.py",
+      "--variant",
+      "dualhead",
+      "--label",
+      "fs-20261001-deadline-dualhead-r4"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+    },
+    "fingerprint_paths": [
+      "candidates/dualhead/train.py",
+      "deadline/run_heads.py",
+      "deadline/check_heads.py",
+      "deadline/build_heads.py",
+      "deadline/evaluate_fast.py"
+    ]
+  },
+  "requested_at": "2026-10-01T06:10:25.059800+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-dualhead-r4\", \"pid\": 205276, \"commit\": \"e196c743c553edcce5f2c90e83cec39160bec667\", \"hostname\": \"ip-172-31-47-242\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_heads_20261001/research/run-logs/fs-20261001-deadline-dualhead-r4.log\", \"started_at\": \"2026-10-01T06:10:30.360755+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -1,0 +1,56 @@
+{
+  "host": "trn24",
+  "remote": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+  "expected_commit": "e196c743c553edcce5f2c90e83cec39160bec667",
+  "label": "fs-20261001-deadline-dualhead-r4",
+  "purpose": "Final output-head test with unchanged training budget and batch-equivalence-checked public20M scoring",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "3000s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/deadline/run_heads.py",
+    "--variant",
+    "dualhead",
+    "--label",
+    "fs-20261001-deadline-dualhead-r4"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+    "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "fingerprint_paths": [
+    "candidates/dualhead/train.py",
+    "deadline/run_heads.py",
+    "deadline/check_heads.py",
+    "deadline/build_heads.py",
+    "deadline/evaluate_fast.py"
+  ],
+  "started_at": "2026-10-01T06:10:30.360755+00:00",
+  "hostname": "ip-172-31-47-242",
+  "git_commit": "e196c743c553edcce5f2c90e83cec39160bec667",
+  "source_dirty": false,
+  "preflight_free_bytes": 158211002368,
+  "source_sha256": {
+    "train.py": "2b4b1ac0d7cd39628ee20282122797abd5f88a5bfc30d7d5115b45289d172894",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "deadline/run_candidate.py": "6251629e220faa2700a64102f0d50edf60328633f589db3afa4c91f0e35ca174",
+    "deadline/check_candidates.py": "24dc401aa87cdf7d93d0711af7544201316445b27616b98671b3763299e65982",
+    "deadline/candidate-manifest.json": "a703080c39882ce64eee952ba559851a4542b78373985236196b4111b2cdc587",
+    "research/fresh_start_host.py": "ae5975d382410d1df040a96ec6b957f6e239f91b7a9c9b24a99138744f718584",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_launch.py": "8279a057ffc50916e2971f2259e6027e2e01a4dc46472eeeec399865255f0d63",
+    "research/fresh_start_sync.py": "da80c2571ce6dd22d6c7132786ae86bb2bc6595da36421d5c072702fd2b22160",
+    "candidates/dualhead/train.py": "378a4d6c77aa169dfba13e518492956e206522469c5561c5b3b247fc3dcf0b69",
+    "deadline/run_heads.py": "60eab5107b4026e2001725f3d76de509723153d8b425561a17161ef017ca03d5",
+    "deadline/check_heads.py": "a310b7e9e235ed459464f6cbb65427927052002c89662b354c509110823c1c90",
+    "deadline/build_heads.py": "836ed7d388bef361afc25961df942c9dbd64b4e23d8c1715f7ebd2d3d1317b6a",
+    "deadline/evaluate_fast.py": "e57830c0611d93a8c1820ba6cfbfffbe8c7eb623a1c65b258bfe77c04ac1810c"
+  }
+}

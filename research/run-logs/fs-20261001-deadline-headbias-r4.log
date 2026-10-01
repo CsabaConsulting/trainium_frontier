@@ -1,0 +1,9 @@
+DEADLINE_START {"variant": "headbias", "source_sha256": "7d2e1aaf6fe75b6c7ed21e0db2d633e41d58f462b0bcc8911401b15678b22083", "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb", "time_budget_seconds": 1800, "fresh_cache": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/out/fs-20261001-deadline-headbias-r4/caches"}
+[W1001 06:10:31.697271205 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+HEAD_CPU_CHECK {"passed": true, "receipts": [{"variant": "headbias", "passed": true, "backbone_init_and_rng_unchanged": true, "causal_prefix_exact": true, "batch_independence": true, "checkpoint_exact": true, "finite_parameter_gradients": 66, "optimizer_coverage_exact": true}, {"variant": "dualhead", "passed": true, "backbone_init_and_rng_unchanged": true, "causal_prefix_exact": true, "batch_independence": true, "checkpoint_exact": true, "finite_parameter_gradients": 66, "optimizer_coverage_exact": true}]}
