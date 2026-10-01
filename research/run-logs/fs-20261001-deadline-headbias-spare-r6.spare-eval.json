@@ -1,0 +1,83 @@
+{
+  "label": "fs-20261001-deadline-headbias-spare-r6",
+  "variant": "headbias",
+  "source_sha256": "7d2e1aaf6fe75b6c7ed21e0db2d633e41d58f462b0bcc8911401b15678b22083",
+  "checkpoint_sha256": "c9cf3d09d4ddbe5b64d22d1c04b9293ce5ac975b21eb560359e8e3e76a6a6362",
+  "checkpoint_bytes": 587821881,
+  "evaluation": {
+    "val_bpb": 0.9644002205897947,
+    "eval_seconds": 22.05288414703682,
+    "eval_timeout": 600,
+    "eval_over_timeout": false,
+    "num_tokens": 2621440,
+    "num_bytes": 10512236,
+    "total_nats": 7027128.0
+  },
+  "prefix_b1": {
+    "val_bpb": 0.949412919575095,
+    "eval_seconds": 8.682660565013066,
+    "eval_timeout": 450,
+    "eval_over_timeout": false,
+    "num_tokens": 262144,
+    "num_bytes": 1049948,
+    "total_nats": 690952.8125
+  },
+  "prefix_b32": {
+    "val_bpb": 0.949412919575095,
+    "eval_seconds": 2.2488845069892704,
+    "eval_timeout": 500,
+    "eval_over_timeout": false,
+    "num_tokens": 262144,
+    "num_bytes": 1049948,
+    "total_nats": 690952.8125
+  },
+  "prefix_bpb_abs_diff": 0.0,
+  "causality": {
+    "passed": true,
+    "max_abs_diff": 0.0,
+    "tolerance": 0.01
+  },
+  "batch_independence_max_abs": 0.0,
+  "eval_batch_size": 32,
+  "lnc": "2",
+  "compiler_flags": "--optlevel=3",
+  "elapsed_seconds": 619.2696252919268,
+  "scoring_seconds": 35.09184232214466,
+  "warmup": {
+    "random_weights": true,
+    "quality_claim": false,
+    "model_config": {
+      "sequence_len": 8192,
+      "vocab_size": 8192,
+      "n_layer": 8,
+      "n_head": 8,
+      "n_embd": 1024,
+      "mlp_ratio": 4,
+      "attn_scale": 0.0,
+      "n_kv_heads": 0,
+      "mtp": true,
+      "d1_detached": true,
+      "d1_injection": "embedding_pre_norm",
+      "tbl_every": 2,
+      "d2_two_site": true,
+      "tbl_freeze_tokens": 0,
+      "lane_b": true
+    },
+    "batch1_seconds": 38.43382842699066,
+    "batch32_seconds": 116.04377473797649,
+    "causality": {
+      "passed": true,
+      "max_abs_diff": 0.0,
+      "tolerance": 0.01
+    },
+    "batch_independence_max_abs": 0.0
+  },
+  "incoming": {
+    "elapsed_seconds": 2405.2116260130424,
+    "checkpoint": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/out/fs-20261001-deadline-headbias-r4/train/final.pt",
+    "checkpoint_bytes": 587821881,
+    "checkpoint_sha256": "c9cf3d09d4ddbe5b64d22d1c04b9293ce5ac975b21eb560359e8e3e76a6a6362"
+  },
+  "prefix_tokens": 262144,
+  "official_portal_score": false
+}

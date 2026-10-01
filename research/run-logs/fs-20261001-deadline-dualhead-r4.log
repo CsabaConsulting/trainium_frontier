@@ -7,3 +7,12 @@ DEADLINE_START {"variant": "dualhead", "source_sha256": "378a4d6c77aa169dfba13e5
   previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
        new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
 HEAD_CPU_CHECK {"passed": true, "receipts": [{"variant": "headbias", "passed": true, "backbone_init_and_rng_unchanged": true, "causal_prefix_exact": true, "batch_independence": true, "checkpoint_exact": true, "finite_parameter_gradients": 66, "optimizer_coverage_exact": true}, {"variant": "dualhead", "passed": true, "backbone_init_and_rng_unchanged": true, "causal_prefix_exact": true, "batch_independence": true, "checkpoint_exact": true, "finite_parameter_gradients": 66, "optimizer_coverage_exact": true}]}
+DEADLINE_TRAIN_COMPLETE {"elapsed_seconds": 2451.401287090004, "checkpoint": "/home/ubuntu/trainium_freshstart_deadline_heads_20261001/out/fs-20261001-deadline-dualhead-r4/train/final.pt", "checkpoint_bytes": 621343545, "checkpoint_sha256": "6e239a83242a0721eb00a821c192eb7877807765dd9f47bb29a20125ca3b2d56"}
+[W1001 06:51:24.145699439 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.

@@ -1,0 +1,26 @@
+[W1001 06:51:57.088308923 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+DELIVERY_CPU_PARITY {"passed": true, "receipts": [{"variant": "frozen", "passed": true, "initialization_rng_exact": true, "nonzero_mlp_logits_exact": true, "loss_exact": true, "parameter_gradients_exact": 65, "optimizer_settings_and_coverage_exact": true, "source_sha256": "2b4b1ac0d7cd39628ee20282122797abd5f88a5bfc30d7d5115b45289d172894", "delivery_sha256": "9ccc0b045a968c90354f955fc070c713c6506538a1688fd1ecf610f8c1bca26f"}, {"variant": "rmsfp32", "passed": true, "initialization_rng_exact": true, "nonzero_mlp_logits_exact": true, "loss_exact": true, "parameter_gradients_exact": 65, "optimizer_settings_and_coverage_exact": true, "source_sha256": "15ffdf6fc8d2edaf69d34049c1f0179d9566f8a3304eae2dfe5e8740c559ad31", "delivery_sha256": "491852cb0be25e6b0f14f48802eb32d0f723a9430c1e5d10aa80b17f1448f412"}, {"variant": "headbias", "passed": true, "initialization_rng_exact": true, "nonzero_mlp_logits_exact": true, "loss_exact": true, "parameter_gradients_exact": 66, "optimizer_settings_and_coverage_exact": true, "source_sha256": "7d2e1aaf6fe75b6c7ed21e0db2d633e41d58f462b0bcc8911401b15678b22083", "delivery_sha256": "43872b2e84033c0f0aace683297f9e8dbd5a51ca95df139fb72c346d8514fc9a"}, {"variant": "dualhead", "passed": true, "initialization_rng_exact": true, "nonzero_mlp_logits_exact": true, "loss_exact": true, "parameter_gradients_exact": 66, "optimizer_settings_and_coverage_exact": true, "source_sha256": "378a4d6c77aa169dfba13e518492956e206522469c5561c5b3b247fc3dcf0b69", "delivery_sha256": "2ac677a11827d5b3daea577cbb27889939c3d01a8899767bc02d0ec0d0332e08"}]}
+
+Note: switching to '343be43a1c4c19c32105acc700927bdb128eaecd'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
