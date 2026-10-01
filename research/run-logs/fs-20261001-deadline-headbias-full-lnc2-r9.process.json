@@ -1,0 +1,33 @@
+{
+  "label": "fs-20261001-deadline-headbias-full-lnc2-r9",
+  "guard_pid": 2025129,
+  "child_pid": 2025130,
+  "child_session": 2025130,
+  "started_at": "2026-10-01T06:54:15.467233+00:00",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1000s",
+    "env",
+    "-u",
+    "NEURON_CC_FLAGS",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/prepare.py",
+    "eval-public",
+    "--train-py",
+    "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/candidates/headbias/train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/incoming/final.pt",
+    "--device",
+    "neuron",
+    "--batch-size",
+    "32",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "900"
+  ]
+}

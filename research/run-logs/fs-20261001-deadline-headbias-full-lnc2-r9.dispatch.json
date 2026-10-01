@@ -1,0 +1,59 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001",
+    "expected_commit": "fd73c9656104f735064b408104dd029599021d9b",
+    "label": "fs-20261001-deadline-headbias-full-lnc2-r9",
+    "purpose": "Exact 20971520-token unchanged prepare.py public evaluation; reuse only warmed inference operator caches, never training state; prior 262144-token equivalence and native causal/batch gates already passed",
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=30s",
+      "1000s",
+      "env",
+      "-u",
+      "NEURON_CC_FLAGS",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/prepare.py",
+      "eval-public",
+      "--train-py",
+      "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/candidates/headbias/train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/incoming/final.pt",
+      "--device",
+      "neuron",
+      "--batch-size",
+      "32",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "900"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/opt/aws/neuron/bin:/usr/local/bin:/usr/bin:/bin",
+      "PYTHONPATH": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_COMPETITION_R1_CACHE_DIR": "/home/ubuntu/.cache/neuron_competition_r1",
+      "NEURON_CC_FLAGS": "--optlevel=3 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/compiler",
+      "NEURON_COMPILE_CACHE_URL": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/compiler",
+      "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/hlo",
+      "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/neff",
+      "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/local",
+      "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/debug",
+      "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_deadline_spare_20261001/out/fs-20261001-deadline-headbias-spare-r6/fast-eval-caches/inductor"
+    },
+    "fingerprint_paths": [
+      "prepare.py",
+      "candidates/headbias/train.py"
+    ]
+  },
+  "requested_at": "2026-10-01T06:54:08.376227+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20261001-deadline-headbias-full-lnc2-r9\", \"pid\": 2025129, \"commit\": \"fd73c9656104f735064b408104dd029599021d9b\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_deadline_spare_20261001/research/run-logs/fs-20261001-deadline-headbias-full-lnc2-r9.log\", \"started_at\": \"2026-10-01T06:54:15.439502+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
